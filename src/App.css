@@ -1,0 +1,11 @@
+#app {
+  width: 100vw;
+  height: 100vh;
+}
+
+.dndnode {
+  border: 2px solid #fff;
+  border-radius: 12px;
+  padding: 12px 24px;
+  margin-bottom: 12px;
+}
