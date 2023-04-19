@@ -27,6 +27,7 @@ import { EntityNode } from "./nodes/EntityNode";
 import { FunctionNode } from "./nodes/FunctionNode";
 import { ValidatorNode } from "./nodes/ValidatorNode";
 import { InputNode } from "./nodes/InputNode";
+import { Button } from "./components/Button";
 
 const initialNodes = [
   {
@@ -190,6 +191,23 @@ function App() {
             Function Node
           </div>
         </aside>
+        <Button
+          className="absolute top-4 right-4"
+          onClick={() => {
+            const data = JSON.stringify({ nodes, edges }, null, 2);
+
+            const dataStr =
+              "data:text/json;charset=utf-8," + encodeURIComponent(data);
+            const link = document.createElement("a");
+            link.setAttribute("href", dataStr);
+            link.setAttribute("download", "protoflow-project.json");
+            document.body.appendChild(link); // required for firefox
+            link.click();
+            link.remove();
+          }}
+        >
+          Export
+        </Button>
       </div>
     </ReactFlowProvider>
   );

@@ -1,9 +1,8 @@
 import {
   ChangeEvent,
-  Fragment,
   KeyboardEvent,
   useEffect,
-  useState,
+  useState
 } from "react";
 import { useForm } from "react-hook-form";
 import { HiPencilSquare, HiPlay, HiXMark } from "react-icons/hi2";
