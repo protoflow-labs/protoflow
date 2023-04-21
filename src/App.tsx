@@ -35,48 +35,14 @@ import { InputData, InputNode } from "./nodes/InputNode";
 import { ValidatorNode } from "./nodes/ValidatorNode";
 
 import InputEntityEdgeTemplate from "./templates/InputEntityEdgeTemplate.hbs?raw";
+import { QueryNode } from "./nodes/QueryNode";
+import { QueueNode } from "./nodes/QueueNode";
+import { BucketNode } from "./nodes/BucketNode";
 
 const generateInputEntityEdgeTemplate = hbs(InputEntityEdgeTemplate);
 
-const initialNodes: any = [
-  // {
-  //   id: "1",
-  //   type: "entity",
-  //   data: { table: "users", name: "Users" },
-  //   position: { x: 400, y: 125 },
-  // },
-  // {
-  //   id: "2",
-  //   type: "input",
-  //   data: { name: "CreateUserInput", fields: [] },
-  //   position: { x: 400, y: 25 },
-  // },
-  // {
-  //   id: "3",
-  //   type: "default",
-  //   data: { label: "SendWelcomeEmail" },
-  //   position: { x: 250, y: 250 },
-  // },
-  // {
-  //   id: "4",
-  //   type: "default",
-  //   data: { label: "TrackUserCreated" },
-  //   position: { x: 400, y: 250 },
-  // },
-  // {
-  //   id: "5",
-  //   type: "default",
-  //   data: { label: "SendSlackMessage" },
-  //   position: { x: 550, y: 250 },
-  // },
-];
-
-const initialEdges: any = [
-  // { id: "e1-2", source: "2", target: "1", label:'Auto Implementation: insertRecordFromInput' },
-  // { id: "e2-3", source: "1", target: "3", animated: true, label: "on INSERT" },
-  // { id: "e2-4", source: "1", target: "4", animated: true, label: "on INSERT"  },
-  // { id: "e2-5", source: "1", target: "5", animated: true, label: "on INSERT"   },
-];
+const initialNodes: any = [];
+const initialEdges: any = [];
 
 function App() {
   const nodeTypes = useMemo(
@@ -85,6 +51,9 @@ function App() {
       function: FunctionNode,
       validation: ValidatorNode,
       message: InputNode,
+      query: QueryNode,
+      queue: QueueNode,
+      bucket: BucketNode,
     }),
     []
   );
@@ -162,45 +131,48 @@ function App() {
             <NodeButton nodeType="entity">Entity</NodeButton>
             <NodeButton nodeType="message">Input</NodeButton>
             <NodeButton nodeType="function">Function</NodeButton>
+            <NodeButton nodeType="query">Query</NodeButton>
+            <NodeButton nodeType="queue">Queue</NodeButton>
+            <NodeButton nodeType="bucket">Bucket</NodeButton>
           </aside>
           <Button
             size="small"
             className="absolute top-4 right-4"
             onClick={() => {
-              for (const edge of edges) {
-                const sourceNode: Node<InputData> | undefined = nodes.find(
-                  (node) => node.id === edge.source
-                );
+              // for (const edge of edges) {
+              //   const sourceNode: Node<InputData> | undefined = nodes.find(
+              //     (node) => node.id === edge.source
+              //   );
 
-                const targetNode: Node<EntityData> | undefined = nodes.find(
-                  (node) => node.id === edge.target
-                );
+              //   const targetNode: Node<EntityData> | undefined = nodes.find(
+              //     (node) => node.id === edge.target
+              //   );
 
-                if (
-                  sourceNode?.type === "message" &&
-                  targetNode?.type === "entity"
-                ) {
-                  const template = generateInputEntityEdgeTemplate({
-                    host: "docstore",
-                    port: "27017",
-                    database: "protoflow",
-                    collection: targetNode.data.name,
-                    name: sourceNode.data.name + "Impl",
-                  });
+              //   if (
+              //     sourceNode?.type === "message" &&
+              //     targetNode?.type === "entity"
+              //   ) {
+              //     const template = generateInputEntityEdgeTemplate({
+              //       host: "docstore",
+              //       port: "27017",
+              //       database: "protoflow",
+              //       collection: targetNode.data.name,
+              //       name: sourceNode.data.name + "Impl",
+              //     });
 
-                  console.log(template)
-                }
-              }
-              // const data = JSON.stringify({ nodes, edges }, null, 2);
+              //     console.log(template);
+              //   }
+              // }
+              const data = JSON.stringify({ nodes, edges }, null, 2);
 
-              // const dataStr =
-              //   "data:text/json;charset=utf-8," + encodeURIComponent(data);
-              // const link = document.createElement("a");
-              // link.setAttribute("href", dataStr);
-              // link.setAttribute("download", "protoflow-project.json");
-              // document.body.appendChild(link); // required for firefox
-              // link.click();
-              // link.remove();
+              const dataStr =
+                "data:text/json;charset=utf-8," + encodeURIComponent(data);
+              const link = document.createElement("a");
+              link.setAttribute("href", dataStr);
+              link.setAttribute("download", "protoflow-project.json");
+              document.body.appendChild(link); // required for firefox
+              link.click();
+              link.remove();
             }}
           >
             Export
