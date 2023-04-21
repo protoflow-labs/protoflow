@@ -1,23 +1,24 @@
 import { Caption1, Card, CardHeader, Text } from "@fluentui/react-components";
-import { HiCircleStack } from "react-icons/hi2";
+import { TbBucket } from "react-icons/tb";
 import { Handle, NodeProps, Position } from "reactflow";
 
-export type EntityNodeProps = NodeProps<EntityData>;
+export type BucketNodeProps = NodeProps<BucketData>;
 
-export type EntityData = {
+export type BucketData = {
   name: string;
-  table: string;
 };
 
-export function EntityNode(props: EntityNodeProps) {
+export function BucketNode(props: BucketNodeProps) {
   const { data, selected } = props;
   return (
     <>
       <Card>
         <CardHeader
-          image={<HiCircleStack className="h-5 w-5 bg-gray-800" />}
-          header={<Text weight="semibold">{data.name || 'Untitled Collection'}</Text>}
-          description={<Caption1>Collection</Caption1>}
+          image={<TbBucket className="h-5 w-5 bg-gray-800" />}
+          header={
+            <Text weight="semibold">{data.name || "Untitled Bucket"}</Text>
+          }
+          description={<Caption1>Bucket</Caption1>}
         />
       </Card>
       <Handle type="source" position={Position.Bottom} className="z-10" />

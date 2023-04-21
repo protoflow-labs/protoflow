@@ -1,16 +1,18 @@
 import {
+  Button,
+  FluentProvider,
+  webDarkTheme,
+} from "@fluentui/react-components";
+import {
   DragEvent,
   DragEventHandler,
-  MouseEvent,
-  MouseEventHandler,
+  ReactNode,
   useCallback,
   useMemo,
   useState,
 } from "react";
+import { compile as hbs } from "handlebars";
 import ReactFlow, {
-  addEdge,
-  applyEdgeChanges,
-  applyNodeChanges,
   Background,
   Connection,
   Edge,
@@ -19,56 +21,28 @@ import ReactFlow, {
   OnNodesChange,
   ReactFlowInstance,
   ReactFlowProvider,
+  addEdge,
+  applyEdgeChanges,
+  applyNodeChanges,
 } from "reactflow";
 
 import "reactflow/dist/style.css";
 import "./App.css";
-import { EntityNode } from "./nodes/EntityNode";
+import { EditorPanel } from "./components/EditorPanel";
+import { EntityData, EntityNode } from "./nodes/EntityNode";
 import { FunctionNode } from "./nodes/FunctionNode";
+import { InputData, InputNode } from "./nodes/InputNode";
 import { ValidatorNode } from "./nodes/ValidatorNode";
-import { InputNode } from "./nodes/InputNode";
-import { Button } from "./components/Button";
 
-const initialNodes = [
-  {
-    id: "1",
-    type: "entity",
-    data: { table: "users", name: "Users" },
-    position: { x: 400, y: 125 },
-  },
+import InputEntityEdgeTemplate from "./templates/InputEntityEdgeTemplate.hbs?raw";
+import { QueryNode } from "./nodes/QueryNode";
+import { QueueNode } from "./nodes/QueueNode";
+import { BucketNode } from "./nodes/BucketNode";
 
-  {
-    id: "2",
-    type: "input",
-    data: { name: "CreateUserInput", fields: [] },
-    position: { x: 400, y: 25 },
-  },
-  {
-    id: "3",
-    type: "default",
-    data: { label: "SendWelcomeEmail" },
-    position: { x: 250, y: 250 },
-  },
-  {
-    id: "4",
-    type: "default",
-    data: { label: "TrackUserCreated" },
-    position: { x: 400, y: 250 },
-  },
-  {
-    id: "5",
-    type: "default",
-    data: { label: "SendSlackMessage" },
-    position: { x: 550, y: 250 },
-  },
-];
+const generateInputEntityEdgeTemplate = hbs(InputEntityEdgeTemplate);
 
-const initialEdges = [
-  { id: "e1-2", source: "2", target: "1" },
-  { id: "e2-3", source: "1", target: "3", animated: true },
-  { id: "e2-4", source: "1", target: "4", animated: true },
-  { id: "e2-5", source: "1", target: "5", animated: true },
-];
+const initialNodes: any = [];
+const initialEdges: any = [];
 
 function App() {
   const nodeTypes = useMemo(
@@ -76,7 +50,10 @@ function App() {
       entity: EntityNode,
       function: FunctionNode,
       validation: ValidatorNode,
-      input: InputNode,
+      message: InputNode,
+      query: QueryNode,
+      queue: QueueNode,
+      bucket: BucketNode,
     }),
     []
   );
@@ -97,17 +74,17 @@ function App() {
   );
 
   const onConnect = useCallback((params: Connection) => {
-    console.log(params);
     setEdges((eds) => addEdge(params, eds));
   }, []);
 
-  const onDrop: DragEventHandler<HTMLDivElement> = (event) => {
-    event.preventDefault();
+  const onDrop: DragEventHandler<HTMLDivElement> = (e) => {
+    e.preventDefault();
 
-    const type = event.dataTransfer.getData("application/reactflow");
+    const type = e.dataTransfer.getData("application/reactflow");
+
     const position = reactFlowInstance!.project({
-      x: event.clientX,
-      y: event.clientY,
+      x: e.clientX,
+      y: e.clientY,
     });
 
     const newNode = {
@@ -120,97 +97,105 @@ function App() {
     setNodes((nds) => [...nds, newNode]);
   };
 
-  const onDragOver: DragEventHandler = useCallback((event) => {
-    event.preventDefault();
-    event.dataTransfer.dropEffect = "move";
-  }, []);
-
   const onDragStart = (event: DragEvent<HTMLDivElement>, nodeType: string) => {
     event.dataTransfer.setData("application/reactflow", nodeType);
     event.dataTransfer.effectAllowed = "move";
   };
 
-  return (
-    <ReactFlowProvider>
-      <div id="app">
-        <ReactFlow
-          nodeTypes={nodeTypes}
-          nodes={nodes}
-          onNodesChange={onNodesChange}
-          edges={edges}
-          onEdgesChange={onEdgesChange}
-          onInit={(ref: any) => setReactFlowInstance(ref)}
-          onDrop={onDrop}
-          onDragOver={onDragOver}
-          onConnect={onConnect}
-          onChange={console.log}
-          fitView
-          proOptions={{ hideAttribution: true }}
-        >
-          <Background />
-        </ReactFlow>
-        <aside
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            margin: 16,
-            padding: 24,
-            background: `rgba(255 ,255 ,255 ,0.1)`,
-          }}
-        >
-          <div className="description">
-            You can drag these nodes to the pane on the right.
-          </div>
-          <div
-            className="dndnode entity"
-            onDragStart={(event) => onDragStart(event, "entity")}
-            draggable
-          >
-            Entity Node
-          </div>
-          <div
-            className="dndnode"
-            onDragStart={(event) => onDragStart(event, "input")}
-            draggable
-          >
-            Input Node
-          </div>
-          <div
-            className="dndnode"
-            onDragStart={(event) => onDragStart(event, "validation")}
-            draggable
-          >
-            Validator Node
-          </div>
-          <div
-            className="dndnode function"
-            onDragStart={(event) => onDragStart(event, "function")}
-            draggable
-          >
-            Function Node
-          </div>
-        </aside>
-        <Button
-          className="absolute top-4 right-4"
-          onClick={() => {
-            const data = JSON.stringify({ nodes, edges }, null, 2);
+  const onDragOver: DragEventHandler = useCallback((e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+  }, []);
 
-            const dataStr =
-              "data:text/json;charset=utf-8," + encodeURIComponent(data);
-            const link = document.createElement("a");
-            link.setAttribute("href", dataStr);
-            link.setAttribute("download", "protoflow-project.json");
-            document.body.appendChild(link); // required for firefox
-            link.click();
-            link.remove();
-          }}
-        >
-          Export
-        </Button>
-      </div>
-    </ReactFlowProvider>
+  return (
+    <FluentProvider theme={webDarkTheme}>
+      <ReactFlowProvider>
+        <div id="app">
+          <ReactFlow
+            nodeTypes={nodeTypes}
+            nodes={nodes}
+            onNodesChange={onNodesChange}
+            edges={edges}
+            onEdgesChange={onEdgesChange}
+            onInit={(ref: any) => setReactFlowInstance(ref)}
+            onDrop={onDrop}
+            onDragOver={onDragOver}
+            onConnect={onConnect}
+            onChange={console.log}
+            fitView
+            proOptions={{ hideAttribution: true }}
+          >
+            <Background />
+          </ReactFlow>
+          <aside className="absolute top-0 left-0 m-4 p-2 bg-white/10 text-white rounded flex flex-col gap-2 items-start justify-start">
+            <NodeButton nodeType="entity">Entity</NodeButton>
+            <NodeButton nodeType="message">Input</NodeButton>
+            <NodeButton nodeType="function">Function</NodeButton>
+            <NodeButton nodeType="query">Query</NodeButton>
+            <NodeButton nodeType="queue">Queue</NodeButton>
+            <NodeButton nodeType="bucket">Bucket</NodeButton>
+          </aside>
+          <Button
+            size="small"
+            className="absolute top-4 right-4"
+            onClick={() => {
+              // for (const edge of edges) {
+              //   const sourceNode: Node<InputData> | undefined = nodes.find(
+              //     (node) => node.id === edge.source
+              //   );
+
+              //   const targetNode: Node<EntityData> | undefined = nodes.find(
+              //     (node) => node.id === edge.target
+              //   );
+
+              //   if (
+              //     sourceNode?.type === "message" &&
+              //     targetNode?.type === "entity"
+              //   ) {
+              //     const template = generateInputEntityEdgeTemplate({
+              //       host: "docstore",
+              //       port: "27017",
+              //       database: "protoflow",
+              //       collection: targetNode.data.name,
+              //       name: sourceNode.data.name + "Impl",
+              //     });
+
+              //     console.log(template);
+              //   }
+              // }
+              const data = JSON.stringify({ nodes, edges }, null, 2);
+
+              const dataStr =
+                "data:text/json;charset=utf-8," + encodeURIComponent(data);
+              const link = document.createElement("a");
+              link.setAttribute("href", dataStr);
+              link.setAttribute("download", "protoflow-project.json");
+              document.body.appendChild(link); // required for firefox
+              link.click();
+              link.remove();
+            }}
+          >
+            Export
+          </Button>
+          <EditorPanel />
+        </div>
+      </ReactFlowProvider>
+    </FluentProvider>
   );
 }
 
 export default App;
+
+function NodeButton(props: { children: ReactNode; nodeType: string }) {
+  return (
+    <div
+      draggable
+      onDragStart={(e) => {
+        e.dataTransfer.setData("application/reactflow", props.nodeType);
+        e.dataTransfer.effectAllowed = "move";
+      }}
+    >
+      <Button>{props.children}</Button>
+    </div>
+  );
+}
