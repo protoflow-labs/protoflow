@@ -1,10 +1,10 @@
-import { useCallback } from "react";
+import { HiCheckCircle } from "react-icons/hi2";
 import { Connection, Handle, NodeProps, Position } from "reactflow";
-import { HiCheckCircle, HiCircleStack, HiCodeBracket } from "react-icons/hi2";
 
 const handleStyle = {
   background: "green",
 };
+
 type ValidatorNodeProps = NodeProps<ValidatorData>;
 
 type ValidatorData = {

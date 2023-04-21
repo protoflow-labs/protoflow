@@ -1,11 +1,7 @@
-import { useCallback } from "react";
-import { Handle, NodeProps, Position } from "reactflow";
-import { HiCircleStack, HiCodeBracket } from "react-icons/hi2";
 import { Caption1, Card, CardHeader, Text } from "@fluentui/react-components";
+import { HiCodeBracket } from "react-icons/hi2";
+import { Handle, NodeProps, Position } from "reactflow";
 
-const handleStyle = {
-  background: "blue",
-};
 type FunctionNodeProps = NodeProps<FunctionData>;
 
 export type FunctionData = {

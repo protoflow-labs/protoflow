@@ -1,4 +1,0 @@
-k8s.io/apimachinery v0.27.1 h1:EGuZiLI95UQQcClhanryclaQE6xjg1Bts6/L3cD7zyc=
-k8s.io/apimachinery v0.27.1/go.mod h1:5ikh59fK3AJ287GUvpUsryoMFtH9zj/ARfWCo3AyXTM=
-k8s.io/client-go v0.27.1 h1:oXsfhW/qncM1wDmWBIuDzRHNS2tLhK3BZv512Nc59W8=
-k8s.io/client-go v0.27.1/go.mod h1:f8LHMUkVb3b9N8bWturc+EDtVVVwZ7ueTVquFAJb2vA=
