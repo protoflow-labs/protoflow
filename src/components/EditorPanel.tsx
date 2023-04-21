@@ -1,8 +1,9 @@
-import { Button, Card, Input, Label } from "@fluentui/react-components";
+import { Button, Card, Input, Label, Select } from "@fluentui/react-components";
 import { Node, useOnSelectionChange } from "reactflow";
 import { EntityData } from "../nodes/EntityNode";
 import { useState } from "react";
 import { HiPlus } from "react-icons/hi2";
+import { FunctionData } from "../nodes/FunctionNode";
 
 export function EditorPanel() {
   const [activeNode, setActiveNode] = useState<Node | null>(null);
@@ -39,6 +40,8 @@ function NodeEditor(props: NodeEditorProps) {
       return <InputEditor node={props.node} />;
     case "entity":
       return <EntityEditor node={props.node} />;
+    case "function":
+      return <FunctionEditor node={props.node} />;
     default:
       return null;
   }
@@ -84,10 +87,41 @@ function EntityEditor(props: { node: Node<EntityData> }) {
           id="entityTable"
           defaultValue={props.node.data.table}
           onChange={(e) => {
-            e.currentTarget.value = e.currentTarget.value.replace(/\s/g, "_").toLowerCase();
+            e.currentTarget.value = e.currentTarget.value
+              .replace(/\s/g, "_")
+              .toLowerCase();
             props.node.data.table = e.currentTarget.value;
           }}
         />
+      </div>
+    </div>
+  );
+}
+
+function FunctionEditor(props: { node: Node<FunctionData> }) {
+  return (
+    <div className="flex flex-col gap-2 p-4">
+      <div className="flex flex-col">
+        <Label htmlFor="entityName">Name</Label>
+        <Input
+          id="entityName"
+          defaultValue={props.node.data.name || ""}
+          onChange={(e) => {
+            props.node.data.name = e.target.value;
+          }}
+        />
+      </div>
+      <div className="flex flex-col">
+        <Label htmlFor="entityLanguage">Language</Label>
+        <Select
+          onChange={(e) => {
+            props.node.data.language = e.currentTarget.value;
+          }}
+        >
+          <option>Go</option>
+          <option>Node.js</option>
+          <option>Python</option>
+        </Select>
       </div>
     </div>
   );
