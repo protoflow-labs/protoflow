@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+option go_package = "generated/protos;service";
+
+package protoflow.runtime;
+
+service Runtime {
+  rpc SetCode(SetCodeInput) returns (SetCodeOutput) {}
+}
+
+message SetCodeInput {
+  string code = 1;
+}
+
+message SetCodeOutput {}

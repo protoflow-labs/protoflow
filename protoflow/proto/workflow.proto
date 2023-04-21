@@ -1,0 +1,95 @@
+syntax = "proto3";
+
+package workflow;
+option go_package = "./gen/workflow";
+
+service Manager {
+  rpc CreateWorkflow(Workflow) returns (ID) {}
+}
+
+message ID {
+  string id = 1;
+}
+
+message Workflow {
+  string id = 1;
+  string name = 2;
+  repeated Node nodes = 3;
+  repeated Edge edges = 4;
+  repeated Resource resources = 5;
+}
+
+message Resource {
+  oneof type {
+    DBResource db = 1;
+    DocStoreResource docstore = 2;
+    BucketResource bucket = 3;
+  }
+}
+
+message Function {
+  oneof type {
+    CodeFunction code = 1;
+  }
+}
+
+message Input {
+  map<string, string> params = 1;
+}
+
+message Collection {
+  string name = 1;
+}
+
+message Table {
+  string name = 1;
+}
+
+message Data {
+  oneof type {
+    Input input = 1;
+    Collection collection = 2;
+  }
+}
+
+message Node {
+  string id = 1;
+  string name = 2;
+  oneof type {
+    Function function = 3;
+    Data data = 4;
+  }
+}
+
+message Edge {
+  string id = 1;
+  string from = 2;
+  string to = 3;
+}
+
+message GRPCFunction {
+  string host = 1;
+  string service = 2;
+  string method = 3;
+}
+
+message CodeFunction {
+  string code = 1;
+}
+
+message SQLFunction {
+  string url = 1;
+  string query = 2;
+}
+
+message DBResource {
+  string url = 1;
+}
+
+message DocStoreResource {
+  string url = 1;
+}
+
+message BucketResource {
+  string url = 1;
+}
