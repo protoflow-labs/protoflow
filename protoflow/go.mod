@@ -1,8 +1,9 @@
-module github.com/protoflow-labs/protoflow
+module github.com/protoflow-labs/protoflow-editor/protoflow
 
 go 1.20
 
 require (
+	github.com/bufbuild/connect-go v1.7.0
 	github.com/glebarez/sqlite v1.8.0
 	github.com/go-chi/chi/v5 v5.0.4
 	github.com/gofiber/fiber/v2 v2.44.0
@@ -43,7 +44,6 @@ require (
 	github.com/google/pprof v0.0.0-20230111200839-76d1ae5aea2b // indirect
 	github.com/google/subcommands v1.0.1 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.4.0 // indirect
-	github.com/horizon-games/protoc-gen-twirp_ts v0.0.0-20181220144523-a30af0209061 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
 	github.com/jackc/pgconn v1.13.0 // indirect
 	github.com/jackc/pgio v1.0.0 // indirect

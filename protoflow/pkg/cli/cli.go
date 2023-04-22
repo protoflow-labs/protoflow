@@ -3,9 +3,9 @@ package cli
 import (
 	"os"
 
-	"github.com/protoflow-labs/protoflow/pkg/api"
-	logcfg "github.com/protoflow-labs/protoflow/pkg/log"
-	"github.com/protoflow-labs/protoflow/pkg/workflow"
+	"github.com/protoflow-labs/protoflow-editor/protoflow/pkg/api"
+	logcfg "github.com/protoflow-labs/protoflow-editor/protoflow/pkg/log"
+	"github.com/protoflow-labs/protoflow-editor/protoflow/pkg/workflow"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/urfave/cli/v2"

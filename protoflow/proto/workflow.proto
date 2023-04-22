@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 package workflow;
-option go_package = "./gen/workflow";
+option go_package = "workflow";
 
 service Manager {
   rpc CreateWorkflow(Workflow) returns (ID) {}

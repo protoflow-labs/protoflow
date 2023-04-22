@@ -5,9 +5,9 @@ import (
 	"path"
 
 	"github.com/lunabrain-ai/lunabrain/pkg/store/cache"
-	"github.com/protoflow-labs/protoflow/pkg/db"
-	"github.com/protoflow-labs/protoflow/pkg/log"
-	"github.com/protoflow-labs/protoflow/pkg/workflow"
+	"github.com/protoflow-labs/protoflow-editor/protoflow/pkg/db"
+	"github.com/protoflow-labs/protoflow-editor/protoflow/pkg/log"
+	"github.com/protoflow-labs/protoflow-editor/protoflow/pkg/workflow"
 	"go.uber.org/config"
 )
 

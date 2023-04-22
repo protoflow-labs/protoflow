@@ -2,12 +2,14 @@ package workflow
 
 import (
 	"context"
+	connect_go "github.com/bufbuild/connect-go"
+	"github.com/protoflow-labs/protoflow-editor/protoflow/gen"
+	"github.com/protoflow-labs/protoflow-editor/protoflow/gen/genconnect"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/wire"
 	"github.com/pkg/errors"
-	"github.com/protoflow-labs/protoflow/gen/workflow"
 	"github.com/rs/zerolog/log"
 	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/api/workflowservice/v1"
@@ -18,7 +20,7 @@ import (
 const taskQueue = "protoflow"
 
 type TemporalManager struct {
-	workflow.UnimplementedManagerServer
+	genconnect.UnimplementedManagerHandler
 
 	temporalClient client.Client
 	workflowStore  Store
@@ -30,10 +32,10 @@ var ProviderSet = wire.NewSet(
 	StoreProviderSet,
 	NewClient,
 	NewManager,
-	wire.Bind(new(workflow.Manager), new(*TemporalManager)),
+	wire.Bind(new(genconnect.ManagerHandler), new(*TemporalManager)),
 )
 
-var _ workflow.Manager = (*TemporalManager)(nil)
+var _ genconnect.ManagerHandler = (*TemporalManager)(nil)
 
 func NewManager(
 	temporalClient client.Client,
@@ -47,24 +49,32 @@ func NewManager(
 	}
 }
 
-func (m *TemporalManager) CreateWorkflow(ctx context.Context, protoflow *workflow.Workflow) (*workflow.ID, error) {
-	id, err := m.workflowStore.SaveWorkflow(protoflow)
+func (m *TemporalManager) CreateWorkflow(
+	ctx context.Context,
+	req *connect_go.Request[gen.Workflow],
+) (*connect_go.Response[gen.ID], error) {
+	id, err := m.workflowStore.SaveWorkflow(req.Msg)
 	if err != nil {
 		return nil, err
 	}
-	return &workflow.ID{
-		Id: id,
+	return &connect_go.Response[gen.ID]{
+		Msg: &gen.ID{
+			Id: id,
+		},
 	}, nil
 }
 
-func (m *TemporalManager) StartWorkflow(ctx context.Context, entry *workflow.WorkflowEntrypoint) (*workflow.Run, error) {
-	protoflow, err := m.workflowStore.GetWorkflow(entry.WorkflowId)
+func (m *TemporalManager) StartWorkflow(
+	ctx context.Context,
+	req *connect_go.Request[gen.WorkflowEntrypoint],
+) (*connect_go.Response[gen.Run], error) {
+	protoflow, err := m.workflowStore.GetWorkflow(req.Msg.WorkflowId)
 	if err != nil {
 		return nil, err
 	}
 
 	workflowOptions := client.StartWorkflowOptions{
-		ID:        protoflow.Id,
+		ID:        req.Msg.WorkflowId,
 		TaskQueue: taskQueue,
 		// CronSchedule: workflow.CronSchedule,
 	}
@@ -74,7 +84,7 @@ func (m *TemporalManager) StartWorkflow(ctx context.Context, entry *workflow.Wor
 		return nil, err
 	}
 
-	we, err := m.temporalClient.ExecuteWorkflow(ctx, workflowOptions, Run, w, entry.NodeId)
+	we, err := m.temporalClient.ExecuteWorkflow(ctx, workflowOptions, Run, w, req.Msg.NodeId)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to start workflow %s", protoflow.Id)
 	}
@@ -83,8 +93,10 @@ func (m *TemporalManager) StartWorkflow(ctx context.Context, entry *workflow.Wor
 		Str("run id", we.GetRunID()).
 		Msg("started workflow")
 
-	return &workflow.Run{
-		Id: we.GetRunID(),
+	return &connect_go.Response[gen.Run]{
+		Msg: &gen.Run{
+			Id: we.GetRunID(),
+		},
 	}, nil
 }
 
@@ -137,19 +149,19 @@ func (m *TemporalManager) CancelWorkflows(deploymentID string, workflowRuns []Wo
 }
 
 // StopAllOpenWorkflows gets all currently open workflows and cancels them.
-func (s *TemporalManager) StopAllOpenWorkflows(c *fiber.Ctx) error {
+func (m *TemporalManager) StopAllOpenWorkflows(c *fiber.Ctx) error {
 	request := &workflowservice.ListOpenWorkflowExecutionsRequest{
-		Namespace: s.config.Temporal.Namespace,
+		Namespace: m.config.Temporal.Namespace,
 	}
 
 	// TODO call this in loop to get all executions
-	response, err := s.temporalClient.ListOpenWorkflow(context.Background(), request)
+	response, err := m.temporalClient.ListOpenWorkflow(context.Background(), request)
 	if err != nil {
 		return err
 	}
 	for _, execution := range response.GetExecutions() {
 		workflowExec := execution.GetExecution()
-		err := s.temporalClient.CancelWorkflow(context.Background(), workflowExec.WorkflowId, workflowExec.RunId)
+		err := m.temporalClient.CancelWorkflow(context.Background(), workflowExec.WorkflowId, workflowExec.RunId)
 		if err != nil {
 			return err
 		}

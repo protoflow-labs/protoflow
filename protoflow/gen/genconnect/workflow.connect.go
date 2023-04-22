@@ -2,13 +2,13 @@
 //
 // Source: workflow.proto
 
-package protoflowconnect
+package genconnect
 
 import (
 	context "context"
 	errors "errors"
 	connect_go "github.com/bufbuild/connect-go"
-	protoflow "github.com/protoflow-labs/protoflow"
+	gen "github.com/protoflow-labs/protoflow-editor/protoflow/gen"
 	http "net/http"
 	strings "strings"
 )
@@ -41,8 +41,8 @@ const (
 
 // ManagerClient is a client for the workflow.Manager service.
 type ManagerClient interface {
-	CreateWorkflow(context.Context, *connect_go.Request[protoflow.Workflow]) (*connect_go.Response[protoflow.ID], error)
-	StartWorkflow(context.Context, *connect_go.Request[protoflow.WorkflowEntrypoint]) (*connect_go.Response[protoflow.Run], error)
+	CreateWorkflow(context.Context, *connect_go.Request[gen.Workflow]) (*connect_go.Response[gen.ID], error)
+	StartWorkflow(context.Context, *connect_go.Request[gen.WorkflowEntrypoint]) (*connect_go.Response[gen.Run], error)
 }
 
 // NewManagerClient constructs a client for the workflow.Manager service. By default, it uses the
@@ -55,12 +55,12 @@ type ManagerClient interface {
 func NewManagerClient(httpClient connect_go.HTTPClient, baseURL string, opts ...connect_go.ClientOption) ManagerClient {
 	baseURL = strings.TrimRight(baseURL, "/")
 	return &managerClient{
-		createWorkflow: connect_go.NewClient[protoflow.Workflow, protoflow.ID](
+		createWorkflow: connect_go.NewClient[gen.Workflow, gen.ID](
 			httpClient,
 			baseURL+ManagerCreateWorkflowProcedure,
 			opts...,
 		),
-		startWorkflow: connect_go.NewClient[protoflow.WorkflowEntrypoint, protoflow.Run](
+		startWorkflow: connect_go.NewClient[gen.WorkflowEntrypoint, gen.Run](
 			httpClient,
 			baseURL+ManagerStartWorkflowProcedure,
 			opts...,
@@ -70,24 +70,24 @@ func NewManagerClient(httpClient connect_go.HTTPClient, baseURL string, opts ...
 
 // managerClient implements ManagerClient.
 type managerClient struct {
-	createWorkflow *connect_go.Client[protoflow.Workflow, protoflow.ID]
-	startWorkflow  *connect_go.Client[protoflow.WorkflowEntrypoint, protoflow.Run]
+	createWorkflow *connect_go.Client[gen.Workflow, gen.ID]
+	startWorkflow  *connect_go.Client[gen.WorkflowEntrypoint, gen.Run]
 }
 
 // CreateWorkflow calls workflow.Manager.CreateWorkflow.
-func (c *managerClient) CreateWorkflow(ctx context.Context, req *connect_go.Request[protoflow.Workflow]) (*connect_go.Response[protoflow.ID], error) {
+func (c *managerClient) CreateWorkflow(ctx context.Context, req *connect_go.Request[gen.Workflow]) (*connect_go.Response[gen.ID], error) {
 	return c.createWorkflow.CallUnary(ctx, req)
 }
 
 // StartWorkflow calls workflow.Manager.StartWorkflow.
-func (c *managerClient) StartWorkflow(ctx context.Context, req *connect_go.Request[protoflow.WorkflowEntrypoint]) (*connect_go.Response[protoflow.Run], error) {
+func (c *managerClient) StartWorkflow(ctx context.Context, req *connect_go.Request[gen.WorkflowEntrypoint]) (*connect_go.Response[gen.Run], error) {
 	return c.startWorkflow.CallUnary(ctx, req)
 }
 
 // ManagerHandler is an implementation of the workflow.Manager service.
 type ManagerHandler interface {
-	CreateWorkflow(context.Context, *connect_go.Request[protoflow.Workflow]) (*connect_go.Response[protoflow.ID], error)
-	StartWorkflow(context.Context, *connect_go.Request[protoflow.WorkflowEntrypoint]) (*connect_go.Response[protoflow.Run], error)
+	CreateWorkflow(context.Context, *connect_go.Request[gen.Workflow]) (*connect_go.Response[gen.ID], error)
+	StartWorkflow(context.Context, *connect_go.Request[gen.WorkflowEntrypoint]) (*connect_go.Response[gen.Run], error)
 }
 
 // NewManagerHandler builds an HTTP handler from the service implementation. It returns the path on
@@ -113,10 +113,10 @@ func NewManagerHandler(svc ManagerHandler, opts ...connect_go.HandlerOption) (st
 // UnimplementedManagerHandler returns CodeUnimplemented from all methods.
 type UnimplementedManagerHandler struct{}
 
-func (UnimplementedManagerHandler) CreateWorkflow(context.Context, *connect_go.Request[protoflow.Workflow]) (*connect_go.Response[protoflow.ID], error) {
+func (UnimplementedManagerHandler) CreateWorkflow(context.Context, *connect_go.Request[gen.Workflow]) (*connect_go.Response[gen.ID], error) {
 	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("workflow.Manager.CreateWorkflow is not implemented"))
 }
 
-func (UnimplementedManagerHandler) StartWorkflow(context.Context, *connect_go.Request[protoflow.WorkflowEntrypoint]) (*connect_go.Response[protoflow.Run], error) {
+func (UnimplementedManagerHandler) StartWorkflow(context.Context, *connect_go.Request[gen.WorkflowEntrypoint]) (*connect_go.Response[gen.Run], error) {
 	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("workflow.Manager.StartWorkflow is not implemented"))
 }

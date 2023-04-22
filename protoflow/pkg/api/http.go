@@ -2,19 +2,19 @@ package api
 
 import (
 	"fmt"
+	"github.com/protoflow-labs/protoflow-editor/protoflow/gen/genconnect"
 	"net/http"
 	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/protoflow-labs/protoflow/gen/workflow"
 )
 
 type HTTPServer struct {
 	mux *chi.Mux
 }
 
-func NewHTTPServer(workflowManager workflow.Manager) *HTTPServer {
+func NewHTTPServer(workflowManager genconnect.ManagerHandler) *HTTPServer {
 	muxRoot := chi.NewRouter()
 
 	muxRoot.Use(middleware.RequestID)
@@ -29,8 +29,8 @@ func NewHTTPServer(workflowManager workflow.Manager) *HTTPServer {
 	//muxRoot.Use(middleware.Recoverer)
 	muxRoot.Use(middleware.Timeout(time.Second * 5))
 
-	twirpHandler := workflow.NewManagerServer(workflowManager)
-	muxRoot.Handle(twirpHandler.PathPrefix(), twirpHandler)
+	route, handler := genconnect.NewManagerHandler(workflowManager)
+	muxRoot.Handle(route, handler)
 	return &HTTPServer{
 		mux: muxRoot,
 	}

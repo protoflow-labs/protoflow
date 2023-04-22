@@ -2,13 +2,13 @@ package workflow
 
 import (
 	"fmt"
+	"github.com/protoflow-labs/protoflow-editor/protoflow/gen"
 	"time"
 
 	"github.com/hmdsefi/gograph"
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
 
-	pwork "github.com/protoflow-labs/protoflow/gen/workflow"
 	"go.temporal.io/sdk/workflow"
 )
 
@@ -24,12 +24,12 @@ type Workflow struct {
 }
 
 type WorkflowGraph struct {
-	Nodes       []*pwork.Node
-	Edges       []*pwork.Edge
+	Nodes       []*gen.Node
+	Edges       []*gen.Edge
 	BlockLookup map[string]Block
 }
 
-func NewWorkflowFromProtoflow(workflowGraph *pwork.Workflow) (*Workflow, error) {
+func NewWorkflowFromProtoflow(workflowGraph *gen.Workflow) (*Workflow, error) {
 	graph := gograph.New[string](gograph.Directed())
 
 	blockLookup := map[string]Block{}

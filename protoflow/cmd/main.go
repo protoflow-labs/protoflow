@@ -4,7 +4,7 @@ import (
 	"os"
 
 	"github.com/lunabrain-ai/lunabrain/pkg/store/cache"
-	"github.com/protoflow-labs/protoflow/pkg/cli"
+	"github.com/protoflow-labs/protoflow-editor/protoflow/pkg/cli"
 	"github.com/rs/zerolog/log"
 )
 

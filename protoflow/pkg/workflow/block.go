@@ -2,7 +2,7 @@ package workflow
 
 import (
 	"github.com/pkg/errors"
-	protoflow "github.com/protoflow-labs/protoflow/gen/workflow"
+	protoflow "github.com/protoflow-labs/protoflow-editor/protoflow/gen"
 	"go.temporal.io/sdk/workflow"
 )
 

@@ -4,15 +4,15 @@ import (
 	"github.com/google/wire"
 	_ "github.com/lib/pq"
 	_ "github.com/mattn/go-sqlite3"
-	"github.com/protoflow-labs/protoflow/gen/workflow"
-	"github.com/protoflow-labs/protoflow/pkg/db"
-	"github.com/protoflow-labs/protoflow/pkg/model"
+	"github.com/protoflow-labs/protoflow-editor/protoflow/gen"
+	"github.com/protoflow-labs/protoflow-editor/protoflow/pkg/db"
+	"github.com/protoflow-labs/protoflow-editor/protoflow/pkg/model"
 	"gorm.io/gorm"
 )
 
 type Store interface {
-	SaveWorkflow(w *workflow.Workflow) (id string, err error)
-	GetWorkflow(workflowID string) (protoflow *workflow.Workflow, err error)
+	SaveWorkflow(w *gen.Workflow) (id string, err error)
+	GetWorkflow(workflowID string) (protoflow *gen.Workflow, err error)
 }
 
 var _ Store = (*DBStore)(nil)
@@ -42,7 +42,7 @@ func NewDBStore(db *gorm.DB) (*DBStore, error) {
 	}, nil
 }
 
-func (s *DBStore) SaveWorkflow(w *workflow.Workflow) (id string, err error) {
+func (s *DBStore) SaveWorkflow(w *gen.Workflow) (id string, err error) {
 	work := model.Workflow{
 		Protoflow: model.ProtoJSON[interface{}]{
 			Data: *w,
@@ -55,7 +55,7 @@ func (s *DBStore) SaveWorkflow(w *workflow.Workflow) (id string, err error) {
 	return work.ID.String(), nil
 }
 
-func (s *DBStore) GetWorkflow(workflowID string) (protoflow *workflow.Workflow, err error) {
+func (s *DBStore) GetWorkflow(workflowID string) (protoflow *gen.Workflow, err error) {
 	w := model.Workflow{}
 	res := s.db.First(&w, "id = ?", workflowID)
 	if res.Error != nil {

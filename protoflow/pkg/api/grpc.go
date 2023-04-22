@@ -2,10 +2,9 @@ package api
 
 import (
 	"fmt"
+	"github.com/protoflow-labs/protoflow-editor/protoflow/pkg/workflow"
 	"net"
 
-	protoflow "github.com/protoflow-labs/protoflow/gen/workflow"
-	"github.com/protoflow-labs/protoflow/pkg/workflow"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
@@ -17,7 +16,6 @@ type GRPCServer struct {
 func NewGRPCServer(manager *workflow.TemporalManager) *GRPCServer {
 	s := grpc.NewServer()
 
-	protoflow.RegisterManagerServer(s, manager)
 	reflection.Register(s)
 	return &GRPCServer{
 		server: s,

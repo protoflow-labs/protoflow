@@ -5,9 +5,9 @@ import (
 	"database/sql/driver"
 	"errors"
 	"fmt"
+	"github.com/protoflow-labs/protoflow-editor/protoflow/gen"
 	"strings"
 
-	"github.com/protoflow-labs/protoflow/gen/workflow"
 	"google.golang.org/protobuf/encoding/protojson"
 
 	"gorm.io/driver/mysql"
@@ -19,7 +19,7 @@ import (
 // ProtoJSON give a generic data type for json encoded data.
 type ProtoJSON[T any] struct {
 	// TODO breadchris couldn't figure out how to make this generic, there is a problem with protojson.Unmarshal/Marshal
-	Data workflow.Workflow
+	Data gen.Workflow
 }
 
 // Value return json value, implement driver.Valuer interface

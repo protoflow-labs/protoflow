@@ -7,12 +7,12 @@
 package cli
 
 import (
-	"github.com/protoflow-labs/protoflow/pkg/api"
-	"github.com/protoflow-labs/protoflow/pkg/config"
-	"github.com/protoflow-labs/protoflow/pkg/db"
-	"github.com/protoflow-labs/protoflow/pkg/log"
-	"github.com/protoflow-labs/protoflow/pkg/workflow"
 	"github.com/lunabrain-ai/lunabrain/pkg/store/cache"
+	"github.com/protoflow-labs/protoflow-editor/protoflow/pkg/api"
+	"github.com/protoflow-labs/protoflow-editor/protoflow/pkg/config"
+	"github.com/protoflow-labs/protoflow-editor/protoflow/pkg/db"
+	"github.com/protoflow-labs/protoflow-editor/protoflow/pkg/log"
+	"github.com/protoflow-labs/protoflow-editor/protoflow/pkg/workflow"
 	"github.com/urfave/cli/v2"
 )
 

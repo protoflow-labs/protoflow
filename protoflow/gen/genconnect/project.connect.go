@@ -2,13 +2,13 @@
 //
 // Source: project.proto
 
-package protoflowconnect
+package genconnect
 
 import (
 	context "context"
 	errors "errors"
 	connect_go "github.com/bufbuild/connect-go"
-	protoflow "github.com/protoflow-labs/protoflow"
+	gen "github.com/protoflow-labs/protoflow-editor/protoflow/gen"
 	http "net/http"
 	strings "strings"
 )
@@ -49,10 +49,10 @@ const (
 
 // ProjectServiceClient is a client for the project.ProjectService service.
 type ProjectServiceClient interface {
-	GetProject(context.Context, *connect_go.Request[protoflow.GetProjectRequest]) (*connect_go.Response[protoflow.GetProjectResponse], error)
-	GetProjects(context.Context, *connect_go.Request[protoflow.GetProjectsRequest]) (*connect_go.Response[protoflow.GetProjectsResponse], error)
-	CreateProject(context.Context, *connect_go.Request[protoflow.CreateProjectRequest]) (*connect_go.Response[protoflow.CreateProjectResponse], error)
-	DeleteProject(context.Context, *connect_go.Request[protoflow.DeleteProjectRequest]) (*connect_go.Response[protoflow.DeleteProjectResponse], error)
+	GetProject(context.Context, *connect_go.Request[gen.GetProjectRequest]) (*connect_go.Response[gen.GetProjectResponse], error)
+	GetProjects(context.Context, *connect_go.Request[gen.GetProjectsRequest]) (*connect_go.Response[gen.GetProjectsResponse], error)
+	CreateProject(context.Context, *connect_go.Request[gen.CreateProjectRequest]) (*connect_go.Response[gen.CreateProjectResponse], error)
+	DeleteProject(context.Context, *connect_go.Request[gen.DeleteProjectRequest]) (*connect_go.Response[gen.DeleteProjectResponse], error)
 }
 
 // NewProjectServiceClient constructs a client for the project.ProjectService service. By default,
@@ -65,22 +65,22 @@ type ProjectServiceClient interface {
 func NewProjectServiceClient(httpClient connect_go.HTTPClient, baseURL string, opts ...connect_go.ClientOption) ProjectServiceClient {
 	baseURL = strings.TrimRight(baseURL, "/")
 	return &projectServiceClient{
-		getProject: connect_go.NewClient[protoflow.GetProjectRequest, protoflow.GetProjectResponse](
+		getProject: connect_go.NewClient[gen.GetProjectRequest, gen.GetProjectResponse](
 			httpClient,
 			baseURL+ProjectServiceGetProjectProcedure,
 			opts...,
 		),
-		getProjects: connect_go.NewClient[protoflow.GetProjectsRequest, protoflow.GetProjectsResponse](
+		getProjects: connect_go.NewClient[gen.GetProjectsRequest, gen.GetProjectsResponse](
 			httpClient,
 			baseURL+ProjectServiceGetProjectsProcedure,
 			opts...,
 		),
-		createProject: connect_go.NewClient[protoflow.CreateProjectRequest, protoflow.CreateProjectResponse](
+		createProject: connect_go.NewClient[gen.CreateProjectRequest, gen.CreateProjectResponse](
 			httpClient,
 			baseURL+ProjectServiceCreateProjectProcedure,
 			opts...,
 		),
-		deleteProject: connect_go.NewClient[protoflow.DeleteProjectRequest, protoflow.DeleteProjectResponse](
+		deleteProject: connect_go.NewClient[gen.DeleteProjectRequest, gen.DeleteProjectResponse](
 			httpClient,
 			baseURL+ProjectServiceDeleteProjectProcedure,
 			opts...,
@@ -90,38 +90,38 @@ func NewProjectServiceClient(httpClient connect_go.HTTPClient, baseURL string, o
 
 // projectServiceClient implements ProjectServiceClient.
 type projectServiceClient struct {
-	getProject    *connect_go.Client[protoflow.GetProjectRequest, protoflow.GetProjectResponse]
-	getProjects   *connect_go.Client[protoflow.GetProjectsRequest, protoflow.GetProjectsResponse]
-	createProject *connect_go.Client[protoflow.CreateProjectRequest, protoflow.CreateProjectResponse]
-	deleteProject *connect_go.Client[protoflow.DeleteProjectRequest, protoflow.DeleteProjectResponse]
+	getProject    *connect_go.Client[gen.GetProjectRequest, gen.GetProjectResponse]
+	getProjects   *connect_go.Client[gen.GetProjectsRequest, gen.GetProjectsResponse]
+	createProject *connect_go.Client[gen.CreateProjectRequest, gen.CreateProjectResponse]
+	deleteProject *connect_go.Client[gen.DeleteProjectRequest, gen.DeleteProjectResponse]
 }
 
 // GetProject calls project.ProjectService.GetProject.
-func (c *projectServiceClient) GetProject(ctx context.Context, req *connect_go.Request[protoflow.GetProjectRequest]) (*connect_go.Response[protoflow.GetProjectResponse], error) {
+func (c *projectServiceClient) GetProject(ctx context.Context, req *connect_go.Request[gen.GetProjectRequest]) (*connect_go.Response[gen.GetProjectResponse], error) {
 	return c.getProject.CallUnary(ctx, req)
 }
 
 // GetProjects calls project.ProjectService.GetProjects.
-func (c *projectServiceClient) GetProjects(ctx context.Context, req *connect_go.Request[protoflow.GetProjectsRequest]) (*connect_go.Response[protoflow.GetProjectsResponse], error) {
+func (c *projectServiceClient) GetProjects(ctx context.Context, req *connect_go.Request[gen.GetProjectsRequest]) (*connect_go.Response[gen.GetProjectsResponse], error) {
 	return c.getProjects.CallUnary(ctx, req)
 }
 
 // CreateProject calls project.ProjectService.CreateProject.
-func (c *projectServiceClient) CreateProject(ctx context.Context, req *connect_go.Request[protoflow.CreateProjectRequest]) (*connect_go.Response[protoflow.CreateProjectResponse], error) {
+func (c *projectServiceClient) CreateProject(ctx context.Context, req *connect_go.Request[gen.CreateProjectRequest]) (*connect_go.Response[gen.CreateProjectResponse], error) {
 	return c.createProject.CallUnary(ctx, req)
 }
 
 // DeleteProject calls project.ProjectService.DeleteProject.
-func (c *projectServiceClient) DeleteProject(ctx context.Context, req *connect_go.Request[protoflow.DeleteProjectRequest]) (*connect_go.Response[protoflow.DeleteProjectResponse], error) {
+func (c *projectServiceClient) DeleteProject(ctx context.Context, req *connect_go.Request[gen.DeleteProjectRequest]) (*connect_go.Response[gen.DeleteProjectResponse], error) {
 	return c.deleteProject.CallUnary(ctx, req)
 }
 
 // ProjectServiceHandler is an implementation of the project.ProjectService service.
 type ProjectServiceHandler interface {
-	GetProject(context.Context, *connect_go.Request[protoflow.GetProjectRequest]) (*connect_go.Response[protoflow.GetProjectResponse], error)
-	GetProjects(context.Context, *connect_go.Request[protoflow.GetProjectsRequest]) (*connect_go.Response[protoflow.GetProjectsResponse], error)
-	CreateProject(context.Context, *connect_go.Request[protoflow.CreateProjectRequest]) (*connect_go.Response[protoflow.CreateProjectResponse], error)
-	DeleteProject(context.Context, *connect_go.Request[protoflow.DeleteProjectRequest]) (*connect_go.Response[protoflow.DeleteProjectResponse], error)
+	GetProject(context.Context, *connect_go.Request[gen.GetProjectRequest]) (*connect_go.Response[gen.GetProjectResponse], error)
+	GetProjects(context.Context, *connect_go.Request[gen.GetProjectsRequest]) (*connect_go.Response[gen.GetProjectsResponse], error)
+	CreateProject(context.Context, *connect_go.Request[gen.CreateProjectRequest]) (*connect_go.Response[gen.CreateProjectResponse], error)
+	DeleteProject(context.Context, *connect_go.Request[gen.DeleteProjectRequest]) (*connect_go.Response[gen.DeleteProjectResponse], error)
 }
 
 // NewProjectServiceHandler builds an HTTP handler from the service implementation. It returns the
@@ -157,18 +157,18 @@ func NewProjectServiceHandler(svc ProjectServiceHandler, opts ...connect_go.Hand
 // UnimplementedProjectServiceHandler returns CodeUnimplemented from all methods.
 type UnimplementedProjectServiceHandler struct{}
 
-func (UnimplementedProjectServiceHandler) GetProject(context.Context, *connect_go.Request[protoflow.GetProjectRequest]) (*connect_go.Response[protoflow.GetProjectResponse], error) {
+func (UnimplementedProjectServiceHandler) GetProject(context.Context, *connect_go.Request[gen.GetProjectRequest]) (*connect_go.Response[gen.GetProjectResponse], error) {
 	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("project.ProjectService.GetProject is not implemented"))
 }
 
-func (UnimplementedProjectServiceHandler) GetProjects(context.Context, *connect_go.Request[protoflow.GetProjectsRequest]) (*connect_go.Response[protoflow.GetProjectsResponse], error) {
+func (UnimplementedProjectServiceHandler) GetProjects(context.Context, *connect_go.Request[gen.GetProjectsRequest]) (*connect_go.Response[gen.GetProjectsResponse], error) {
 	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("project.ProjectService.GetProjects is not implemented"))
 }
 
-func (UnimplementedProjectServiceHandler) CreateProject(context.Context, *connect_go.Request[protoflow.CreateProjectRequest]) (*connect_go.Response[protoflow.CreateProjectResponse], error) {
+func (UnimplementedProjectServiceHandler) CreateProject(context.Context, *connect_go.Request[gen.CreateProjectRequest]) (*connect_go.Response[gen.CreateProjectResponse], error) {
 	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("project.ProjectService.CreateProject is not implemented"))
 }
 
-func (UnimplementedProjectServiceHandler) DeleteProject(context.Context, *connect_go.Request[protoflow.DeleteProjectRequest]) (*connect_go.Response[protoflow.DeleteProjectResponse], error) {
+func (UnimplementedProjectServiceHandler) DeleteProject(context.Context, *connect_go.Request[gen.DeleteProjectRequest]) (*connect_go.Response[gen.DeleteProjectResponse], error) {
 	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("project.ProjectService.DeleteProject is not implemented"))
 }

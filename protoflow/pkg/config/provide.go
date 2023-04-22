@@ -3,7 +3,7 @@ package config
 import (
 	"github.com/google/wire"
 	"github.com/lunabrain-ai/lunabrain/pkg/store/cache"
-	"github.com/protoflow-labs/protoflow/pkg/log"
+	"github.com/protoflow-labs/protoflow-editor/protoflow/pkg/log"
 )
 
 var ProviderSet = wire.NewSet(

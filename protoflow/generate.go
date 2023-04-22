@@ -1,3 +1,3 @@
 package protoflow
 
-//go:generate ./generate.sh
+//go:generate buf generate proto
