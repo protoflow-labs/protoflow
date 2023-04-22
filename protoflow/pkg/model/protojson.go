@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/breadchris/protoflow/gen/workflow"
+	"github.com/protoflow-labs/protoflow/gen/workflow"
 	"google.golang.org/protobuf/encoding/protojson"
 
 	"gorm.io/driver/mysql"

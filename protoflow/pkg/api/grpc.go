@@ -2,11 +2,12 @@ package api
 
 import (
 	"fmt"
-	protoflow "github.com/breadchris/protoflow/gen/workflow"
-	"github.com/breadchris/protoflow/pkg/workflow"
+	"net"
+
+	protoflow "github.com/protoflow-labs/protoflow/gen/workflow"
+	"github.com/protoflow-labs/protoflow/pkg/workflow"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
-	"net"
 )
 
 type GRPCServer struct {

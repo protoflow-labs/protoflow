@@ -2,12 +2,13 @@ package workflow
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/hmdsefi/gograph"
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
-	"time"
 
-	pwork "github.com/breadchris/protoflow/gen/workflow"
+	pwork "github.com/protoflow-labs/protoflow/gen/workflow"
 	"go.temporal.io/sdk/workflow"
 )
 

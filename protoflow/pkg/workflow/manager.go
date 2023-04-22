@@ -2,14 +2,15 @@ package workflow
 
 import (
 	"context"
-	"github.com/breadchris/protoflow/gen/workflow"
+	"time"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/wire"
 	"github.com/pkg/errors"
+	"github.com/protoflow-labs/protoflow/gen/workflow"
 	"github.com/rs/zerolog/log"
 	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/api/workflowservice/v1"
-	"time"
 
 	"go.temporal.io/sdk/client"
 )

@@ -1,10 +1,11 @@
 package main
 
 import (
-	"github.com/breadchris/protoflow/pkg/cli"
-	"github.com/lunabrain-ai/lunabrain/pkg/store/cache"
-	"github.com/rs/zerolog/log"
 	"os"
+
+	"github.com/lunabrain-ai/lunabrain/pkg/store/cache"
+	"github.com/protoflow-labs/protoflow/pkg/cli"
+	"github.com/rs/zerolog/log"
 )
 
 func main() {

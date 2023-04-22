@@ -1,13 +1,14 @@
 package config
 
 import (
-	"github.com/breadchris/protoflow/pkg/db"
-	"github.com/breadchris/protoflow/pkg/log"
-	"github.com/breadchris/protoflow/pkg/workflow"
-	"github.com/lunabrain-ai/lunabrain/pkg/store/cache"
-	"go.uber.org/config"
 	"os"
 	"path"
+
+	"github.com/lunabrain-ai/lunabrain/pkg/store/cache"
+	"github.com/protoflow-labs/protoflow/pkg/db"
+	"github.com/protoflow-labs/protoflow/pkg/log"
+	"github.com/protoflow-labs/protoflow/pkg/workflow"
+	"go.uber.org/config"
 )
 
 const (

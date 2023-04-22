@@ -7,11 +7,11 @@
 package cli
 
 import (
-	"github.com/breadchris/protoflow/pkg/api"
-	"github.com/breadchris/protoflow/pkg/config"
-	"github.com/breadchris/protoflow/pkg/db"
-	"github.com/breadchris/protoflow/pkg/log"
-	"github.com/breadchris/protoflow/pkg/workflow"
+	"github.com/protoflow-labs/protoflow/pkg/api"
+	"github.com/protoflow-labs/protoflow/pkg/config"
+	"github.com/protoflow-labs/protoflow/pkg/db"
+	"github.com/protoflow-labs/protoflow/pkg/log"
+	"github.com/protoflow-labs/protoflow/pkg/workflow"
 	"github.com/lunabrain-ai/lunabrain/pkg/store/cache"
 	"github.com/urfave/cli/v2"
 )

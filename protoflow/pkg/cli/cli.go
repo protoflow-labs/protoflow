@@ -1,13 +1,14 @@
 package cli
 
 import (
-	"github.com/breadchris/protoflow/pkg/api"
-	logcfg "github.com/breadchris/protoflow/pkg/log"
-	"github.com/breadchris/protoflow/pkg/workflow"
+	"os"
+
+	"github.com/protoflow-labs/protoflow/pkg/api"
+	logcfg "github.com/protoflow-labs/protoflow/pkg/log"
+	"github.com/protoflow-labs/protoflow/pkg/workflow"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/urfave/cli/v2"
-	"os"
 )
 
 // TODO breadchris this should be a provided dependency
@@ -58,11 +59,11 @@ func New(
 
 					grpcPort := ctx.Int("grpc")
 					if grpcPort == 0 {
-						grpcPort = 50051
+						grpcPort = 8085
 					}
 
 					go func() {
-						log.Info().Int("port", grpcPort).Msg("starting http server")
+						log.Info().Int("port", grpcPort).Msg("starting grpc server")
 						if err := grpcHandler.Serve(grpcPort); err != nil {
 							log.Error().Err(err).Msg("error serving grpc")
 							return

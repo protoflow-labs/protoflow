@@ -2,11 +2,12 @@ package api
 
 import (
 	"fmt"
-	"github.com/breadchris/protoflow/gen/workflow"
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
 	"net/http"
 	"time"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
+	"github.com/protoflow-labs/protoflow/gen/workflow"
 )
 
 type HTTPServer struct {

@@ -1,12 +1,12 @@
 package workflow
 
 import (
-	"github.com/breadchris/protoflow/gen/workflow"
-	"github.com/breadchris/protoflow/pkg/db"
-	"github.com/breadchris/protoflow/pkg/model"
 	"github.com/google/wire"
 	_ "github.com/lib/pq"
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/protoflow-labs/protoflow/gen/workflow"
+	"github.com/protoflow-labs/protoflow/pkg/db"
+	"github.com/protoflow-labs/protoflow/pkg/model"
 	"gorm.io/gorm"
 )
 

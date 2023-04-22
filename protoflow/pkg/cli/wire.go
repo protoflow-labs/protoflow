@@ -4,11 +4,11 @@
 package cli
 
 import (
-	"github.com/breadchris/protoflow/pkg/api"
-	"github.com/breadchris/protoflow/pkg/config"
-	"github.com/breadchris/protoflow/pkg/workflow"
 	"github.com/google/wire"
 	"github.com/lunabrain-ai/lunabrain/pkg/store/cache"
+	"github.com/protoflow-labs/protoflow/pkg/api"
+	"github.com/protoflow-labs/protoflow/pkg/config"
+	"github.com/protoflow-labs/protoflow/pkg/workflow"
 	urfavcli "github.com/urfave/cli/v2"
 )
 

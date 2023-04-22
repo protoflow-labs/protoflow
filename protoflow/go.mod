@@ -1,4 +1,4 @@
-module github.com/breadchris/protoflow
+module github.com/protoflow-labs/protoflow
 
 go 1.20
 
@@ -19,8 +19,9 @@ require (
 	go.temporal.io/api v1.19.1-0.20230322213042-07fb271d475b
 	go.temporal.io/sdk v1.22.1
 	go.uber.org/config v1.4.0
+	google.golang.org/grpc v1.54.0
 	google.golang.org/protobuf v1.30.0
-	gorm.io/datatypes v1.1.1
+	gorm.io/driver/mysql v1.4.7
 	gorm.io/driver/postgres v1.4.5
 	gorm.io/gorm v1.24.6
 )
@@ -42,6 +43,7 @@ require (
 	github.com/google/pprof v0.0.0-20230111200839-76d1ae5aea2b // indirect
 	github.com/google/subcommands v1.0.1 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.4.0 // indirect
+	github.com/horizon-games/protoc-gen-twirp_ts v0.0.0-20181220144523-a30af0209061 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
 	github.com/jackc/pgconn v1.13.0 // indirect
 	github.com/jackc/pgio v1.0.0 // indirect
@@ -57,7 +59,6 @@ require (
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.18 // indirect
 	github.com/mattn/go-runewidth v0.0.14 // indirect
-	github.com/microsoft/go-mssqldb v0.18.0 // indirect
 	github.com/pborman/uuid v1.2.1 // indirect
 	github.com/philhofer/fwd v1.1.2 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
@@ -85,11 +86,8 @@ require (
 	golang.org/x/time v0.3.0 // indirect
 	golang.org/x/tools v0.7.0 // indirect
 	google.golang.org/genproto v0.0.0-20230403163135-c38d8f061ccd // indirect
-	google.golang.org/grpc v1.54.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	gorm.io/driver/mysql v1.4.7 // indirect
-	gorm.io/driver/sqlite v1.4.4 // indirect
 	modernc.org/libc v1.22.3 // indirect
 	modernc.org/mathutil v1.5.0 // indirect
 	modernc.org/memory v1.5.0 // indirect
