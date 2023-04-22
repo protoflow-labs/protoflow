@@ -5,10 +5,20 @@ option go_package = "./gen/workflow";
 
 service Manager {
   rpc CreateWorkflow(Workflow) returns (ID) {}
+  rpc StartWorkflow(WorkflowEntrypoint) returns (Run) {}
 }
 
 message ID {
   string id = 1;
+}
+
+message Run {
+  string id = 1;
+}
+
+message WorkflowEntrypoint {
+  string workflowId = 1;
+  string nodeId = 2;
 }
 
 message Workflow {

@@ -5,6 +5,7 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/urfave/cli/v2"
+	"net/http"
 	"os"
 )
 
@@ -19,6 +20,7 @@ func setupLogging(level string) {
 
 func New(
 	logConfig logcfg.Config,
+	httpHandler http.Handler,
 ) *cli.App {
 	setupLogging(logConfig.Level)
 
@@ -36,10 +38,11 @@ func New(
 				},
 				Action: func(ctx *cli.Context) error {
 					port := ctx.Int("port")
-					if port != 0 {
-						log.Info().Int("port", port).Msg("running on port")
+					if port == 0 {
+						port = 8080
 					}
-					return nil
+					log.Info().Int("port", port).Msg("starting server")
+					return http.ListenAndServe(":"+ctx.String("port"), httpHandler)
 				},
 			},
 		},

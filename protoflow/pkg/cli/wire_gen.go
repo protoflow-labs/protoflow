@@ -7,8 +7,11 @@
 package cli
 
 import (
+	"github.com/breadchris/protoflow/pkg/api"
 	"github.com/breadchris/protoflow/pkg/config"
+	"github.com/breadchris/protoflow/pkg/db"
 	"github.com/breadchris/protoflow/pkg/log"
+	"github.com/breadchris/protoflow/pkg/workflow"
 	"github.com/lunabrain-ai/lunabrain/pkg/store/cache"
 	"github.com/urfave/cli/v2"
 )
@@ -28,6 +31,25 @@ func Wire(cacheConfig cache.Config) (*cli.App, error) {
 	if err != nil {
 		return nil, err
 	}
-	app := New(logConfig)
+	workflowConfig, err := workflow.NewConfig(provider)
+	if err != nil {
+		return nil, err
+	}
+	client, err := workflow.NewClient(workflowConfig)
+	if err != nil {
+		return nil, err
+	}
+	dbConfig, err := db.NewConfig(provider)
+	if err != nil {
+		return nil, err
+	}
+	gormDB, err := db.NewGormDB(dbConfig, localCache)
+	if err != nil {
+		return nil, err
+	}
+	dbStore := workflow.NewDBStore(gormDB)
+	temporalManager := workflow.NewManager(client, dbStore)
+	handler := api.NewAPIHandler(temporalManager)
+	app := New(logConfig, handler)
 	return app, nil
 }

@@ -14,9 +14,11 @@ type Code struct {
 	code string
 }
 
+var activity = &Activity{}
+
 func (s *Code) Execute(ctx workflow.Context) (interface{}, error) {
 	res := Result{}
-	err := workflow.ExecuteActivity(ctx, Activity.ExecuteCode, s).Get(ctx, &res)
+	err := workflow.ExecuteActivity(ctx, activity.ExecuteCode, s).Get(ctx, &res)
 	return res, err
 }
 
@@ -26,7 +28,7 @@ type Input struct {
 
 func (s *Input) Execute(ctx workflow.Context) (interface{}, error) {
 	res := Result{}
-	err := workflow.ExecuteActivity(ctx, Activity.ExecuteInput, s).Get(ctx, &res)
+	err := workflow.ExecuteActivity(ctx, activity.ExecuteInput, s).Get(ctx, &res)
 	return res, err
 }
 

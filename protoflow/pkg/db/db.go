@@ -3,9 +3,15 @@ package db
 import (
 	"fmt"
 	"github.com/glebarez/sqlite"
+	"github.com/google/wire"
 	"github.com/lunabrain-ai/lunabrain/pkg/store/cache"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+)
+
+var ProviderSet = wire.NewSet(
+	NewConfig,
+	NewGormDB,
 )
 
 func NewGormDB(config Config, cache cache.Cache) (*gorm.DB, error) {
@@ -31,4 +37,3 @@ func NewGormDB(config Config, cache cache.Cache) (*gorm.DB, error) {
 
 	return db.Debug(), nil
 }
-

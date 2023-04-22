@@ -1,6 +1,7 @@
 package config
 
 import (
+	"github.com/breadchris/protoflow/pkg/db"
 	"github.com/breadchris/protoflow/pkg/log"
 	"github.com/breadchris/protoflow/pkg/workflow"
 	"github.com/lunabrain-ai/lunabrain/pkg/store/cache"
@@ -17,12 +18,14 @@ const (
 type BaseConfig struct {
 	Log      log.Config      `yaml:"log"`
 	Workflow workflow.Config `yaml:"workflow"`
+	DB       db.Config       `yaml:"db"`
 }
 
 func NewDefaultConfig() BaseConfig {
 	return BaseConfig{
 		Log:      log.NewDefaultConfig(),
 		Workflow: workflow.NewDefaultConfig(),
+		DB:       db.NewDefaultConfig(),
 	}
 }
 

@@ -2,10 +2,10 @@ package workflow
 
 import (
 	"context"
-	"fmt"
 	"github.com/breadchris/protoflow/gen/workflow"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
+	"github.com/google/wire"
 	"github.com/lunabrain-ai/lunabrain/pkg/store/temporal/dsl"
 	"github.com/rs/zerolog/log"
 	"go.temporal.io/api/workflowservice/v1"
@@ -16,17 +16,28 @@ const taskQueue = "protoflow"
 
 type Service struct {
 	temporalClient client.Client
+	manager        workflow.Manager
 	store          Store
 	config         Config
 }
 
+var ProviderSet = wire.NewSet(
+	NewConfig,
+	StoreProviderSet,
+	NewClient,
+	ManagerProviderSet,
+	NewService,
+)
+
 func NewService(
 	temporalClient client.Client,
+	manager workflow.Manager,
 	store Store,
 	config Config,
 ) *Service {
 	return &Service{
 		temporalClient: temporalClient,
+		manager:        manager,
 		store:          store,
 		config:         config,
 	}
@@ -53,44 +64,6 @@ func (s *Service) CreateWorkflow(ctx context.Context, w *workflow.Workflow) (*wo
 	return &workflow.ID{
 		Id: we.GetRunID(),
 	}, nil
-}
-
-func (s *Service) StartWorkflow(c *fiber.Ctx) error {
-	waitForCompletion := false
-
-	ctx := context.Background()
-	if waitForCompletion {
-		ctx = c.Context()
-	}
-
-	deploymentID := c.Params("deploymentID")
-	workflowID := c.Params("workflowID")
-
-	log.Debug().Str("workflow id", workflowID).Msg("starting workflow")
-
-	fmt.Printf("%s", c.Body())
-
-	if waitForCompletion {
-		workflowResults := s.manager.WaitForWorkflowRunsResults(ctx, workflowID, startedWorkflows)
-
-		returnData, err := formatReturnData(workflowResults)
-		if err != nil {
-			return err
-		}
-		c.Write(returnData)
-		return nil
-	}
-	return nil
-}
-
-// CancelWorkflowsForDeployment cancels all workflows for a given deployment.
-func (s *Service) CancelWorkflowsForDeployment(c *fiber.Ctx) error {
-	deploymentID := c.Params("deploymentID")
-
-	if err := s.manager.CancelWorkflowsForDeployment(deploymentID); err != nil {
-		return err
-	}
-	return nil
 }
 
 // StopAllOpenWorkflows gets all currently open workflows and cancels them.
