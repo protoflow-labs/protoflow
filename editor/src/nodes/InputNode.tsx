@@ -1,12 +1,7 @@
 import { Caption1, Card, CardHeader, Text } from "@fluentui/react-components";
-import { ChangeEvent, KeyboardEvent, useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import { ChangeEvent, KeyboardEvent } from "react";
 import { HiPencilSquare } from "react-icons/hi2";
 import { Handle, NodeProps, Position } from "reactflow";
-
-const handleStyle = {
-  background: "#555",
-};
 
 type InputNodeProps = NodeProps<InputData>;
 

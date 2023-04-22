@@ -38,6 +38,7 @@ import InputEntityEdgeTemplate from "./templates/InputEntityEdgeTemplate.hbs?raw
 import { QueryNode } from "./nodes/QueryNode";
 import { QueueNode } from "./nodes/QueueNode";
 import { BucketNode } from "./nodes/BucketNode";
+import { NodeResourceDependencies } from "./lib/resources";
 
 const generateInputEntityEdgeTemplate = hbs(InputEntityEdgeTemplate);
 
@@ -139,40 +140,32 @@ function App() {
             size="small"
             className="absolute top-4 right-4"
             onClick={() => {
-              // for (const edge of edges) {
-              //   const sourceNode: Node<InputData> | undefined = nodes.find(
-              //     (node) => node.id === edge.source
-              //   );
+              const resources = new Set();
+              for (const node of nodes) {
+                if (!node.type) continue;
+                const dependencies = NodeResourceDependencies[node.type];
+                if (!dependencies) continue;
 
-              //   const targetNode: Node<EntityData> | undefined = nodes.find(
-              //     (node) => node.id === edge.target
-              //   );
+                for (const dependency of dependencies) {
+                  resources.add(dependency);
+                }
+              }
 
-              //   if (
-              //     sourceNode?.type === "message" &&
-              //     targetNode?.type === "entity"
-              //   ) {
-              //     const template = generateInputEntityEdgeTemplate({
-              //       host: "docstore",
-              //       port: "27017",
-              //       database: "protoflow",
-              //       collection: targetNode.data.name,
-              //       name: sourceNode.data.name + "Impl",
-              //     });
+              const data = JSON.stringify(
+                { nodes, edges, resources: Array.from(resources) },
+                null,
+                2
+              );
+              console.log(data);
 
-              //     console.log(template);
-              //   }
-              // }
-              const data = JSON.stringify({ nodes, edges }, null, 2);
-
-              const dataStr =
-                "data:text/json;charset=utf-8," + encodeURIComponent(data);
-              const link = document.createElement("a");
-              link.setAttribute("href", dataStr);
-              link.setAttribute("download", "protoflow-project.json");
-              document.body.appendChild(link); // required for firefox
-              link.click();
-              link.remove();
+              // const dataStr =
+              //   "data:text/json;charset=utf-8," + encodeURIComponent(data);
+              // const link = document.createElement("a");
+              // link.setAttribute("href", dataStr);
+              // link.setAttribute("download", "protoflow-project.json");
+              // document.body.appendChild(link); // required for firefox
+              // link.click();
+              // link.remove();
             }}
           >
             Export

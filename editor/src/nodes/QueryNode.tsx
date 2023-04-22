@@ -1,8 +1,6 @@
 import { Caption1, Card, CardHeader, Text } from "@fluentui/react-components";
 import {
-  HiCircleStack,
-  HiMagnifyingGlass,
-  HiOutlineMagnifyingGlass,
+  HiOutlineMagnifyingGlass
 } from "react-icons/hi2";
 import { Handle, NodeProps, Position } from "reactflow";
 

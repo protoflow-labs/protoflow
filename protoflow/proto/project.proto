@@ -1,0 +1,53 @@
+syntax = "proto3";
+
+package project;
+option go_package = "./gen/project";
+
+service ProjectService {
+    rpc GetProject(GetProjectRequest) returns (GetProjectResponse) {}
+    rpc GetProjects(GetProjectsRequest) returns (GetProjectsResponse) {}
+    rpc CreateProject(CreateProjectRequest) returns (CreateProjectResponse) {}
+    rpc DeleteProject(DeleteProjectRequest) returns (DeleteProjectResponse) {}
+}
+
+message GetProjectRequest {
+    string id = 1;
+}
+
+message GetProjectResponse {
+    Project project = 1;
+}
+
+message GetProjectsRequest {
+    string name = 1;
+}
+
+message GetProjectsResponse {
+    repeated Project projects = 1;
+}
+
+message CreateProjectRequest {
+    Project project = 1;
+}
+
+message CreateProjectResponse {
+    Project project = 1;
+}
+
+message DeleteProjectRequest {
+    string id = 1;
+}
+
+message DeleteProjectResponse {
+    Project project = 1;
+}
+
+
+message Project { 
+    string id = 1;
+    string name = 2;
+    string description = 3;
+    string owner = 4;
+    string created_at = 5;
+    string updated_at = 6;
+}
