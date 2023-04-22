@@ -17,6 +17,7 @@ import ReactFlow, {
   Connection,
   Edge,
   Node,
+  OnEdgeUpdateFunc,
   OnEdgesChange,
   OnNodesChange,
   ReactFlowInstance,
@@ -40,27 +41,29 @@ import { QueueNode } from "./nodes/QueueNode";
 import { BucketNode } from "./nodes/BucketNode";
 import { NodeResourceDependencies } from "./lib/resources";
 import { EndpointyNode } from "./nodes/EndpointNode";
+import DefaultEdge from "./edges/DefaultEdge";
 
 const generateInputEntityEdgeTemplate = hbs(InputEntityEdgeTemplate);
 
 const initialNodes: any = [];
 const initialEdges: any = [];
 
-function App() {
-  const nodeTypes = useMemo(
-    () => ({
-      endpoint: EndpointyNode,
-      entity: EntityNode,
-      function: FunctionNode,
-      validation: ValidatorNode,
-      message: InputNode,
-      query: QueryNode,
-      queue: QueueNode,
-      bucket: BucketNode,
-    }),
-    []
-  );
+const nodeTypes = {
+  endpoint: EndpointyNode,
+  entity: EntityNode,
+  function: FunctionNode,
+  validation: ValidatorNode,
+  message: InputNode,
+  query: QueryNode,
+  queue: QueueNode,
+  bucket: BucketNode,
+};
 
+const edgeTypes = {
+  edge: DefaultEdge,
+};
+
+function App() {
   const [reactFlowInstance, setReactFlowInstance] =
     useState<ReactFlowInstance | null>(null);
   const [nodes, setNodes] = useState<Node<any>[]>(initialNodes);
@@ -71,20 +74,27 @@ function App() {
     []
   );
 
-  const onEdgesChange: OnEdgesChange = useCallback(
-    (changes) => setEdges((eds) => applyEdgeChanges(changes, eds)),
-    []
-  );
+  const onEdgesChange: OnEdgesChange = useCallback((changes) => {
+    setEdges((eds) => applyEdgeChanges(changes, eds));
+  }, []);
 
   const onConnect = useCallback((params: Connection) => {
-    setEdges((eds) => addEdge(params, eds));
+    setEdges((eds) =>
+      addEdge(
+        {
+          ...params,
+          type: "edge",
+          data: { async: false },
+        },
+        eds
+      )
+    );
   }, []);
 
   const onDrop: DragEventHandler<HTMLDivElement> = (e) => {
     e.preventDefault();
 
     const type = e.dataTransfer.getData("application/reactflow");
-
     const position = reactFlowInstance!.project({
       x: e.clientX,
       y: e.clientY,
@@ -100,11 +110,6 @@ function App() {
     setNodes((nds) => [...nds, newNode]);
   };
 
-  const onDragStart = (event: DragEvent<HTMLDivElement>, nodeType: string) => {
-    event.dataTransfer.setData("application/reactflow", nodeType);
-    event.dataTransfer.effectAllowed = "move";
-  };
-
   const onDragOver: DragEventHandler = useCallback((e) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = "move";
@@ -115,18 +120,19 @@ function App() {
       <ReactFlowProvider>
         <div id="app">
           <ReactFlow
-            nodeTypes={nodeTypes}
-            nodes={nodes}
-            onNodesChange={onNodesChange}
             edges={edges}
+            edgeTypes={edgeTypes}
+            nodes={nodes}
+            nodeTypes={nodeTypes}
+            onChange={console.log}
+            onConnect={onConnect}
+            onDragOver={onDragOver}
+            onDrop={onDrop}
             onEdgesChange={onEdgesChange}
             onInit={(ref: any) => setReactFlowInstance(ref)}
-            onDrop={onDrop}
-            onDragOver={onDragOver}
-            onConnect={onConnect}
-            onChange={console.log}
-            fitView
+            onNodesChange={onNodesChange}
             proOptions={{ hideAttribution: true }}
+            fitView
           >
             <Background />
           </ReactFlow>
