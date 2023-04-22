@@ -47,9 +47,13 @@ func Wire(cacheConfig cache.Config) (*cli.App, error) {
 	if err != nil {
 		return nil, err
 	}
-	dbStore := workflow.NewDBStore(gormDB)
-	temporalManager := workflow.NewManager(client, dbStore)
-	handler := api.NewAPIHandler(temporalManager)
-	app := New(logConfig, handler)
+	dbStore, err := workflow.NewDBStore(gormDB)
+	if err != nil {
+		return nil, err
+	}
+	temporalManager := workflow.NewManager(client, dbStore, workflowConfig)
+	httpServer := api.NewHTTPServer(temporalManager)
+	grpcServer := api.NewGRPCServer(temporalManager)
+	app := New(logConfig, httpServer, grpcServer)
 	return app, nil
 }

@@ -2,23 +2,32 @@ package workflow
 
 import (
 	"context"
-	"fmt"
 	"github.com/breadchris/protoflow/gen/workflow"
+	"github.com/gofiber/fiber/v2"
 	"github.com/google/wire"
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
 	"go.temporal.io/api/enums/v1"
+	"go.temporal.io/api/workflowservice/v1"
 	"time"
 
 	"go.temporal.io/sdk/client"
 )
 
+const taskQueue = "protoflow"
+
 type TemporalManager struct {
+	workflow.UnimplementedManagerServer
+
 	temporalClient client.Client
 	workflowStore  Store
+	config         Config
 }
 
-var ManagerProviderSet = wire.NewSet(
+var ProviderSet = wire.NewSet(
+	NewConfig,
+	StoreProviderSet,
+	NewClient,
 	NewManager,
 	wire.Bind(new(workflow.Manager), new(*TemporalManager)),
 )
@@ -28,10 +37,12 @@ var _ workflow.Manager = (*TemporalManager)(nil)
 func NewManager(
 	temporalClient client.Client,
 	store Store,
+	config Config,
 ) *TemporalManager {
 	return &TemporalManager{
 		temporalClient: temporalClient,
 		workflowStore:  store,
+		config:         config,
 	}
 }
 
@@ -70,8 +81,6 @@ func (m *TemporalManager) StartWorkflow(ctx context.Context, entry *workflow.Wor
 		Str("id", we.GetID()).
 		Str("run id", we.GetRunID()).
 		Msg("started workflow")
-
-	m.workflowStore.SaveWorkflowRun(we.GetID(), we.GetRunID())
 
 	return &workflow.Run{
 		Id: we.GetRunID(),
@@ -123,19 +132,26 @@ func (m *TemporalManager) CancelWorkflows(deploymentID string, workflowRuns []Wo
 			},
 		}
 	*/
-
-	// TODO this should only delete the workflow runs specified
-	err := m.workflowStore.DeleteDeploymentWorkflows(deploymentID)
-	if err != nil {
-		return fmt.Errorf("unable to delete workflows for deployment: %s", err)
-	}
 	return nil
 }
 
-func (m *TemporalManager) CancelWorkflowsForDeployment(deploymentID string) error {
-	workflowRuns, err := m.workflowStore.GetWorkflowRunsForDeployment(deploymentID)
-	if err != nil {
-		return fmt.Errorf("unable to get workflow runs for deployment: %s", err)
+// StopAllOpenWorkflows gets all currently open workflows and cancels them.
+func (s *TemporalManager) StopAllOpenWorkflows(c *fiber.Ctx) error {
+	request := &workflowservice.ListOpenWorkflowExecutionsRequest{
+		Namespace: s.config.Temporal.Namespace,
 	}
-	return m.CancelWorkflows(deploymentID, workflowRuns)
+
+	// TODO call this in loop to get all executions
+	response, err := s.temporalClient.ListOpenWorkflow(context.Background(), request)
+	if err != nil {
+		return err
+	}
+	for _, execution := range response.GetExecutions() {
+		workflowExec := execution.GetExecution()
+		err := s.temporalClient.CancelWorkflow(context.Background(), workflowExec.WorkflowId, workflowExec.RunId)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }

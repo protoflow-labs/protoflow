@@ -1,11 +1,11 @@
 package cli
 
 import (
+	"github.com/breadchris/protoflow/pkg/api"
 	logcfg "github.com/breadchris/protoflow/pkg/log"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/urfave/cli/v2"
-	"net/http"
 	"os"
 )
 
@@ -20,7 +20,8 @@ func setupLogging(level string) {
 
 func New(
 	logConfig logcfg.Config,
-	httpHandler http.Handler,
+	httpHandler *api.HTTPServer,
+	grpcHandler *api.GRPCServer,
 ) *cli.App {
 	setupLogging(logConfig.Level)
 
@@ -33,16 +34,34 @@ func New(
 				Name: "serve",
 				Flags: []cli.Flag{
 					&cli.IntFlag{
-						Name: "port",
+						Name:  "http",
+						Usage: "Port for the http server",
+					},
+					&cli.IntFlag{
+						Name:  "grpc",
+						Usage: "Port for the grpc server",
 					},
 				},
 				Action: func(ctx *cli.Context) error {
-					port := ctx.Int("port")
-					if port == 0 {
-						port = 8080
+					httpPort := ctx.Int("http")
+					if httpPort == 0 {
+						httpPort = 8080
 					}
-					log.Info().Int("port", port).Msg("starting server")
-					return http.ListenAndServe(":"+ctx.String("port"), httpHandler)
+
+					grpcPort := ctx.Int("grpc")
+					if grpcPort == 0 {
+						grpcPort = 50051
+					}
+
+					go func() {
+						log.Info().Int("port", grpcPort).Msg("starting http server")
+						if err := grpcHandler.Serve(grpcPort); err != nil {
+							log.Error().Err(err).Msg("error serving grpc")
+							return
+						}
+					}()
+					log.Info().Int("port", httpPort).Msg("starting http server")
+					return httpHandler.Serve(httpPort)
 				},
 			},
 		},

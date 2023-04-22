@@ -13,10 +13,7 @@ import (
 
 type Store interface {
 	SaveWorkflow(w *workflow.Workflow) (id string, err error)
-	SaveWorkflowRun(workflowID, runID string)
 	GetWorkflow(workflowID string) (protoflow *workflow.Workflow, err error)
-	GetWorkflowRunsForDeployment(deploymentID string) (workflowRuns []WorkflowRunModel, err error)
-	DeleteDeploymentWorkflows(deploymentID string) (err error)
 }
 
 var _ Store = (*DBStore)(nil)
@@ -36,10 +33,14 @@ var StoreProviderSet = wire.NewSet(
 	wire.Bind(new(Store), new(*DBStore)),
 )
 
-func NewDBStore(db *gorm.DB) *DBStore {
+func NewDBStore(db *gorm.DB) (*DBStore, error) {
+	err := db.AutoMigrate(&model.Workflow{})
+	if err != nil {
+		return nil, err
+	}
 	return &DBStore{
 		db: db,
-	}
+	}, nil
 }
 
 func (s *DBStore) SaveWorkflow(w *workflow.Workflow) (id string, err error) {
@@ -55,22 +56,11 @@ func (s *DBStore) SaveWorkflow(w *workflow.Workflow) (id string, err error) {
 	return work.ID.String(), nil
 }
 
-func (s *DBStore) SaveWorkflowRun(workflowID, runID string) {
-}
-
 func (s *DBStore) GetWorkflow(workflowID string) (protoflow *workflow.Workflow, err error) {
 	w := model.Workflow{}
-	res := s.db.First(&w, workflowID)
+	res := s.db.First(&w, "id = ?", workflowID)
 	if res.Error != nil {
 		return nil, res.Error
 	}
 	return &w.Protoflow.Data, nil
-}
-
-func (s *DBStore) GetWorkflowRunsForDeployment(deploymentID string) (workflowRuns []WorkflowRunModel, err error) {
-	return nil, nil
-}
-
-func (s *DBStore) DeleteDeploymentWorkflows(deploymentID string) (err error) {
-	return
 }

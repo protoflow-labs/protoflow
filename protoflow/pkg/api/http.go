@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"github.com/breadchris/protoflow/gen/workflow"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -8,7 +9,11 @@ import (
 	"time"
 )
 
-func NewAPIHandler(workflowManager workflow.Manager) http.Handler {
+type HTTPServer struct {
+	mux *chi.Mux
+}
+
+func NewHTTPServer(workflowManager workflow.Manager) *HTTPServer {
 	muxRoot := chi.NewRouter()
 
 	muxRoot.Use(middleware.RequestID)
@@ -25,5 +30,11 @@ func NewAPIHandler(workflowManager workflow.Manager) http.Handler {
 
 	twirpHandler := workflow.NewManagerServer(workflowManager)
 	muxRoot.Handle(twirpHandler.PathPrefix(), twirpHandler)
-	return muxRoot
+	return &HTTPServer{
+		mux: muxRoot,
+	}
+}
+
+func (h *HTTPServer) Serve(port int) error {
+	return http.ListenAndServe(fmt.Sprintf(":%d", port), h.mux)
 }
