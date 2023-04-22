@@ -54,6 +54,7 @@ func Wire(cacheConfig cache.Config) (*cli.App, error) {
 	temporalManager := workflow.NewManager(client, dbStore, workflowConfig)
 	httpServer := api.NewHTTPServer(temporalManager)
 	grpcServer := api.NewGRPCServer(temporalManager)
-	app := New(logConfig, httpServer, grpcServer)
+	worker := workflow.NewWorker(client, workflowConfig)
+	app := New(logConfig, httpServer, grpcServer, worker)
 	return app, nil
 }

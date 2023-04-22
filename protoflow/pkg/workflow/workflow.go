@@ -22,6 +22,12 @@ type Workflow struct {
 	BlockLookup map[string]Block
 }
 
+type WorkflowGraph struct {
+	Nodes       []*pwork.Node
+	Edges       []*pwork.Edge
+	BlockLookup map[string]Block
+}
+
 func NewWorkflowFromProtoflow(workflowGraph *pwork.Workflow) (*Workflow, error) {
 	graph := gograph.New[string](gograph.Directed())
 
