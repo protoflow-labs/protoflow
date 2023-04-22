@@ -39,6 +39,7 @@ import { QueryNode } from "./nodes/QueryNode";
 import { QueueNode } from "./nodes/QueueNode";
 import { BucketNode } from "./nodes/BucketNode";
 import { NodeResourceDependencies } from "./lib/resources";
+import { EndpointyNode } from "./nodes/EndpointNode";
 
 const generateInputEntityEdgeTemplate = hbs(InputEntityEdgeTemplate);
 
@@ -48,6 +49,7 @@ const initialEdges: any = [];
 function App() {
   const nodeTypes = useMemo(
     () => ({
+      endpoint: EndpointyNode,
       entity: EntityNode,
       function: FunctionNode,
       validation: ValidatorNode,
@@ -129,6 +131,7 @@ function App() {
             <Background />
           </ReactFlow>
           <aside className="absolute top-0 left-0 m-4 p-2 bg-white/10 text-white rounded flex flex-col gap-2 items-start justify-start">
+            <NodeButton nodeType="endpoint">Endpoint</NodeButton>
             <NodeButton nodeType="entity">Entity</NodeButton>
             <NodeButton nodeType="message">Input</NodeButton>
             <NodeButton nodeType="function">Function</NodeButton>
