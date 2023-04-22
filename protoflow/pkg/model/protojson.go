@@ -5,9 +5,10 @@ import (
 	"database/sql/driver"
 	"errors"
 	"fmt"
+	"strings"
+
 	"github.com/breadchris/protoflow/gen/workflow"
 	"google.golang.org/protobuf/encoding/protojson"
-	"strings"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -22,7 +23,7 @@ type ProtoJSON[T any] struct {
 }
 
 // Value return json value, implement driver.Valuer interface
-func (j ProtoJSON[T]) Value() (driver.Value, error) {
+func (j *ProtoJSON[T]) Value() (driver.Value, error) {
 	return j.MarshalJSON()
 }
 
