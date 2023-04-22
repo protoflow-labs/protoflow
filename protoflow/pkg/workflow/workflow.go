@@ -18,18 +18,15 @@ type Result struct {
 }
 
 type Workflow struct {
-	workflow    *pwork.Workflow
-	graph       gograph.Graph[string]
-	blockLookup map[string]Block
+	Graph       gograph.Graph[string]
+	BlockLookup map[string]Block
 }
 
 func NewWorkflowFromProtoflow(workflowGraph *pwork.Workflow) (*Workflow, error) {
 	graph := gograph.New[string](gograph.Directed())
 
-	var (
-		blockLookup  map[string]Block
-		vertexLookup map[string]*gograph.Vertex[string]
-	)
+	blockLookup := map[string]Block{}
+	vertexLookup := map[string]*gograph.Vertex[string]{}
 	for _, node := range workflowGraph.Nodes {
 		v := gograph.NewVertex(node.Id)
 		graph.AddVertex(v)
@@ -53,13 +50,16 @@ func NewWorkflowFromProtoflow(workflowGraph *pwork.Workflow) (*Workflow, error) 
 	}
 
 	return &Workflow{
-		workflow:    workflowGraph,
-		graph:       graph,
-		blockLookup: blockLookup,
+		Graph:       graph,
+		BlockLookup: blockLookup,
 	}, nil
 }
 
-func (w *Workflow) Run(ctx workflow.Context, nodeID string) (string, error) {
+func Run(ctx workflow.Context, w *Workflow, nodeID string) (string, error) {
+	if w.BlockLookup == nil || w.Graph == nil {
+		return "", fmt.Errorf("workflow is not initialized")
+	}
+
 	ao := workflow.ActivityOptions{
 		ScheduleToStartTimeout: time.Minute,
 		StartToCloseTimeout:    time.Minute,
@@ -73,7 +73,7 @@ func (w *Workflow) Run(ctx workflow.Context, nodeID string) (string, error) {
 
 	logger.Info("Starting workflow", "workflowID", workflow.GetInfo(ctx).WorkflowExecution.ID, "nodeID", nodeID)
 
-	vert := w.graph.GetVertexByID(nodeID)
+	vert := w.Graph.GetVertexByID(nodeID)
 	_, err := w.traverseWorkflow(ctx, vert)
 	if err != nil {
 		logger.Error("Error traversing workflow", "error", err)
@@ -89,7 +89,7 @@ func (w *Workflow) traverseWorkflow(ctx workflow.Context, vert *gograph.Vertex[s
 	}
 
 	for _, neighbor := range vert.Neighbors() {
-		block, ok := w.blockLookup[neighbor.Label()]
+		block, ok := w.BlockLookup[neighbor.Label()]
 		if !ok {
 			return nil, fmt.Errorf("vertex not found: %s", neighbor.Label())
 		}

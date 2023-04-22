@@ -11,12 +11,12 @@ type Activity struct {
 }
 
 func (a *Activity) ExecuteCode(ctx context.Context, code Code) (*Result, error) {
-	log.Debug().Msgf("executing code: %s", code.code)
+	log.Debug().Msgf("executing code: %s", code.Code)
 	return nil, nil
 }
 
 func (a *Activity) ExecuteInput(ctx context.Context, input Input) (*Result, error) {
-	log.Debug().Msgf("executing input: %v", input.params)
+	log.Debug().Msgf("executing input: %v", input.Params)
 	return nil, nil
 }
 
@@ -37,6 +37,7 @@ func (s *Worker) Run() error {
 		BackgroundActivityContext: context.Background(),
 	})
 
+	w.RegisterWorkflow(Run)
 	w.RegisterActivity(&Activity{})
 
 	return w.Run(worker.InterruptCh())

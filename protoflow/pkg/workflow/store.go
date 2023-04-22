@@ -7,7 +7,6 @@ import (
 	"github.com/google/wire"
 	_ "github.com/lib/pq"
 	_ "github.com/mattn/go-sqlite3"
-	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
 
@@ -45,7 +44,7 @@ func NewDBStore(db *gorm.DB) (*DBStore, error) {
 
 func (s *DBStore) SaveWorkflow(w *workflow.Workflow) (id string, err error) {
 	work := model.Workflow{
-		Protoflow: datatypes.JSONType[workflow.Workflow]{
+		Protoflow: model.ProtoJSON[interface{}]{
 			Data: *w,
 		},
 	}

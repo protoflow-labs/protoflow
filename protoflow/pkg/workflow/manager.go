@@ -73,7 +73,7 @@ func (m *TemporalManager) StartWorkflow(ctx context.Context, entry *workflow.Wor
 		return nil, err
 	}
 
-	we, err := m.temporalClient.ExecuteWorkflow(ctx, workflowOptions, w.Run, entry.NodeId)
+	we, err := m.temporalClient.ExecuteWorkflow(ctx, workflowOptions, Run, w, entry.NodeId)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to start workflow %s", protoflow.Id)
 	}

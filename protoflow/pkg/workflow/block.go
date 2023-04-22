@@ -11,10 +11,14 @@ type Block interface {
 }
 
 type Code struct {
-	code string
+	Code string
 }
 
 var activity = &Activity{}
+
+func (s *Code) Init() error {
+	return nil
+}
 
 func (s *Code) Execute(ctx workflow.Context) (interface{}, error) {
 	res := Result{}
@@ -23,7 +27,7 @@ func (s *Code) Execute(ctx workflow.Context) (interface{}, error) {
 }
 
 type Input struct {
-	params map[string]string
+	Params map[string]string
 }
 
 func (s *Input) Execute(ctx workflow.Context) (interface{}, error) {
@@ -40,7 +44,7 @@ func NewBlock(node *protoflow.Node) (Block, error) {
 		case *protoflow.Function_Code:
 			c := f.GetCode()
 			return &Code{
-				code: c.Code,
+				Code: c.Code,
 			}, nil
 		default:
 			return nil, errors.New("no code found")
@@ -51,7 +55,7 @@ func NewBlock(node *protoflow.Node) (Block, error) {
 		case *protoflow.Data_Input:
 			i := d.GetInput()
 			return &Input{
-				params: i.Params,
+				Params: i.Params,
 			}, nil
 		}
 	default:

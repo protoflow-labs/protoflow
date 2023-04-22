@@ -3,6 +3,7 @@ package cli
 import (
 	"github.com/breadchris/protoflow/pkg/api"
 	logcfg "github.com/breadchris/protoflow/pkg/log"
+	"github.com/breadchris/protoflow/pkg/workflow"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/urfave/cli/v2"
@@ -22,6 +23,7 @@ func New(
 	logConfig logcfg.Config,
 	httpHandler *api.HTTPServer,
 	grpcHandler *api.GRPCServer,
+	worker *workflow.Worker,
 ) *cli.App {
 	setupLogging(logConfig.Level)
 
@@ -30,6 +32,12 @@ func New(
 		Description: "Coding as easy as playing with legos.",
 		Flags:       []cli.Flag{},
 		Commands: []*cli.Command{
+			{
+				Name: "worker",
+				Action: func(ctx *cli.Context) error {
+					return worker.Run()
+				},
+			},
 			{
 				Name: "serve",
 				Flags: []cli.Flag{
