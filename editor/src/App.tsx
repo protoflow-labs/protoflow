@@ -164,6 +164,8 @@ function App() {
         y: node.position.y,
         name: node.data.name,
         type: node.type,
+        inputFields: node.data.inputFields,
+        outputFields: node.data.outputFields,
       },
     });
   }, []);
@@ -176,7 +178,7 @@ function App() {
             id: block.id,
             type: block.type,
             position: { x: block.x, y: block.y },
-            data: { name: block.name },
+            data: { name: block.name, inputFields: block.inputFields, outputFields: block.outputFields },
           };
         });
         setNodes(nodes);

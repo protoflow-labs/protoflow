@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"html/template"
 	"os"
 
 	"github.com/bufbuild/connect-go"
@@ -17,7 +19,8 @@ import (
 type Service struct {
 	genconnect.UnimplementedProjectServiceHandler
 
-	clientset *kubernetes.Clientset
+	clientset          *kubernetes.Clientset
+	blockProtoTemplate *template.Template
 }
 
 var ProviderSet = wire.NewSet(
@@ -26,8 +29,16 @@ var ProviderSet = wire.NewSet(
 )
 
 func NewService(clientset *kubernetes.Clientset) *Service {
+	blockProtoTemplateFile, _ := os.ReadFile("templates/block.template.proto")
+
+	blockProtoTemplate, err := template.New("block").Parse(string(blockProtoTemplateFile))
+	if err != nil {
+		fmt.Println("Error:", err)
+	}
+
 	return &Service{
-		clientset: clientset,
+		clientset:          clientset,
+		blockProtoTemplate: blockProtoTemplate,
 	}
 }
 
@@ -64,13 +75,13 @@ func (s *Service) DeleteProject(context.Context, *connect.Request[gen.DeleteProj
 func (s *Service) GetBlocks(ctx context.Context, req *connect.Request[gen.GetBlocksRequest]) (*connect.Response[gen.GetBlocksResponse], error) {
 	blocks := make([]*gen.Block, 0)
 
-	files, err := os.ReadDir("blocks")
+	files, err := os.ReadDir(".persistance/blocks")
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
 	for _, file := range files {
-		dat, err := os.ReadFile("blocks/" + file.Name())
+		dat, err := os.ReadFile(".persistance/blocks/" + file.Name())
 		if err != nil {
 			return nil, connect.NewError(connect.CodeInternal, err)
 		}
@@ -90,16 +101,21 @@ func (s *Service) GetBlocks(ctx context.Context, req *connect.Request[gen.GetBlo
 func (s *Service) AddBlock(ctx context.Context, req *connect.Request[gen.AddBlockRequest]) (*connect.Response[gen.AddBlockResponse], error) {
 	blockJson, _ := json.Marshal(req.Msg.Block)
 
-	if err := os.WriteFile("blocks/"+req.Msg.Block.Id+".dat", blockJson, 0644); err != nil {
+	if err := os.WriteFile(".persistance/blocks/"+req.Msg.Block.Id+".dat", blockJson, 0644); err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
+
+	if err := s.generateProto(req.Msg.Block); err != nil {
+		return nil, connect.NewError(connect.CodeInternal, err)
+	}
+
 	return connect.NewResponse(&gen.AddBlockResponse{
 		Block: req.Msg.Block,
 	}), nil
 }
 
 func (s *Service) RemoveBlock(ctx context.Context, req *connect.Request[gen.RemoveBlockRequest]) (*connect.Response[gen.RemoveBlockResponse], error) {
-	dat, err := os.ReadFile("blocks/" + req.Msg.BlockId + ".dat")
+	dat, err := os.ReadFile(".persistance/blocks/" + req.Msg.BlockId + ".dat")
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
@@ -110,7 +126,8 @@ func (s *Service) RemoveBlock(ctx context.Context, req *connect.Request[gen.Remo
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
-	os.Remove("blocks/" + req.Msg.BlockId + ".dat")
+	os.Remove(".persistance/blocks/" + req.Msg.BlockId + ".dat")
+	os.Remove(".persistance/proto/" + b.Name + ".proto")
 
 	return connect.NewResponse(&gen.RemoveBlockResponse{Block: b}), nil
 }
@@ -118,7 +135,11 @@ func (s *Service) RemoveBlock(ctx context.Context, req *connect.Request[gen.Remo
 func (s *Service) UpdateBlock(ctx context.Context, req *connect.Request[gen.UpdateBlockRequest]) (*connect.Response[gen.UpdateBlockResponse], error) {
 	blockJson, _ := json.Marshal(req.Msg.Block)
 
-	if err := os.WriteFile("blocks/"+req.Msg.Block.Id+".dat", blockJson, 0644); err != nil {
+	if err := os.WriteFile(".persistance/blocks/"+req.Msg.Block.Id+".dat", blockJson, 0644); err != nil {
+		return nil, connect.NewError(connect.CodeInternal, err)
+	}
+
+	if err := s.generateProto(req.Msg.Block); err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
@@ -128,13 +149,13 @@ func (s *Service) UpdateBlock(ctx context.Context, req *connect.Request[gen.Upda
 func (s *Service) GetEdges(ctx context.Context, req *connect.Request[gen.GetEdgesRequest]) (*connect.Response[gen.GetEdgesResponse], error) {
 	edges := make([]*gen.Edge, 0)
 
-	files, err := os.ReadDir("edges")
+	files, err := os.ReadDir(".persistance/edges")
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
 	for _, file := range files {
-		dat, err := os.ReadFile("edges/" + file.Name())
+		dat, err := os.ReadFile(".persistance/edges/" + file.Name())
 		if err != nil {
 			return nil, connect.NewError(connect.CodeInternal, err)
 		}
@@ -154,7 +175,7 @@ func (s *Service) GetEdges(ctx context.Context, req *connect.Request[gen.GetEdge
 func (s *Service) AddEdge(ctx context.Context, req *connect.Request[gen.AddEdgeRequest]) (*connect.Response[gen.AddEdgeResponse], error) {
 	edgeJson, _ := json.Marshal(req.Msg.Edge)
 
-	if err := os.WriteFile("edges/"+req.Msg.Edge.Id+".dat", edgeJson, 0644); err != nil {
+	if err := os.WriteFile(".persistance/edges/"+req.Msg.Edge.Id+".dat", edgeJson, 0644); err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 	return connect.NewResponse(&gen.AddEdgeResponse{
@@ -163,7 +184,7 @@ func (s *Service) AddEdge(ctx context.Context, req *connect.Request[gen.AddEdgeR
 }
 
 func (s *Service) RemoveEdge(ctx context.Context, req *connect.Request[gen.RemoveEdgeRequest]) (*connect.Response[gen.RemoveEdgeResponse], error) {
-	dat, err := os.ReadFile("edges/" + req.Msg.EdgeId + ".dat")
+	dat, err := os.ReadFile(".persistance/edges/" + req.Msg.EdgeId + ".dat")
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
@@ -174,7 +195,22 @@ func (s *Service) RemoveEdge(ctx context.Context, req *connect.Request[gen.Remov
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
-	os.Remove("edges/" + req.Msg.EdgeId + ".dat")
+	os.Remove(".persistance/edges/" + req.Msg.EdgeId + ".dat")
 
 	return connect.NewResponse(&gen.RemoveEdgeResponse{Edge: e}), nil
+}
+
+func (s *Service) generateProto(block *gen.Block) error {
+	file, err := os.Create(".persistance/proto/" + block.Name + ".proto")
+	if err != nil {
+		return err
+	}
+
+	defer file.Close()
+	err = s.blockProtoTemplate.Execute(file, block)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

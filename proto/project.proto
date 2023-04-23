@@ -35,12 +35,24 @@ message Project {
     string updated_at = 6;
 }
 
+enum FieldType {
+    STRING = 0;
+    INTEGER = 1;
+}
+
+message FieldDefinition {
+    string name = 1;
+    FieldType  type = 2;
+}
+
 message Block {
     string id = 1;
     string name = 2;
     string type = 3;
     float x = 4;
     float y = 5;
+    repeated FieldDefinition inputFields = 6;
+    repeated FieldDefinition outputFields = 7;
 }
 
 message Edge {
