@@ -25,17 +25,17 @@ message Workflow {
   string id = 1;
   string name = 2;
   repeated Node nodes = 3;
-  repeated Edge edges = 4;
-  repeated Resource resources = 5;
+  // repeated Edge edges = 4;
+  // repeated Resource resources = 5;
 }
 
-message Resource {
-  oneof type {
-    DBResource db = 1;
-    DocStoreResource docstore = 2;
-    BucketResource bucket = 3;
-  }
-}
+// message Resource {
+//   oneof type {
+//     DBResource db = 1;
+//     DocStoreResource docstore = 2;
+//     BucketResource bucket = 3;
+//   }
+// }
 
 message Function {
   oneof type {
@@ -71,11 +71,11 @@ message Node {
   }
 }
 
-message Edge {
-  string id = 1;
-  string from = 2;
-  string to = 3;
-}
+// message Edge {
+//   string id = 1;
+//   string from = 2;
+//   string to = 3;
+// }
 
 message GRPCFunction {
   string host = 1;

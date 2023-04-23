@@ -18,6 +18,9 @@ plugins:
     opt:
       - paths=source_relative
       - require_unimplemented_servers=false
-#  - plugin: es
-#    opt: target=ts
-#    out: ./editor/rpc
+  - plugin: es
+    opt: target=ts
+    out: ./editor/rpc
+  - plugin: connect-es
+    opt: target=ts
+    out: ./editor/rpc

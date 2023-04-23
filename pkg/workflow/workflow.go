@@ -31,36 +31,37 @@ type WorkflowGraph struct {
 }
 
 func NewWorkflowFromProtoflow(workflowGraph *gen.Workflow) (*Workflow, error) {
-	graph := gograph.New[string](gograph.Directed())
+	return nil, nil
+	// graph := gograph.New[string](gograph.Directed())
 
-	blockLookup := map[string]Block{}
-	vertexLookup := map[string]*gograph.Vertex[string]{}
-	for _, node := range workflowGraph.Nodes {
-		v := gograph.NewVertex(node.Id)
-		graph.AddVertex(v)
+	// blockLookup := map[string]Block{}
+	// vertexLookup := map[string]*gograph.Vertex[string]{}
+	// for _, node := range workflowGraph.Nodes {
+	// 	v := gograph.NewVertex(node.Id)
+	// 	graph.AddVertex(v)
 
-		// add vertex to lookup to be used for edges
-		vertexLookup[node.Id] = v
+	// 	// add vertex to lookup to be used for edges
+	// 	vertexLookup[node.Id] = v
 
-		// add block to lookup to be used for execution
-		activity, err := NewBlock(node)
-		if err != nil {
-			return nil, errors.Wrapf(err, "error creating block for node %s", node.Id)
-		}
-		blockLookup[node.Id] = activity
-	}
+	// 	// add block to lookup to be used for execution
+	// 	activity, err := NewBlock(node)
+	// 	if err != nil {
+	// 		return nil, errors.Wrapf(err, "error creating block for node %s", node.Id)
+	// 	}
+	// 	blockLookup[node.Id] = activity
+	// }
 
-	for _, edge := range workflowGraph.Edges {
-		_, err := graph.AddEdge(vertexLookup[edge.From], vertexLookup[edge.To])
-		if err != nil {
-			return nil, err
-		}
-	}
+	// for _, edge := range workflowGraph.Edges {
+	// 	_, err := graph.AddEdge(vertexLookup[edge.From], vertexLookup[edge.To])
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// }
 
-	return &Workflow{
-		Graph:       graph,
-		BlockLookup: blockLookup,
-	}, nil
+	// return &Workflow{
+	// 	Graph:       graph,
+	// 	BlockLookup: blockLookup,
+	// }, nil
 }
 
 func Run(ctx workflow.Context, w *Workflow, nodeID string) (string, error) {

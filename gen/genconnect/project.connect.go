@@ -45,6 +45,27 @@ const (
 	// ProjectServiceDeleteProjectProcedure is the fully-qualified name of the ProjectService's
 	// DeleteProject RPC.
 	ProjectServiceDeleteProjectProcedure = "/project.ProjectService/DeleteProject"
+	// ProjectServiceGetResourcesProcedure is the fully-qualified name of the ProjectService's
+	// GetResources RPC.
+	ProjectServiceGetResourcesProcedure = "/project.ProjectService/GetResources"
+	// ProjectServiceGetBlocksProcedure is the fully-qualified name of the ProjectService's GetBlocks
+	// RPC.
+	ProjectServiceGetBlocksProcedure = "/project.ProjectService/GetBlocks"
+	// ProjectServiceAddBlockProcedure is the fully-qualified name of the ProjectService's AddBlock RPC.
+	ProjectServiceAddBlockProcedure = "/project.ProjectService/AddBlock"
+	// ProjectServiceRemoveBlockProcedure is the fully-qualified name of the ProjectService's
+	// RemoveBlock RPC.
+	ProjectServiceRemoveBlockProcedure = "/project.ProjectService/RemoveBlock"
+	// ProjectServiceUpdateBlockProcedure is the fully-qualified name of the ProjectService's
+	// UpdateBlock RPC.
+	ProjectServiceUpdateBlockProcedure = "/project.ProjectService/UpdateBlock"
+	// ProjectServiceGetEdgesProcedure is the fully-qualified name of the ProjectService's GetEdges RPC.
+	ProjectServiceGetEdgesProcedure = "/project.ProjectService/GetEdges"
+	// ProjectServiceAddEdgeProcedure is the fully-qualified name of the ProjectService's AddEdge RPC.
+	ProjectServiceAddEdgeProcedure = "/project.ProjectService/AddEdge"
+	// ProjectServiceRemoveEdgeProcedure is the fully-qualified name of the ProjectService's RemoveEdge
+	// RPC.
+	ProjectServiceRemoveEdgeProcedure = "/project.ProjectService/RemoveEdge"
 )
 
 // ProjectServiceClient is a client for the project.ProjectService service.
@@ -53,6 +74,14 @@ type ProjectServiceClient interface {
 	GetProjects(context.Context, *connect_go.Request[gen.GetProjectsRequest]) (*connect_go.Response[gen.GetProjectsResponse], error)
 	CreateProject(context.Context, *connect_go.Request[gen.CreateProjectRequest]) (*connect_go.Response[gen.CreateProjectResponse], error)
 	DeleteProject(context.Context, *connect_go.Request[gen.DeleteProjectRequest]) (*connect_go.Response[gen.DeleteProjectResponse], error)
+	GetResources(context.Context, *connect_go.Request[gen.GetResourcesRequest]) (*connect_go.Response[gen.GetResourcesResponse], error)
+	GetBlocks(context.Context, *connect_go.Request[gen.GetBlocksRequest]) (*connect_go.Response[gen.GetBlocksResponse], error)
+	AddBlock(context.Context, *connect_go.Request[gen.AddBlockRequest]) (*connect_go.Response[gen.AddBlockResponse], error)
+	RemoveBlock(context.Context, *connect_go.Request[gen.RemoveBlockRequest]) (*connect_go.Response[gen.RemoveBlockResponse], error)
+	UpdateBlock(context.Context, *connect_go.Request[gen.UpdateBlockRequest]) (*connect_go.Response[gen.UpdateBlockResponse], error)
+	GetEdges(context.Context, *connect_go.Request[gen.GetEdgesRequest]) (*connect_go.Response[gen.GetEdgesResponse], error)
+	AddEdge(context.Context, *connect_go.Request[gen.AddEdgeRequest]) (*connect_go.Response[gen.AddEdgeResponse], error)
+	RemoveEdge(context.Context, *connect_go.Request[gen.RemoveEdgeRequest]) (*connect_go.Response[gen.RemoveEdgeResponse], error)
 }
 
 // NewProjectServiceClient constructs a client for the project.ProjectService service. By default,
@@ -85,6 +114,46 @@ func NewProjectServiceClient(httpClient connect_go.HTTPClient, baseURL string, o
 			baseURL+ProjectServiceDeleteProjectProcedure,
 			opts...,
 		),
+		getResources: connect_go.NewClient[gen.GetResourcesRequest, gen.GetResourcesResponse](
+			httpClient,
+			baseURL+ProjectServiceGetResourcesProcedure,
+			opts...,
+		),
+		getBlocks: connect_go.NewClient[gen.GetBlocksRequest, gen.GetBlocksResponse](
+			httpClient,
+			baseURL+ProjectServiceGetBlocksProcedure,
+			opts...,
+		),
+		addBlock: connect_go.NewClient[gen.AddBlockRequest, gen.AddBlockResponse](
+			httpClient,
+			baseURL+ProjectServiceAddBlockProcedure,
+			opts...,
+		),
+		removeBlock: connect_go.NewClient[gen.RemoveBlockRequest, gen.RemoveBlockResponse](
+			httpClient,
+			baseURL+ProjectServiceRemoveBlockProcedure,
+			opts...,
+		),
+		updateBlock: connect_go.NewClient[gen.UpdateBlockRequest, gen.UpdateBlockResponse](
+			httpClient,
+			baseURL+ProjectServiceUpdateBlockProcedure,
+			opts...,
+		),
+		getEdges: connect_go.NewClient[gen.GetEdgesRequest, gen.GetEdgesResponse](
+			httpClient,
+			baseURL+ProjectServiceGetEdgesProcedure,
+			opts...,
+		),
+		addEdge: connect_go.NewClient[gen.AddEdgeRequest, gen.AddEdgeResponse](
+			httpClient,
+			baseURL+ProjectServiceAddEdgeProcedure,
+			opts...,
+		),
+		removeEdge: connect_go.NewClient[gen.RemoveEdgeRequest, gen.RemoveEdgeResponse](
+			httpClient,
+			baseURL+ProjectServiceRemoveEdgeProcedure,
+			opts...,
+		),
 	}
 }
 
@@ -94,6 +163,14 @@ type projectServiceClient struct {
 	getProjects   *connect_go.Client[gen.GetProjectsRequest, gen.GetProjectsResponse]
 	createProject *connect_go.Client[gen.CreateProjectRequest, gen.CreateProjectResponse]
 	deleteProject *connect_go.Client[gen.DeleteProjectRequest, gen.DeleteProjectResponse]
+	getResources  *connect_go.Client[gen.GetResourcesRequest, gen.GetResourcesResponse]
+	getBlocks     *connect_go.Client[gen.GetBlocksRequest, gen.GetBlocksResponse]
+	addBlock      *connect_go.Client[gen.AddBlockRequest, gen.AddBlockResponse]
+	removeBlock   *connect_go.Client[gen.RemoveBlockRequest, gen.RemoveBlockResponse]
+	updateBlock   *connect_go.Client[gen.UpdateBlockRequest, gen.UpdateBlockResponse]
+	getEdges      *connect_go.Client[gen.GetEdgesRequest, gen.GetEdgesResponse]
+	addEdge       *connect_go.Client[gen.AddEdgeRequest, gen.AddEdgeResponse]
+	removeEdge    *connect_go.Client[gen.RemoveEdgeRequest, gen.RemoveEdgeResponse]
 }
 
 // GetProject calls project.ProjectService.GetProject.
@@ -116,12 +193,60 @@ func (c *projectServiceClient) DeleteProject(ctx context.Context, req *connect_g
 	return c.deleteProject.CallUnary(ctx, req)
 }
 
+// GetResources calls project.ProjectService.GetResources.
+func (c *projectServiceClient) GetResources(ctx context.Context, req *connect_go.Request[gen.GetResourcesRequest]) (*connect_go.Response[gen.GetResourcesResponse], error) {
+	return c.getResources.CallUnary(ctx, req)
+}
+
+// GetBlocks calls project.ProjectService.GetBlocks.
+func (c *projectServiceClient) GetBlocks(ctx context.Context, req *connect_go.Request[gen.GetBlocksRequest]) (*connect_go.Response[gen.GetBlocksResponse], error) {
+	return c.getBlocks.CallUnary(ctx, req)
+}
+
+// AddBlock calls project.ProjectService.AddBlock.
+func (c *projectServiceClient) AddBlock(ctx context.Context, req *connect_go.Request[gen.AddBlockRequest]) (*connect_go.Response[gen.AddBlockResponse], error) {
+	return c.addBlock.CallUnary(ctx, req)
+}
+
+// RemoveBlock calls project.ProjectService.RemoveBlock.
+func (c *projectServiceClient) RemoveBlock(ctx context.Context, req *connect_go.Request[gen.RemoveBlockRequest]) (*connect_go.Response[gen.RemoveBlockResponse], error) {
+	return c.removeBlock.CallUnary(ctx, req)
+}
+
+// UpdateBlock calls project.ProjectService.UpdateBlock.
+func (c *projectServiceClient) UpdateBlock(ctx context.Context, req *connect_go.Request[gen.UpdateBlockRequest]) (*connect_go.Response[gen.UpdateBlockResponse], error) {
+	return c.updateBlock.CallUnary(ctx, req)
+}
+
+// GetEdges calls project.ProjectService.GetEdges.
+func (c *projectServiceClient) GetEdges(ctx context.Context, req *connect_go.Request[gen.GetEdgesRequest]) (*connect_go.Response[gen.GetEdgesResponse], error) {
+	return c.getEdges.CallUnary(ctx, req)
+}
+
+// AddEdge calls project.ProjectService.AddEdge.
+func (c *projectServiceClient) AddEdge(ctx context.Context, req *connect_go.Request[gen.AddEdgeRequest]) (*connect_go.Response[gen.AddEdgeResponse], error) {
+	return c.addEdge.CallUnary(ctx, req)
+}
+
+// RemoveEdge calls project.ProjectService.RemoveEdge.
+func (c *projectServiceClient) RemoveEdge(ctx context.Context, req *connect_go.Request[gen.RemoveEdgeRequest]) (*connect_go.Response[gen.RemoveEdgeResponse], error) {
+	return c.removeEdge.CallUnary(ctx, req)
+}
+
 // ProjectServiceHandler is an implementation of the project.ProjectService service.
 type ProjectServiceHandler interface {
 	GetProject(context.Context, *connect_go.Request[gen.GetProjectRequest]) (*connect_go.Response[gen.GetProjectResponse], error)
 	GetProjects(context.Context, *connect_go.Request[gen.GetProjectsRequest]) (*connect_go.Response[gen.GetProjectsResponse], error)
 	CreateProject(context.Context, *connect_go.Request[gen.CreateProjectRequest]) (*connect_go.Response[gen.CreateProjectResponse], error)
 	DeleteProject(context.Context, *connect_go.Request[gen.DeleteProjectRequest]) (*connect_go.Response[gen.DeleteProjectResponse], error)
+	GetResources(context.Context, *connect_go.Request[gen.GetResourcesRequest]) (*connect_go.Response[gen.GetResourcesResponse], error)
+	GetBlocks(context.Context, *connect_go.Request[gen.GetBlocksRequest]) (*connect_go.Response[gen.GetBlocksResponse], error)
+	AddBlock(context.Context, *connect_go.Request[gen.AddBlockRequest]) (*connect_go.Response[gen.AddBlockResponse], error)
+	RemoveBlock(context.Context, *connect_go.Request[gen.RemoveBlockRequest]) (*connect_go.Response[gen.RemoveBlockResponse], error)
+	UpdateBlock(context.Context, *connect_go.Request[gen.UpdateBlockRequest]) (*connect_go.Response[gen.UpdateBlockResponse], error)
+	GetEdges(context.Context, *connect_go.Request[gen.GetEdgesRequest]) (*connect_go.Response[gen.GetEdgesResponse], error)
+	AddEdge(context.Context, *connect_go.Request[gen.AddEdgeRequest]) (*connect_go.Response[gen.AddEdgeResponse], error)
+	RemoveEdge(context.Context, *connect_go.Request[gen.RemoveEdgeRequest]) (*connect_go.Response[gen.RemoveEdgeResponse], error)
 }
 
 // NewProjectServiceHandler builds an HTTP handler from the service implementation. It returns the
@@ -151,6 +276,46 @@ func NewProjectServiceHandler(svc ProjectServiceHandler, opts ...connect_go.Hand
 		svc.DeleteProject,
 		opts...,
 	))
+	mux.Handle(ProjectServiceGetResourcesProcedure, connect_go.NewUnaryHandler(
+		ProjectServiceGetResourcesProcedure,
+		svc.GetResources,
+		opts...,
+	))
+	mux.Handle(ProjectServiceGetBlocksProcedure, connect_go.NewUnaryHandler(
+		ProjectServiceGetBlocksProcedure,
+		svc.GetBlocks,
+		opts...,
+	))
+	mux.Handle(ProjectServiceAddBlockProcedure, connect_go.NewUnaryHandler(
+		ProjectServiceAddBlockProcedure,
+		svc.AddBlock,
+		opts...,
+	))
+	mux.Handle(ProjectServiceRemoveBlockProcedure, connect_go.NewUnaryHandler(
+		ProjectServiceRemoveBlockProcedure,
+		svc.RemoveBlock,
+		opts...,
+	))
+	mux.Handle(ProjectServiceUpdateBlockProcedure, connect_go.NewUnaryHandler(
+		ProjectServiceUpdateBlockProcedure,
+		svc.UpdateBlock,
+		opts...,
+	))
+	mux.Handle(ProjectServiceGetEdgesProcedure, connect_go.NewUnaryHandler(
+		ProjectServiceGetEdgesProcedure,
+		svc.GetEdges,
+		opts...,
+	))
+	mux.Handle(ProjectServiceAddEdgeProcedure, connect_go.NewUnaryHandler(
+		ProjectServiceAddEdgeProcedure,
+		svc.AddEdge,
+		opts...,
+	))
+	mux.Handle(ProjectServiceRemoveEdgeProcedure, connect_go.NewUnaryHandler(
+		ProjectServiceRemoveEdgeProcedure,
+		svc.RemoveEdge,
+		opts...,
+	))
 	return "/project.ProjectService/", mux
 }
 
@@ -171,4 +336,36 @@ func (UnimplementedProjectServiceHandler) CreateProject(context.Context, *connec
 
 func (UnimplementedProjectServiceHandler) DeleteProject(context.Context, *connect_go.Request[gen.DeleteProjectRequest]) (*connect_go.Response[gen.DeleteProjectResponse], error) {
 	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("project.ProjectService.DeleteProject is not implemented"))
+}
+
+func (UnimplementedProjectServiceHandler) GetResources(context.Context, *connect_go.Request[gen.GetResourcesRequest]) (*connect_go.Response[gen.GetResourcesResponse], error) {
+	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("project.ProjectService.GetResources is not implemented"))
+}
+
+func (UnimplementedProjectServiceHandler) GetBlocks(context.Context, *connect_go.Request[gen.GetBlocksRequest]) (*connect_go.Response[gen.GetBlocksResponse], error) {
+	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("project.ProjectService.GetBlocks is not implemented"))
+}
+
+func (UnimplementedProjectServiceHandler) AddBlock(context.Context, *connect_go.Request[gen.AddBlockRequest]) (*connect_go.Response[gen.AddBlockResponse], error) {
+	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("project.ProjectService.AddBlock is not implemented"))
+}
+
+func (UnimplementedProjectServiceHandler) RemoveBlock(context.Context, *connect_go.Request[gen.RemoveBlockRequest]) (*connect_go.Response[gen.RemoveBlockResponse], error) {
+	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("project.ProjectService.RemoveBlock is not implemented"))
+}
+
+func (UnimplementedProjectServiceHandler) UpdateBlock(context.Context, *connect_go.Request[gen.UpdateBlockRequest]) (*connect_go.Response[gen.UpdateBlockResponse], error) {
+	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("project.ProjectService.UpdateBlock is not implemented"))
+}
+
+func (UnimplementedProjectServiceHandler) GetEdges(context.Context, *connect_go.Request[gen.GetEdgesRequest]) (*connect_go.Response[gen.GetEdgesResponse], error) {
+	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("project.ProjectService.GetEdges is not implemented"))
+}
+
+func (UnimplementedProjectServiceHandler) AddEdge(context.Context, *connect_go.Request[gen.AddEdgeRequest]) (*connect_go.Response[gen.AddEdgeResponse], error) {
+	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("project.ProjectService.AddEdge is not implemented"))
+}
+
+func (UnimplementedProjectServiceHandler) RemoveEdge(context.Context, *connect_go.Request[gen.RemoveEdgeRequest]) (*connect_go.Response[gen.RemoveEdgeResponse], error) {
+	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("project.ProjectService.RemoveEdge is not implemented"))
 }

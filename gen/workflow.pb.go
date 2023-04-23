@@ -174,11 +174,9 @@ type Workflow struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Id        string      `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Name      string      `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	Nodes     []*Node     `protobuf:"bytes,3,rep,name=nodes,proto3" json:"nodes,omitempty"`
-	Edges     []*Edge     `protobuf:"bytes,4,rep,name=edges,proto3" json:"edges,omitempty"`
-	Resources []*Resource `protobuf:"bytes,5,rep,name=resources,proto3" json:"resources,omitempty"`
+	Id    string  `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Name  string  `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Nodes []*Node `protobuf:"bytes,3,rep,name=nodes,proto3" json:"nodes,omitempty"`
 }
 
 func (x *Workflow) Reset() {
@@ -234,115 +232,6 @@ func (x *Workflow) GetNodes() []*Node {
 	return nil
 }
 
-func (x *Workflow) GetEdges() []*Edge {
-	if x != nil {
-		return x.Edges
-	}
-	return nil
-}
-
-func (x *Workflow) GetResources() []*Resource {
-	if x != nil {
-		return x.Resources
-	}
-	return nil
-}
-
-type Resource struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	// Types that are assignable to Type:
-	//
-	//	*Resource_Db
-	//	*Resource_Docstore
-	//	*Resource_Bucket
-	Type isResource_Type `protobuf_oneof:"type"`
-}
-
-func (x *Resource) Reset() {
-	*x = Resource{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_workflow_proto_msgTypes[4]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *Resource) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*Resource) ProtoMessage() {}
-
-func (x *Resource) ProtoReflect() protoreflect.Message {
-	mi := &file_workflow_proto_msgTypes[4]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use Resource.ProtoReflect.Descriptor instead.
-func (*Resource) Descriptor() ([]byte, []int) {
-	return file_workflow_proto_rawDescGZIP(), []int{4}
-}
-
-func (m *Resource) GetType() isResource_Type {
-	if m != nil {
-		return m.Type
-	}
-	return nil
-}
-
-func (x *Resource) GetDb() *DBResource {
-	if x, ok := x.GetType().(*Resource_Db); ok {
-		return x.Db
-	}
-	return nil
-}
-
-func (x *Resource) GetDocstore() *DocStoreResource {
-	if x, ok := x.GetType().(*Resource_Docstore); ok {
-		return x.Docstore
-	}
-	return nil
-}
-
-func (x *Resource) GetBucket() *BucketResource {
-	if x, ok := x.GetType().(*Resource_Bucket); ok {
-		return x.Bucket
-	}
-	return nil
-}
-
-type isResource_Type interface {
-	isResource_Type()
-}
-
-type Resource_Db struct {
-	Db *DBResource `protobuf:"bytes,1,opt,name=db,proto3,oneof"`
-}
-
-type Resource_Docstore struct {
-	Docstore *DocStoreResource `protobuf:"bytes,2,opt,name=docstore,proto3,oneof"`
-}
-
-type Resource_Bucket struct {
-	Bucket *BucketResource `protobuf:"bytes,3,opt,name=bucket,proto3,oneof"`
-}
-
-func (*Resource_Db) isResource_Type() {}
-
-func (*Resource_Docstore) isResource_Type() {}
-
-func (*Resource_Bucket) isResource_Type() {}
-
 type Function struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -357,7 +246,7 @@ type Function struct {
 func (x *Function) Reset() {
 	*x = Function{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_workflow_proto_msgTypes[5]
+		mi := &file_workflow_proto_msgTypes[4]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -370,7 +259,7 @@ func (x *Function) String() string {
 func (*Function) ProtoMessage() {}
 
 func (x *Function) ProtoReflect() protoreflect.Message {
-	mi := &file_workflow_proto_msgTypes[5]
+	mi := &file_workflow_proto_msgTypes[4]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -383,7 +272,7 @@ func (x *Function) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Function.ProtoReflect.Descriptor instead.
 func (*Function) Descriptor() ([]byte, []int) {
-	return file_workflow_proto_rawDescGZIP(), []int{5}
+	return file_workflow_proto_rawDescGZIP(), []int{4}
 }
 
 func (m *Function) GetType() isFunction_Type {
@@ -421,7 +310,7 @@ type Input struct {
 func (x *Input) Reset() {
 	*x = Input{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_workflow_proto_msgTypes[6]
+		mi := &file_workflow_proto_msgTypes[5]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -434,7 +323,7 @@ func (x *Input) String() string {
 func (*Input) ProtoMessage() {}
 
 func (x *Input) ProtoReflect() protoreflect.Message {
-	mi := &file_workflow_proto_msgTypes[6]
+	mi := &file_workflow_proto_msgTypes[5]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -447,7 +336,7 @@ func (x *Input) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Input.ProtoReflect.Descriptor instead.
 func (*Input) Descriptor() ([]byte, []int) {
-	return file_workflow_proto_rawDescGZIP(), []int{6}
+	return file_workflow_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *Input) GetParams() map[string]string {
@@ -468,7 +357,7 @@ type Collection struct {
 func (x *Collection) Reset() {
 	*x = Collection{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_workflow_proto_msgTypes[7]
+		mi := &file_workflow_proto_msgTypes[6]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -481,7 +370,7 @@ func (x *Collection) String() string {
 func (*Collection) ProtoMessage() {}
 
 func (x *Collection) ProtoReflect() protoreflect.Message {
-	mi := &file_workflow_proto_msgTypes[7]
+	mi := &file_workflow_proto_msgTypes[6]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -494,7 +383,7 @@ func (x *Collection) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Collection.ProtoReflect.Descriptor instead.
 func (*Collection) Descriptor() ([]byte, []int) {
-	return file_workflow_proto_rawDescGZIP(), []int{7}
+	return file_workflow_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *Collection) GetName() string {
@@ -515,7 +404,7 @@ type Table struct {
 func (x *Table) Reset() {
 	*x = Table{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_workflow_proto_msgTypes[8]
+		mi := &file_workflow_proto_msgTypes[7]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -528,7 +417,7 @@ func (x *Table) String() string {
 func (*Table) ProtoMessage() {}
 
 func (x *Table) ProtoReflect() protoreflect.Message {
-	mi := &file_workflow_proto_msgTypes[8]
+	mi := &file_workflow_proto_msgTypes[7]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -541,7 +430,7 @@ func (x *Table) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Table.ProtoReflect.Descriptor instead.
 func (*Table) Descriptor() ([]byte, []int) {
-	return file_workflow_proto_rawDescGZIP(), []int{8}
+	return file_workflow_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *Table) GetName() string {
@@ -566,7 +455,7 @@ type Data struct {
 func (x *Data) Reset() {
 	*x = Data{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_workflow_proto_msgTypes[9]
+		mi := &file_workflow_proto_msgTypes[8]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -579,7 +468,7 @@ func (x *Data) String() string {
 func (*Data) ProtoMessage() {}
 
 func (x *Data) ProtoReflect() protoreflect.Message {
-	mi := &file_workflow_proto_msgTypes[9]
+	mi := &file_workflow_proto_msgTypes[8]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -592,7 +481,7 @@ func (x *Data) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Data.ProtoReflect.Descriptor instead.
 func (*Data) Descriptor() ([]byte, []int) {
-	return file_workflow_proto_rawDescGZIP(), []int{9}
+	return file_workflow_proto_rawDescGZIP(), []int{8}
 }
 
 func (m *Data) GetType() isData_Type {
@@ -649,7 +538,7 @@ type Node struct {
 func (x *Node) Reset() {
 	*x = Node{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_workflow_proto_msgTypes[10]
+		mi := &file_workflow_proto_msgTypes[9]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -662,7 +551,7 @@ func (x *Node) String() string {
 func (*Node) ProtoMessage() {}
 
 func (x *Node) ProtoReflect() protoreflect.Message {
-	mi := &file_workflow_proto_msgTypes[10]
+	mi := &file_workflow_proto_msgTypes[9]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -675,7 +564,7 @@ func (x *Node) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Node.ProtoReflect.Descriptor instead.
 func (*Node) Descriptor() ([]byte, []int) {
-	return file_workflow_proto_rawDescGZIP(), []int{10}
+	return file_workflow_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *Node) GetId() string {
@@ -729,69 +618,6 @@ func (*Node_Function) isNode_Type() {}
 
 func (*Node_Data) isNode_Type() {}
 
-type Edge struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	Id   string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	From string `protobuf:"bytes,2,opt,name=from,proto3" json:"from,omitempty"`
-	To   string `protobuf:"bytes,3,opt,name=to,proto3" json:"to,omitempty"`
-}
-
-func (x *Edge) Reset() {
-	*x = Edge{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_workflow_proto_msgTypes[11]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *Edge) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*Edge) ProtoMessage() {}
-
-func (x *Edge) ProtoReflect() protoreflect.Message {
-	mi := &file_workflow_proto_msgTypes[11]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use Edge.ProtoReflect.Descriptor instead.
-func (*Edge) Descriptor() ([]byte, []int) {
-	return file_workflow_proto_rawDescGZIP(), []int{11}
-}
-
-func (x *Edge) GetId() string {
-	if x != nil {
-		return x.Id
-	}
-	return ""
-}
-
-func (x *Edge) GetFrom() string {
-	if x != nil {
-		return x.From
-	}
-	return ""
-}
-
-func (x *Edge) GetTo() string {
-	if x != nil {
-		return x.To
-	}
-	return ""
-}
-
 type GRPCFunction struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -805,7 +631,7 @@ type GRPCFunction struct {
 func (x *GRPCFunction) Reset() {
 	*x = GRPCFunction{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_workflow_proto_msgTypes[12]
+		mi := &file_workflow_proto_msgTypes[10]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -818,7 +644,7 @@ func (x *GRPCFunction) String() string {
 func (*GRPCFunction) ProtoMessage() {}
 
 func (x *GRPCFunction) ProtoReflect() protoreflect.Message {
-	mi := &file_workflow_proto_msgTypes[12]
+	mi := &file_workflow_proto_msgTypes[10]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -831,7 +657,7 @@ func (x *GRPCFunction) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GRPCFunction.ProtoReflect.Descriptor instead.
 func (*GRPCFunction) Descriptor() ([]byte, []int) {
-	return file_workflow_proto_rawDescGZIP(), []int{12}
+	return file_workflow_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *GRPCFunction) GetHost() string {
@@ -866,7 +692,7 @@ type CodeFunction struct {
 func (x *CodeFunction) Reset() {
 	*x = CodeFunction{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_workflow_proto_msgTypes[13]
+		mi := &file_workflow_proto_msgTypes[11]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -879,7 +705,7 @@ func (x *CodeFunction) String() string {
 func (*CodeFunction) ProtoMessage() {}
 
 func (x *CodeFunction) ProtoReflect() protoreflect.Message {
-	mi := &file_workflow_proto_msgTypes[13]
+	mi := &file_workflow_proto_msgTypes[11]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -892,7 +718,7 @@ func (x *CodeFunction) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CodeFunction.ProtoReflect.Descriptor instead.
 func (*CodeFunction) Descriptor() ([]byte, []int) {
-	return file_workflow_proto_rawDescGZIP(), []int{13}
+	return file_workflow_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *CodeFunction) GetCode() string {
@@ -914,7 +740,7 @@ type SQLFunction struct {
 func (x *SQLFunction) Reset() {
 	*x = SQLFunction{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_workflow_proto_msgTypes[14]
+		mi := &file_workflow_proto_msgTypes[12]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -927,7 +753,7 @@ func (x *SQLFunction) String() string {
 func (*SQLFunction) ProtoMessage() {}
 
 func (x *SQLFunction) ProtoReflect() protoreflect.Message {
-	mi := &file_workflow_proto_msgTypes[14]
+	mi := &file_workflow_proto_msgTypes[12]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -940,7 +766,7 @@ func (x *SQLFunction) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SQLFunction.ProtoReflect.Descriptor instead.
 func (*SQLFunction) Descriptor() ([]byte, []int) {
-	return file_workflow_proto_rawDescGZIP(), []int{14}
+	return file_workflow_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *SQLFunction) GetUrl() string {
@@ -968,7 +794,7 @@ type DBResource struct {
 func (x *DBResource) Reset() {
 	*x = DBResource{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_workflow_proto_msgTypes[15]
+		mi := &file_workflow_proto_msgTypes[13]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -981,7 +807,7 @@ func (x *DBResource) String() string {
 func (*DBResource) ProtoMessage() {}
 
 func (x *DBResource) ProtoReflect() protoreflect.Message {
-	mi := &file_workflow_proto_msgTypes[15]
+	mi := &file_workflow_proto_msgTypes[13]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -994,7 +820,7 @@ func (x *DBResource) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DBResource.ProtoReflect.Descriptor instead.
 func (*DBResource) Descriptor() ([]byte, []int) {
-	return file_workflow_proto_rawDescGZIP(), []int{15}
+	return file_workflow_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *DBResource) GetUrl() string {
@@ -1015,7 +841,7 @@ type DocStoreResource struct {
 func (x *DocStoreResource) Reset() {
 	*x = DocStoreResource{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_workflow_proto_msgTypes[16]
+		mi := &file_workflow_proto_msgTypes[14]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1028,7 +854,7 @@ func (x *DocStoreResource) String() string {
 func (*DocStoreResource) ProtoMessage() {}
 
 func (x *DocStoreResource) ProtoReflect() protoreflect.Message {
-	mi := &file_workflow_proto_msgTypes[16]
+	mi := &file_workflow_proto_msgTypes[14]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1041,7 +867,7 @@ func (x *DocStoreResource) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DocStoreResource.ProtoReflect.Descriptor instead.
 func (*DocStoreResource) Descriptor() ([]byte, []int) {
-	return file_workflow_proto_rawDescGZIP(), []int{16}
+	return file_workflow_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *DocStoreResource) GetUrl() string {
@@ -1062,7 +888,7 @@ type BucketResource struct {
 func (x *BucketResource) Reset() {
 	*x = BucketResource{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_workflow_proto_msgTypes[17]
+		mi := &file_workflow_proto_msgTypes[15]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1075,7 +901,7 @@ func (x *BucketResource) String() string {
 func (*BucketResource) ProtoMessage() {}
 
 func (x *BucketResource) ProtoReflect() protoreflect.Message {
-	mi := &file_workflow_proto_msgTypes[17]
+	mi := &file_workflow_proto_msgTypes[15]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1088,7 +914,7 @@ func (x *BucketResource) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BucketResource.ProtoReflect.Descriptor instead.
 func (*BucketResource) Descriptor() ([]byte, []int) {
-	return file_workflow_proto_rawDescGZIP(), []int{17}
+	return file_workflow_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *BucketResource) GetUrl() string {
@@ -1110,64 +936,44 @@ var file_workflow_proto_rawDesc = []byte{
 	0x0a, 0x77, 0x6f, 0x72, 0x6b, 0x66, 0x6c, 0x6f, 0x77, 0x49, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28,
 	0x09, 0x52, 0x0a, 0x77, 0x6f, 0x72, 0x6b, 0x66, 0x6c, 0x6f, 0x77, 0x49, 0x64, 0x12, 0x16, 0x0a,
 	0x06, 0x6e, 0x6f, 0x64, 0x65, 0x49, 0x64, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x6e,
-	0x6f, 0x64, 0x65, 0x49, 0x64, 0x22, 0xac, 0x01, 0x0a, 0x08, 0x57, 0x6f, 0x72, 0x6b, 0x66, 0x6c,
-	0x6f, 0x77, 0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x02,
-	0x69, 0x64, 0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09,
-	0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x12, 0x24, 0x0a, 0x05, 0x6e, 0x6f, 0x64, 0x65, 0x73, 0x18,
-	0x03, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x0e, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x66, 0x6c, 0x6f, 0x77,
-	0x2e, 0x4e, 0x6f, 0x64, 0x65, 0x52, 0x05, 0x6e, 0x6f, 0x64, 0x65, 0x73, 0x12, 0x24, 0x0a, 0x05,
-	0x65, 0x64, 0x67, 0x65, 0x73, 0x18, 0x04, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x0e, 0x2e, 0x77, 0x6f,
-	0x72, 0x6b, 0x66, 0x6c, 0x6f, 0x77, 0x2e, 0x45, 0x64, 0x67, 0x65, 0x52, 0x05, 0x65, 0x64, 0x67,
-	0x65, 0x73, 0x12, 0x30, 0x0a, 0x09, 0x72, 0x65, 0x73, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x73, 0x18,
-	0x05, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x12, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x66, 0x6c, 0x6f, 0x77,
-	0x2e, 0x52, 0x65, 0x73, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x52, 0x09, 0x72, 0x65, 0x73, 0x6f, 0x75,
-	0x72, 0x63, 0x65, 0x73, 0x22, 0xa8, 0x01, 0x0a, 0x08, 0x52, 0x65, 0x73, 0x6f, 0x75, 0x72, 0x63,
-	0x65, 0x12, 0x26, 0x0a, 0x02, 0x64, 0x62, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x14, 0x2e,
-	0x77, 0x6f, 0x72, 0x6b, 0x66, 0x6c, 0x6f, 0x77, 0x2e, 0x44, 0x42, 0x52, 0x65, 0x73, 0x6f, 0x75,
-	0x72, 0x63, 0x65, 0x48, 0x00, 0x52, 0x02, 0x64, 0x62, 0x12, 0x38, 0x0a, 0x08, 0x64, 0x6f, 0x63,
-	0x73, 0x74, 0x6f, 0x72, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1a, 0x2e, 0x77, 0x6f,
-	0x72, 0x6b, 0x66, 0x6c, 0x6f, 0x77, 0x2e, 0x44, 0x6f, 0x63, 0x53, 0x74, 0x6f, 0x72, 0x65, 0x52,
-	0x65, 0x73, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x48, 0x00, 0x52, 0x08, 0x64, 0x6f, 0x63, 0x73, 0x74,
-	0x6f, 0x72, 0x65, 0x12, 0x32, 0x0a, 0x06, 0x62, 0x75, 0x63, 0x6b, 0x65, 0x74, 0x18, 0x03, 0x20,
-	0x01, 0x28, 0x0b, 0x32, 0x18, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x66, 0x6c, 0x6f, 0x77, 0x2e, 0x42,
-	0x75, 0x63, 0x6b, 0x65, 0x74, 0x52, 0x65, 0x73, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x48, 0x00, 0x52,
-	0x06, 0x62, 0x75, 0x63, 0x6b, 0x65, 0x74, 0x42, 0x06, 0x0a, 0x04, 0x74, 0x79, 0x70, 0x65, 0x22,
-	0x40, 0x0a, 0x08, 0x46, 0x75, 0x6e, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x12, 0x2c, 0x0a, 0x04, 0x63,
-	0x6f, 0x64, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x16, 0x2e, 0x77, 0x6f, 0x72, 0x6b,
-	0x66, 0x6c, 0x6f, 0x77, 0x2e, 0x43, 0x6f, 0x64, 0x65, 0x46, 0x75, 0x6e, 0x63, 0x74, 0x69, 0x6f,
-	0x6e, 0x48, 0x00, 0x52, 0x04, 0x63, 0x6f, 0x64, 0x65, 0x42, 0x06, 0x0a, 0x04, 0x74, 0x79, 0x70,
-	0x65, 0x22, 0x77, 0x0a, 0x05, 0x49, 0x6e, 0x70, 0x75, 0x74, 0x12, 0x33, 0x0a, 0x06, 0x70, 0x61,
-	0x72, 0x61, 0x6d, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x1b, 0x2e, 0x77, 0x6f, 0x72,
-	0x6b, 0x66, 0x6c, 0x6f, 0x77, 0x2e, 0x49, 0x6e, 0x70, 0x75, 0x74, 0x2e, 0x50, 0x61, 0x72, 0x61,
-	0x6d, 0x73, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x52, 0x06, 0x70, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x1a,
-	0x39, 0x0a, 0x0b, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x12, 0x10,
-	0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x6b, 0x65, 0x79,
-	0x12, 0x14, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52,
-	0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x3a, 0x02, 0x38, 0x01, 0x22, 0x20, 0x0a, 0x0a, 0x43, 0x6f,
-	0x6c, 0x6c, 0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65,
-	0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x22, 0x1b, 0x0a, 0x05,
-	0x54, 0x61, 0x62, 0x6c, 0x65, 0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x01, 0x20,
-	0x01, 0x28, 0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x22, 0x6f, 0x0a, 0x04, 0x44, 0x61, 0x74,
-	0x61, 0x12, 0x27, 0x0a, 0x05, 0x69, 0x6e, 0x70, 0x75, 0x74, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b,
-	0x32, 0x0f, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x66, 0x6c, 0x6f, 0x77, 0x2e, 0x49, 0x6e, 0x70, 0x75,
-	0x74, 0x48, 0x00, 0x52, 0x05, 0x69, 0x6e, 0x70, 0x75, 0x74, 0x12, 0x36, 0x0a, 0x0a, 0x63, 0x6f,
-	0x6c, 0x6c, 0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x14,
-	0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x66, 0x6c, 0x6f, 0x77, 0x2e, 0x43, 0x6f, 0x6c, 0x6c, 0x65, 0x63,
-	0x74, 0x69, 0x6f, 0x6e, 0x48, 0x00, 0x52, 0x0a, 0x63, 0x6f, 0x6c, 0x6c, 0x65, 0x63, 0x74, 0x69,
-	0x6f, 0x6e, 0x42, 0x06, 0x0a, 0x04, 0x74, 0x79, 0x70, 0x65, 0x22, 0x8a, 0x01, 0x0a, 0x04, 0x4e,
-	0x6f, 0x64, 0x65, 0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52,
-	0x02, 0x69, 0x64, 0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28,
-	0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x12, 0x30, 0x0a, 0x08, 0x66, 0x75, 0x6e, 0x63, 0x74,
-	0x69, 0x6f, 0x6e, 0x18, 0x03, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x12, 0x2e, 0x77, 0x6f, 0x72, 0x6b,
-	0x66, 0x6c, 0x6f, 0x77, 0x2e, 0x46, 0x75, 0x6e, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x48, 0x00, 0x52,
-	0x08, 0x66, 0x75, 0x6e, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x12, 0x24, 0x0a, 0x04, 0x64, 0x61, 0x74,
-	0x61, 0x18, 0x04, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x0e, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x66, 0x6c,
-	0x6f, 0x77, 0x2e, 0x44, 0x61, 0x74, 0x61, 0x48, 0x00, 0x52, 0x04, 0x64, 0x61, 0x74, 0x61, 0x42,
-	0x06, 0x0a, 0x04, 0x74, 0x79, 0x70, 0x65, 0x22, 0x3a, 0x0a, 0x04, 0x45, 0x64, 0x67, 0x65, 0x12,
+	0x6f, 0x64, 0x65, 0x49, 0x64, 0x22, 0x54, 0x0a, 0x08, 0x57, 0x6f, 0x72, 0x6b, 0x66, 0x6c, 0x6f,
+	0x77, 0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x02, 0x69,
+	0x64, 0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52,
+	0x04, 0x6e, 0x61, 0x6d, 0x65, 0x12, 0x24, 0x0a, 0x05, 0x6e, 0x6f, 0x64, 0x65, 0x73, 0x18, 0x03,
+	0x20, 0x03, 0x28, 0x0b, 0x32, 0x0e, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x66, 0x6c, 0x6f, 0x77, 0x2e,
+	0x4e, 0x6f, 0x64, 0x65, 0x52, 0x05, 0x6e, 0x6f, 0x64, 0x65, 0x73, 0x22, 0x40, 0x0a, 0x08, 0x46,
+	0x75, 0x6e, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x12, 0x2c, 0x0a, 0x04, 0x63, 0x6f, 0x64, 0x65, 0x18,
+	0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x16, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x66, 0x6c, 0x6f, 0x77,
+	0x2e, 0x43, 0x6f, 0x64, 0x65, 0x46, 0x75, 0x6e, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x48, 0x00, 0x52,
+	0x04, 0x63, 0x6f, 0x64, 0x65, 0x42, 0x06, 0x0a, 0x04, 0x74, 0x79, 0x70, 0x65, 0x22, 0x77, 0x0a,
+	0x05, 0x49, 0x6e, 0x70, 0x75, 0x74, 0x12, 0x33, 0x0a, 0x06, 0x70, 0x61, 0x72, 0x61, 0x6d, 0x73,
+	0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x1b, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x66, 0x6c, 0x6f,
+	0x77, 0x2e, 0x49, 0x6e, 0x70, 0x75, 0x74, 0x2e, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x45, 0x6e,
+	0x74, 0x72, 0x79, 0x52, 0x06, 0x70, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x1a, 0x39, 0x0a, 0x0b, 0x50,
+	0x61, 0x72, 0x61, 0x6d, 0x73, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x12, 0x10, 0x0a, 0x03, 0x6b, 0x65,
+	0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x6b, 0x65, 0x79, 0x12, 0x14, 0x0a, 0x05,
+	0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x76, 0x61, 0x6c,
+	0x75, 0x65, 0x3a, 0x02, 0x38, 0x01, 0x22, 0x20, 0x0a, 0x0a, 0x43, 0x6f, 0x6c, 0x6c, 0x65, 0x63,
+	0x74, 0x69, 0x6f, 0x6e, 0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x01, 0x20, 0x01,
+	0x28, 0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x22, 0x1b, 0x0a, 0x05, 0x54, 0x61, 0x62, 0x6c,
+	0x65, 0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52,
+	0x04, 0x6e, 0x61, 0x6d, 0x65, 0x22, 0x6f, 0x0a, 0x04, 0x44, 0x61, 0x74, 0x61, 0x12, 0x27, 0x0a,
+	0x05, 0x69, 0x6e, 0x70, 0x75, 0x74, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x0f, 0x2e, 0x77,
+	0x6f, 0x72, 0x6b, 0x66, 0x6c, 0x6f, 0x77, 0x2e, 0x49, 0x6e, 0x70, 0x75, 0x74, 0x48, 0x00, 0x52,
+	0x05, 0x69, 0x6e, 0x70, 0x75, 0x74, 0x12, 0x36, 0x0a, 0x0a, 0x63, 0x6f, 0x6c, 0x6c, 0x65, 0x63,
+	0x74, 0x69, 0x6f, 0x6e, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x14, 0x2e, 0x77, 0x6f, 0x72,
+	0x6b, 0x66, 0x6c, 0x6f, 0x77, 0x2e, 0x43, 0x6f, 0x6c, 0x6c, 0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e,
+	0x48, 0x00, 0x52, 0x0a, 0x63, 0x6f, 0x6c, 0x6c, 0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x42, 0x06,
+	0x0a, 0x04, 0x74, 0x79, 0x70, 0x65, 0x22, 0x8a, 0x01, 0x0a, 0x04, 0x4e, 0x6f, 0x64, 0x65, 0x12,
 	0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x02, 0x69, 0x64, 0x12,
-	0x12, 0x0a, 0x04, 0x66, 0x72, 0x6f, 0x6d, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x66,
-	0x72, 0x6f, 0x6d, 0x12, 0x0e, 0x0a, 0x02, 0x74, 0x6f, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52,
-	0x02, 0x74, 0x6f, 0x22, 0x54, 0x0a, 0x0c, 0x47, 0x52, 0x50, 0x43, 0x46, 0x75, 0x6e, 0x63, 0x74,
+	0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x6e,
+	0x61, 0x6d, 0x65, 0x12, 0x30, 0x0a, 0x08, 0x66, 0x75, 0x6e, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x18,
+	0x03, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x12, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x66, 0x6c, 0x6f, 0x77,
+	0x2e, 0x46, 0x75, 0x6e, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x48, 0x00, 0x52, 0x08, 0x66, 0x75, 0x6e,
+	0x63, 0x74, 0x69, 0x6f, 0x6e, 0x12, 0x24, 0x0a, 0x04, 0x64, 0x61, 0x74, 0x61, 0x18, 0x04, 0x20,
+	0x01, 0x28, 0x0b, 0x32, 0x0e, 0x2e, 0x77, 0x6f, 0x72, 0x6b, 0x66, 0x6c, 0x6f, 0x77, 0x2e, 0x44,
+	0x61, 0x74, 0x61, 0x48, 0x00, 0x52, 0x04, 0x64, 0x61, 0x74, 0x61, 0x42, 0x06, 0x0a, 0x04, 0x74,
+	0x79, 0x70, 0x65, 0x22, 0x54, 0x0a, 0x0c, 0x47, 0x52, 0x50, 0x43, 0x46, 0x75, 0x6e, 0x63, 0x74,
 	0x69, 0x6f, 0x6e, 0x12, 0x12, 0x0a, 0x04, 0x68, 0x6f, 0x73, 0x74, 0x18, 0x01, 0x20, 0x01, 0x28,
 	0x09, 0x52, 0x04, 0x68, 0x6f, 0x73, 0x74, 0x12, 0x18, 0x0a, 0x07, 0x73, 0x65, 0x72, 0x76, 0x69,
 	0x63, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63,
@@ -1216,50 +1022,43 @@ func file_workflow_proto_rawDescGZIP() []byte {
 	return file_workflow_proto_rawDescData
 }
 
-var file_workflow_proto_msgTypes = make([]protoimpl.MessageInfo, 19)
+var file_workflow_proto_msgTypes = make([]protoimpl.MessageInfo, 17)
 var file_workflow_proto_goTypes = []interface{}{
 	(*ID)(nil),                 // 0: workflow.ID
 	(*Run)(nil),                // 1: workflow.Run
 	(*WorkflowEntrypoint)(nil), // 2: workflow.WorkflowEntrypoint
 	(*Workflow)(nil),           // 3: workflow.Workflow
-	(*Resource)(nil),           // 4: workflow.Resource
-	(*Function)(nil),           // 5: workflow.Function
-	(*Input)(nil),              // 6: workflow.Input
-	(*Collection)(nil),         // 7: workflow.Collection
-	(*Table)(nil),              // 8: workflow.Table
-	(*Data)(nil),               // 9: workflow.Data
-	(*Node)(nil),               // 10: workflow.Node
-	(*Edge)(nil),               // 11: workflow.Edge
-	(*GRPCFunction)(nil),       // 12: workflow.GRPCFunction
-	(*CodeFunction)(nil),       // 13: workflow.CodeFunction
-	(*SQLFunction)(nil),        // 14: workflow.SQLFunction
-	(*DBResource)(nil),         // 15: workflow.DBResource
-	(*DocStoreResource)(nil),   // 16: workflow.DocStoreResource
-	(*BucketResource)(nil),     // 17: workflow.BucketResource
-	nil,                        // 18: workflow.Input.ParamsEntry
+	(*Function)(nil),           // 4: workflow.Function
+	(*Input)(nil),              // 5: workflow.Input
+	(*Collection)(nil),         // 6: workflow.Collection
+	(*Table)(nil),              // 7: workflow.Table
+	(*Data)(nil),               // 8: workflow.Data
+	(*Node)(nil),               // 9: workflow.Node
+	(*GRPCFunction)(nil),       // 10: workflow.GRPCFunction
+	(*CodeFunction)(nil),       // 11: workflow.CodeFunction
+	(*SQLFunction)(nil),        // 12: workflow.SQLFunction
+	(*DBResource)(nil),         // 13: workflow.DBResource
+	(*DocStoreResource)(nil),   // 14: workflow.DocStoreResource
+	(*BucketResource)(nil),     // 15: workflow.BucketResource
+	nil,                        // 16: workflow.Input.ParamsEntry
 }
 var file_workflow_proto_depIdxs = []int32{
-	10, // 0: workflow.Workflow.nodes:type_name -> workflow.Node
-	11, // 1: workflow.Workflow.edges:type_name -> workflow.Edge
-	4,  // 2: workflow.Workflow.resources:type_name -> workflow.Resource
-	15, // 3: workflow.Resource.db:type_name -> workflow.DBResource
-	16, // 4: workflow.Resource.docstore:type_name -> workflow.DocStoreResource
-	17, // 5: workflow.Resource.bucket:type_name -> workflow.BucketResource
-	13, // 6: workflow.Function.code:type_name -> workflow.CodeFunction
-	18, // 7: workflow.Input.params:type_name -> workflow.Input.ParamsEntry
-	6,  // 8: workflow.Data.input:type_name -> workflow.Input
-	7,  // 9: workflow.Data.collection:type_name -> workflow.Collection
-	5,  // 10: workflow.Node.function:type_name -> workflow.Function
-	9,  // 11: workflow.Node.data:type_name -> workflow.Data
-	3,  // 12: workflow.Manager.CreateWorkflow:input_type -> workflow.Workflow
-	2,  // 13: workflow.Manager.StartWorkflow:input_type -> workflow.WorkflowEntrypoint
-	0,  // 14: workflow.Manager.CreateWorkflow:output_type -> workflow.ID
-	1,  // 15: workflow.Manager.StartWorkflow:output_type -> workflow.Run
-	14, // [14:16] is the sub-list for method output_type
-	12, // [12:14] is the sub-list for method input_type
-	12, // [12:12] is the sub-list for extension type_name
-	12, // [12:12] is the sub-list for extension extendee
-	0,  // [0:12] is the sub-list for field type_name
+	9,  // 0: workflow.Workflow.nodes:type_name -> workflow.Node
+	11, // 1: workflow.Function.code:type_name -> workflow.CodeFunction
+	16, // 2: workflow.Input.params:type_name -> workflow.Input.ParamsEntry
+	5,  // 3: workflow.Data.input:type_name -> workflow.Input
+	6,  // 4: workflow.Data.collection:type_name -> workflow.Collection
+	4,  // 5: workflow.Node.function:type_name -> workflow.Function
+	8,  // 6: workflow.Node.data:type_name -> workflow.Data
+	3,  // 7: workflow.Manager.CreateWorkflow:input_type -> workflow.Workflow
+	2,  // 8: workflow.Manager.StartWorkflow:input_type -> workflow.WorkflowEntrypoint
+	0,  // 9: workflow.Manager.CreateWorkflow:output_type -> workflow.ID
+	1,  // 10: workflow.Manager.StartWorkflow:output_type -> workflow.Run
+	9,  // [9:11] is the sub-list for method output_type
+	7,  // [7:9] is the sub-list for method input_type
+	7,  // [7:7] is the sub-list for extension type_name
+	7,  // [7:7] is the sub-list for extension extendee
+	0,  // [0:7] is the sub-list for field type_name
 }
 
 func init() { file_workflow_proto_init() }
@@ -1317,18 +1116,6 @@ func file_workflow_proto_init() {
 			}
 		}
 		file_workflow_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Resource); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_workflow_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Function); i {
 			case 0:
 				return &v.state
@@ -1340,7 +1127,7 @@ func file_workflow_proto_init() {
 				return nil
 			}
 		}
-		file_workflow_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
+		file_workflow_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Input); i {
 			case 0:
 				return &v.state
@@ -1352,7 +1139,7 @@ func file_workflow_proto_init() {
 				return nil
 			}
 		}
-		file_workflow_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
+		file_workflow_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Collection); i {
 			case 0:
 				return &v.state
@@ -1364,7 +1151,7 @@ func file_workflow_proto_init() {
 				return nil
 			}
 		}
-		file_workflow_proto_msgTypes[8].Exporter = func(v interface{}, i int) interface{} {
+		file_workflow_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Table); i {
 			case 0:
 				return &v.state
@@ -1376,7 +1163,7 @@ func file_workflow_proto_init() {
 				return nil
 			}
 		}
-		file_workflow_proto_msgTypes[9].Exporter = func(v interface{}, i int) interface{} {
+		file_workflow_proto_msgTypes[8].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Data); i {
 			case 0:
 				return &v.state
@@ -1388,7 +1175,7 @@ func file_workflow_proto_init() {
 				return nil
 			}
 		}
-		file_workflow_proto_msgTypes[10].Exporter = func(v interface{}, i int) interface{} {
+		file_workflow_proto_msgTypes[9].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Node); i {
 			case 0:
 				return &v.state
@@ -1400,19 +1187,7 @@ func file_workflow_proto_init() {
 				return nil
 			}
 		}
-		file_workflow_proto_msgTypes[11].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Edge); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_workflow_proto_msgTypes[12].Exporter = func(v interface{}, i int) interface{} {
+		file_workflow_proto_msgTypes[10].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GRPCFunction); i {
 			case 0:
 				return &v.state
@@ -1424,7 +1199,7 @@ func file_workflow_proto_init() {
 				return nil
 			}
 		}
-		file_workflow_proto_msgTypes[13].Exporter = func(v interface{}, i int) interface{} {
+		file_workflow_proto_msgTypes[11].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CodeFunction); i {
 			case 0:
 				return &v.state
@@ -1436,7 +1211,7 @@ func file_workflow_proto_init() {
 				return nil
 			}
 		}
-		file_workflow_proto_msgTypes[14].Exporter = func(v interface{}, i int) interface{} {
+		file_workflow_proto_msgTypes[12].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*SQLFunction); i {
 			case 0:
 				return &v.state
@@ -1448,7 +1223,7 @@ func file_workflow_proto_init() {
 				return nil
 			}
 		}
-		file_workflow_proto_msgTypes[15].Exporter = func(v interface{}, i int) interface{} {
+		file_workflow_proto_msgTypes[13].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*DBResource); i {
 			case 0:
 				return &v.state
@@ -1460,7 +1235,7 @@ func file_workflow_proto_init() {
 				return nil
 			}
 		}
-		file_workflow_proto_msgTypes[16].Exporter = func(v interface{}, i int) interface{} {
+		file_workflow_proto_msgTypes[14].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*DocStoreResource); i {
 			case 0:
 				return &v.state
@@ -1472,7 +1247,7 @@ func file_workflow_proto_init() {
 				return nil
 			}
 		}
-		file_workflow_proto_msgTypes[17].Exporter = func(v interface{}, i int) interface{} {
+		file_workflow_proto_msgTypes[15].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*BucketResource); i {
 			case 0:
 				return &v.state
@@ -1486,18 +1261,13 @@ func file_workflow_proto_init() {
 		}
 	}
 	file_workflow_proto_msgTypes[4].OneofWrappers = []interface{}{
-		(*Resource_Db)(nil),
-		(*Resource_Docstore)(nil),
-		(*Resource_Bucket)(nil),
-	}
-	file_workflow_proto_msgTypes[5].OneofWrappers = []interface{}{
 		(*Function_Code)(nil),
 	}
-	file_workflow_proto_msgTypes[9].OneofWrappers = []interface{}{
+	file_workflow_proto_msgTypes[8].OneofWrappers = []interface{}{
 		(*Data_Input)(nil),
 		(*Data_Collection)(nil),
 	}
-	file_workflow_proto_msgTypes[10].OneofWrappers = []interface{}{
+	file_workflow_proto_msgTypes[9].OneofWrappers = []interface{}{
 		(*Node_Function)(nil),
 		(*Node_Data)(nil),
 	}
@@ -1507,7 +1277,7 @@ func file_workflow_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_workflow_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   19,
+			NumMessages:   17,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
