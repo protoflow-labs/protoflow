@@ -1,3 +1,3 @@
 package protoflow
 
-//go:generate buf generate proto
+//go:generate npx buf generate proto
