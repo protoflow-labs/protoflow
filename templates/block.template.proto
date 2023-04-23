@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package example;
+
+service {{.Name}}Service {
+    rpc New{{.Name}}({{.Name}}Request) returns ({{.Name}}Response) {}
+}
+
+message {{.Name}}Request {
+    {{range $i, $field := .InputFields}}
+    {{if eq $field.Type 0}}string{{else}}int64{{end}} {{ $field.Name }} = {{$i}}
+    {{end}}
+}
+
+message {{.Name}}Response {
+    {{range $i, $field := .InputFields}}
+    {{if eq $field.Type 0}}string{{else}}int64{{end}} {{ $field.Name }} = {{$i}}
+    {{end}}
+}

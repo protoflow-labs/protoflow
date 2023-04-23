@@ -2,18 +2,15 @@ import { Caption1, Card, CardHeader, Text } from "@fluentui/react-components";
 import { ChangeEvent, KeyboardEvent } from "react";
 import { HiPencilSquare } from "react-icons/hi2";
 import { Handle, NodeProps, Position } from "reactflow";
+import { FieldDefinition } from '../../rpc/project_pb'
+
 
 type InputNodeProps = NodeProps<InputData>;
 
-type Field = {
-  name: string;
-  type: "string" | "number" | "boolean";
-  required?: boolean;
-};
 
 export type InputData = {
   name: string;
-  fields: Field[];
+  inputFields: FieldDefinition[];
   lastUpdate: number;
 };
 

@@ -1,4 +1,4 @@
-import { Button, Card, Input, Label, Select } from "@fluentui/react-components";
+import { Button, Card, Dropdown, Input, Label, Select, Option } from "@fluentui/react-components";
 import { Node, useOnSelectionChange } from "reactflow";
 import { EntityData } from "../nodes/EntityNode";
 import { useState } from "react";
@@ -6,6 +6,8 @@ import { HiPlus } from "react-icons/hi2";
 import { FunctionData } from "../nodes/FunctionNode";
 import { projectService } from "../lib/api";
 import { EndpointyData } from "../nodes/EndpointNode";
+import { InputData } from "../nodes/InputNode";
+import { FieldDefinition, FieldType } from '../../rpc/project_pb'
 
 export function EditorPanel() {
   const [activeNode, setActiveNode] = useState<Node | null>(null);
@@ -36,11 +38,13 @@ type NodeEditorProps = {
   node: Node | null;
 };
 
-interface NodeWithName {
+interface BlockNode {
   name: string;
+  inputFields?: FieldDefinition[];
+  outputFields?: FieldDefinition[];
 }
 
-function saveChanges(node: Node<NodeWithName>) {
+function saveChanges(node: Node<BlockNode>) {
   projectService.updateBlock({
     block: {
       id: node.id,
@@ -48,6 +52,8 @@ function saveChanges(node: Node<NodeWithName>) {
       y: node.position.y,
       name: node.data.name,
       type: node.type,
+      inputFields: node.data.inputFields,
+      outputFields: node.data.outputFields,
     },
   });
 }
@@ -85,7 +91,8 @@ function EndpointEditor(props: { node: Node<EndpointyData> }) {
   );
 }
 
-function InputEditor(props: { node: Node<EntityData> }) {
+function InputEditor(props: { node: Node<InputData> }) {
+  
   return (
     <div className="flex flex-col gap-2 p-4">
       <div className="flex flex-col">
@@ -101,7 +108,31 @@ function InputEditor(props: { node: Node<EntityData> }) {
       </div>
       <div className="flex flex-col">
         <Label htmlFor="entityName">Fields</Label>
-        <Button icon={<HiPlus className="w-4 h-4" />}>Add Field</Button>
+        { props.node.data.inputFields?.map((field, index) => (
+          <div key={index}>
+            <Input
+              id={"fieldName" + index}
+              defaultValue={field.name}
+              onChange={(e) => {
+                field.name = e.currentTarget.value;
+              }}
+              onBlur={() => saveChanges(props.node)}
+            />
+            <Dropdown
+              id={"fieldType" + index}
+              defaultValue={field.type === 1 ? 'Integer' : 'String'}
+              onOptionSelect={(e, data) => {
+                props.node.data.inputFields[index].type = Number(data.optionValue);
+              }}
+              onBlur={() => saveChanges(props.node)}
+            >
+              <Option value={String(FieldType.STRING)}>String</Option>
+              <Option value={String(FieldType.INTEGER)}>Integer</Option>
+            </Dropdown>
+          </div>
+        )) }
+        <Button onClick={() => { props.node.data.inputFields = [...props.node.data.inputFields || [], new FieldDefinition({ name: 'undefined', type: FieldType.STRING })] }} icon={<HiPlus className="w-4 h-4" />}>Add Field</Button>
+
       </div>
     </div>
   );

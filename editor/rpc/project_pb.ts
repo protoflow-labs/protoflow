@@ -7,6 +7,26 @@ import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialM
 import { Message, proto3 } from "@bufbuild/protobuf";
 
 /**
+ * @generated from enum project.FieldType
+ */
+export enum FieldType {
+  /**
+   * @generated from enum value: STRING = 0;
+   */
+  STRING = 0,
+
+  /**
+   * @generated from enum value: INTEGER = 1;
+   */
+  INTEGER = 1,
+}
+// Retrieve enum metadata with: proto3.getEnumType(FieldType)
+proto3.util.setEnumType(FieldType, "project.FieldType", [
+  { no: 0, name: "STRING" },
+  { no: 1, name: "INTEGER" },
+]);
+
+/**
  * @generated from message project.Resource
  */
 export class Resource extends Message<Resource> {
@@ -123,6 +143,49 @@ export class Project extends Message<Project> {
 }
 
 /**
+ * @generated from message project.FieldDefinition
+ */
+export class FieldDefinition extends Message<FieldDefinition> {
+  /**
+   * @generated from field: string name = 1;
+   */
+  name = "";
+
+  /**
+   * @generated from field: project.FieldType type = 2;
+   */
+  type = FieldType.STRING;
+
+  constructor(data?: PartialMessage<FieldDefinition>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "project.FieldDefinition";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "type", kind: "enum", T: proto3.getEnumType(FieldType) },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): FieldDefinition {
+    return new FieldDefinition().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): FieldDefinition {
+    return new FieldDefinition().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): FieldDefinition {
+    return new FieldDefinition().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: FieldDefinition | PlainMessage<FieldDefinition> | undefined, b: FieldDefinition | PlainMessage<FieldDefinition> | undefined): boolean {
+    return proto3.util.equals(FieldDefinition, a, b);
+  }
+}
+
+/**
  * @generated from message project.Block
  */
 export class Block extends Message<Block> {
@@ -151,6 +214,16 @@ export class Block extends Message<Block> {
    */
   y = 0;
 
+  /**
+   * @generated from field: repeated project.FieldDefinition inputFields = 6;
+   */
+  inputFields: FieldDefinition[] = [];
+
+  /**
+   * @generated from field: repeated project.FieldDefinition outputFields = 7;
+   */
+  outputFields: FieldDefinition[] = [];
+
   constructor(data?: PartialMessage<Block>) {
     super();
     proto3.util.initPartial(data, this);
@@ -164,6 +237,8 @@ export class Block extends Message<Block> {
     { no: 3, name: "type", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 4, name: "x", kind: "scalar", T: 2 /* ScalarType.FLOAT */ },
     { no: 5, name: "y", kind: "scalar", T: 2 /* ScalarType.FLOAT */ },
+    { no: 6, name: "inputFields", kind: "message", T: FieldDefinition, repeated: true },
+    { no: 7, name: "outputFields", kind: "message", T: FieldDefinition, repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Block {
