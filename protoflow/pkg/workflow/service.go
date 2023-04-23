@@ -2,24 +2,32 @@ package workflow
 
 import (
 	"context"
-	connect_go "github.com/bufbuild/connect-go"
-	"github.com/protoflow-labs/protoflow-editor/protoflow/gen"
-	"github.com/protoflow-labs/protoflow-editor/protoflow/gen/genconnect"
-	"time"
-
+	"github.com/bufbuild/connect-go"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/wire"
 	"github.com/pkg/errors"
+	"github.com/protoflow-labs/protoflow-editor/protoflow/gen"
+	"github.com/protoflow-labs/protoflow-editor/protoflow/gen/genconnect"
 	"github.com/rs/zerolog/log"
 	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/api/workflowservice/v1"
-
 	"go.temporal.io/sdk/client"
+	"time"
 )
 
 const taskQueue = "protoflow"
 
-type TemporalManager struct {
+var ProviderSet = wire.NewSet(
+	NewConfig,
+	StoreProviderSet,
+	NewClient,
+	NewService,
+	wire.Bind(new(genconnect.ManagerHandler), new(*Service)),
+)
+
+var _ genconnect.ManagerHandler = (*Service)(nil)
+
+type Service struct {
 	genconnect.UnimplementedManagerHandler
 
 	temporalClient client.Client
@@ -27,47 +35,37 @@ type TemporalManager struct {
 	config         Config
 }
 
-var ProviderSet = wire.NewSet(
-	NewConfig,
-	StoreProviderSet,
-	NewClient,
-	NewManager,
-	wire.Bind(new(genconnect.ManagerHandler), new(*TemporalManager)),
-)
-
-var _ genconnect.ManagerHandler = (*TemporalManager)(nil)
-
-func NewManager(
+func NewService(
 	temporalClient client.Client,
 	store Store,
 	config Config,
-) *TemporalManager {
-	return &TemporalManager{
+) *Service {
+	return &Service{
 		temporalClient: temporalClient,
 		workflowStore:  store,
 		config:         config,
 	}
 }
 
-func (m *TemporalManager) CreateWorkflow(
+func (m *Service) CreateWorkflow(
 	ctx context.Context,
-	req *connect_go.Request[gen.Workflow],
-) (*connect_go.Response[gen.ID], error) {
+	req *connect.Request[gen.Workflow],
+) (*connect.Response[gen.ID], error) {
 	id, err := m.workflowStore.SaveWorkflow(req.Msg)
 	if err != nil {
 		return nil, err
 	}
-	return &connect_go.Response[gen.ID]{
+	return &connect.Response[gen.ID]{
 		Msg: &gen.ID{
 			Id: id,
 		},
 	}, nil
 }
 
-func (m *TemporalManager) StartWorkflow(
+func (m *Service) StartWorkflow(
 	ctx context.Context,
-	req *connect_go.Request[gen.WorkflowEntrypoint],
-) (*connect_go.Response[gen.Run], error) {
+	req *connect.Request[gen.WorkflowEntrypoint],
+) (*connect.Response[gen.Run], error) {
 	protoflow, err := m.workflowStore.GetWorkflow(req.Msg.WorkflowId)
 	if err != nil {
 		return nil, err
@@ -93,7 +91,7 @@ func (m *TemporalManager) StartWorkflow(
 		Str("run id", we.GetRunID()).
 		Msg("started workflow")
 
-	return &connect_go.Response[gen.Run]{
+	return &connect.Response[gen.Run]{
 		Msg: &gen.Run{
 			Id: we.GetRunID(),
 		},
@@ -128,7 +126,7 @@ func getWorkflowResult(ctx context.Context, temporalClient client.Client, workfl
 	return
 }
 
-func (m *TemporalManager) CancelWorkflows(deploymentID string, workflowRuns []WorkflowRunModel) error {
+func (m *Service) CancelWorkflows(deploymentID string, workflowRuns []WorkflowRunModel) error {
 	for _, workflowRun := range workflowRuns {
 		err := m.temporalClient.CancelWorkflow(context.Background(), workflowRun.WorkflowID, workflowRun.RunID)
 		if err != nil {
@@ -149,7 +147,7 @@ func (m *TemporalManager) CancelWorkflows(deploymentID string, workflowRuns []Wo
 }
 
 // StopAllOpenWorkflows gets all currently open workflows and cancels them.
-func (m *TemporalManager) StopAllOpenWorkflows(c *fiber.Ctx) error {
+func (m *Service) StopAllOpenWorkflows(c *fiber.Ctx) error {
 	request := &workflowservice.ListOpenWorkflowExecutionsRequest{
 		Namespace: m.config.Temporal.Namespace,
 	}
