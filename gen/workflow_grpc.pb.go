@@ -18,120 +18,120 @@ import (
 // Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
-// ManagerClient is the client API for Manager service.
+// ManagerServiceClient is the client API for ManagerService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type ManagerClient interface {
+type ManagerServiceClient interface {
 	CreateWorkflow(ctx context.Context, in *Workflow, opts ...grpc.CallOption) (*ID, error)
 	StartWorkflow(ctx context.Context, in *WorkflowEntrypoint, opts ...grpc.CallOption) (*Run, error)
 }
 
-type managerClient struct {
+type managerServiceClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewManagerClient(cc grpc.ClientConnInterface) ManagerClient {
-	return &managerClient{cc}
+func NewManagerServiceClient(cc grpc.ClientConnInterface) ManagerServiceClient {
+	return &managerServiceClient{cc}
 }
 
-func (c *managerClient) CreateWorkflow(ctx context.Context, in *Workflow, opts ...grpc.CallOption) (*ID, error) {
+func (c *managerServiceClient) CreateWorkflow(ctx context.Context, in *Workflow, opts ...grpc.CallOption) (*ID, error) {
 	out := new(ID)
-	err := c.cc.Invoke(ctx, "/workflow.Manager/CreateWorkflow", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/workflow.ManagerService/CreateWorkflow", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *managerClient) StartWorkflow(ctx context.Context, in *WorkflowEntrypoint, opts ...grpc.CallOption) (*Run, error) {
+func (c *managerServiceClient) StartWorkflow(ctx context.Context, in *WorkflowEntrypoint, opts ...grpc.CallOption) (*Run, error) {
 	out := new(Run)
-	err := c.cc.Invoke(ctx, "/workflow.Manager/StartWorkflow", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/workflow.ManagerService/StartWorkflow", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// ManagerServer is the server API for Manager service.
-// All implementations should embed UnimplementedManagerServer
+// ManagerServiceServer is the server API for ManagerService service.
+// All implementations should embed UnimplementedManagerServiceServer
 // for forward compatibility
-type ManagerServer interface {
+type ManagerServiceServer interface {
 	CreateWorkflow(context.Context, *Workflow) (*ID, error)
 	StartWorkflow(context.Context, *WorkflowEntrypoint) (*Run, error)
 }
 
-// UnimplementedManagerServer should be embedded to have forward compatible implementations.
-type UnimplementedManagerServer struct {
+// UnimplementedManagerServiceServer should be embedded to have forward compatible implementations.
+type UnimplementedManagerServiceServer struct {
 }
 
-func (UnimplementedManagerServer) CreateWorkflow(context.Context, *Workflow) (*ID, error) {
+func (UnimplementedManagerServiceServer) CreateWorkflow(context.Context, *Workflow) (*ID, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateWorkflow not implemented")
 }
-func (UnimplementedManagerServer) StartWorkflow(context.Context, *WorkflowEntrypoint) (*Run, error) {
+func (UnimplementedManagerServiceServer) StartWorkflow(context.Context, *WorkflowEntrypoint) (*Run, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method StartWorkflow not implemented")
 }
 
-// UnsafeManagerServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to ManagerServer will
+// UnsafeManagerServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to ManagerServiceServer will
 // result in compilation errors.
-type UnsafeManagerServer interface {
-	mustEmbedUnimplementedManagerServer()
+type UnsafeManagerServiceServer interface {
+	mustEmbedUnimplementedManagerServiceServer()
 }
 
-func RegisterManagerServer(s grpc.ServiceRegistrar, srv ManagerServer) {
-	s.RegisterService(&Manager_ServiceDesc, srv)
+func RegisterManagerServiceServer(s grpc.ServiceRegistrar, srv ManagerServiceServer) {
+	s.RegisterService(&ManagerService_ServiceDesc, srv)
 }
 
-func _Manager_CreateWorkflow_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _ManagerService_CreateWorkflow_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(Workflow)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ManagerServer).CreateWorkflow(ctx, in)
+		return srv.(ManagerServiceServer).CreateWorkflow(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/workflow.Manager/CreateWorkflow",
+		FullMethod: "/workflow.ManagerService/CreateWorkflow",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ManagerServer).CreateWorkflow(ctx, req.(*Workflow))
+		return srv.(ManagerServiceServer).CreateWorkflow(ctx, req.(*Workflow))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Manager_StartWorkflow_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _ManagerService_StartWorkflow_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(WorkflowEntrypoint)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ManagerServer).StartWorkflow(ctx, in)
+		return srv.(ManagerServiceServer).StartWorkflow(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/workflow.Manager/StartWorkflow",
+		FullMethod: "/workflow.ManagerService/StartWorkflow",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ManagerServer).StartWorkflow(ctx, req.(*WorkflowEntrypoint))
+		return srv.(ManagerServiceServer).StartWorkflow(ctx, req.(*WorkflowEntrypoint))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// Manager_ServiceDesc is the grpc.ServiceDesc for Manager service.
+// ManagerService_ServiceDesc is the grpc.ServiceDesc for ManagerService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var Manager_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "workflow.Manager",
-	HandlerType: (*ManagerServer)(nil),
+var ManagerService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "workflow.ManagerService",
+	HandlerType: (*ManagerServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "CreateWorkflow",
-			Handler:    _Manager_CreateWorkflow_Handler,
+			Handler:    _ManagerService_CreateWorkflow_Handler,
 		},
 		{
 			MethodName: "StartWorkflow",
-			Handler:    _Manager_StartWorkflow_Handler,
+			Handler:    _ManagerService_StartWorkflow_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

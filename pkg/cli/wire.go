@@ -22,6 +22,5 @@ func Wire(cacheConfig cache.Config) (*urfavcli.App, error) {
 		workflow.ProviderSet,
 		project.ProviderSet,
 		api.NewHTTPServer,
-		workflow.NewWorker,
 	))
 }

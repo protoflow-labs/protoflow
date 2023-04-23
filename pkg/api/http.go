@@ -13,11 +13,11 @@ type HTTPServer struct {
 	mux *http.ServeMux
 }
 
-func NewHTTPServer(workflowManager genconnect.ManagerHandler, projectService genconnect.ProjectServiceHandler) *HTTPServer {
+func NewHTTPServer(workflowManager genconnect.ManagerServiceHandler, projectService genconnect.ProjectServiceHandler) *HTTPServer {
 	mux := http.NewServeMux()
 	// The generated constructors return a path and a plain net/http
 	// handler.
-	route, handler := genconnect.NewManagerHandler(workflowManager)
+	route, handler := genconnect.NewManagerServiceHandler(workflowManager)
 	mux.Handle(route, handler)
 
 	projectRoutes, projectHandlers := genconnect.NewProjectServiceHandler(projectService)
@@ -25,7 +25,7 @@ func NewHTTPServer(workflowManager genconnect.ManagerHandler, projectService gen
 	mux.Handle(projectRoutes, projectHandlers)
 
 	reflector := grpcreflect.NewStaticReflector(
-		"workflow.Manager",
+		"workflow.ManagerService",
 		"project.ProjectService",
 		// protoc-gen-connect-go generates package-level constants
 		// for these fully-qualified protobuf service names, so you'd more likely

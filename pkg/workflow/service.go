@@ -3,47 +3,35 @@ package workflow
 import (
 	"context"
 	"github.com/bufbuild/connect-go"
-	"github.com/gofiber/fiber/v2"
 	"github.com/google/wire"
-	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/gen"
 	"github.com/protoflow-labs/protoflow/gen/genconnect"
-	"github.com/rs/zerolog/log"
-	"go.temporal.io/api/enums/v1"
-	"go.temporal.io/api/workflowservice/v1"
-	"go.temporal.io/sdk/client"
-	"time"
 )
-
-const taskQueue = "protoflow"
 
 var ProviderSet = wire.NewSet(
-	NewConfig,
 	StoreProviderSet,
-	NewClient,
+	NewConfig,
 	NewService,
-	wire.Bind(new(genconnect.ManagerHandler), new(*Service)),
+	NewManager,
+	wire.Bind(new(genconnect.ManagerServiceHandler), new(*Service)),
 )
 
-var _ genconnect.ManagerHandler = (*Service)(nil)
+var _ genconnect.ManagerServiceHandler = (*Service)(nil)
 
 type Service struct {
-	genconnect.UnimplementedManagerHandler
+	genconnect.UnimplementedManagerServiceHandler
 
-	temporalClient client.Client
-	workflowStore  Store
-	config         Config
+	workflowStore Store
+	manager       Manager
 }
 
 func NewService(
-	temporalClient client.Client,
 	store Store,
-	config Config,
+	manager Manager,
 ) *Service {
 	return &Service{
-		temporalClient: temporalClient,
-		workflowStore:  store,
-		config:         config,
+		workflowStore: store,
+		manager:       manager,
 	}
 }
 
@@ -71,98 +59,16 @@ func (m *Service) StartWorkflow(
 		return nil, err
 	}
 
-	workflowOptions := client.StartWorkflowOptions{
-		ID:        req.Msg.WorkflowId,
-		TaskQueue: taskQueue,
-		// CronSchedule: workflow.CronSchedule,
-	}
-
-	w, err := NewWorkflowFromProtoflow(protoflow)
+	w, err := WorkflowFromProtoflow(protoflow)
 	if err != nil {
 		return nil, err
 	}
 
-	we, err := m.temporalClient.ExecuteWorkflow(ctx, workflowOptions, Run, w, req.Msg.NodeId)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to start workflow %s", protoflow.Id)
-	}
-	log.Debug().
-		Str("id", we.GetID()).
-		Str("run id", we.GetRunID()).
-		Msg("started workflow")
+	runID, err := m.manager.ExecuteWorkflow(ctx, w, req.Msg.NodeId)
 
 	return &connect.Response[gen.Run]{
 		Msg: &gen.Run{
-			Id: we.GetRunID(),
+			Id: runID,
 		},
 	}, nil
-}
-
-// ProcessNewWorkflows starts any workflow that needs to be started now and saves them.
-func getWorkflowResult(ctx context.Context, temporalClient client.Client, workflowID, runID string) {
-	var workflowCompeted bool
-
-	for !workflowCompeted {
-		select {
-		case <-ctx.Done():
-			return
-		default:
-			time.Sleep(125 * time.Millisecond)
-			resp, err := temporalClient.DescribeWorkflowExecution(ctx, workflowID, "")
-			if err != nil {
-				//workflowResult.Error = err
-				return
-			}
-			executionInfo := resp.GetWorkflowExecutionInfo()
-			if enums.WORKFLOW_EXECUTION_STATUS_COMPLETED == executionInfo.GetStatus() {
-				workflowCompeted = true
-				break
-			}
-		}
-	}
-
-	//workflowRun := temporalClient.GetWorkflow(ctx, workflowID, runID)
-	//workflowResult.Error = workflowRun.Get(ctx, &workflowResult.Data)
-	return
-}
-
-func (m *Service) CancelWorkflows(deploymentID string, workflowRuns []WorkflowRunModel) error {
-	for _, workflowRun := range workflowRuns {
-		err := m.temporalClient.CancelWorkflow(context.Background(), workflowRun.WorkflowID, workflowRun.RunID)
-		if err != nil {
-			continue
-		}
-	}
-	/*
-		request := &workflowservice.ListOpenWorkflowExecutionsRequest{
-			Namespace: "refinery",
-			Filters: &workflowservice.ListOpenWorkflowExecutionsRequest_ExecutionFilter{
-				ExecutionFilter: filter.ExecutionFilter{
-					WorkflowId: "",
-				},
-			},
-		}
-	*/
-	return nil
-}
-
-// StopAllOpenWorkflows gets all currently open workflows and cancels them.
-func (m *Service) StopAllOpenWorkflows(c *fiber.Ctx) error {
-	request := &workflowservice.ListOpenWorkflowExecutionsRequest{
-		Namespace: m.config.Temporal.Namespace,
-	}
-
-	// TODO call this in loop to get all executions
-	response, err := m.temporalClient.ListOpenWorkflow(context.Background(), request)
-	if err != nil {
-		return err
-	}
-	for _, execution := range response.GetExecutions() {
-		workflowExec := execution.GetExecution()
-		err := m.temporalClient.CancelWorkflow(context.Background(), workflowExec.WorkflowId, workflowExec.RunId)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
 }

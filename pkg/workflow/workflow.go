@@ -2,45 +2,38 @@ package workflow
 
 import (
 	"fmt"
-	"time"
-
-	"github.com/protoflow-labs/protoflow/gen"
-
-	"github.com/hmdsefi/gograph"
+	"github.com/dominikbraun/graph"
 	"github.com/pkg/errors"
+	"github.com/protoflow-labs/protoflow/gen"
 	"github.com/rs/zerolog/log"
-
-	"go.temporal.io/sdk/workflow"
 )
 
-type Result struct {
-	Data    string
-	IsError bool
-	Error   string
+type Input struct {
+	Params interface{}
 }
+
+type Result struct {
+	Data interface{}
+}
+
+type AdjMap map[string]map[string]graph.Edge[string]
 
 type Workflow struct {
-	Graph       gograph.Graph[string]
+	ID          string
+	Graph       graph.Graph[string, string]
 	BlockLookup map[string]Block
+	AdjMap
 }
 
-type WorkflowGraph struct {
-	Nodes       []*gen.Node
-	Edges       []*gen.Edge
-	BlockLookup map[string]Block
-}
-
-func NewWorkflowFromProtoflow(workflowGraph *gen.Workflow) (*Workflow, error) {
-	graph := gograph.New[string](gograph.Directed())
+func WorkflowFromProtoflow(workflowGraph *gen.Workflow) (*Workflow, error) {
+	g := graph.New(graph.StringHash, graph.Directed(), graph.PreventCycles())
 
 	blockLookup := map[string]Block{}
-	vertexLookup := map[string]*gograph.Vertex[string]{}
 	for _, node := range workflowGraph.Nodes {
-		v := gograph.NewVertex(node.Id)
-		graph.AddVertex(v)
-
-		// add vertex to lookup to be used for edges
-		vertexLookup[node.Id] = v
+		err := g.AddVertex(node.Id)
+		if err != nil {
+			return nil, err
+		}
 
 		// add block to lookup to be used for execution
 		activity, err := NewBlock(node)
@@ -51,38 +44,34 @@ func NewWorkflowFromProtoflow(workflowGraph *gen.Workflow) (*Workflow, error) {
 	}
 
 	for _, edge := range workflowGraph.Edges {
-		_, err := graph.AddEdge(vertexLookup[edge.From], vertexLookup[edge.To])
+		err := g.AddEdge(edge.From, edge.To)
 		if err != nil {
 			return nil, err
 		}
 	}
 
+	adjMap, err := g.AdjacencyMap()
+	if err != nil {
+		return nil, errors.Wrapf(err, "error getting adjacency map")
+	}
+
 	return &Workflow{
-		Graph:       graph,
+		ID:          workflowGraph.Id,
+		Graph:       g,
 		BlockLookup: blockLookup,
+		AdjMap:      adjMap,
 	}, nil
 }
 
-func Run(ctx workflow.Context, w *Workflow, nodeID string) (string, error) {
-	if w.BlockLookup == nil || w.Graph == nil {
-		return "", fmt.Errorf("workflow is not initialized")
+func (w *Workflow) Run(logger Logger, executor Executor, nodeID string) (string, error) {
+	vert, err := w.Graph.Vertex(nodeID)
+	if err != nil {
+		return "", errors.Wrapf(err, "error getting vertex %s", nodeID)
 	}
 
-	ao := workflow.ActivityOptions{
-		ScheduleToStartTimeout: time.Minute,
-		StartToCloseTimeout:    time.Minute,
-		HeartbeatTimeout:       time.Second * 20,
-	}
-	ctx = workflow.WithActivityOptions(ctx, ao)
-	logger := workflow.GetLogger(ctx)
-
-	// Adding context to a workflow
-	// ctx = workflow.WithValue(ctx, AccountIDContextKey, dslWorkflow.AccountID)
-
-	logger.Info("Starting workflow", "workflowID", workflow.GetInfo(ctx).WorkflowExecution.ID, "nodeID", nodeID)
-
-	vert := w.Graph.GetVertexByID(nodeID)
-	_, err := w.traverseWorkflow(ctx, vert)
+	_, err = w.traverseWorkflow(logger, executor, vert, Input{
+		Params: nil,
+	})
 	if err != nil {
 		logger.Error("Error traversing workflow", "error", err)
 		return "", nil
@@ -90,30 +79,28 @@ func Run(ctx workflow.Context, w *Workflow, nodeID string) (string, error) {
 	return "", nil
 }
 
-func (w *Workflow) traverseWorkflow(ctx workflow.Context, vert *gograph.Vertex[string]) (*Result, error) {
-	logger := workflow.GetLogger(ctx)
-	if vert == nil {
-		return nil, errors.New("vertex is nil")
-	}
-
-	for _, neighbor := range vert.Neighbors() {
-		block, ok := w.BlockLookup[neighbor.Label()]
+func (w *Workflow) traverseWorkflow(logger Logger, executor Executor, vert string, input Input) (*Result, error) {
+	for neighbor, _ := range w.AdjMap[vert] {
+		block, ok := w.BlockLookup[neighbor]
 		if !ok {
-			return nil, fmt.Errorf("vertex not found: %s", neighbor.Label())
+			return nil, fmt.Errorf("vertex not found: %s", neighbor)
 		}
 
-		res, err := block.Execute(ctx)
+		res, err := block.Execute(executor, input)
 		if err != nil {
-			logger.Error("Error executing block", "error", err)
-			return nil, errors.Wrapf(err, "error executing block %s", neighbor.Label())
+			return nil, errors.Wrapf(err, "error executing block %s", neighbor)
+		}
+
+		nextBlockInput := Input{
+			Params: res.Data,
 		}
 
 		log.Debug().Interface("result", res).Msg("block result")
 
-		logger.Info("Traversing workflow", "nodeID", neighbor.Label())
-		_, err = w.traverseWorkflow(ctx, neighbor)
+		logger.Info("Traversing workflow", "nodeID", neighbor)
+		_, err = w.traverseWorkflow(logger, executor, neighbor, nextBlockInput)
 		if err != nil {
-			return nil, errors.Wrapf(err, "error traversing workflow %s", neighbor.Label())
+			return nil, errors.Wrapf(err, "error traversing workflow %s", neighbor)
 		}
 	}
 	return &Result{}, nil

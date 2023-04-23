@@ -3,7 +3,7 @@ syntax = "proto3";
 package workflow;
 option go_package = "workflow";
 
-service Manager {
+service ManagerService {
   rpc CreateWorkflow(Workflow) returns (ID) {}
   rpc StartWorkflow(WorkflowEntrypoint) returns (Run) {}
 }

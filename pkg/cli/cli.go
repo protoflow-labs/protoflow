@@ -1,12 +1,14 @@
 package cli
 
 import (
+	"github.com/protoflow-labs/protoflow/pkg/temporal"
+	"github.com/protoflow-labs/protoflow/pkg/workflow"
+	"go.uber.org/config"
 	"os"
 
 	"github.com/protoflow-labs/protoflow/pkg/api"
 	logcfg "github.com/protoflow-labs/protoflow/pkg/log"
 	"github.com/protoflow-labs/protoflow/pkg/project"
-	"github.com/protoflow-labs/protoflow/pkg/workflow"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/urfave/cli/v2"
@@ -24,8 +26,8 @@ func setupLogging(level string) {
 func New(
 	logConfig logcfg.Config,
 	httpHandler *api.HTTPServer,
-	worker *workflow.Worker,
 	project *project.Service,
+	provider config.Provider,
 ) *cli.App {
 	setupLogging(logConfig.Level)
 
@@ -34,10 +36,15 @@ func New(
 		Description: "Coding as easy as playing with legos.",
 		Flags:       []cli.Flag{},
 		Commands: []*cli.Command{
+			// TODO breadchris how can you provide a command through wire?
 			{
 				Name: "worker",
 				Action: func(ctx *cli.Context) error {
-					return worker.Run()
+					client, err := temporal.Wire(provider)
+					if err != nil {
+						return err
+					}
+					return workflow.NewWorker(client).Run()
 				},
 			},
 			{

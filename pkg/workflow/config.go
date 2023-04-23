@@ -2,21 +2,20 @@ package workflow
 
 import "go.uber.org/config"
 
-type TemporalConfig struct {
-	Namespace string `yaml:"namespace"`
-	Host      string `yaml:"host"`
-}
+type ManagerType string
+
+const (
+	MemoryManagerType   ManagerType = "memory"
+	TemporalManagerType ManagerType = "temporal"
+)
 
 type Config struct {
-	Temporal TemporalConfig `yaml:"temporal"`
+	ManagerType ManagerType `yaml:"manager"`
 }
 
 func NewDefaultConfig() Config {
 	return Config{
-		Temporal: TemporalConfig{
-			Namespace: "${TEMPORAL_NAMESPACE:\"protoflow\"}",
-			Host:      "${TEMPORAL_HOST:\"localhost:7233\"}",
-		},
+		ManagerType: MemoryManagerType,
 	}
 }
 

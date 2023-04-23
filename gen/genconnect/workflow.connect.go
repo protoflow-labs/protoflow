@@ -21,8 +21,8 @@ import (
 const _ = connect_go.IsAtLeastVersion0_1_0
 
 const (
-	// ManagerName is the fully-qualified name of the Manager service.
-	ManagerName = "workflow.Manager"
+	// ManagerServiceName is the fully-qualified name of the ManagerService service.
+	ManagerServiceName = "workflow.ManagerService"
 )
 
 // These constants are the fully-qualified names of the RPCs defined in this package. They're
@@ -33,90 +33,92 @@ const (
 // reflection-formatted method names, remove the leading slash and convert the remaining slash to a
 // period.
 const (
-	// ManagerCreateWorkflowProcedure is the fully-qualified name of the Manager's CreateWorkflow RPC.
-	ManagerCreateWorkflowProcedure = "/workflow.Manager/CreateWorkflow"
-	// ManagerStartWorkflowProcedure is the fully-qualified name of the Manager's StartWorkflow RPC.
-	ManagerStartWorkflowProcedure = "/workflow.Manager/StartWorkflow"
+	// ManagerServiceCreateWorkflowProcedure is the fully-qualified name of the ManagerService's
+	// CreateWorkflow RPC.
+	ManagerServiceCreateWorkflowProcedure = "/workflow.ManagerService/CreateWorkflow"
+	// ManagerServiceStartWorkflowProcedure is the fully-qualified name of the ManagerService's
+	// StartWorkflow RPC.
+	ManagerServiceStartWorkflowProcedure = "/workflow.ManagerService/StartWorkflow"
 )
 
-// ManagerClient is a client for the workflow.Manager service.
-type ManagerClient interface {
+// ManagerServiceClient is a client for the workflow.ManagerService service.
+type ManagerServiceClient interface {
 	CreateWorkflow(context.Context, *connect_go.Request[gen.Workflow]) (*connect_go.Response[gen.ID], error)
 	StartWorkflow(context.Context, *connect_go.Request[gen.WorkflowEntrypoint]) (*connect_go.Response[gen.Run], error)
 }
 
-// NewManagerClient constructs a client for the workflow.Manager service. By default, it uses the
-// Connect protocol with the binary Protobuf Codec, asks for gzipped responses, and sends
-// uncompressed requests. To use the gRPC or gRPC-Web protocols, supply the connect.WithGRPC() or
-// connect.WithGRPCWeb() options.
+// NewManagerServiceClient constructs a client for the workflow.ManagerService service. By default,
+// it uses the Connect protocol with the binary Protobuf Codec, asks for gzipped responses, and
+// sends uncompressed requests. To use the gRPC or gRPC-Web protocols, supply the connect.WithGRPC()
+// or connect.WithGRPCWeb() options.
 //
 // The URL supplied here should be the base URL for the Connect or gRPC server (for example,
 // http://api.acme.com or https://acme.com/grpc).
-func NewManagerClient(httpClient connect_go.HTTPClient, baseURL string, opts ...connect_go.ClientOption) ManagerClient {
+func NewManagerServiceClient(httpClient connect_go.HTTPClient, baseURL string, opts ...connect_go.ClientOption) ManagerServiceClient {
 	baseURL = strings.TrimRight(baseURL, "/")
-	return &managerClient{
+	return &managerServiceClient{
 		createWorkflow: connect_go.NewClient[gen.Workflow, gen.ID](
 			httpClient,
-			baseURL+ManagerCreateWorkflowProcedure,
+			baseURL+ManagerServiceCreateWorkflowProcedure,
 			opts...,
 		),
 		startWorkflow: connect_go.NewClient[gen.WorkflowEntrypoint, gen.Run](
 			httpClient,
-			baseURL+ManagerStartWorkflowProcedure,
+			baseURL+ManagerServiceStartWorkflowProcedure,
 			opts...,
 		),
 	}
 }
 
-// managerClient implements ManagerClient.
-type managerClient struct {
+// managerServiceClient implements ManagerServiceClient.
+type managerServiceClient struct {
 	createWorkflow *connect_go.Client[gen.Workflow, gen.ID]
 	startWorkflow  *connect_go.Client[gen.WorkflowEntrypoint, gen.Run]
 }
 
-// CreateWorkflow calls workflow.Manager.CreateWorkflow.
-func (c *managerClient) CreateWorkflow(ctx context.Context, req *connect_go.Request[gen.Workflow]) (*connect_go.Response[gen.ID], error) {
+// CreateWorkflow calls workflow.ManagerService.CreateWorkflow.
+func (c *managerServiceClient) CreateWorkflow(ctx context.Context, req *connect_go.Request[gen.Workflow]) (*connect_go.Response[gen.ID], error) {
 	return c.createWorkflow.CallUnary(ctx, req)
 }
 
-// StartWorkflow calls workflow.Manager.StartWorkflow.
-func (c *managerClient) StartWorkflow(ctx context.Context, req *connect_go.Request[gen.WorkflowEntrypoint]) (*connect_go.Response[gen.Run], error) {
+// StartWorkflow calls workflow.ManagerService.StartWorkflow.
+func (c *managerServiceClient) StartWorkflow(ctx context.Context, req *connect_go.Request[gen.WorkflowEntrypoint]) (*connect_go.Response[gen.Run], error) {
 	return c.startWorkflow.CallUnary(ctx, req)
 }
 
-// ManagerHandler is an implementation of the workflow.Manager service.
-type ManagerHandler interface {
+// ManagerServiceHandler is an implementation of the workflow.ManagerService service.
+type ManagerServiceHandler interface {
 	CreateWorkflow(context.Context, *connect_go.Request[gen.Workflow]) (*connect_go.Response[gen.ID], error)
 	StartWorkflow(context.Context, *connect_go.Request[gen.WorkflowEntrypoint]) (*connect_go.Response[gen.Run], error)
 }
 
-// NewManagerHandler builds an HTTP handler from the service implementation. It returns the path on
-// which to mount the handler and the handler itself.
+// NewManagerServiceHandler builds an HTTP handler from the service implementation. It returns the
+// path on which to mount the handler and the handler itself.
 //
 // By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
 // and JSON codecs. They also support gzip compression.
-func NewManagerHandler(svc ManagerHandler, opts ...connect_go.HandlerOption) (string, http.Handler) {
+func NewManagerServiceHandler(svc ManagerServiceHandler, opts ...connect_go.HandlerOption) (string, http.Handler) {
 	mux := http.NewServeMux()
-	mux.Handle(ManagerCreateWorkflowProcedure, connect_go.NewUnaryHandler(
-		ManagerCreateWorkflowProcedure,
+	mux.Handle(ManagerServiceCreateWorkflowProcedure, connect_go.NewUnaryHandler(
+		ManagerServiceCreateWorkflowProcedure,
 		svc.CreateWorkflow,
 		opts...,
 	))
-	mux.Handle(ManagerStartWorkflowProcedure, connect_go.NewUnaryHandler(
-		ManagerStartWorkflowProcedure,
+	mux.Handle(ManagerServiceStartWorkflowProcedure, connect_go.NewUnaryHandler(
+		ManagerServiceStartWorkflowProcedure,
 		svc.StartWorkflow,
 		opts...,
 	))
-	return "/workflow.Manager/", mux
+	return "/workflow.ManagerService/", mux
 }
 
-// UnimplementedManagerHandler returns CodeUnimplemented from all methods.
-type UnimplementedManagerHandler struct{}
+// UnimplementedManagerServiceHandler returns CodeUnimplemented from all methods.
+type UnimplementedManagerServiceHandler struct{}
 
-func (UnimplementedManagerHandler) CreateWorkflow(context.Context, *connect_go.Request[gen.Workflow]) (*connect_go.Response[gen.ID], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("workflow.Manager.CreateWorkflow is not implemented"))
+func (UnimplementedManagerServiceHandler) CreateWorkflow(context.Context, *connect_go.Request[gen.Workflow]) (*connect_go.Response[gen.ID], error) {
+	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("workflow.ManagerService.CreateWorkflow is not implemented"))
 }
 
-func (UnimplementedManagerHandler) StartWorkflow(context.Context, *connect_go.Request[gen.WorkflowEntrypoint]) (*connect_go.Response[gen.Run], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("workflow.Manager.StartWorkflow is not implemented"))
+func (UnimplementedManagerServiceHandler) StartWorkflow(context.Context, *connect_go.Request[gen.WorkflowEntrypoint]) (*connect_go.Response[gen.Run], error) {
+	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("workflow.ManagerService.StartWorkflow is not implemented"))
 }

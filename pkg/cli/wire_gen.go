@@ -33,14 +33,6 @@ func Wire(cacheConfig cache.Config) (*cli.App, error) {
 	if err != nil {
 		return nil, err
 	}
-	workflowConfig, err := workflow.NewConfig(provider)
-	if err != nil {
-		return nil, err
-	}
-	client, err := workflow.NewClient(workflowConfig)
-	if err != nil {
-		return nil, err
-	}
 	dbConfig, err := db.NewConfig(provider)
 	if err != nil {
 		return nil, err
@@ -53,14 +45,21 @@ func Wire(cacheConfig cache.Config) (*cli.App, error) {
 	if err != nil {
 		return nil, err
 	}
-	service := workflow.NewService(client, dbStore, workflowConfig)
+	workflowConfig, err := workflow.NewConfig(provider)
+	if err != nil {
+		return nil, err
+	}
+	manager, err := workflow.NewManager(workflowConfig, provider)
+	if err != nil {
+		return nil, err
+	}
+	service := workflow.NewService(dbStore, manager)
 	clientset, err := k8s.NewClientset()
 	if err != nil {
 		return nil, err
 	}
 	projectService := project.NewService(clientset)
 	httpServer := api.NewHTTPServer(service, projectService)
-	worker := workflow.NewWorker(client, workflowConfig)
-	app := New(logConfig, httpServer, worker, projectService)
+	app := New(logConfig, httpServer, projectService, provider)
 	return app, nil
 }

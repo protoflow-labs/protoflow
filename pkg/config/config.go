@@ -1,13 +1,14 @@
 package config
 
 import (
+	"github.com/protoflow-labs/protoflow/pkg/temporal"
+	"github.com/protoflow-labs/protoflow/pkg/workflow"
 	"os"
 	"path"
 
 	"github.com/lunabrain-ai/lunabrain/pkg/store/cache"
 	"github.com/protoflow-labs/protoflow/pkg/db"
 	"github.com/protoflow-labs/protoflow/pkg/log"
-	"github.com/protoflow-labs/protoflow/pkg/workflow"
 	"go.uber.org/config"
 )
 
@@ -20,6 +21,7 @@ type BaseConfig struct {
 	Log      log.Config      `yaml:"log"`
 	Workflow workflow.Config `yaml:"workflow"`
 	DB       db.Config       `yaml:"db"`
+	Temporal temporal.Config `yaml:"temporal"`
 }
 
 func NewDefaultConfig() BaseConfig {
@@ -27,6 +29,7 @@ func NewDefaultConfig() BaseConfig {
 		Log:      log.NewDefaultConfig(),
 		Workflow: workflow.NewDefaultConfig(),
 		DB:       db.NewDefaultConfig(),
+		Temporal: temporal.NewDefaultConfig(),
 	}
 }
 
