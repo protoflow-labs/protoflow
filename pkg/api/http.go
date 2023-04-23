@@ -2,11 +2,12 @@ package api
 
 import (
 	"fmt"
+	"net/http"
+
 	grpcreflect "github.com/bufbuild/connect-grpcreflect-go"
 	"github.com/protoflow-labs/protoflow/gen/genconnect"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
-	"net/http"
 )
 
 type HTTPServer struct {
@@ -21,7 +22,6 @@ func NewHTTPServer(workflowManager genconnect.ManagerServiceHandler, projectServ
 	mux.Handle(route, handler)
 
 	projectRoutes, projectHandlers := genconnect.NewProjectServiceHandler(projectService)
-
 	mux.Handle(projectRoutes, projectHandlers)
 
 	reflector := grpcreflect.NewStaticReflector(
@@ -44,6 +44,19 @@ func NewHTTPServer(workflowManager genconnect.ManagerServiceHandler, projectServ
 func (h *HTTPServer) Serve(port int) error {
 	return http.ListenAndServe(
 		fmt.Sprintf(":%d", port),
-		h2c.NewHandler(h.mux, &http2.Server{}),
+		h2c.NewHandler(corsMiddleware(h.mux), &http2.Server{}),
 	)
+}
+
+func corsMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Authorization, connect-protocol-version")
+		if r.Method == "OPTIONS" {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
 }

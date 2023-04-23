@@ -143,14 +143,9 @@ export class Workflow extends Message<Workflow> {
   nodes: Node[] = [];
 
   /**
-   * @generated from field: repeated workflow.Edge edges = 4;
+   * @generated from field: repeated workflow.WorkflowEdge edges = 4;
    */
-  edges: Edge[] = [];
-
-  /**
-   * @generated from field: repeated workflow.Resource resources = 5;
-   */
-  resources: Resource[] = [];
+  edges: WorkflowEdge[] = [];
 
   constructor(data?: PartialMessage<Workflow>) {
     super();
@@ -163,8 +158,7 @@ export class Workflow extends Message<Workflow> {
     { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 3, name: "nodes", kind: "message", T: Node, repeated: true },
-    { no: 4, name: "edges", kind: "message", T: Edge, repeated: true },
-    { no: 5, name: "resources", kind: "message", T: Resource, repeated: true },
+    { no: 4, name: "edges", kind: "message", T: WorkflowEdge, repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Workflow {
@@ -181,63 +175,6 @@ export class Workflow extends Message<Workflow> {
 
   static equals(a: Workflow | PlainMessage<Workflow> | undefined, b: Workflow | PlainMessage<Workflow> | undefined): boolean {
     return proto3.util.equals(Workflow, a, b);
-  }
-}
-
-/**
- * @generated from message workflow.Resource
- */
-export class Resource extends Message<Resource> {
-  /**
-   * @generated from oneof workflow.Resource.type
-   */
-  type: {
-    /**
-     * @generated from field: workflow.DBResource db = 1;
-     */
-    value: DBResource;
-    case: "db";
-  } | {
-    /**
-     * @generated from field: workflow.DocStoreResource docstore = 2;
-     */
-    value: DocStoreResource;
-    case: "docstore";
-  } | {
-    /**
-     * @generated from field: workflow.BucketResource bucket = 3;
-     */
-    value: BucketResource;
-    case: "bucket";
-  } | { case: undefined; value?: undefined } = { case: undefined };
-
-  constructor(data?: PartialMessage<Resource>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "workflow.Resource";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "db", kind: "message", T: DBResource, oneof: "type" },
-    { no: 2, name: "docstore", kind: "message", T: DocStoreResource, oneof: "type" },
-    { no: 3, name: "bucket", kind: "message", T: BucketResource, oneof: "type" },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Resource {
-    return new Resource().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Resource {
-    return new Resource().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Resource {
-    return new Resource().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: Resource | PlainMessage<Resource> | undefined, b: Resource | PlainMessage<Resource> | undefined): boolean {
-    return proto3.util.equals(Resource, a, b);
   }
 }
 
@@ -508,9 +445,9 @@ export class Node extends Message<Node> {
 }
 
 /**
- * @generated from message workflow.Edge
+ * @generated from message workflow.WorkflowEdge
  */
-export class Edge extends Message<Edge> {
+export class WorkflowEdge extends Message<WorkflowEdge> {
   /**
    * @generated from field: string id = 1;
    */
@@ -526,33 +463,33 @@ export class Edge extends Message<Edge> {
    */
   to = "";
 
-  constructor(data?: PartialMessage<Edge>) {
+  constructor(data?: PartialMessage<WorkflowEdge>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "workflow.Edge";
+  static readonly typeName = "workflow.WorkflowEdge";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "from", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 3, name: "to", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Edge {
-    return new Edge().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): WorkflowEdge {
+    return new WorkflowEdge().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Edge {
-    return new Edge().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): WorkflowEdge {
+    return new WorkflowEdge().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Edge {
-    return new Edge().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): WorkflowEdge {
+    return new WorkflowEdge().fromJsonString(jsonString, options);
   }
 
-  static equals(a: Edge | PlainMessage<Edge> | undefined, b: Edge | PlainMessage<Edge> | undefined): boolean {
-    return proto3.util.equals(Edge, a, b);
+  static equals(a: WorkflowEdge | PlainMessage<WorkflowEdge> | undefined, b: WorkflowEdge | PlainMessage<WorkflowEdge> | undefined): boolean {
+    return proto3.util.equals(WorkflowEdge, a, b);
   }
 }
 

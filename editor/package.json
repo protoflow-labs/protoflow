@@ -13,6 +13,7 @@
   "dependencies": {
     "@fluentui/react-components": "^9.19.0",
     "@tailwindcss/forms": "^0.5.3",
+    "@tanstack/react-query": "^4.29.3",
     "framer-motion": "^10.12.4",
     "handlebars": "^4.7.7",
     "react": "^18.2.0",
@@ -21,7 +22,8 @@
     "react-icons": "^4.8.0",
     "reactflow": "^11.7.0",
     "styled-components": "^5.3.9",
-    "tailwind-merge": "^1.12.0"
+    "tailwind-merge": "^1.12.0",
+    "uuid": "^9.0.0"
   },
   "devDependencies": {
     "@storybook/addon-essentials": "^7.0.6",

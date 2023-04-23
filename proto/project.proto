@@ -8,6 +8,45 @@ service ProjectService {
     rpc GetProjects(GetProjectsRequest) returns (GetProjectsResponse) {}
     rpc CreateProject(CreateProjectRequest) returns (CreateProjectResponse) {}
     rpc DeleteProject(DeleteProjectRequest) returns (DeleteProjectResponse) {}
+    rpc GetResources(GetResourcesRequest) returns (GetResourcesResponse) {}
+
+    rpc GetBlocks(GetBlocksRequest) returns (GetBlocksResponse) {}
+    rpc AddBlock(AddBlockRequest) returns (AddBlockResponse) {}
+    rpc RemoveBlock(RemoveBlockRequest) returns (RemoveBlockResponse) {}
+    rpc UpdateBlock(UpdateBlockRequest) returns (UpdateBlockResponse) {}
+
+    rpc GetEdges(GetEdgesRequest) returns (GetEdgesResponse) {}
+    rpc AddEdge(AddEdgeRequest) returns (AddEdgeResponse) {}
+    rpc RemoveEdge(RemoveEdgeRequest) returns (RemoveEdgeResponse) {}
+}
+
+message Resource {
+    string id = 1;
+    string name = 2;
+    string image = 3;
+}
+
+message Project {
+    string id = 1;
+    string name = 2;
+    string description = 3;
+    string owner = 4;
+    string created_at = 5;
+    string updated_at = 6;
+}
+
+message Block {
+    string id = 1;
+    string name = 2;
+    string type = 3;
+    float x = 4;
+    float y = 5;
+}
+
+message Edge {
+    string id = 1;
+    string source = 2;
+    string target = 3;
 }
 
 message GetProjectRequest {
@@ -42,12 +81,71 @@ message DeleteProjectResponse {
     Project project = 1;
 }
 
-
-message Project { 
+message GetResourcesRequest {
     string id = 1;
-    string name = 2;
-    string description = 3;
-    string owner = 4;
-    string created_at = 5;
-    string updated_at = 6;
+}
+
+message GetResourcesResponse {
+    repeated Resource resources = 1;
+}
+
+message AddBlockRequest {
+    string project_id = 1;
+    Block block = 2;
+}
+
+message AddBlockResponse {
+    Block block = 1;
+}
+
+message RemoveBlockRequest {
+    string project_id = 1;
+    string block_id = 2;
+}
+
+message RemoveBlockResponse {
+    Block block = 1;
+}
+
+message GetBlocksRequest {
+    string project_id = 1;
+}
+
+message GetBlocksResponse {
+    repeated Block blocks = 1;
+}
+
+message UpdateBlockRequest {
+    string project_id = 1;
+    Block block = 2;
+}
+
+message UpdateBlockResponse {
+    Block block = 1;
+}
+
+message AddEdgeRequest {
+    string project_id = 1;
+    Edge edge = 2;
+}
+
+message AddEdgeResponse {
+    Edge edge = 1;
+}
+
+message RemoveEdgeRequest {
+    string project_id = 1;
+    string edge_id = 2;
+}
+
+message RemoveEdgeResponse {
+    Edge edge = 1;
+}
+
+message GetEdgesRequest {
+    string project_id = 1;
+}
+
+message GetEdgesResponse {
+    repeated Edge edges = 1;
 }

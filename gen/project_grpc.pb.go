@@ -26,6 +26,14 @@ type ProjectServiceClient interface {
 	GetProjects(ctx context.Context, in *GetProjectsRequest, opts ...grpc.CallOption) (*GetProjectsResponse, error)
 	CreateProject(ctx context.Context, in *CreateProjectRequest, opts ...grpc.CallOption) (*CreateProjectResponse, error)
 	DeleteProject(ctx context.Context, in *DeleteProjectRequest, opts ...grpc.CallOption) (*DeleteProjectResponse, error)
+	GetResources(ctx context.Context, in *GetResourcesRequest, opts ...grpc.CallOption) (*GetResourcesResponse, error)
+	GetBlocks(ctx context.Context, in *GetBlocksRequest, opts ...grpc.CallOption) (*GetBlocksResponse, error)
+	AddBlock(ctx context.Context, in *AddBlockRequest, opts ...grpc.CallOption) (*AddBlockResponse, error)
+	RemoveBlock(ctx context.Context, in *RemoveBlockRequest, opts ...grpc.CallOption) (*RemoveBlockResponse, error)
+	UpdateBlock(ctx context.Context, in *UpdateBlockRequest, opts ...grpc.CallOption) (*UpdateBlockResponse, error)
+	GetEdges(ctx context.Context, in *GetEdgesRequest, opts ...grpc.CallOption) (*GetEdgesResponse, error)
+	AddEdge(ctx context.Context, in *AddEdgeRequest, opts ...grpc.CallOption) (*AddEdgeResponse, error)
+	RemoveEdge(ctx context.Context, in *RemoveEdgeRequest, opts ...grpc.CallOption) (*RemoveEdgeResponse, error)
 }
 
 type projectServiceClient struct {
@@ -72,6 +80,78 @@ func (c *projectServiceClient) DeleteProject(ctx context.Context, in *DeleteProj
 	return out, nil
 }
 
+func (c *projectServiceClient) GetResources(ctx context.Context, in *GetResourcesRequest, opts ...grpc.CallOption) (*GetResourcesResponse, error) {
+	out := new(GetResourcesResponse)
+	err := c.cc.Invoke(ctx, "/project.ProjectService/GetResources", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *projectServiceClient) GetBlocks(ctx context.Context, in *GetBlocksRequest, opts ...grpc.CallOption) (*GetBlocksResponse, error) {
+	out := new(GetBlocksResponse)
+	err := c.cc.Invoke(ctx, "/project.ProjectService/GetBlocks", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *projectServiceClient) AddBlock(ctx context.Context, in *AddBlockRequest, opts ...grpc.CallOption) (*AddBlockResponse, error) {
+	out := new(AddBlockResponse)
+	err := c.cc.Invoke(ctx, "/project.ProjectService/AddBlock", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *projectServiceClient) RemoveBlock(ctx context.Context, in *RemoveBlockRequest, opts ...grpc.CallOption) (*RemoveBlockResponse, error) {
+	out := new(RemoveBlockResponse)
+	err := c.cc.Invoke(ctx, "/project.ProjectService/RemoveBlock", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *projectServiceClient) UpdateBlock(ctx context.Context, in *UpdateBlockRequest, opts ...grpc.CallOption) (*UpdateBlockResponse, error) {
+	out := new(UpdateBlockResponse)
+	err := c.cc.Invoke(ctx, "/project.ProjectService/UpdateBlock", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *projectServiceClient) GetEdges(ctx context.Context, in *GetEdgesRequest, opts ...grpc.CallOption) (*GetEdgesResponse, error) {
+	out := new(GetEdgesResponse)
+	err := c.cc.Invoke(ctx, "/project.ProjectService/GetEdges", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *projectServiceClient) AddEdge(ctx context.Context, in *AddEdgeRequest, opts ...grpc.CallOption) (*AddEdgeResponse, error) {
+	out := new(AddEdgeResponse)
+	err := c.cc.Invoke(ctx, "/project.ProjectService/AddEdge", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *projectServiceClient) RemoveEdge(ctx context.Context, in *RemoveEdgeRequest, opts ...grpc.CallOption) (*RemoveEdgeResponse, error) {
+	out := new(RemoveEdgeResponse)
+	err := c.cc.Invoke(ctx, "/project.ProjectService/RemoveEdge", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ProjectServiceServer is the server API for ProjectService service.
 // All implementations should embed UnimplementedProjectServiceServer
 // for forward compatibility
@@ -80,6 +160,14 @@ type ProjectServiceServer interface {
 	GetProjects(context.Context, *GetProjectsRequest) (*GetProjectsResponse, error)
 	CreateProject(context.Context, *CreateProjectRequest) (*CreateProjectResponse, error)
 	DeleteProject(context.Context, *DeleteProjectRequest) (*DeleteProjectResponse, error)
+	GetResources(context.Context, *GetResourcesRequest) (*GetResourcesResponse, error)
+	GetBlocks(context.Context, *GetBlocksRequest) (*GetBlocksResponse, error)
+	AddBlock(context.Context, *AddBlockRequest) (*AddBlockResponse, error)
+	RemoveBlock(context.Context, *RemoveBlockRequest) (*RemoveBlockResponse, error)
+	UpdateBlock(context.Context, *UpdateBlockRequest) (*UpdateBlockResponse, error)
+	GetEdges(context.Context, *GetEdgesRequest) (*GetEdgesResponse, error)
+	AddEdge(context.Context, *AddEdgeRequest) (*AddEdgeResponse, error)
+	RemoveEdge(context.Context, *RemoveEdgeRequest) (*RemoveEdgeResponse, error)
 }
 
 // UnimplementedProjectServiceServer should be embedded to have forward compatible implementations.
@@ -97,6 +185,30 @@ func (UnimplementedProjectServiceServer) CreateProject(context.Context, *CreateP
 }
 func (UnimplementedProjectServiceServer) DeleteProject(context.Context, *DeleteProjectRequest) (*DeleteProjectResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteProject not implemented")
+}
+func (UnimplementedProjectServiceServer) GetResources(context.Context, *GetResourcesRequest) (*GetResourcesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetResources not implemented")
+}
+func (UnimplementedProjectServiceServer) GetBlocks(context.Context, *GetBlocksRequest) (*GetBlocksResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetBlocks not implemented")
+}
+func (UnimplementedProjectServiceServer) AddBlock(context.Context, *AddBlockRequest) (*AddBlockResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddBlock not implemented")
+}
+func (UnimplementedProjectServiceServer) RemoveBlock(context.Context, *RemoveBlockRequest) (*RemoveBlockResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RemoveBlock not implemented")
+}
+func (UnimplementedProjectServiceServer) UpdateBlock(context.Context, *UpdateBlockRequest) (*UpdateBlockResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateBlock not implemented")
+}
+func (UnimplementedProjectServiceServer) GetEdges(context.Context, *GetEdgesRequest) (*GetEdgesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetEdges not implemented")
+}
+func (UnimplementedProjectServiceServer) AddEdge(context.Context, *AddEdgeRequest) (*AddEdgeResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddEdge not implemented")
+}
+func (UnimplementedProjectServiceServer) RemoveEdge(context.Context, *RemoveEdgeRequest) (*RemoveEdgeResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RemoveEdge not implemented")
 }
 
 // UnsafeProjectServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -182,6 +294,150 @@ func _ProjectService_DeleteProject_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ProjectService_GetResources_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetResourcesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProjectServiceServer).GetResources(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/project.ProjectService/GetResources",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProjectServiceServer).GetResources(ctx, req.(*GetResourcesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ProjectService_GetBlocks_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetBlocksRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProjectServiceServer).GetBlocks(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/project.ProjectService/GetBlocks",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProjectServiceServer).GetBlocks(ctx, req.(*GetBlocksRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ProjectService_AddBlock_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AddBlockRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProjectServiceServer).AddBlock(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/project.ProjectService/AddBlock",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProjectServiceServer).AddBlock(ctx, req.(*AddBlockRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ProjectService_RemoveBlock_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RemoveBlockRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProjectServiceServer).RemoveBlock(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/project.ProjectService/RemoveBlock",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProjectServiceServer).RemoveBlock(ctx, req.(*RemoveBlockRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ProjectService_UpdateBlock_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateBlockRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProjectServiceServer).UpdateBlock(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/project.ProjectService/UpdateBlock",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProjectServiceServer).UpdateBlock(ctx, req.(*UpdateBlockRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ProjectService_GetEdges_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetEdgesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProjectServiceServer).GetEdges(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/project.ProjectService/GetEdges",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProjectServiceServer).GetEdges(ctx, req.(*GetEdgesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ProjectService_AddEdge_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AddEdgeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProjectServiceServer).AddEdge(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/project.ProjectService/AddEdge",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProjectServiceServer).AddEdge(ctx, req.(*AddEdgeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ProjectService_RemoveEdge_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RemoveEdgeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProjectServiceServer).RemoveEdge(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/project.ProjectService/RemoveEdge",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProjectServiceServer).RemoveEdge(ctx, req.(*RemoveEdgeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ProjectService_ServiceDesc is the grpc.ServiceDesc for ProjectService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -204,6 +460,38 @@ var ProjectService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteProject",
 			Handler:    _ProjectService_DeleteProject_Handler,
+		},
+		{
+			MethodName: "GetResources",
+			Handler:    _ProjectService_GetResources_Handler,
+		},
+		{
+			MethodName: "GetBlocks",
+			Handler:    _ProjectService_GetBlocks_Handler,
+		},
+		{
+			MethodName: "AddBlock",
+			Handler:    _ProjectService_AddBlock_Handler,
+		},
+		{
+			MethodName: "RemoveBlock",
+			Handler:    _ProjectService_RemoveBlock_Handler,
+		},
+		{
+			MethodName: "UpdateBlock",
+			Handler:    _ProjectService_UpdateBlock_Handler,
+		},
+		{
+			MethodName: "GetEdges",
+			Handler:    _ProjectService_GetEdges_Handler,
+		},
+		{
+			MethodName: "AddEdge",
+			Handler:    _ProjectService_AddEdge_Handler,
+		},
+		{
+			MethodName: "RemoveEdge",
+			Handler:    _ProjectService_RemoveEdge_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

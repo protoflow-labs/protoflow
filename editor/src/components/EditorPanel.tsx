@@ -4,6 +4,8 @@ import { EntityData } from "../nodes/EntityNode";
 import { useState } from "react";
 import { HiPlus } from "react-icons/hi2";
 import { FunctionData } from "../nodes/FunctionNode";
+import { projectService } from "../lib/api";
+import { EndpointyData } from "../nodes/EndpointNode";
 
 export function EditorPanel() {
   const [activeNode, setActiveNode] = useState<Node | null>(null);
@@ -34,6 +36,22 @@ type NodeEditorProps = {
   node: Node | null;
 };
 
+interface NodeWithName {
+  name: string;
+}
+
+function saveChanges(node: Node<NodeWithName>) {
+  projectService.updateBlock({
+    block: {
+      id: node.id,
+      x: node.position.x,
+      y: node.position.y,
+      name: node.data.name,
+      type: node.type,
+    },
+  });
+}
+
 function NodeEditor(props: NodeEditorProps) {
   switch (props.node?.type) {
     case "message":
@@ -42,9 +60,29 @@ function NodeEditor(props: NodeEditorProps) {
       return <EntityEditor node={props.node} />;
     case "function":
       return <FunctionEditor node={props.node} />;
+    case "endpoint":
+        return <EndpointEditor node={props.node} />;  
     default:
       return null;
   }
+}
+
+function EndpointEditor(props: { node: Node<EndpointyData> }) {
+  return (
+    <div className="flex flex-col gap-2 p-4">
+      <div className="flex flex-col">
+        <Label htmlFor="inputName">Name</Label>
+        <Input
+          id="inputName"
+          defaultValue={props.node.data.name || ""}
+          onChange={(e) => {
+            props.node.data.name = e.currentTarget.value;
+          }}
+          onBlur={() => saveChanges(props.node)}
+        />
+      </div>
+    </div>
+  );
 }
 
 function InputEditor(props: { node: Node<EntityData> }) {
@@ -58,6 +96,7 @@ function InputEditor(props: { node: Node<EntityData> }) {
           onChange={(e) => {
             props.node.data.name = e.currentTarget.value;
           }}
+          onBlur={() => saveChanges(props.node)}
         />
       </div>
       <div className="flex flex-col">
@@ -79,6 +118,7 @@ function EntityEditor(props: { node: Node<EntityData> }) {
           onChange={(e) => {
             props.node.data.name = e.target.value;
           }}
+          onBlur={() => saveChanges(props.node)}
         />
       </div>
       <div className="flex flex-col">
@@ -109,6 +149,7 @@ function FunctionEditor(props: { node: Node<FunctionData> }) {
           onChange={(e) => {
             props.node.data.name = e.target.value;
           }}
+          onBlur={() => saveChanges(props.node)}
         />
       </div>
       <div className="flex flex-col">

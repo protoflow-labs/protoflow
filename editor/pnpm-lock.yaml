@@ -10,6 +10,7 @@ specifiers:
   '@storybook/react-vite': ^7.0.6
   '@storybook/testing-library': ^0.0.14-next.2
   '@tailwindcss/forms': ^0.5.3
+  '@tanstack/react-query': ^4.29.3
   '@types/react': ^18.0.28
   '@types/react-dom': ^18.0.11
   '@vitejs/plugin-react-swc': ^3.0.0
@@ -31,11 +32,13 @@ specifiers:
   tailwindcss: ^3.3.1
   twin.macro: ^3.3.0
   typescript: ^4.9.3
+  uuid: ^9.0.0
   vite: ^4.2.0
 
 dependencies:
   '@fluentui/react-components': 9.19.0_a5pki22omvhg66elofc4io3beq
   '@tailwindcss/forms': 0.5.3_tailwindcss@3.3.1
+  '@tanstack/react-query': 4.29.3_biqbaboplfbrettd7655fr4n2y
   framer-motion: 10.12.4_biqbaboplfbrettd7655fr4n2y
   handlebars: 4.7.7
   react: 18.2.0
@@ -45,6 +48,7 @@ dependencies:
   reactflow: 11.7.0_biqbaboplfbrettd7655fr4n2y
   styled-components: 5.3.9_biqbaboplfbrettd7655fr4n2y
   tailwind-merge: 1.12.0
+  uuid: 9.0.0
 
 devDependencies:
   '@storybook/addon-essentials': 7.0.6_biqbaboplfbrettd7655fr4n2y
@@ -3995,6 +3999,28 @@ packages:
     dependencies:
       mini-svg-data-uri: 1.4.4
       tailwindcss: 3.3.1_postcss@8.4.23
+    dev: false
+
+  /@tanstack/query-core/4.29.1:
+    resolution: {integrity: sha512-vkPewLEG8ua0efo3SsVT0BcBtkq5RZX8oPhDAyKL+k/rdOYSQTEocfGEXSaBwIwsXeOGBUpfKqI+UmHvNqdWXg==}
+    dev: false
+
+  /@tanstack/react-query/4.29.3_biqbaboplfbrettd7655fr4n2y:
+    resolution: {integrity: sha512-FPQrMu7PbCgBcVzoRJm7WmQnAFv+LUgZM9KBZ7Vk/+yERH2BDLvQRuAgczQd5Tb1s3HbOktECRDaOkUxdyBAjw==}
+    peerDependencies:
+      react: ^16.8.0 || ^17.0.0 || ^18.0.0
+      react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0
+      react-native: '*'
+    peerDependenciesMeta:
+      react-dom:
+        optional: true
+      react-native:
+        optional: true
+    dependencies:
+      '@tanstack/query-core': 4.29.1
+      react: 18.2.0
+      react-dom: 18.2.0_react@18.2.0
+      use-sync-external-store: 1.2.0_react@18.2.0
     dev: false
 
   /@testing-library/dom/8.20.0:
@@ -8589,6 +8615,11 @@ packages:
   /uuid-browser/3.1.0:
     resolution: {integrity: sha512-dsNgbLaTrd6l3MMxTtouOCFw4CBFc/3a+GgYA2YyrJvyQ1u6q4pcu3ktLoUZ/VN/Aw9WsauazbgsgdfVWgAKQg==}
     dev: true
+
+  /uuid/9.0.0:
+    resolution: {integrity: sha512-MXcSTerfPa4uqyzStbRoTgt5XIe3x5+42+q1sDuy3R5MDk66URdLMOZe5aPX/SQd+kuYAh0FdP/pO28IkQyTeg==}
+    hasBin: true
+    dev: false
 
   /v8-to-istanbul/9.1.0:
     resolution: {integrity: sha512-6z3GW9x8G1gd+JIIgQQQxXuiJtCXeAjp6RaPEPLv62mH3iPHPxV6W3robxtCzNErRo6ZwTmzWhsbNvjyEBKzKA==}
