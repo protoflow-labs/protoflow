@@ -2,21 +2,12 @@ package workflow
 
 import (
 	"context"
-<<<<<<<< HEAD:pkg/workflow/service.go
 	"github.com/bufbuild/connect-go"
-========
-	"time"
-
-	connect_go "github.com/bufbuild/connect-go"
-	"github.com/protoflow-labs/protoflow/gen"
-	"github.com/protoflow-labs/protoflow/gen/genconnect"
-
->>>>>>>> b308591b69c96f5b4aa93f141f29a0b8a8f2c82d:pkg/workflow/manager.go
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/wire"
 	"github.com/pkg/errors"
-	"github.com/protoflow-labs/protoflow-editor/protoflow/gen"
-	"github.com/protoflow-labs/protoflow-editor/protoflow/gen/genconnect"
+	"github.com/protoflow-labs/protoflow/gen"
+	"github.com/protoflow-labs/protoflow/gen/genconnect"
 	"github.com/rs/zerolog/log"
 	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/api/workflowservice/v1"

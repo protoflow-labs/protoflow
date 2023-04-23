@@ -3,45 +3,42 @@ import {
   FluentProvider,
   webDarkTheme,
 } from "@fluentui/react-components";
+import { compile as hbs } from "handlebars";
 import {
-  DragEvent,
   DragEventHandler,
   ReactNode,
   useCallback,
-  useMemo,
-  useState,
+  useState
 } from "react";
-import { compile as hbs } from "handlebars";
 import ReactFlow, {
   Background,
   Connection,
   Edge,
   Node,
-  OnEdgeUpdateFunc,
   OnEdgesChange,
   OnNodesChange,
   ReactFlowInstance,
   ReactFlowProvider,
   addEdge,
   applyEdgeChanges,
-  applyNodeChanges,
+  applyNodeChanges
 } from "reactflow";
 
 import "reactflow/dist/style.css";
 import "./App.css";
 import { EditorPanel } from "./components/EditorPanel";
-import { EntityData, EntityNode } from "./nodes/EntityNode";
+import { EntityNode } from "./nodes/EntityNode";
 import { FunctionNode } from "./nodes/FunctionNode";
-import { InputData, InputNode } from "./nodes/InputNode";
+import { InputNode } from "./nodes/InputNode";
 import { ValidatorNode } from "./nodes/ValidatorNode";
 
-import InputEntityEdgeTemplate from "./templates/InputEntityEdgeTemplate.hbs?raw";
+import DefaultEdge from "./edges/DefaultEdge";
+import { NodeResourceDependencies } from "./lib/resources";
+import { BucketNode } from "./nodes/BucketNode";
+import { EndpointyNode } from "./nodes/EndpointNode";
 import { QueryNode } from "./nodes/QueryNode";
 import { QueueNode } from "./nodes/QueueNode";
-import { BucketNode } from "./nodes/BucketNode";
-import { NodeResourceDependencies } from "./lib/resources";
-import { EndpointyNode } from "./nodes/EndpointNode";
-import DefaultEdge from "./edges/DefaultEdge";
+import InputEntityEdgeTemplate from "./templates/InputEntityEdgeTemplate.hbs?raw";
 
 const generateInputEntityEdgeTemplate = hbs(InputEntityEdgeTemplate);
 
@@ -62,6 +59,8 @@ const nodeTypes = {
 const edgeTypes = {
   edge: DefaultEdge,
 };
+
+
 
 function App() {
   const [reactFlowInstance, setReactFlowInstance] =

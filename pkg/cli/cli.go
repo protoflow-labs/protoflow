@@ -5,6 +5,7 @@ import (
 
 	"github.com/protoflow-labs/protoflow/pkg/api"
 	logcfg "github.com/protoflow-labs/protoflow/pkg/log"
+	"github.com/protoflow-labs/protoflow/pkg/project"
 	"github.com/protoflow-labs/protoflow/pkg/workflow"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -24,6 +25,7 @@ func New(
 	logConfig logcfg.Config,
 	httpHandler *api.HTTPServer,
 	worker *workflow.Worker,
+	project *project.Service,
 ) *cli.App {
 	setupLogging(logConfig.Level)
 
@@ -54,6 +56,19 @@ func New(
 
 					log.Info().Int("port", httpPort).Msg("starting http server")
 					return httpHandler.Serve(httpPort)
+				},
+			},
+			{
+				Name: "projects",
+				Action: func(ctx *cli.Context) error {
+					res, err := project.GetProjects(ctx.Context, nil)
+					if err != nil {
+						return err
+					}
+
+					log.Info().Msgf("%+v", res)
+
+					return nil
 				},
 			},
 		},
