@@ -2,6 +2,7 @@ package workflow
 
 import (
 	"fmt"
+
 	"github.com/dominikbraun/graph"
 	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/gen"
@@ -80,7 +81,7 @@ func (w *Workflow) Run(logger Logger, executor Executor, nodeID string) (*Result
 }
 
 func (w *Workflow) traverseWorkflow(logger Logger, executor Executor, vert string, input Input) (*Result, error) {
-	for neighbor, _ := range w.AdjMap[vert] {
+	for neighbor := range w.AdjMap[vert] {
 		block, ok := w.BlockLookup[neighbor]
 		if !ok {
 			return nil, fmt.Errorf("vertex not found: %s", neighbor)
