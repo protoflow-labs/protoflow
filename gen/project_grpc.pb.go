@@ -34,6 +34,8 @@ type ProjectServiceClient interface {
 	GetEdges(ctx context.Context, in *GetEdgesRequest, opts ...grpc.CallOption) (*GetEdgesResponse, error)
 	AddEdge(ctx context.Context, in *AddEdgeRequest, opts ...grpc.CallOption) (*AddEdgeResponse, error)
 	RemoveEdge(ctx context.Context, in *RemoveEdgeRequest, opts ...grpc.CallOption) (*RemoveEdgeResponse, error)
+	RunWorklow(ctx context.Context, in *RunWorkflowRequest, opts ...grpc.CallOption) (*RunOutput, error)
+	RunBlock(ctx context.Context, in *RunBlockRequest, opts ...grpc.CallOption) (*RunOutput, error)
 }
 
 type projectServiceClient struct {
@@ -152,6 +154,24 @@ func (c *projectServiceClient) RemoveEdge(ctx context.Context, in *RemoveEdgeReq
 	return out, nil
 }
 
+func (c *projectServiceClient) RunWorklow(ctx context.Context, in *RunWorkflowRequest, opts ...grpc.CallOption) (*RunOutput, error) {
+	out := new(RunOutput)
+	err := c.cc.Invoke(ctx, "/project.ProjectService/RunWorklow", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *projectServiceClient) RunBlock(ctx context.Context, in *RunBlockRequest, opts ...grpc.CallOption) (*RunOutput, error) {
+	out := new(RunOutput)
+	err := c.cc.Invoke(ctx, "/project.ProjectService/RunBlock", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ProjectServiceServer is the server API for ProjectService service.
 // All implementations should embed UnimplementedProjectServiceServer
 // for forward compatibility
@@ -168,6 +188,8 @@ type ProjectServiceServer interface {
 	GetEdges(context.Context, *GetEdgesRequest) (*GetEdgesResponse, error)
 	AddEdge(context.Context, *AddEdgeRequest) (*AddEdgeResponse, error)
 	RemoveEdge(context.Context, *RemoveEdgeRequest) (*RemoveEdgeResponse, error)
+	RunWorklow(context.Context, *RunWorkflowRequest) (*RunOutput, error)
+	RunBlock(context.Context, *RunBlockRequest) (*RunOutput, error)
 }
 
 // UnimplementedProjectServiceServer should be embedded to have forward compatible implementations.
@@ -209,6 +231,12 @@ func (UnimplementedProjectServiceServer) AddEdge(context.Context, *AddEdgeReques
 }
 func (UnimplementedProjectServiceServer) RemoveEdge(context.Context, *RemoveEdgeRequest) (*RemoveEdgeResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RemoveEdge not implemented")
+}
+func (UnimplementedProjectServiceServer) RunWorklow(context.Context, *RunWorkflowRequest) (*RunOutput, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RunWorklow not implemented")
+}
+func (UnimplementedProjectServiceServer) RunBlock(context.Context, *RunBlockRequest) (*RunOutput, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RunBlock not implemented")
 }
 
 // UnsafeProjectServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -438,6 +466,42 @@ func _ProjectService_RemoveEdge_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ProjectService_RunWorklow_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RunWorkflowRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProjectServiceServer).RunWorklow(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/project.ProjectService/RunWorklow",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProjectServiceServer).RunWorklow(ctx, req.(*RunWorkflowRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ProjectService_RunBlock_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RunBlockRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProjectServiceServer).RunBlock(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/project.ProjectService/RunBlock",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProjectServiceServer).RunBlock(ctx, req.(*RunBlockRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ProjectService_ServiceDesc is the grpc.ServiceDesc for ProjectService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -492,6 +556,14 @@ var ProjectService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RemoveEdge",
 			Handler:    _ProjectService_RemoveEdge_Handler,
+		},
+		{
+			MethodName: "RunWorklow",
+			Handler:    _ProjectService_RunWorklow_Handler,
+		},
+		{
+			MethodName: "RunBlock",
+			Handler:    _ProjectService_RunBlock_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

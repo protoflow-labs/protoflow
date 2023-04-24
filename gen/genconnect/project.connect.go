@@ -66,6 +66,11 @@ const (
 	// ProjectServiceRemoveEdgeProcedure is the fully-qualified name of the ProjectService's RemoveEdge
 	// RPC.
 	ProjectServiceRemoveEdgeProcedure = "/project.ProjectService/RemoveEdge"
+	// ProjectServiceRunWorklowProcedure is the fully-qualified name of the ProjectService's RunWorklow
+	// RPC.
+	ProjectServiceRunWorklowProcedure = "/project.ProjectService/RunWorklow"
+	// ProjectServiceRunBlockProcedure is the fully-qualified name of the ProjectService's RunBlock RPC.
+	ProjectServiceRunBlockProcedure = "/project.ProjectService/RunBlock"
 )
 
 // ProjectServiceClient is a client for the project.ProjectService service.
@@ -82,6 +87,8 @@ type ProjectServiceClient interface {
 	GetEdges(context.Context, *connect_go.Request[gen.GetEdgesRequest]) (*connect_go.Response[gen.GetEdgesResponse], error)
 	AddEdge(context.Context, *connect_go.Request[gen.AddEdgeRequest]) (*connect_go.Response[gen.AddEdgeResponse], error)
 	RemoveEdge(context.Context, *connect_go.Request[gen.RemoveEdgeRequest]) (*connect_go.Response[gen.RemoveEdgeResponse], error)
+	RunWorklow(context.Context, *connect_go.Request[gen.RunWorkflowRequest]) (*connect_go.Response[gen.RunOutput], error)
+	RunBlock(context.Context, *connect_go.Request[gen.RunBlockRequest]) (*connect_go.Response[gen.RunOutput], error)
 }
 
 // NewProjectServiceClient constructs a client for the project.ProjectService service. By default,
@@ -154,6 +161,16 @@ func NewProjectServiceClient(httpClient connect_go.HTTPClient, baseURL string, o
 			baseURL+ProjectServiceRemoveEdgeProcedure,
 			opts...,
 		),
+		runWorklow: connect_go.NewClient[gen.RunWorkflowRequest, gen.RunOutput](
+			httpClient,
+			baseURL+ProjectServiceRunWorklowProcedure,
+			opts...,
+		),
+		runBlock: connect_go.NewClient[gen.RunBlockRequest, gen.RunOutput](
+			httpClient,
+			baseURL+ProjectServiceRunBlockProcedure,
+			opts...,
+		),
 	}
 }
 
@@ -171,6 +188,8 @@ type projectServiceClient struct {
 	getEdges      *connect_go.Client[gen.GetEdgesRequest, gen.GetEdgesResponse]
 	addEdge       *connect_go.Client[gen.AddEdgeRequest, gen.AddEdgeResponse]
 	removeEdge    *connect_go.Client[gen.RemoveEdgeRequest, gen.RemoveEdgeResponse]
+	runWorklow    *connect_go.Client[gen.RunWorkflowRequest, gen.RunOutput]
+	runBlock      *connect_go.Client[gen.RunBlockRequest, gen.RunOutput]
 }
 
 // GetProject calls project.ProjectService.GetProject.
@@ -233,6 +252,16 @@ func (c *projectServiceClient) RemoveEdge(ctx context.Context, req *connect_go.R
 	return c.removeEdge.CallUnary(ctx, req)
 }
 
+// RunWorklow calls project.ProjectService.RunWorklow.
+func (c *projectServiceClient) RunWorklow(ctx context.Context, req *connect_go.Request[gen.RunWorkflowRequest]) (*connect_go.Response[gen.RunOutput], error) {
+	return c.runWorklow.CallUnary(ctx, req)
+}
+
+// RunBlock calls project.ProjectService.RunBlock.
+func (c *projectServiceClient) RunBlock(ctx context.Context, req *connect_go.Request[gen.RunBlockRequest]) (*connect_go.Response[gen.RunOutput], error) {
+	return c.runBlock.CallUnary(ctx, req)
+}
+
 // ProjectServiceHandler is an implementation of the project.ProjectService service.
 type ProjectServiceHandler interface {
 	GetProject(context.Context, *connect_go.Request[gen.GetProjectRequest]) (*connect_go.Response[gen.GetProjectResponse], error)
@@ -247,6 +276,8 @@ type ProjectServiceHandler interface {
 	GetEdges(context.Context, *connect_go.Request[gen.GetEdgesRequest]) (*connect_go.Response[gen.GetEdgesResponse], error)
 	AddEdge(context.Context, *connect_go.Request[gen.AddEdgeRequest]) (*connect_go.Response[gen.AddEdgeResponse], error)
 	RemoveEdge(context.Context, *connect_go.Request[gen.RemoveEdgeRequest]) (*connect_go.Response[gen.RemoveEdgeResponse], error)
+	RunWorklow(context.Context, *connect_go.Request[gen.RunWorkflowRequest]) (*connect_go.Response[gen.RunOutput], error)
+	RunBlock(context.Context, *connect_go.Request[gen.RunBlockRequest]) (*connect_go.Response[gen.RunOutput], error)
 }
 
 // NewProjectServiceHandler builds an HTTP handler from the service implementation. It returns the
@@ -316,6 +347,16 @@ func NewProjectServiceHandler(svc ProjectServiceHandler, opts ...connect_go.Hand
 		svc.RemoveEdge,
 		opts...,
 	))
+	mux.Handle(ProjectServiceRunWorklowProcedure, connect_go.NewUnaryHandler(
+		ProjectServiceRunWorklowProcedure,
+		svc.RunWorklow,
+		opts...,
+	))
+	mux.Handle(ProjectServiceRunBlockProcedure, connect_go.NewUnaryHandler(
+		ProjectServiceRunBlockProcedure,
+		svc.RunBlock,
+		opts...,
+	))
 	return "/project.ProjectService/", mux
 }
 
@@ -368,4 +409,12 @@ func (UnimplementedProjectServiceHandler) AddEdge(context.Context, *connect_go.R
 
 func (UnimplementedProjectServiceHandler) RemoveEdge(context.Context, *connect_go.Request[gen.RemoveEdgeRequest]) (*connect_go.Response[gen.RemoveEdgeResponse], error) {
 	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("project.ProjectService.RemoveEdge is not implemented"))
+}
+
+func (UnimplementedProjectServiceHandler) RunWorklow(context.Context, *connect_go.Request[gen.RunWorkflowRequest]) (*connect_go.Response[gen.RunOutput], error) {
+	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("project.ProjectService.RunWorklow is not implemented"))
+}
+
+func (UnimplementedProjectServiceHandler) RunBlock(context.Context, *connect_go.Request[gen.RunBlockRequest]) (*connect_go.Response[gen.RunOutput], error) {
+	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("project.ProjectService.RunBlock is not implemented"))
 }

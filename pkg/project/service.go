@@ -3,43 +3,105 @@ package project
 import (
 	"context"
 	"encoding/json"
-	"errors"
-	"fmt"
+	"github.com/pkg/errors"
+	genconnect "github.com/protoflow-labs/protoflow/gen/genconnect"
+	"github.com/protoflow-labs/protoflow/pkg/workflow"
+	"github.com/protoflow-labs/protoflow/templates"
+	"google.golang.org/protobuf/types/known/anypb"
 	"html/template"
 	"os"
 
 	"github.com/bufbuild/connect-go"
 	"github.com/google/wire"
 	"github.com/protoflow-labs/protoflow/gen"
-	"github.com/protoflow-labs/protoflow/gen/genconnect"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 )
 
 type Service struct {
-	genconnect.UnimplementedProjectServiceHandler
-
+	store              Store
+	manager            workflow.Manager
 	clientset          *kubernetes.Clientset
 	blockProtoTemplate *template.Template
 }
 
 var ProviderSet = wire.NewSet(
+	StoreProviderSet,
+	workflow.ProviderSet,
 	NewService,
 	wire.Bind(new(genconnect.ProjectServiceHandler), new(*Service)),
 )
 
-func NewService(clientset *kubernetes.Clientset) *Service {
-	blockProtoTemplateFile, _ := os.ReadFile("templates/block.template.proto")
+var _ genconnect.ProjectServiceHandler = (*Service)(nil)
 
-	blockProtoTemplate, err := template.New("block").Parse(string(blockProtoTemplateFile))
+func NewService(
+	clientset *kubernetes.Clientset,
+	store Store,
+	manager workflow.Manager,
+) (*Service, error) {
+	// TODO breadchris this should be loading from an embedded file system
+	blockProtoTemplate, err := template.New("block").ParseFS(templates.Templates, "templates/*.template.proto")
 	if err != nil {
-		fmt.Println("Error:", err)
+		return nil, err
 	}
 
 	return &Service{
+		store:              store,
+		manager:            manager,
 		clientset:          clientset,
 		blockProtoTemplate: blockProtoTemplate,
+	}, nil
+}
+
+func (s *Service) GetResources(ctx context.Context, c *connect.Request[gen.GetResourcesRequest]) (*connect.Response[gen.GetResourcesResponse], error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func resultToAny(res *workflow.Result) (*anypb.Any, error) {
+	data, err := json.Marshal(res)
+	if err != nil {
+		return nil, err
 	}
+
+	output, err := anypb.New(&gen.Result{
+		Data: data,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return output, nil
+}
+
+func (s *Service) RunWorklow(ctx context.Context, c *connect.Request[gen.RunWorkflowRequest]) (*connect.Response[gen.RunOutput], error) {
+	project, err := s.store.GetProject(c.Msg.ProjectId)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get project %s", c.Msg.ProjectId)
+	}
+
+	w, err := workflow.FromGraph(project.Graph)
+	if err != nil {
+		return nil, err
+	}
+
+	res, err := s.manager.ExecuteWorkflowSync(ctx, w, c.Msg.NodeId)
+	if err != nil {
+		return nil, err
+	}
+
+	output, err := resultToAny(res)
+	if err != nil {
+		return nil, err
+	}
+
+	return connect.NewResponse(&gen.RunOutput{
+		Output: output,
+	}), nil
+}
+
+func (s *Service) RunBlock(ctx context.Context, c *connect.Request[gen.RunBlockRequest]) (*connect.Response[gen.RunOutput], error) {
+	//TODO implement me
+	panic("implement me")
 }
 
 func (s *Service) GetProject(context.Context, *connect.Request[gen.GetProjectRequest]) (*connect.Response[gen.GetProjectResponse], error) {

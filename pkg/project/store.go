@@ -1,4 +1,4 @@
-package workflow
+package project
 
 import (
 	"github.com/google/wire"
@@ -11,8 +11,8 @@ import (
 )
 
 type Store interface {
-	SaveWorkflow(w *gen.Workflow) (id string, err error)
-	GetWorkflow(workflowID string) (protoflow *gen.Workflow, err error)
+	SaveProject(w *gen.Project) (string, error)
+	GetProject(projectID string) (*gen.Project, error)
 }
 
 var _ Store = (*DBStore)(nil)
@@ -33,7 +33,7 @@ var StoreProviderSet = wire.NewSet(
 )
 
 func NewDBStore(db *gorm.DB) (*DBStore, error) {
-	err := db.AutoMigrate(&model.Workflow{})
+	err := db.AutoMigrate(&model.Project{})
 	if err != nil {
 		return nil, err
 	}
@@ -42,9 +42,9 @@ func NewDBStore(db *gorm.DB) (*DBStore, error) {
 	}, nil
 }
 
-func (s *DBStore) SaveWorkflow(w *gen.Workflow) (id string, err error) {
-	work := model.Workflow{
-		Protoflow: model.ProtoJSON[interface{}]{
+func (s *DBStore) SaveProject(w *gen.Project) (string, error) {
+	work := model.Project{
+		Project: model.ProjectJSON{
 			Data: *w,
 		},
 	}
@@ -55,11 +55,11 @@ func (s *DBStore) SaveWorkflow(w *gen.Workflow) (id string, err error) {
 	return work.ID.String(), nil
 }
 
-func (s *DBStore) GetWorkflow(workflowID string) (protoflow *gen.Workflow, err error) {
-	w := model.Workflow{}
-	res := s.db.First(&w, "id = ?", workflowID)
+func (s *DBStore) GetProject(projectID string) (*gen.Project, error) {
+	w := model.Project{}
+	res := s.db.First(&w, "id = ?", projectID)
 	if res.Error != nil {
 		return nil, res.Error
 	}
-	return &w.Protoflow.Data, nil
+	return &w.Project.Data, nil
 }

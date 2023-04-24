@@ -33,6 +33,10 @@ func Wire(cacheConfig cache.Config) (*cli.App, error) {
 	if err != nil {
 		return nil, err
 	}
+	clientset, err := k8s.NewClientset()
+	if err != nil {
+		return nil, err
+	}
 	dbConfig, err := db.NewConfig(provider)
 	if err != nil {
 		return nil, err
@@ -41,7 +45,7 @@ func Wire(cacheConfig cache.Config) (*cli.App, error) {
 	if err != nil {
 		return nil, err
 	}
-	dbStore, err := workflow.NewDBStore(gormDB)
+	dbStore, err := project.NewDBStore(gormDB)
 	if err != nil {
 		return nil, err
 	}
@@ -53,13 +57,11 @@ func Wire(cacheConfig cache.Config) (*cli.App, error) {
 	if err != nil {
 		return nil, err
 	}
-	service := workflow.NewService(dbStore, manager)
-	clientset, err := k8s.NewClientset()
+	service, err := project.NewService(clientset, dbStore, manager)
 	if err != nil {
 		return nil, err
 	}
-	projectService := project.NewService(clientset)
-	httpServer := api.NewHTTPServer(service, projectService)
-	app := New(logConfig, httpServer, projectService, provider)
+	httpServer := api.NewHTTPServer(service)
+	app := New(logConfig, httpServer, service, provider)
 	return app, nil
 }

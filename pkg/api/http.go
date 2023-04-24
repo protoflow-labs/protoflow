@@ -2,10 +2,10 @@ package api
 
 import (
 	"fmt"
+	"github.com/protoflow-labs/protoflow/gen/genconnect"
 	"net/http"
 
 	grpcreflect "github.com/bufbuild/connect-grpcreflect-go"
-	"github.com/protoflow-labs/protoflow/gen/genconnect"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
 )
@@ -14,18 +14,14 @@ type HTTPServer struct {
 	mux *http.ServeMux
 }
 
-func NewHTTPServer(workflowManager genconnect.ManagerServiceHandler, projectService genconnect.ProjectServiceHandler) *HTTPServer {
+func NewHTTPServer(projectService genconnect.ProjectServiceHandler) *HTTPServer {
 	mux := http.NewServeMux()
 	// The generated constructors return a path and a plain net/http
 	// handler.
-	route, handler := genconnect.NewManagerServiceHandler(workflowManager)
-	mux.Handle(route, handler)
-
 	projectRoutes, projectHandlers := genconnect.NewProjectServiceHandler(projectService)
 	mux.Handle(projectRoutes, projectHandlers)
 
 	reflector := grpcreflect.NewStaticReflector(
-		"workflow.ManagerService",
 		"project.ProjectService",
 		// protoc-gen-connect-go generates package-level constants
 		// for these fully-qualified protobuf service names, so you'd more likely

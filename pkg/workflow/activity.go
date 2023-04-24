@@ -7,12 +7,12 @@ import (
 
 type Activity struct{}
 
-func (a *Activity) ExecuteCode(ctx workflow.Context, code *Code, input Input) (Result, error) {
-	log.Debug().Msgf("executing code: %s", code.Code)
+func (a *Activity) ExecuteGRPCBlock(ctx workflow.Context, block *GRPCBlock, input Input) (Result, error) {
+	log.Debug().Msgf("executing block: %s", block.Host)
 	return Result{}, nil
 }
 
-func (a *Activity) ExecuteInput(ctx workflow.Context, data *Data, input Input) (Result, error) {
-	log.Debug().Msgf("executing input: %v", data.Params)
+func (a *Activity) ExecuteRestBlock(ctx workflow.Context, block *RESTBlock, input Input) (Result, error) {
+	log.Debug().Msgf("executing input: %v", block.Url)
 	return Result{}, nil
 }

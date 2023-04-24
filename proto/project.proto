@@ -1,7 +1,11 @@
 syntax = "proto3";
 
+import "graph.proto";
+import "block.proto";
+import "google/protobuf/any.proto";
+
 package project;
-option go_package = "./gen/project";
+option go_package = "project";
 
 service ProjectService {
     rpc GetProject(GetProjectRequest) returns (GetProjectResponse) {}
@@ -18,6 +22,25 @@ service ProjectService {
     rpc GetEdges(GetEdgesRequest) returns (GetEdgesResponse) {}
     rpc AddEdge(AddEdgeRequest) returns (AddEdgeResponse) {}
     rpc RemoveEdge(RemoveEdgeRequest) returns (RemoveEdgeResponse) {}
+
+    rpc RunWorklow(RunWorkflowRequest) returns (RunOutput) {}
+    rpc RunBlock(RunBlockRequest) returns (RunOutput) {}
+}
+
+message RunWorkflowRequest {
+    string project_id = 1;
+    string node_id = 2;
+    google.protobuf.Any input = 3;
+}
+
+message RunBlockRequest {
+    string project_id = 1;
+    string block_id = 2;
+    google.protobuf.Any input = 3;
+}
+
+message RunOutput {
+    google.protobuf.Any output = 1;
 }
 
 message Resource {
@@ -33,32 +56,7 @@ message Project {
     string owner = 4;
     string created_at = 5;
     string updated_at = 6;
-}
-
-enum FieldType {
-    STRING = 0;
-    INTEGER = 1;
-}
-
-message FieldDefinition {
-    string name = 1;
-    FieldType  type = 2;
-}
-
-message Block {
-    string id = 1;
-    string name = 2;
-    string type = 3;
-    float x = 4;
-    float y = 5;
-    repeated FieldDefinition inputFields = 6;
-    repeated FieldDefinition outputFields = 7;
-}
-
-message Edge {
-    string id = 1;
-    string source = 2;
-    string target = 3;
+    graph.Graph graph = 7;
 }
 
 message GetProjectRequest {
@@ -103,11 +101,11 @@ message GetResourcesResponse {
 
 message AddBlockRequest {
     string project_id = 1;
-    Block block = 2;
+    block.Block block = 2;
 }
 
 message AddBlockResponse {
-    Block block = 1;
+    block.Block block = 1;
 }
 
 message RemoveBlockRequest {
@@ -116,7 +114,7 @@ message RemoveBlockRequest {
 }
 
 message RemoveBlockResponse {
-    Block block = 1;
+    block.Block block = 1;
 }
 
 message GetBlocksRequest {
@@ -124,25 +122,25 @@ message GetBlocksRequest {
 }
 
 message GetBlocksResponse {
-    repeated Block blocks = 1;
+    repeated block.Block blocks = 1;
 }
 
 message UpdateBlockRequest {
     string project_id = 1;
-    Block block = 2;
+    block.Block block = 2;
 }
 
 message UpdateBlockResponse {
-    Block block = 1;
+    block.Block block = 1;
 }
 
 message AddEdgeRequest {
     string project_id = 1;
-    Edge edge = 2;
+    graph.Edge edge = 2;
 }
 
 message AddEdgeResponse {
-    Edge edge = 1;
+    graph.Edge edge = 1;
 }
 
 message RemoveEdgeRequest {
@@ -151,7 +149,7 @@ message RemoveEdgeRequest {
 }
 
 message RemoveEdgeResponse {
-    Edge edge = 1;
+    graph.Edge edge = 1;
 }
 
 message GetEdgesRequest {
@@ -159,5 +157,5 @@ message GetEdgesRequest {
 }
 
 message GetEdgesResponse {
-    repeated Edge edges = 1;
+    repeated graph.Edge edges = 1;
 }

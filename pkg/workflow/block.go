@@ -9,52 +9,42 @@ type Block interface {
 	Execute(executor Executor, input Input) (*Result, error)
 }
 
-type Code struct {
-	Code string
+type GRPCBlock struct {
+	protoflow.GRPC
 }
 
-type Data struct {
-	Params interface{}
+type RESTBlock struct {
+	protoflow.REST
 }
 
 var activity = &Activity{}
 
-func (s *Code) Init() error {
+func (s *GRPCBlock) Init() error {
 	return nil
 }
 
-func (s *Code) Execute(executor Executor, input Input) (*Result, error) {
-	return executor.Execute(activity.ExecuteCode, s, input)
+func (s *GRPCBlock) Execute(executor Executor, input Input) (*Result, error) {
+	return executor.Execute(activity.ExecuteGRPCBlock, s, input)
 }
 
-func (s *Data) Execute(executor Executor, input Input) (*Result, error) {
-	return executor.Execute(activity.ExecuteInput, s, input)
+func (s *RESTBlock) Execute(executor Executor, input Input) (*Result, error) {
+	return executor.Execute(activity.ExecuteRestBlock, s, input)
 }
 
 func NewBlock(node *protoflow.Node) (Block, error) {
-	switch node.Type.(type) {
-	case *protoflow.Node_Function:
-		f := node.GetFunction()
-		switch f.Type.(type) {
-		case *protoflow.Function_Code:
-			c := f.GetCode()
-			return &Code{
-				Code: c.Code,
-			}, nil
-		default:
-			return nil, errors.New("no code found")
-		}
-	case *protoflow.Node_Data:
-		d := node.GetData()
-		switch d.Type.(type) {
-		case *protoflow.Data_Input:
-			i := d.GetInput()
-			return &Data{
-				Params: i.Params,
-			}, nil
-		}
+	switch node.Block.Type.(type) {
+	case *protoflow.Block_Grpc:
+		g := node.Block.GetGrpc()
+		return &GRPCBlock{
+			GRPC: *g,
+		}, nil
+	case *protoflow.Block_Rest:
+		r := node.Block.GetRest()
+		return &RESTBlock{
+			REST: *r,
+		}, nil
 	default:
-		return nil, errors.New("no function or data found")
+		return nil, errors.New("no block found")
 	}
 	return nil, nil
 }

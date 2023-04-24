@@ -1,18 +1,32 @@
 package workflow
 
 import (
+	"context"
 	"fmt"
+	"github.com/google/wire"
 	"github.com/protoflow-labs/protoflow/pkg/temporal"
 	"go.uber.org/config"
 )
 
 const TaskQueue = "protoflow"
 
+type Manager interface {
+	ExecuteWorkflow(ctx context.Context, w *Workflow, nodeID string) (string, error)
+	ExecuteWorkflowSync(ctx context.Context, w *Workflow, nodeID string) (*Result, error)
+}
+
+var ProviderSet = wire.NewSet(
+	NewConfig,
+	NewManager,
+)
+
 func NewManager(config Config, provider config.Provider) (Manager, error) {
 	switch config.ManagerType {
 	case MemoryManagerType:
 		return NewMemoryManager(), nil
 	case TemporalManagerType:
+		// TODO breadchris we do this because we don't want a temporal client to try to connect on startup
+		// Is there a way to run this more intelligently? maybe with sync.Once?
 		client, err := temporal.Wire(provider)
 		if err != nil {
 			return nil, err
@@ -47,8 +61,8 @@ func getWorkflowResult(ctx context.Context, temporalClient client.Client, workfl
 		}
 	}
 
-	workflowRun := temporalClient.GetWorkflow(ctx, workflowID, runID)
-	workflowResult.Error = workflowRun.Get(ctx, &workflowResult.Data)
+	workflowRun := temporalClient.GetProject(ctx, workflowID, runID)
+	workflowResult.Error = workflowRun.Get(ctx, &workflowResult.RESTBlock)
 	return
 }
 

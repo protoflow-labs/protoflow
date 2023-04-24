@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { AddBlockRequest, AddBlockResponse, AddEdgeRequest, AddEdgeResponse, CreateProjectRequest, CreateProjectResponse, DeleteProjectRequest, DeleteProjectResponse, GetBlocksRequest, GetBlocksResponse, GetEdgesRequest, GetEdgesResponse, GetProjectRequest, GetProjectResponse, GetProjectsRequest, GetProjectsResponse, GetResourcesRequest, GetResourcesResponse, RemoveBlockRequest, RemoveBlockResponse, RemoveEdgeRequest, RemoveEdgeResponse, UpdateBlockRequest, UpdateBlockResponse } from "./project_pb.js";
+import { AddBlockRequest, AddBlockResponse, AddEdgeRequest, AddEdgeResponse, CreateProjectRequest, CreateProjectResponse, DeleteProjectRequest, DeleteProjectResponse, GetBlocksRequest, GetBlocksResponse, GetEdgesRequest, GetEdgesResponse, GetProjectRequest, GetProjectResponse, GetProjectsRequest, GetProjectsResponse, GetResourcesRequest, GetResourcesResponse, RemoveBlockRequest, RemoveBlockResponse, RemoveEdgeRequest, RemoveEdgeResponse, RunBlockRequest, RunOutput, RunWorkflowRequest, UpdateBlockRequest, UpdateBlockResponse } from "./project_pb.js";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -118,6 +118,24 @@ export const ProjectService = {
       name: "RemoveEdge",
       I: RemoveEdgeRequest,
       O: RemoveEdgeResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc project.ProjectService.RunWorklow
+     */
+    runWorklow: {
+      name: "RunWorklow",
+      I: RunWorkflowRequest,
+      O: RunOutput,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc project.ProjectService.RunBlock
+     */
+    runBlock: {
+      name: "RunBlock",
+      I: RunBlockRequest,
+      O: RunOutput,
       kind: MethodKind.Unary,
     },
   }

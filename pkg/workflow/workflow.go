@@ -25,7 +25,7 @@ type Workflow struct {
 	AdjMap
 }
 
-func WorkflowFromProtoflow(workflowGraph *gen.Workflow) (*Workflow, error) {
+func FromGraph(workflowGraph *gen.Graph) (*Workflow, error) {
 	g := graph.New(graph.StringHash, graph.Directed(), graph.PreventCycles())
 
 	blockLookup := map[string]Block{}
@@ -63,20 +63,20 @@ func WorkflowFromProtoflow(workflowGraph *gen.Workflow) (*Workflow, error) {
 	}, nil
 }
 
-func (w *Workflow) Run(logger Logger, executor Executor, nodeID string) (string, error) {
+func (w *Workflow) Run(logger Logger, executor Executor, nodeID string) (*Result, error) {
 	vert, err := w.Graph.Vertex(nodeID)
 	if err != nil {
-		return "", errors.Wrapf(err, "error getting vertex %s", nodeID)
+		return nil, errors.Wrapf(err, "error getting vertex %s", nodeID)
 	}
 
-	_, err = w.traverseWorkflow(logger, executor, vert, Input{
+	res, err := w.traverseWorkflow(logger, executor, vert, Input{
 		Params: nil,
 	})
 	if err != nil {
 		logger.Error("Error traversing workflow", "error", err)
-		return "", nil
+		return nil, nil
 	}
-	return "", nil
+	return res, nil
 }
 
 func (w *Workflow) traverseWorkflow(logger Logger, executor Executor, vert string, input Input) (*Result, error) {
