@@ -39,10 +39,11 @@ func (j *ProjectJSON) Scan(value interface{}) error {
 	default:
 		return errors.New(fmt.Sprint("Failed to unmarshal JSONB value:", value))
 	}
+
 	return j.UnmarshalJSON(bytes)
 }
 
-func (j *ProjectJSON) MarshalJSON() ([]byte, error) {
+func (j ProjectJSON) MarshalJSON() ([]byte, error) {
 	marshaler := &protojson.MarshalOptions{}
 	b, err := marshaler.Marshal(j.Data)
 	if err != nil {
@@ -53,6 +54,11 @@ func (j *ProjectJSON) MarshalJSON() ([]byte, error) {
 
 func (j *ProjectJSON) UnmarshalJSON(data []byte) error {
 	unmarshaler := protojson.UnmarshalOptions{DiscardUnknown: true}
+
+	if j.Data == nil {
+		j.Data = &gen.Project{}
+	}
+
 	if err := unmarshaler.Unmarshal(data, j.Data); err != nil {
 		return err
 	}

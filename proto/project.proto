@@ -14,19 +14,7 @@ service ProjectService {
     rpc DeleteProject(DeleteProjectRequest) returns (DeleteProjectResponse) {}
     rpc GetResources(GetResourcesRequest) returns (GetResourcesResponse) {}
 
-    rpc GetBlocks(GetBlocksRequest) returns (GetBlocksResponse) {}
-    rpc AddBlock(AddBlockRequest) returns (AddBlockResponse) {}
-    rpc RemoveBlock(RemoveBlockRequest) returns (RemoveBlockResponse) {}
-    rpc UpdateBlock(UpdateBlockRequest) returns (UpdateBlockResponse) {}
-
-//    rpc GetNodes(GetNodesRequest) returns (GetNodesResponse) {}
-//    rpc AddNode(AddNodeRequest) returns (AddNodeResponse) {}
-//    rpc RemoveNode(RemoveNodeRequest) returns (RemoveNodeResponse) {}
-//    rpc UpdateNode(UpdateNodeRequest) returns (UpdateNodeResponse) {}
-
-    rpc GetEdges(GetEdgesRequest) returns (GetEdgesResponse) {}
-    rpc AddEdge(AddEdgeRequest) returns (AddEdgeResponse) {}
-    rpc RemoveEdge(RemoveEdgeRequest) returns (RemoveEdgeResponse) {}
+    rpc SaveProject(SaveProjectRequest) returns (SaveProjectResponse) {}
 
     rpc RunWorklow(RunWorkflowRequest) returns (RunOutput) {}
     rpc RunBlock(RunBlockRequest) returns (RunOutput) {}
@@ -63,13 +51,13 @@ message Database {
 
 message Resource {
     string id = 1;
+    string name = 2;
     oneof type {
-        GRPCService grpc_service = 2;
-        RESTService rest_service = 3;
-        Database database = 4;
+        GRPCService grpc_service = 3;
+        RESTService rest_service = 4;
+        Database database = 5;
     }
-    string name = 4;
-    repeated block.Block blocks = 5;
+    repeated block.Block blocks = 6;
 }
 
 message Project {
@@ -101,7 +89,7 @@ message GetProjectsResponse {
 }
 
 message CreateProjectRequest {
-    Project project = 1;
+    string name = 1;
 }
 
 message CreateProjectResponse {
@@ -124,63 +112,11 @@ message GetResourcesResponse {
     repeated Resource resources = 1;
 }
 
-message AddBlockRequest {
+message SaveProjectRequest {
     string project_id = 1;
-    block.Block block = 2;
+    graph.Graph graph = 2;
 }
 
-message AddBlockResponse {
-    block.Block block = 1;
-}
-
-message RemoveBlockRequest {
-    string project_id = 1;
-    string block_id = 2;
-}
-
-message RemoveBlockResponse {
-    block.Block block = 1;
-}
-
-message GetBlocksRequest {
-    string project_id = 1;
-}
-
-message GetBlocksResponse {
-    repeated block.Block blocks = 1;
-}
-
-message UpdateBlockRequest {
-    string project_id = 1;
-    block.Block block = 2;
-}
-
-message UpdateBlockResponse {
-    block.Block block = 1;
-}
-
-message AddEdgeRequest {
-    string project_id = 1;
-    graph.Edge edge = 2;
-}
-
-message AddEdgeResponse {
-    graph.Edge edge = 1;
-}
-
-message RemoveEdgeRequest {
-    string project_id = 1;
-    string edge_id = 2;
-}
-
-message RemoveEdgeResponse {
-    graph.Edge edge = 1;
-}
-
-message GetEdgesRequest {
-    string project_id = 1;
-}
-
-message GetEdgesResponse {
-    repeated graph.Edge edges = 1;
+message SaveProjectResponse {
+    Project project = 1;
 }

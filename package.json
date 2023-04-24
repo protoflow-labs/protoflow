@@ -18,6 +18,11 @@
     "@bufbuild/protoc-gen-es": "^1.2.0",
     "@grpc/grpc-js": "^1.8.14",
     "protoc-gen-ts": "^0.8.6",
-    "ts-proto": "^1.146.0"
+    "react-hook-form": "^7.43.9",
+    "ts-proto": "^1.146.0",
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "@types/uuid": "^9.0.1"
   }
 }

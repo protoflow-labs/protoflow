@@ -27,41 +27,42 @@ type Workflow struct {
 }
 
 func FromProject(project *gen.Project) (*Workflow, error) {
-	g := graph.New(graph.StringHash, graph.Directed(), graph.PreventCycles())
+	return nil, nil
+	// g := graph.New(graph.StringHash, graph.Directed(), graph.PreventCycles())
 
-	blockLookup := map[string]Block{}
-	for _, node := range project.Nodes {
-		err := g.AddVertex(node.Id)
-		if err != nil {
-			return nil, err
-		}
+	// blockLookup := map[string]Block{}
+	// for _, node := range project.Nodes {
+	// 	err := g.AddVertex(node.Id)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
 
-		// add block to lookup to be used for execution
-		activity, err := NewBlock(node)
-		if err != nil {
-			return nil, errors.Wrapf(err, "error creating block for node %s", node.Id)
-		}
-		blockLookup[node.Id] = activity
-	}
+	// 	// add block to lookup to be used for execution
+	// 	activity, err := NewBlock(node)
+	// 	if err != nil {
+	// 		return nil, errors.Wrapf(err, "error creating block for node %s", node.Id)
+	// 	}
+	// 	blockLookup[node.Id] = activity
+	// }
 
-	for _, edge := range project.Edges {
-		err := g.AddEdge(edge.From, edge.To)
-		if err != nil {
-			return nil, err
-		}
-	}
+	// for _, edge := range project {
+	// 	err := g.AddEdge(edge.From, edge.To)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// }
 
-	adjMap, err := g.AdjacencyMap()
-	if err != nil {
-		return nil, errors.Wrapf(err, "error getting adjacency map")
-	}
+	// adjMap, err := g.AdjacencyMap()
+	// if err != nil {
+	// 	return nil, errors.Wrapf(err, "error getting adjacency map")
+	// }
 
-	return &Workflow{
-		ID:          project.Id,
-		Graph:       g,
-		BlockLookup: blockLookup,
-		AdjMap:      adjMap,
-	}, nil
+	// return &Workflow{
+	// 	ID:          project.Id,
+	// 	Graph:       g,
+	// 	BlockLookup: blockLookup,
+	// 	AdjMap:      adjMap,
+	// }, nil
 }
 
 func (w *Workflow) Run(logger Logger, executor Executor, nodeID string) (*Result, error) {

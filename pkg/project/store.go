@@ -1,6 +1,7 @@
 package project
 
 import (
+	"github.com/google/uuid"
 	"github.com/google/wire"
 	_ "github.com/lib/pq"
 	_ "github.com/mattn/go-sqlite3"
@@ -13,6 +14,7 @@ import (
 type Store interface {
 	SaveProject(w *gen.Project) (string, error)
 	GetProject(projectID string) (*gen.Project, error)
+	ListProjects() ([]*gen.Project, error)
 }
 
 var _ Store = (*DBStore)(nil)
@@ -43,16 +45,21 @@ func NewDBStore(db *gorm.DB) (*DBStore, error) {
 }
 
 func (s *DBStore) SaveProject(w *gen.Project) (string, error) {
-	work := model.Project{
-		Project: model.ProjectJSON{
+	project := model.Project{
+		UUID: model.UUID{
+			ID: uuid.MustParse(w.Id),
+		},
+		ProjectJSON: &model.ProjectJSON{
 			Data: w,
 		},
 	}
-	res := s.db.Create(&work)
+
+	res := s.db.Create(&project)
 	if res.Error != nil {
 		return "", res.Error
 	}
-	return work.ID.String(), nil
+
+	return project.ID.String(), nil
 }
 
 func (s *DBStore) GetProject(projectID string) (*gen.Project, error) {
@@ -61,5 +68,26 @@ func (s *DBStore) GetProject(projectID string) (*gen.Project, error) {
 	if res.Error != nil {
 		return nil, res.Error
 	}
-	return w.Project.Data, nil
+
+	if w.Data == nil {
+		return nil, nil
+	}
+
+	return w.Data, nil
+}
+
+func (s *DBStore) ListProjects() ([]*gen.Project, error) {
+	var projects []*model.Project
+
+	res := s.db.Find(&projects)
+	if res.Error != nil {
+		return nil, res.Error
+	}
+
+	var result []*gen.Project
+	for _, p := range projects {
+		result = append(result, p.Data)
+	}
+
+	return result, nil
 }

@@ -1,22 +1,21 @@
+import { EntityData } from "@/blocks/EntityBLock";
+import { FunctionData } from "@/blocks/FunctionBlock";
+import { InputData } from "@/blocks/InputBlock";
 import {
   Button,
   Card,
+  Divider,
   Dropdown,
   Input,
   Label,
-  Select,
   Option,
+  Select,
 } from "@fluentui/react-components";
-import { Node, useOnSelectionChange } from "reactflow";
-import { EntityData } from "../nodes/EntityNode";
-import { useEffect, useState } from "react";
-import { HiOutlineTrash, HiPlus } from "react-icons/hi2";
-import { FunctionData } from "../nodes/FunctionNode";
-import { projectService } from "../lib/api";
-import { EndpointyData } from "../nodes/EndpointNode";
-import { InputData } from "../nodes/InputNode";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
-import {FieldDefinition} from "../../rpc/block_pb";
+import { HiOutlineTrash, HiPlus } from "react-icons/hi2";
+import { Node, useOnSelectionChange } from "reactflow";
+import { FieldDefinition, FieldType } from "../../rpc/block_pb";
 
 export function EditorPanel() {
   const [activeNode, setActiveNode] = useState<Node | null>(null);
@@ -47,26 +46,6 @@ type NodeEditorProps = {
   node: Node | null;
 };
 
-interface BlockNode {
-  name: string;
-  inputFields?: FieldDefinition[];
-  outputFields?: FieldDefinition[];
-}
-
-function saveChanges(node: Node<BlockNode>) {
-  projectService.updateBlock({
-    block: {
-      id: node.id,
-      x: node.position.x,
-      y: node.position.y,
-      name: node.data.name,
-      type: node.type,
-      inputFields: node.data.inputFields,
-      outputFields: node.data.outputFields,
-    },
-  });
-}
-
 function NodeEditor(props: NodeEditorProps) {
   switch (props.node?.type) {
     case "message":
@@ -75,67 +54,30 @@ function NodeEditor(props: NodeEditorProps) {
       return <EntityEditor node={props.node} />;
     case "function":
       return <FunctionEditor node={props.node} />;
-    case "endpoint":
-      return <EndpointEditor node={props.node} />;
     default:
       return null;
   }
 }
 
-function EndpointEditor(props: { node: Node<EndpointyData> }) {
-  return (
-    <div className="flex flex-col gap-2 p-4">
-      <div className="flex flex-col">
-        <Label htmlFor="inputName">Name</Label>
-        <Input
-          id="inputName"
-          defaultValue={props.node.data.name || ""}
-          onChange={(e) => {
-            props.node.data.name = e.currentTarget.value;
-          }}
-          onBlur={() => saveChanges(props.node)}
-        />
-      </div>
-    </div>
-  );
-}
-
 function InputEditor({ node }: { node: Node<InputData> }) {
-  const { watch, setValue } = useForm({
+  const { watch, setValue, register } = useForm({
     defaultValues: {
       name: node.data.name,
-      inputFields: node.data.inputFields,
+      fields: node.data.fields,
     },
   });
 
   const values = watch();
 
-  useEffect(() => {
-    if (!node) {
-      return;
-    }
-    node.data.name = values.name;
-    node.data.inputFields = values.inputFields;
-  }, [values]);
-
-  useEffect(() => {}, [node]);
-
   return (
-    <div className="flex flex-col gap-2 p-4">
+    <div className="flex flex-col gap-2 p-3">
       <div className="flex flex-col">
         <Label htmlFor="inputName">Name</Label>
-        <Input
-          id="inputName"
-          defaultValue={values.name || ""}
-          onChange={(e) => {
-            setValue("name", e.currentTarget.value);
-          }}
-          onBlur={() => saveChanges(node)}
-        />
+        <Input id="inputName" {...register("name")} />
       </div>
       <div className="flex flex-col">
         <Label htmlFor="entityName">Fields</Label>
-        {values.inputFields?.map((field, index) => (
+        {values.fields?.map((field, index) => (
           <div key={index} className="flex items-center gap-2 mb-2">
             <Input
               id={"fieldName" + index}
@@ -143,26 +85,23 @@ function InputEditor({ node }: { node: Node<InputData> }) {
               onChange={(e) => {
                 field.name = e.currentTarget.value;
               }}
-              onBlur={() => saveChanges(node)}
             />
             <Dropdown
               id={"fieldType" + index}
               defaultValue={field.type === 1 ? "Integer" : "String"}
               onOptionSelect={(e, data) => {
-                node.data.inputFields[index].type = Number(data.optionValue);
+                node.data.fields[index].type = Number(data.optionValue);
               }}
-              onBlur={() => saveChanges(node)}
             >
               <Option value={String(FieldType.STRING)}>String</Option>
               <Option value={String(FieldType.INTEGER)}>Integer</Option>
             </Dropdown>
             <Button
               onClick={() => {
-                node.data.inputFields = node.data.inputFields.filter(
-                  (_, i) => i !== index
+                setValue(
+                  "fields",
+                  values.fields.filter((_, i) => i !== index)
                 );
-                setValue("inputFields", node.data.inputFields);
-                saveChanges(node);
               }}
               icon={<HiOutlineTrash className="h-4 w-4" />}
             />
@@ -170,8 +109,8 @@ function InputEditor({ node }: { node: Node<InputData> }) {
         ))}
         <Button
           onClick={() => {
-            setValue("inputFields", [
-              ...(node.data.inputFields || []),
+            setValue("fields", [
+              ...(node.data.fields || []),
               new FieldDefinition({
                 name: "undefined",
                 type: FieldType.STRING,
@@ -183,22 +122,26 @@ function InputEditor({ node }: { node: Node<InputData> }) {
           Add Field
         </Button>
       </div>
+      <Divider />
+      <div className="flex items-center gap-2">
+        <Button onClick={() => {}}>Cancel</Button>
+        <Button appearance="primary">Save</Button>
+      </div>
     </div>
   );
 }
 
 function EntityEditor(props: { node: Node<EntityData> }) {
   return (
-    <div className="flex flex-col gap-2 p-4">
+    <div className="flex flex-col gap-2 p-3">
       <div className="flex flex-col">
         <Label htmlFor="entityName">Name</Label>
         <Input
           id="entityName"
           defaultValue={props.node.data.name || ""}
           onChange={(e) => {
-            props.node.data.name = e.target.value;
+            // props.node.data.name = e.target.value;
           }}
-          onBlur={() => saveChanges(props.node)}
         />
       </div>
       <div className="flex flex-col">
@@ -210,7 +153,7 @@ function EntityEditor(props: { node: Node<EntityData> }) {
             e.currentTarget.value = e.currentTarget.value
               .replace(/\s/g, "_")
               .toLowerCase();
-            props.node.data.table = e.currentTarget.value;
+            // props.node.data.table = e.currentTarget.value;
           }}
         />
       </div>
@@ -220,7 +163,7 @@ function EntityEditor(props: { node: Node<EntityData> }) {
 
 function FunctionEditor(props: { node: Node<FunctionData> }) {
   return (
-    <div className="flex flex-col gap-2 p-4">
+    <div className="flex flex-col gap-2 p-3">
       <div className="flex flex-col">
         <Label htmlFor="entityName">Name</Label>
         <Input
@@ -229,14 +172,13 @@ function FunctionEditor(props: { node: Node<FunctionData> }) {
           onChange={(e) => {
             props.node.data.name = e.target.value;
           }}
-          onBlur={() => saveChanges(props.node)}
         />
       </div>
       <div className="flex flex-col">
         <Label htmlFor="entityLanguage">Language</Label>
         <Select
           onChange={(e) => {
-            props.node.data.language = e.currentTarget.value;
+            // props.node.data.language = e.currentTarget.value;
           }}
         >
           <option>Go</option>

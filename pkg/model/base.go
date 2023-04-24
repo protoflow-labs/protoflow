@@ -1,9 +1,10 @@
 package model
 
 import (
+	"time"
+
 	"github.com/google/uuid"
 	"gorm.io/gorm"
-	"time"
 )
 
 type Times struct {
@@ -18,6 +19,9 @@ type UUID struct {
 
 // BeforeCreate will set a UUID.
 func (b *UUID) BeforeCreate(tx *gorm.DB) error {
-	b.ID = uuid.New()
+	if b.ID == uuid.Nil {
+		b.ID = uuid.New()
+	}
+
 	return nil
 }

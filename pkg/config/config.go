@@ -1,10 +1,11 @@
 package config
 
 import (
-	"github.com/protoflow-labs/protoflow/pkg/temporal"
-	"github.com/protoflow-labs/protoflow/pkg/workflow"
 	"os"
 	"path"
+
+	"github.com/protoflow-labs/protoflow/pkg/temporal"
+	"github.com/protoflow-labs/protoflow/pkg/workflow"
 
 	"github.com/lunabrain-ai/lunabrain/pkg/store/cache"
 	"github.com/protoflow-labs/protoflow/pkg/db"
@@ -50,5 +51,6 @@ func NewProvider(cache cache.Cache) (config.Provider, error) {
 			opts = append(opts, config.File(homeFile))
 		}
 	}
+
 	return config.NewYAML(opts...)
 }

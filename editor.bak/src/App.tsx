@@ -6,13 +6,7 @@ import {
   webDarkTheme,
 } from "@fluentui/react-components";
 import { compile as hbs } from "handlebars";
-import {
-  DragEventHandler,
-  ReactNode,
-  useCallback,
-  useEffect,
-  useState,
-} from "react";
+import { DragEventHandler, useCallback, useState } from "react";
 import ReactFlow, {
   Background,
   Connection,
@@ -30,24 +24,24 @@ import ReactFlow, {
 } from "reactflow";
 
 import "reactflow/dist/style.css";
+import { v4 as uuid } from "uuid";
 import "./App.css";
 import { EditorPanel } from "./components/EditorPanel";
 import { EntityNode } from "./nodes/EntityNode";
 import { FunctionNode } from "./nodes/FunctionNode";
 import { InputNode } from "./nodes/InputNode";
 import { ValidatorNode } from "./nodes/ValidatorNode";
-import { v4 as uuid } from "uuid";
 
 import {
   QueryClient,
   QueryClientProvider,
   useQuery,
 } from "@tanstack/react-query";
+import BlocksList from "./components/BlocksList";
 import DefaultEdge from "./edges/DefaultEdge";
 import { projectService } from "./lib/api";
 import { NodeResourceDependencies } from "./lib/resources";
 import { BucketNode } from "./nodes/BucketNode";
-import { EndpointyNode } from "./nodes/EndpointNode";
 import { QueryNode } from "./nodes/QueryNode";
 import { QueueNode } from "./nodes/QueueNode";
 import InputEntityEdgeTemplate from "./templates/InputEntityEdgeTemplate.hbs?raw";
@@ -59,7 +53,6 @@ const initialNodes: any = [];
 const initialEdges: any = [];
 
 const nodeTypes = {
-  endpoint: EndpointyNode,
   entity: EntityNode,
   function: FunctionNode,
   validation: ValidatorNode,
@@ -85,21 +78,9 @@ function App() {
 
   const onEdgesChange: OnEdgesChange = useCallback((changes) => {
     setEdges((eds) => applyEdgeChanges(changes, eds));
-    changes.forEach((change => {
-      if (change.type === 'remove') {
-        projectService.removeEdge({
-          edgeId: change.id
-        })
-      }
-    }));
   }, []);
 
-  const onNodesDelete: OnNodesDelete = useCallback((nodes) => {
-    console.log(nodes);
-    nodes.forEach(node => projectService.removeBlock({
-      blockId: node.id,
-    }));
-  }, []);
+  const onNodesDelete: OnNodesDelete = useCallback((nodes) => {}, []);
 
   const onConnect = useCallback((params: Connection) => {
     if (!params.source || !params.target) return;
@@ -114,13 +95,6 @@ function App() {
         eds
       )
     );
-    projectService.addEdge({
-      edge: {
-        id: uuid(),
-        source: params.source,
-        target: params.target,
-      }
-    })
   }, []);
 
   const onDrop: DragEventHandler<HTMLDivElement> = (e) => {
@@ -139,15 +113,6 @@ function App() {
       data: { label: `${type} node` },
     };
 
-    projectService.addBlock({
-      block: {
-        id: newNode.id,
-        type: newNode.type,
-        x: newNode.position.x,
-        y: newNode.position.y,
-      },
-    });
-
     setNodes((nds) => [...nds, newNode]);
   };
 
@@ -156,45 +121,7 @@ function App() {
     e.dataTransfer.dropEffect = "move";
   }, []);
 
-  const onNodeDragStop: NodeDragHandler = useCallback((e, node) => {
-    projectService.updateBlock({
-      block: {
-        id: node.id,
-        x: node.position.x,
-        y: node.position.y,
-        name: node.data.name,
-        type: node.type,
-        inputFields: node.data.inputFields,
-        outputFields: node.data.outputFields,
-      },
-    });
-  }, []);
-
-  useEffect(() => {
-    (async function () {
-      projectService.getBlocks({}).then(({ blocks }) => {
-        const nodes = blocks.map((block) => {
-          return {
-            id: block.id,
-            type: block.type,
-            position: { x: block.x, y: block.y },
-            data: { name: block.name, inputFields: block.inputFields, outputFields: block.outputFields },
-          };
-        });
-        setNodes(nodes);
-      });
-
-      projectService.getEdges({}).then(({ edges }) => {
-        setEdges(edges.map((edge) => {
-          return {
-            id: edge.id,
-            source: edge.source,
-            target: edge.target,
-          };
-        }));
-      });
-    })();
-  }, []);
+  const onNodeDragStop: NodeDragHandler = useCallback((e, node) => {}, []);
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -204,15 +131,7 @@ function App() {
             <div className="flex flex-col gap-4 absolute m-4 bg-white/10 p-4 rounded-md z-10">
               <Projects />
 
-              <div className="flex flex-col gap-1">
-                <NodeButton nodeType="endpoint">Endpoint</NodeButton>
-                <NodeButton nodeType="entity">Entity</NodeButton>
-                <NodeButton nodeType="message">Input</NodeButton>
-                <NodeButton nodeType="function">Function</NodeButton>
-                <NodeButton nodeType="query">Query</NodeButton>
-                <NodeButton nodeType="queue">Queue</NodeButton>
-                <NodeButton nodeType="bucket">Bucket</NodeButton>
-              </div>
+              <BlocksList />
             </div>
 
             <ReactFlow
@@ -277,20 +196,6 @@ function App() {
 }
 
 export default App;
-
-function NodeButton(props: { children: ReactNode; nodeType: string }) {
-  return (
-    <div
-      draggable
-      onDragStart={(e) => {
-        e.dataTransfer.setData("application/reactflow", props.nodeType);
-        e.dataTransfer.effectAllowed = "move";
-      }}
-    >
-      <Button>{props.children}</Button>
-    </div>
-  );
-}
 
 function Projects() {
   const { data } = useQuery({
