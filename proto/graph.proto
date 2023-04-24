@@ -15,9 +15,15 @@ message Graph {
 message Node {
   string id = 1;
   string name = 2;
-  block.Block block = 3;
+  string block_id = 3;
   float x = 4;
   float y = 5;
+  oneof config {
+    block.REST rest = 6;
+    block.GRPC grpc = 7;
+    block.Collection collection = 8;
+    block.Entity entity = 9;
+  }
 }
 
  message Edge {

@@ -5,8 +5,22 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Any, Message, proto3 } from "@bufbuild/protobuf";
-import { Edge, Graph } from "./graph_pb.js";
 import { Block } from "./block_pb.js";
+import { Edge, Graph } from "./graph_pb.js";
+
+/**
+ * @generated from enum project.ResourceType
+ */
+export enum ResourceType {
+  /**
+   * @generated from enum value: SASS = 0;
+   */
+  SASS = 0,
+}
+// Retrieve enum metadata with: proto3.getEnumType(ResourceType)
+proto3.util.setEnumType(ResourceType, "project.ResourceType", [
+  { no: 0, name: "SASS" },
+]);
 
 /**
  * @generated from message project.RunWorkflowRequest
@@ -148,19 +162,21 @@ export class RunOutput extends Message<RunOutput> {
  */
 export class Resource extends Message<Resource> {
   /**
-   * @generated from field: string id = 1;
+   * @generated from field: project.ResourceType type = 1;
    */
-  id = "";
+  type = ResourceType.SASS;
 
   /**
+   * ifttt
+   *
    * @generated from field: string name = 2;
    */
   name = "";
 
   /**
-   * @generated from field: string image = 3;
+   * @generated from field: repeated block.Block blocks = 3;
    */
-  image = "";
+  blocks: Block[] = [];
 
   constructor(data?: PartialMessage<Resource>) {
     super();
@@ -170,9 +186,9 @@ export class Resource extends Message<Resource> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "project.Resource";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 1, name: "type", kind: "enum", T: proto3.getEnumType(ResourceType) },
     { no: 2, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 3, name: "image", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "blocks", kind: "message", T: Block, repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Resource {
@@ -231,6 +247,16 @@ export class Project extends Message<Project> {
    */
   graph?: Graph;
 
+  /**
+   * @generated from field: repeated block.Block blocks = 8;
+   */
+  blocks: Block[] = [];
+
+  /**
+   * @generated from field: repeated project.Resource resources = 9;
+   */
+  resources: Resource[] = [];
+
   constructor(data?: PartialMessage<Project>) {
     super();
     proto3.util.initPartial(data, this);
@@ -246,6 +272,8 @@ export class Project extends Message<Project> {
     { no: 5, name: "created_at", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 6, name: "updated_at", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 7, name: "graph", kind: "message", T: Graph },
+    { no: 8, name: "blocks", kind: "message", T: Block, repeated: true },
+    { no: 9, name: "resources", kind: "message", T: Resource, repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Project {

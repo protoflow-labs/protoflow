@@ -5,7 +5,7 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3 } from "@bufbuild/protobuf";
-import { Block } from "./block_pb.js";
+import { Collection, Entity, GRPC, REST } from "./block_pb.js";
 
 /**
  * @generated from message graph.Graph
@@ -77,9 +77,9 @@ export class Node extends Message<Node> {
   name = "";
 
   /**
-   * @generated from field: block.Block block = 3;
+   * @generated from field: string block_id = 3;
    */
-  block?: Block;
+  blockId = "";
 
   /**
    * @generated from field: float x = 4;
@@ -91,6 +91,35 @@ export class Node extends Message<Node> {
    */
   y = 0;
 
+  /**
+   * @generated from oneof graph.Node.config
+   */
+  config: {
+    /**
+     * @generated from field: block.REST rest = 6;
+     */
+    value: REST;
+    case: "rest";
+  } | {
+    /**
+     * @generated from field: block.GRPC grpc = 7;
+     */
+    value: GRPC;
+    case: "grpc";
+  } | {
+    /**
+     * @generated from field: block.Collection collection = 8;
+     */
+    value: Collection;
+    case: "collection";
+  } | {
+    /**
+     * @generated from field: block.Entity entity = 9;
+     */
+    value: Entity;
+    case: "entity";
+  } | { case: undefined; value?: undefined } = { case: undefined };
+
   constructor(data?: PartialMessage<Node>) {
     super();
     proto3.util.initPartial(data, this);
@@ -101,9 +130,13 @@ export class Node extends Message<Node> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 3, name: "block", kind: "message", T: Block },
+    { no: 3, name: "block_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 4, name: "x", kind: "scalar", T: 2 /* ScalarType.FLOAT */ },
     { no: 5, name: "y", kind: "scalar", T: 2 /* ScalarType.FLOAT */ },
+    { no: 6, name: "rest", kind: "message", T: REST, oneof: "config" },
+    { no: 7, name: "grpc", kind: "message", T: GRPC, oneof: "config" },
+    { no: 8, name: "collection", kind: "message", T: Collection, oneof: "config" },
+    { no: 9, name: "entity", kind: "message", T: Entity, oneof: "config" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Node {

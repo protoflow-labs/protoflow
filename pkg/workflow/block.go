@@ -17,6 +17,10 @@ type RESTBlock struct {
 	protoflow.REST
 }
 
+type EntityBlock struct {
+	protoflow.Entity
+}
+
 var activity = &Activity{}
 
 func (s *GRPCBlock) Init() error {
@@ -31,15 +35,15 @@ func (s *RESTBlock) Execute(executor Executor, input Input) (*Result, error) {
 	return executor.Execute(activity.ExecuteRestBlock, s, input)
 }
 
-func NewBlock(node *protoflow.Node) (Block, error) {
-	switch node.Block.Type.(type) {
+func NewBlock(block *protoflow.Block) (Block, error) {
+	switch block.Type.(type) {
 	case *protoflow.Block_Grpc:
-		g := node.Block.GetGrpc()
+		g := block.GetGrpc()
 		return &GRPCBlock{
 			GRPC: *g,
 		}, nil
 	case *protoflow.Block_Rest:
-		r := node.Block.GetRest()
+		r := block.GetRest()
 		return &RESTBlock{
 			REST: *r,
 		}, nil

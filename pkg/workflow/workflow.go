@@ -25,11 +25,11 @@ type Workflow struct {
 	AdjMap
 }
 
-func FromGraph(workflowGraph *gen.Graph) (*Workflow, error) {
+func FromProject(project *gen.Project) (*Workflow, error) {
 	g := graph.New(graph.StringHash, graph.Directed(), graph.PreventCycles())
 
 	blockLookup := map[string]Block{}
-	for _, node := range workflowGraph.Nodes {
+	for _, node := range project.Nodes {
 		err := g.AddVertex(node.Id)
 		if err != nil {
 			return nil, err
@@ -43,7 +43,7 @@ func FromGraph(workflowGraph *gen.Graph) (*Workflow, error) {
 		blockLookup[node.Id] = activity
 	}
 
-	for _, edge := range workflowGraph.Edges {
+	for _, edge := range project.Edges {
 		err := g.AddEdge(edge.From, edge.To)
 		if err != nil {
 			return nil, err
@@ -56,7 +56,7 @@ func FromGraph(workflowGraph *gen.Graph) (*Workflow, error) {
 	}
 
 	return &Workflow{
-		ID:          workflowGraph.Id,
+		ID:          project.Id,
 		Graph:       g,
 		BlockLookup: blockLookup,
 		AdjMap:      adjMap,

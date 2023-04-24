@@ -10,13 +10,13 @@ import {
 import { Node, useOnSelectionChange } from "reactflow";
 import { EntityData } from "../nodes/EntityNode";
 import { useEffect, useState } from "react";
-import { HiOutlineTrash, HiPlus, HiTrash } from "react-icons/hi2";
+import { HiOutlineTrash, HiPlus } from "react-icons/hi2";
 import { FunctionData } from "../nodes/FunctionNode";
 import { projectService } from "../lib/api";
 import { EndpointyData } from "../nodes/EndpointNode";
 import { InputData } from "../nodes/InputNode";
-import { FieldDefinition, FieldType } from "../../rpc/project_pb";
 import { useForm } from "react-hook-form";
+import {FieldDefinition} from "../../rpc/block_pb";
 
 export function EditorPanel() {
   const [activeNode, setActiveNode] = useState<Node | null>(null);

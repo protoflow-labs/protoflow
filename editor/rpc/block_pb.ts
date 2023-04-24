@@ -47,12 +47,17 @@ export class Block extends Message<Block> {
   name = "";
 
   /**
-   * @generated from field: repeated block.FieldDefinition inputFields = 3;
+   * @generated from field: string version = 3;
+   */
+  version = "";
+
+  /**
+   * @generated from field: repeated block.FieldDefinition inputFields = 4;
    */
   inputFields: FieldDefinition[] = [];
 
   /**
-   * @generated from field: repeated block.FieldDefinition outputFields = 4;
+   * @generated from field: repeated block.FieldDefinition outputFields = 5;
    */
   outputFields: FieldDefinition[] = [];
 
@@ -61,22 +66,28 @@ export class Block extends Message<Block> {
    */
   type: {
     /**
-     * @generated from field: block.REST rest = 5;
+     * @generated from field: block.REST rest = 6;
      */
     value: REST;
     case: "rest";
   } | {
     /**
-     * @generated from field: block.GRPC grpc = 6;
+     * @generated from field: block.GRPC grpc = 7;
      */
     value: GRPC;
     case: "grpc";
   } | {
     /**
-     * @generated from field: block.Collection collection = 7;
+     * @generated from field: block.Collection collection = 8;
      */
     value: Collection;
     case: "collection";
+  } | {
+    /**
+     * @generated from field: block.Entity entity = 9;
+     */
+    value: Entity;
+    case: "entity";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<Block>) {
@@ -89,11 +100,13 @@ export class Block extends Message<Block> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 3, name: "inputFields", kind: "message", T: FieldDefinition, repeated: true },
-    { no: 4, name: "outputFields", kind: "message", T: FieldDefinition, repeated: true },
-    { no: 5, name: "rest", kind: "message", T: REST, oneof: "type" },
-    { no: 6, name: "grpc", kind: "message", T: GRPC, oneof: "type" },
-    { no: 7, name: "collection", kind: "message", T: Collection, oneof: "type" },
+    { no: 3, name: "version", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "inputFields", kind: "message", T: FieldDefinition, repeated: true },
+    { no: 5, name: "outputFields", kind: "message", T: FieldDefinition, repeated: true },
+    { no: 6, name: "rest", kind: "message", T: REST, oneof: "type" },
+    { no: 7, name: "grpc", kind: "message", T: GRPC, oneof: "type" },
+    { no: 8, name: "collection", kind: "message", T: Collection, oneof: "type" },
+    { no: 9, name: "entity", kind: "message", T: Entity, oneof: "type" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Block {
@@ -110,6 +123,37 @@ export class Block extends Message<Block> {
 
   static equals(a: Block | PlainMessage<Block> | undefined, b: Block | PlainMessage<Block> | undefined): boolean {
     return proto3.util.equals(Block, a, b);
+  }
+}
+
+/**
+ * @generated from message block.Entity
+ */
+export class Entity extends Message<Entity> {
+  constructor(data?: PartialMessage<Entity>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "block.Entity";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Entity {
+    return new Entity().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Entity {
+    return new Entity().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Entity {
+    return new Entity().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: Entity | PlainMessage<Entity> | undefined, b: Entity | PlainMessage<Entity> | undefined): boolean {
+    return proto3.util.equals(Entity, a, b);
   }
 }
 

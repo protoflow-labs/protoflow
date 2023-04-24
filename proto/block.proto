@@ -6,13 +6,22 @@ option go_package = "block";
 message Block {
   string id = 1;
   string name = 2;
-  repeated FieldDefinition inputFields = 3;
-  repeated FieldDefinition outputFields = 4;
+  string version = 3;
   oneof type {
-    REST rest = 5;
-    GRPC grpc = 6;
-    Collection collection = 7;
+    REST rest = 4;
+    GRPC grpc = 5;
+    Collection collection = 6;
+    Entity entity = 7;
+    Input input = 8;
   }
+  string resource_id = 9;
+}
+
+message Input {
+  repeated FieldDefinition fields = 4;
+}
+
+message Entity {
 }
 
 message Collection {

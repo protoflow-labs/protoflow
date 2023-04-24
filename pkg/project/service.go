@@ -79,7 +79,7 @@ func (s *Service) RunWorklow(ctx context.Context, c *connect.Request[gen.RunWork
 		return nil, errors.Wrapf(err, "failed to get project %s", c.Msg.ProjectId)
 	}
 
-	w, err := workflow.FromGraph(project.Graph)
+	w, err := workflow.FromProject(project)
 	if err != nil {
 		return nil, err
 	}
