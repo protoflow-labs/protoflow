@@ -40,7 +40,7 @@ func NewService(
 	manager workflow.Manager,
 ) (*Service, error) {
 	// TODO breadchris this should be loading from an embedded file system
-	blockProtoTemplate, err := template.New("block").ParseFS(templates.Templates, "templates/*.template.proto")
+	blockProtoTemplate, err := template.New("block").ParseFS(templates.Templates, "*.template.proto")
 	if err != nil {
 		return nil, err
 	}
