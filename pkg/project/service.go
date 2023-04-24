@@ -137,15 +137,19 @@ func (s *Service) DeleteProject(context.Context, *connect.Request[gen.DeleteProj
 func (s *Service) GetBlocks(ctx context.Context, req *connect.Request[gen.GetBlocksRequest]) (*connect.Response[gen.GetBlocksResponse], error) {
 	blocks := make([]*gen.Block, 0)
 
-	files, err := os.ReadDir(".persistance/blocks")
+	files, err := os.ReadDir(".persistence/blocks")
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
 	for _, file := range files {
-		dat, err := os.ReadFile(".persistance/blocks/" + file.Name())
+		dat, err := os.ReadFile(".persistence/blocks/" + file.Name())
 		if err != nil {
 			return nil, connect.NewError(connect.CodeInternal, err)
+		}
+
+		if len(dat) == 0 {
+			continue
 		}
 
 		b := &gen.Block{}
@@ -163,7 +167,7 @@ func (s *Service) GetBlocks(ctx context.Context, req *connect.Request[gen.GetBlo
 func (s *Service) AddBlock(ctx context.Context, req *connect.Request[gen.AddBlockRequest]) (*connect.Response[gen.AddBlockResponse], error) {
 	blockJson, _ := json.Marshal(req.Msg.Block)
 
-	if err := os.WriteFile(".persistance/blocks/"+req.Msg.Block.Id+".dat", blockJson, 0644); err != nil {
+	if err := os.WriteFile(".persistence/blocks/"+req.Msg.Block.Id+".dat", blockJson, 0644); err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
@@ -171,13 +175,11 @@ func (s *Service) AddBlock(ctx context.Context, req *connect.Request[gen.AddBloc
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
-	return connect.NewResponse(&gen.AddBlockResponse{
-		Block: req.Msg.Block,
-	}), nil
+	return connect.NewResponse(&gen.AddBlockResponse{Block: req.Msg.Block}), nil
 }
 
 func (s *Service) RemoveBlock(ctx context.Context, req *connect.Request[gen.RemoveBlockRequest]) (*connect.Response[gen.RemoveBlockResponse], error) {
-	dat, err := os.ReadFile(".persistance/blocks/" + req.Msg.BlockId + ".dat")
+	dat, err := os.ReadFile(".persistence/blocks/" + req.Msg.BlockId + ".dat")
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
@@ -188,8 +190,8 @@ func (s *Service) RemoveBlock(ctx context.Context, req *connect.Request[gen.Remo
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
-	os.Remove(".persistance/blocks/" + req.Msg.BlockId + ".dat")
-	os.Remove(".persistance/proto/" + b.Name + ".proto")
+	os.Remove(".persistence/blocks/" + req.Msg.BlockId + ".dat")
+	os.Remove(".persistence/proto/" + b.Name + ".proto")
 
 	return connect.NewResponse(&gen.RemoveBlockResponse{Block: b}), nil
 }
@@ -197,7 +199,7 @@ func (s *Service) RemoveBlock(ctx context.Context, req *connect.Request[gen.Remo
 func (s *Service) UpdateBlock(ctx context.Context, req *connect.Request[gen.UpdateBlockRequest]) (*connect.Response[gen.UpdateBlockResponse], error) {
 	blockJson, _ := json.Marshal(req.Msg.Block)
 
-	if err := os.WriteFile(".persistance/blocks/"+req.Msg.Block.Id+".dat", blockJson, 0644); err != nil {
+	if err := os.WriteFile(".persistence/blocks/"+req.Msg.Block.Id+".dat", blockJson, 0644); err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
@@ -211,15 +213,19 @@ func (s *Service) UpdateBlock(ctx context.Context, req *connect.Request[gen.Upda
 func (s *Service) GetEdges(ctx context.Context, req *connect.Request[gen.GetEdgesRequest]) (*connect.Response[gen.GetEdgesResponse], error) {
 	edges := make([]*gen.Edge, 0)
 
-	files, err := os.ReadDir(".persistance/edges")
+	files, err := os.ReadDir(".persistence/edges")
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
 	for _, file := range files {
-		dat, err := os.ReadFile(".persistance/edges/" + file.Name())
+		dat, err := os.ReadFile(".persistence/edges/" + file.Name())
 		if err != nil {
 			return nil, connect.NewError(connect.CodeInternal, err)
+		}
+
+		if len(dat) == 0 {
+			continue
 		}
 
 		e := &gen.Edge{}
@@ -237,7 +243,7 @@ func (s *Service) GetEdges(ctx context.Context, req *connect.Request[gen.GetEdge
 func (s *Service) AddEdge(ctx context.Context, req *connect.Request[gen.AddEdgeRequest]) (*connect.Response[gen.AddEdgeResponse], error) {
 	edgeJson, _ := json.Marshal(req.Msg.Edge)
 
-	if err := os.WriteFile(".persistance/edges/"+req.Msg.Edge.Id+".dat", edgeJson, 0644); err != nil {
+	if err := os.WriteFile(".persistence/edges/"+req.Msg.Edge.Id+".dat", edgeJson, 0644); err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 	return connect.NewResponse(&gen.AddEdgeResponse{
@@ -246,7 +252,7 @@ func (s *Service) AddEdge(ctx context.Context, req *connect.Request[gen.AddEdgeR
 }
 
 func (s *Service) RemoveEdge(ctx context.Context, req *connect.Request[gen.RemoveEdgeRequest]) (*connect.Response[gen.RemoveEdgeResponse], error) {
-	dat, err := os.ReadFile(".persistance/edges/" + req.Msg.EdgeId + ".dat")
+	dat, err := os.ReadFile(".persistence/edges/" + req.Msg.EdgeId + ".dat")
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
@@ -257,13 +263,13 @@ func (s *Service) RemoveEdge(ctx context.Context, req *connect.Request[gen.Remov
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
-	os.Remove(".persistance/edges/" + req.Msg.EdgeId + ".dat")
+	os.Remove(".persistence/edges/" + req.Msg.EdgeId + ".dat")
 
 	return connect.NewResponse(&gen.RemoveEdgeResponse{Edge: e}), nil
 }
 
 func (s *Service) generateProto(block *gen.Block) error {
-	file, err := os.Create(".persistance/proto/" + block.Name + ".proto")
+	file, err := os.Create(".persistence/proto/" + block.Name + ".proto")
 	if err != nil {
 		return err
 	}

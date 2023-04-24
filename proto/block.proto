@@ -26,6 +26,7 @@ message Result {
 enum FieldType {
   STRING = 0;
   INTEGER = 1;
+  BOOLEAN = 2;
 }
 
 message FieldDefinition {

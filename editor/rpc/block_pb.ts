@@ -19,11 +19,17 @@ export enum FieldType {
    * @generated from enum value: INTEGER = 1;
    */
   INTEGER = 1,
+
+  /**
+   * @generated from enum value: BOOLEAN = 2;
+   */
+  BOOLEAN = 2,
 }
 // Retrieve enum metadata with: proto3.getEnumType(FieldType)
 proto3.util.setEnumType(FieldType, "block.FieldType", [
   { no: 0, name: "STRING" },
   { no: 1, name: "INTEGER" },
+  { no: 2, name: "BOOLEAN" },
 ]);
 
 /**
@@ -65,6 +71,12 @@ export class Block extends Message<Block> {
      */
     value: GRPC;
     case: "grpc";
+  } | {
+    /**
+     * @generated from field: block.Collection collection = 7;
+     */
+    value: Collection;
+    case: "collection";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<Block>) {
@@ -81,6 +93,7 @@ export class Block extends Message<Block> {
     { no: 4, name: "outputFields", kind: "message", T: FieldDefinition, repeated: true },
     { no: 5, name: "rest", kind: "message", T: REST, oneof: "type" },
     { no: 6, name: "grpc", kind: "message", T: GRPC, oneof: "type" },
+    { no: 7, name: "collection", kind: "message", T: Collection, oneof: "type" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Block {
@@ -97,6 +110,43 @@ export class Block extends Message<Block> {
 
   static equals(a: Block | PlainMessage<Block> | undefined, b: Block | PlainMessage<Block> | undefined): boolean {
     return proto3.util.equals(Block, a, b);
+  }
+}
+
+/**
+ * @generated from message block.Collection
+ */
+export class Collection extends Message<Collection> {
+  /**
+   * @generated from field: string name = 1;
+   */
+  name = "";
+
+  constructor(data?: PartialMessage<Collection>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "block.Collection";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Collection {
+    return new Collection().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Collection {
+    return new Collection().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Collection {
+    return new Collection().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: Collection | PlainMessage<Collection> | undefined, b: Collection | PlainMessage<Collection> | undefined): boolean {
+    return proto3.util.equals(Collection, a, b);
   }
 }
 
