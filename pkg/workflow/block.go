@@ -10,11 +10,11 @@ type Block interface {
 }
 
 type GRPCBlock struct {
-	protoflow.GRPC
+	*protoflow.GRPC
 }
 
 type RESTBlock struct {
-	protoflow.REST
+	*protoflow.REST
 }
 
 var activity = &Activity{}
@@ -36,15 +36,14 @@ func NewBlock(node *protoflow.Node) (Block, error) {
 	case *protoflow.Block_Grpc:
 		g := node.Block.GetGrpc()
 		return &GRPCBlock{
-			GRPC: *g,
+			GRPC: g,
 		}, nil
 	case *protoflow.Block_Rest:
 		r := node.Block.GetRest()
 		return &RESTBlock{
-			REST: *r,
+			REST: r,
 		}, nil
 	default:
 		return nil, errors.New("no block found")
 	}
-	return nil, nil
 }
