@@ -20,7 +20,7 @@ import (
 // ProjectJSON give a generic data type for json encoded data.
 type ProjectJSON struct {
 	// TODO breadchris couldn't figure out how to make this generic, there is a problem with protojson.Unmarshal/Marshal
-	Data gen.Project
+	Data *gen.Project
 }
 
 // Value return json value, implement driver.Valuer interface
@@ -44,7 +44,7 @@ func (j *ProjectJSON) Scan(value interface{}) error {
 
 func (j *ProjectJSON) MarshalJSON() ([]byte, error) {
 	marshaler := &protojson.MarshalOptions{}
-	b, err := marshaler.Marshal(&j.Data)
+	b, err := marshaler.Marshal(j.Data)
 	if err != nil {
 		return nil, err
 	}
@@ -53,7 +53,7 @@ func (j *ProjectJSON) MarshalJSON() ([]byte, error) {
 
 func (j *ProjectJSON) UnmarshalJSON(data []byte) error {
 	unmarshaler := protojson.UnmarshalOptions{DiscardUnknown: true}
-	if err := unmarshaler.Unmarshal(data, &j.Data); err != nil {
+	if err := unmarshaler.Unmarshal(data, j.Data); err != nil {
 		return err
 	}
 	return nil

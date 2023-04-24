@@ -45,7 +45,7 @@ func NewDBStore(db *gorm.DB) (*DBStore, error) {
 func (s *DBStore) SaveProject(w *gen.Project) (string, error) {
 	work := model.Project{
 		Project: model.ProjectJSON{
-			Data: *w,
+			Data: w,
 		},
 	}
 	res := s.db.Create(&work)
@@ -61,5 +61,5 @@ func (s *DBStore) GetProject(projectID string) (*gen.Project, error) {
 	if res.Error != nil {
 		return nil, res.Error
 	}
-	return &w.Project.Data, nil
+	return w.Project.Data, nil
 }
