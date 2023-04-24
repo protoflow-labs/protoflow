@@ -38,11 +38,12 @@ message Project {
 enum FieldType {
     STRING = 0;
     INTEGER = 1;
+    BOOLEAN= 2;
 }
 
 message FieldDefinition {
     string name = 1;
-    FieldType  type = 2;
+    FieldType type = 2;
 }
 
 message Block {

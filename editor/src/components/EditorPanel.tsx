@@ -1,13 +1,22 @@
-import { Button, Card, Dropdown, Input, Label, Select, Option } from "@fluentui/react-components";
+import {
+  Button,
+  Card,
+  Dropdown,
+  Input,
+  Label,
+  Select,
+  Option,
+} from "@fluentui/react-components";
 import { Node, useOnSelectionChange } from "reactflow";
 import { EntityData } from "../nodes/EntityNode";
-import { useState } from "react";
-import { HiPlus } from "react-icons/hi2";
+import { useEffect, useState } from "react";
+import { HiOutlineTrash, HiPlus, HiTrash } from "react-icons/hi2";
 import { FunctionData } from "../nodes/FunctionNode";
 import { projectService } from "../lib/api";
 import { EndpointyData } from "../nodes/EndpointNode";
 import { InputData } from "../nodes/InputNode";
-import { FieldDefinition, FieldType } from '../../rpc/project_pb'
+import { FieldDefinition, FieldType } from "../../rpc/project_pb";
+import { useForm } from "react-hook-form";
 
 export function EditorPanel() {
   const [activeNode, setActiveNode] = useState<Node | null>(null);
@@ -27,7 +36,7 @@ export function EditorPanel() {
 
   return (
     <div className="absolute top-0 right-0 m-4 z-10">
-      <Card className="w-full max-w-sm">
+      <Card>
         <NodeEditor node={activeNode} />
       </Card>
     </div>
@@ -67,7 +76,7 @@ function NodeEditor(props: NodeEditorProps) {
     case "function":
       return <FunctionEditor node={props.node} />;
     case "endpoint":
-        return <EndpointEditor node={props.node} />;  
+      return <EndpointEditor node={props.node} />;
     default:
       return null;
   }
@@ -91,48 +100,88 @@ function EndpointEditor(props: { node: Node<EndpointyData> }) {
   );
 }
 
-function InputEditor(props: { node: Node<InputData> }) {
-  
+function InputEditor({ node }: { node: Node<InputData> }) {
+  const { watch, setValue } = useForm({
+    defaultValues: {
+      name: node.data.name,
+      inputFields: node.data.inputFields,
+    },
+  });
+
+  const values = watch();
+
+  useEffect(() => {
+    if (!node) {
+      return;
+    }
+    node.data.name = values.name;
+    node.data.inputFields = values.inputFields;
+  }, [values]);
+
+  useEffect(() => {}, [node]);
+
   return (
     <div className="flex flex-col gap-2 p-4">
       <div className="flex flex-col">
         <Label htmlFor="inputName">Name</Label>
         <Input
           id="inputName"
-          defaultValue={props.node.data.name || ""}
+          defaultValue={values.name || ""}
           onChange={(e) => {
-            props.node.data.name = e.currentTarget.value;
+            setValue("name", e.currentTarget.value);
           }}
-          onBlur={() => saveChanges(props.node)}
+          onBlur={() => saveChanges(node)}
         />
       </div>
       <div className="flex flex-col">
         <Label htmlFor="entityName">Fields</Label>
-        { props.node.data.inputFields?.map((field, index) => (
-          <div key={index}>
+        {values.inputFields?.map((field, index) => (
+          <div key={index} className="flex items-center gap-2 mb-2">
             <Input
               id={"fieldName" + index}
               defaultValue={field.name}
               onChange={(e) => {
                 field.name = e.currentTarget.value;
               }}
-              onBlur={() => saveChanges(props.node)}
+              onBlur={() => saveChanges(node)}
             />
             <Dropdown
               id={"fieldType" + index}
-              defaultValue={field.type === 1 ? 'Integer' : 'String'}
+              defaultValue={field.type === 1 ? "Integer" : "String"}
               onOptionSelect={(e, data) => {
-                props.node.data.inputFields[index].type = Number(data.optionValue);
+                node.data.inputFields[index].type = Number(data.optionValue);
               }}
-              onBlur={() => saveChanges(props.node)}
+              onBlur={() => saveChanges(node)}
             >
               <Option value={String(FieldType.STRING)}>String</Option>
               <Option value={String(FieldType.INTEGER)}>Integer</Option>
             </Dropdown>
+            <Button
+              onClick={() => {
+                node.data.inputFields = node.data.inputFields.filter(
+                  (_, i) => i !== index
+                );
+                setValue("inputFields", node.data.inputFields);
+                saveChanges(node);
+              }}
+              icon={<HiOutlineTrash className="h-4 w-4" />}
+            />
           </div>
-        )) }
-        <Button onClick={() => { props.node.data.inputFields = [...props.node.data.inputFields || [], new FieldDefinition({ name: 'undefined', type: FieldType.STRING })] }} icon={<HiPlus className="w-4 h-4" />}>Add Field</Button>
-
+        ))}
+        <Button
+          onClick={() => {
+            setValue("inputFields", [
+              ...(node.data.inputFields || []),
+              new FieldDefinition({
+                name: "undefined",
+                type: FieldType.STRING,
+              }),
+            ]);
+          }}
+          icon={<HiPlus className="w-4 h-4" />}
+        >
+          Add Field
+        </Button>
       </div>
     </div>
   );

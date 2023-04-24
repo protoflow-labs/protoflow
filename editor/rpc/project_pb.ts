@@ -19,11 +19,17 @@ export enum FieldType {
    * @generated from enum value: INTEGER = 1;
    */
   INTEGER = 1,
+
+  /**
+   * @generated from enum value: BOOLEAN = 2;
+   */
+  BOOLEAN = 2,
 }
 // Retrieve enum metadata with: proto3.getEnumType(FieldType)
 proto3.util.setEnumType(FieldType, "project.FieldType", [
   { no: 0, name: "STRING" },
   { no: 1, name: "INTEGER" },
+  { no: 2, name: "BOOLEAN" },
 ]);
 
 /**
