@@ -9,6 +9,7 @@ import {
   MenuPopover,
   MenuTrigger,
 } from "@fluentui/react-components";
+import { toast } from "react-hot-toast";
 import { SaveProjectRequest } from "../../rpc/project_pb";
 
 export function Toolbar() {
@@ -48,11 +49,12 @@ export function Toolbar() {
       },
     });
 
-    // for (const node of updatedProject.graph.nodes) {
-    //   if (!node.name) {
-    //     toast.error("Please name all nodes before exporting");
-    //   }
-    // }
+    for (const node of updatedProject.graph?.nodes || []) {
+      if (!node.name) {
+        toast.error("Please name all nodes before exporting");
+        return;
+      }
+    }
 
     projectService.saveProject(updatedProject);
   };

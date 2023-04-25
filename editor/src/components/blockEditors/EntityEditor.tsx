@@ -9,13 +9,21 @@ export function EntityEditor(props: { node: Node<EntityData> }) {
   const { register, handleSubmit, watch } = useForm({
     values: {
       name: props.node.data.name || "",
-      table: props.node.data.table || "",
+      collection: props.node.data.config.entity?.collection || "",
     },
   });
 
   const onSubmit = (data: any) => {
     props.node.data.name = data.name;
-    props.node.data.table = data.table;
+
+    if (!props.node.data.config.entity) {
+      props.node.data.config.entity = {
+        collection: "",
+      };
+    }
+
+    props.node.data.config.entity.collection = data.collection;
+
     onCancel();
   };
 
@@ -28,7 +36,7 @@ export function EntityEditor(props: { node: Node<EntityData> }) {
           <Input value={values.name} {...register("name")} />
         </Field>
         <Field label="Table" required>
-          <Input value={values.table} {...register("table")} />
+          <Input value={values.collection} {...register("collection")} />
         </Field>
         <Divider />
         <EditorActions />

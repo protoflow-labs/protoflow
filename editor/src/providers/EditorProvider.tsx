@@ -72,7 +72,13 @@ const useEditorProps = (reactFlowInstance?: ReactFlowInstance) => {
       };
     }) || []
   );
-  const [edges, setEdges] = useState<Edge[]>([]);
+  const [edges, setEdges] = useState<Edge[]>(
+    project?.graph?.edges?.map((e) => ({
+      id: e.id,
+      source: e.from,
+      target: e.to,
+    })) || []
+  );
   const { nodeTypes } = useNodeTypes();
 
   const onConnect = useCallback((params: Connection) => {
