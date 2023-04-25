@@ -28,6 +28,7 @@ type ProjectServiceClient interface {
 	DeleteProject(ctx context.Context, in *DeleteProjectRequest, opts ...grpc.CallOption) (*DeleteProjectResponse, error)
 	GetResources(ctx context.Context, in *GetResourcesRequest, opts ...grpc.CallOption) (*GetResourcesResponse, error)
 	SaveProject(ctx context.Context, in *SaveProjectRequest, opts ...grpc.CallOption) (*SaveProjectResponse, error)
+	CreateResource(ctx context.Context, in *CreateResourceRequest, opts ...grpc.CallOption) (*CreateResourceResponse, error)
 	RunWorklow(ctx context.Context, in *RunWorkflowRequest, opts ...grpc.CallOption) (*RunOutput, error)
 	RunBlock(ctx context.Context, in *RunBlockRequest, opts ...grpc.CallOption) (*RunOutput, error)
 }
@@ -94,6 +95,15 @@ func (c *projectServiceClient) SaveProject(ctx context.Context, in *SaveProjectR
 	return out, nil
 }
 
+func (c *projectServiceClient) CreateResource(ctx context.Context, in *CreateResourceRequest, opts ...grpc.CallOption) (*CreateResourceResponse, error) {
+	out := new(CreateResourceResponse)
+	err := c.cc.Invoke(ctx, "/project.ProjectService/CreateResource", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *projectServiceClient) RunWorklow(ctx context.Context, in *RunWorkflowRequest, opts ...grpc.CallOption) (*RunOutput, error) {
 	out := new(RunOutput)
 	err := c.cc.Invoke(ctx, "/project.ProjectService/RunWorklow", in, out, opts...)
@@ -122,6 +132,7 @@ type ProjectServiceServer interface {
 	DeleteProject(context.Context, *DeleteProjectRequest) (*DeleteProjectResponse, error)
 	GetResources(context.Context, *GetResourcesRequest) (*GetResourcesResponse, error)
 	SaveProject(context.Context, *SaveProjectRequest) (*SaveProjectResponse, error)
+	CreateResource(context.Context, *CreateResourceRequest) (*CreateResourceResponse, error)
 	RunWorklow(context.Context, *RunWorkflowRequest) (*RunOutput, error)
 	RunBlock(context.Context, *RunBlockRequest) (*RunOutput, error)
 }
@@ -147,6 +158,9 @@ func (UnimplementedProjectServiceServer) GetResources(context.Context, *GetResou
 }
 func (UnimplementedProjectServiceServer) SaveProject(context.Context, *SaveProjectRequest) (*SaveProjectResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SaveProject not implemented")
+}
+func (UnimplementedProjectServiceServer) CreateResource(context.Context, *CreateResourceRequest) (*CreateResourceResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateResource not implemented")
 }
 func (UnimplementedProjectServiceServer) RunWorklow(context.Context, *RunWorkflowRequest) (*RunOutput, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RunWorklow not implemented")
@@ -274,6 +288,24 @@ func _ProjectService_SaveProject_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ProjectService_CreateResource_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateResourceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProjectServiceServer).CreateResource(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/project.ProjectService/CreateResource",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProjectServiceServer).CreateResource(ctx, req.(*CreateResourceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _ProjectService_RunWorklow_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(RunWorkflowRequest)
 	if err := dec(in); err != nil {
@@ -340,6 +372,10 @@ var ProjectService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SaveProject",
 			Handler:    _ProjectService_SaveProject_Handler,
+		},
+		{
+			MethodName: "CreateResource",
+			Handler:    _ProjectService_CreateResource_Handler,
 		},
 		{
 			MethodName: "RunWorklow",

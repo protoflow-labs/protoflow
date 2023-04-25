@@ -1,3 +1,4 @@
+# TODO breadchris need to figure out how to have packages honored by buf, gen-ed code is currently flat
 version: v1
 managed:
   enabled: true

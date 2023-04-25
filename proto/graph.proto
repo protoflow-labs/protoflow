@@ -1,6 +1,7 @@
 syntax = "proto3";
 
 import "block.proto";
+import "resource.proto";
 
 package graph;
 option go_package = "graph";
@@ -24,6 +25,8 @@ message Node {
     block.Collection collection = 8;
     block.Entity entity = 9;
   }
+  // Dependencies
+  repeated string resource_ids = 10;
 }
 
  message Edge {

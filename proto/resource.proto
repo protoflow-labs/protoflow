@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package resource;
+option go_package = "resource";
+
+import "block.proto";
+
+message Resource {
+  string id = 1;
+  string name = 2;
+  oneof type {
+    GRPCService grpc_service = 3;
+    RESTService rest_service = 4;
+    Database database = 5;
+  }
+  repeated block.Block blocks = 7;
+}
+
+message GRPCService {
+  string host = 1;
+}
+
+message RESTService {
+  string host = 1;
+  string schema = 2;
+}
+
+message Database {
+  string host = 1;
+}

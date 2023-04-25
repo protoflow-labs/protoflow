@@ -59,6 +59,30 @@ func (s *Service) GetResources(ctx context.Context, c *connect.Request[gen.GetRe
 	panic("implement me")
 }
 
+func (s *Service) CreateResource(ctx context.Context, c *connect.Request[gen.CreateResourceRequest]) (*connect.Response[gen.CreateResourceResponse], error) {
+	project, err := s.store.GetProject(c.Msg.ProjectId)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get project %s", c.Msg.ProjectId)
+	}
+
+	resource := c.Msg.Resource
+
+	resource, err = EnumerateResource(resource)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to create resource: %s", resource.Name)
+	}
+
+	project.Resources = append(project.Resources, resource)
+	_, err = s.store.SaveProject(project)
+	if err != nil {
+		return nil, err
+	}
+
+	return connect.NewResponse(&gen.CreateResourceResponse{
+		ResourceId: resource.Id,
+	}), nil
+}
+
 func resultToAny(res *workflow.Result) (*anypb.Any, error) {
 	data, err := json.Marshal(res)
 	if err != nil {

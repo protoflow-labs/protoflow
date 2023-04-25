@@ -86,11 +86,6 @@ export class Block extends Message<Block> {
     case: "input";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
-  /**
-   * @generated from field: string resource_id = 9;
-   */
-  resourceId = "";
-
   constructor(data?: PartialMessage<Block>) {
     super();
     proto3.util.initPartial(data, this);
@@ -107,7 +102,6 @@ export class Block extends Message<Block> {
     { no: 6, name: "collection", kind: "message", T: Collection, oneof: "type" },
     { no: 7, name: "entity", kind: "message", T: Entity, oneof: "type" },
     { no: 8, name: "input", kind: "message", T: Input, oneof: "type" },
-    { no: 9, name: "resource_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Block {
@@ -317,9 +311,9 @@ export class FieldDefinition extends Message<FieldDefinition> {
  */
 export class REST extends Message<REST> {
   /**
-   * @generated from field: string url = 1;
+   * @generated from field: string path = 1;
    */
-  url = "";
+  path = "";
 
   /**
    * @generated from field: string method = 2;
@@ -339,7 +333,7 @@ export class REST extends Message<REST> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "block.REST";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "url", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 1, name: "path", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "method", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 3, name: "headers", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "scalar", T: 9 /* ScalarType.STRING */} },
   ]);
@@ -366,17 +360,12 @@ export class REST extends Message<REST> {
  */
 export class GRPC extends Message<GRPC> {
   /**
-   * @generated from field: string host = 1;
-   */
-  host = "";
-
-  /**
-   * @generated from field: string service = 2;
+   * @generated from field: string service = 1;
    */
   service = "";
 
   /**
-   * @generated from field: string method = 3;
+   * @generated from field: string method = 2;
    */
   method = "";
 
@@ -388,9 +377,8 @@ export class GRPC extends Message<GRPC> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "block.GRPC";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "host", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "service", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 3, name: "method", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 1, name: "service", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "method", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GRPC {

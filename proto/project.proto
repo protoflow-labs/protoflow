@@ -2,6 +2,7 @@ syntax = "proto3";
 
 import "graph.proto";
 import "block.proto";
+import "resource.proto";
 import "google/protobuf/any.proto";
 
 package project;
@@ -15,6 +16,8 @@ service ProjectService {
     rpc GetResources(GetResourcesRequest) returns (GetResourcesResponse) {}
 
     rpc SaveProject(SaveProjectRequest) returns (SaveProjectResponse) {}
+
+    rpc CreateResource(CreateResourceRequest) returns (CreateResourceResponse) {}
 
     rpc RunWorklow(RunWorkflowRequest) returns (RunOutput) {}
     rpc RunBlock(RunBlockRequest) returns (RunOutput) {}
@@ -36,30 +39,6 @@ message RunOutput {
     google.protobuf.Any output = 1;
 }
 
-message GRPCService {
-    string host = 1;
-}
-
-message RESTService {
-    string host = 1;
-    string schema = 2;
-}
-
-message Database {
-    string host = 1;
-}
-
-message Resource {
-    string id = 1;
-    string name = 2;
-    oneof type {
-        GRPCService grpc_service = 3;
-        RESTService rest_service = 4;
-        Database database = 5;
-    }
-    repeated block.Block blocks = 6;
-}
-
 message Project {
     string id = 1;
     string name = 2;
@@ -69,7 +48,16 @@ message Project {
     string updated_at = 6;
     graph.Graph graph = 7;
     repeated block.Block blocks = 8;
-    repeated Resource resources = 9;
+    repeated resource.Resource resources = 9;
+}
+
+message CreateResourceRequest {
+    string project_id = 1;
+    resource.Resource resource = 2;
+}
+
+message CreateResourceResponse {
+    string resource_id = 1;
 }
 
 message GetProjectRequest {
@@ -109,7 +97,7 @@ message GetResourcesRequest {
 }
 
 message GetResourcesResponse {
-    repeated Resource resources = 1;
+    repeated resource.Resource resources = 1;
 }
 
 message SaveProjectRequest {

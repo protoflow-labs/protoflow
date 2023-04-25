@@ -6,6 +6,7 @@
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3 } from "@bufbuild/protobuf";
 import { Collection, Entity, GRPC, REST } from "./block_pb.js";
+import { Resource } from "./resource_pb.js";
 
 /**
  * @generated from message graph.Graph
@@ -120,6 +121,11 @@ export class Node extends Message<Node> {
     case: "entity";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
+  /**
+   * @generated from field: repeated resource.Resource dependencies = 10;
+   */
+  dependencies: Resource[] = [];
+
   constructor(data?: PartialMessage<Node>) {
     super();
     proto3.util.initPartial(data, this);
@@ -137,6 +143,7 @@ export class Node extends Message<Node> {
     { no: 7, name: "grpc", kind: "message", T: GRPC, oneof: "config" },
     { no: 8, name: "collection", kind: "message", T: Collection, oneof: "config" },
     { no: 9, name: "entity", kind: "message", T: Entity, oneof: "config" },
+    { no: 10, name: "dependencies", kind: "message", T: Resource, repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Node {

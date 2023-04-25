@@ -62,7 +62,7 @@ func getWorkflowResult(ctx context.Context, temporalClient client.Client, workfl
 	}
 
 	workflowRun := temporalClient.GetProject(ctx, workflowID, runID)
-	workflowResult.Error = workflowRun.Get(ctx, &workflowResult.RESTBlock)
+	workflowResult.Error = workflowRun.Get(ctx, &workflowResult.RESTNode)
 	return
 }
 

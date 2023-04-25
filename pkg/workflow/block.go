@@ -2,52 +2,52 @@ package workflow
 
 import (
 	"github.com/pkg/errors"
-	protoflow "github.com/protoflow-labs/protoflow/gen"
+	"github.com/protoflow-labs/protoflow/gen"
 )
 
-type Block interface {
+type Node interface {
 	Execute(executor Executor, input Input) (*Result, error)
 }
 
-type GRPCBlock struct {
-	*protoflow.GRPC
+type GRPCNode struct {
+	*gen.GRPC
 }
 
-type RESTBlock struct {
-	*protoflow.REST
+type RESTNode struct {
+	*gen.REST
 }
 
 type EntityBlock struct {
-	protoflow.Entity
+	gen.Entity
 }
 
 var activity = &Activity{}
 
-func (s *GRPCBlock) Init() error {
+func (s *GRPCNode) Init() error {
 	return nil
 }
 
-func (s *GRPCBlock) Execute(executor Executor, input Input) (*Result, error) {
-	return executor.Execute(activity.ExecuteGRPCBlock, s, input)
+func (s *GRPCNode) Execute(executor Executor, input Input) (*Result, error) {
+	return executor.Execute(activity.ExecuteGRPCNode, s, input)
 }
 
-func (s *RESTBlock) Execute(executor Executor, input Input) (*Result, error) {
-	return executor.Execute(activity.ExecuteRestBlock, s, input)
+func (s *RESTNode) Execute(executor Executor, input Input) (*Result, error) {
+	return executor.Execute(activity.ExecuteRestNode, s, input)
 }
 
-func NewBlock(block *protoflow.Block) (Block, error) {
-	switch block.Type.(type) {
-	case *protoflow.Block_Grpc:
-		g := block.GetGrpc()
-		return &GRPCBlock{
+func NewNode(node *gen.Node) (Node, error) {
+	switch node.Config.(type) {
+	case *gen.Node_Grpc:
+		g := node.GetGrpc()
+		return &GRPCNode{
 			GRPC: g,
 		}, nil
-	case *protoflow.Block_Rest:
-		r := block.GetRest()
-		return &RESTBlock{
+	case *gen.Node_Rest:
+		r := node.GetRest()
+		return &RESTNode{
 			REST: r,
 		}, nil
 	default:
-		return nil, errors.New("no block found")
+		return nil, errors.New("no node found")
 	}
 }
