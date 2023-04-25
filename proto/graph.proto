@@ -23,11 +23,10 @@ message Node {
     block.REST rest = 6;
     block.GRPC grpc = 7;
     block.Collection collection = 8;
-    block.Entity entity = 9;
-    block.Input input = 10;
+    block.Input input = 9;
   }
   // Dependencies
-  repeated string resource_ids = 11;
+  repeated string resource_ids = 10;
 }
 
  message Edge {

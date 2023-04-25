@@ -22,9 +22,9 @@ type Result struct {
 type AdjMap map[string]map[string]graph.Edge[string]
 
 type Workflow struct {
-	ID          string
-	Graph       graph.Graph[string, string]
-	BlockLookup map[string]Node
+	ID         string
+	Graph      graph.Graph[string, string]
+	NodeLookup map[string]Node
 	AdjMap
 	Resources map[string]Resource
 }
@@ -33,7 +33,12 @@ func FromProject(project *gen.Project) (*Workflow, error) {
 	g := graph.New(graph.StringHash, graph.Directed(), graph.PreventCycles())
 
 	projectResources := map[string]Resource{}
+	blockLookup := map[string]*gen.Block{}
 	for _, resource := range project.Resources {
+		for _, block := range resource.Blocks {
+			blockLookup[block.Id] = block
+		}
+
 		r, err := ResourceFromProto(resource)
 		if err != nil {
 			return nil, errors.Wrapf(err, "error creating resource for node %s", resource.Id)
@@ -41,19 +46,24 @@ func FromProject(project *gen.Project) (*Workflow, error) {
 		projectResources[resource.Id] = r
 	}
 
-	blockLookup := map[string]Node{}
+	nodeLookup := map[string]Node{}
 	for _, node := range project.Graph.Nodes {
 		err := g.AddVertex(node.Id)
 		if err != nil {
 			return nil, err
 		}
 
+		block, ok := blockLookup[node.BlockId]
+		if !ok {
+			return nil, fmt.Errorf("block not found: %s", node.BlockId)
+		}
+
 		// add block to lookup to be used for execution
-		builtNode, err := NewNode(node)
+		builtNode, err := NewNode(node, block)
 		if err != nil {
 			return nil, errors.Wrapf(err, "error creating block for node %s", node.Id)
 		}
-		blockLookup[node.Id] = builtNode
+		nodeLookup[node.Id] = builtNode
 	}
 
 	for _, edge := range project.Graph.Edges {
@@ -69,11 +79,11 @@ func FromProject(project *gen.Project) (*Workflow, error) {
 	}
 
 	return &Workflow{
-		ID:          project.Id,
-		Graph:       g,
-		BlockLookup: blockLookup,
-		AdjMap:      adjMap,
-		Resources:   projectResources,
+		ID:         project.Id,
+		Graph:      g,
+		NodeLookup: nodeLookup,
+		AdjMap:     adjMap,
+		Resources:  projectResources,
 	}, nil
 }
 
@@ -105,29 +115,31 @@ func (w *Workflow) Run(logger Logger, executor Executor, nodeID string) (*Result
 }
 
 func (w *Workflow) traverseWorkflow(logger Logger, instances Instances, executor Executor, vert string, input Input) (*Result, error) {
+	block, ok := w.NodeLookup[vert]
+	if !ok {
+		return nil, fmt.Errorf("vertex not found: %s", vert)
+	}
+
+	input.Resources = instances
+	res, err := block.Execute(executor, input)
+	if err != nil {
+		return nil, errors.Wrapf(err, "error executing block: %s", vert)
+	}
+
+	nextBlockInput := Input{
+		Params:    res.Data,
+		Resources: instances,
+	}
+
+	log.Debug().Interface("result", res).Msg("block result")
 	for neighbor := range w.AdjMap[vert] {
-		block, ok := w.BlockLookup[neighbor]
-		if !ok {
-			return nil, fmt.Errorf("vertex not found: %s", neighbor)
-		}
-
-		res, err := block.Execute(executor, input)
-		if err != nil {
-			return nil, errors.Wrapf(err, "error executing block %s", neighbor)
-		}
-
-		nextBlockInput := Input{
-			Params:    res.Data,
-			Resources: instances,
-		}
-
-		log.Debug().Interface("result", res).Msg("block result")
-
 		logger.Info("Traversing workflow", "nodeID", neighbor)
 		_, err = w.traverseWorkflow(logger, instances, executor, neighbor, nextBlockInput)
 		if err != nil {
 			return nil, errors.Wrapf(err, "error traversing workflow %s", neighbor)
 		}
 	}
-	return &Result{}, nil
+	return &Result{
+		Data: res.Data,
+	}, nil
 }

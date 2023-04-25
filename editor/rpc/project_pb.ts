@@ -693,6 +693,16 @@ export class SaveProjectRequest extends Message<SaveProjectRequest> {
    */
   graph?: Graph;
 
+  /**
+   * @generated from field: repeated block.Block blocks = 3;
+   */
+  blocks: Block[] = [];
+
+  /**
+   * @generated from field: repeated resource.Resource resources = 4;
+   */
+  resources: Resource[] = [];
+
   constructor(data?: PartialMessage<SaveProjectRequest>) {
     super();
     proto3.util.initPartial(data, this);
@@ -703,6 +713,8 @@ export class SaveProjectRequest extends Message<SaveProjectRequest> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "project_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "graph", kind: "message", T: Graph },
+    { no: 3, name: "blocks", kind: "message", T: Block, repeated: true },
+    { no: 4, name: "resources", kind: "message", T: Resource, repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SaveProjectRequest {

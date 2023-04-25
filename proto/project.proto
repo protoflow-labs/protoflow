@@ -103,6 +103,8 @@ message GetResourcesResponse {
 message SaveProjectRequest {
     string project_id = 1;
     graph.Graph graph = 2;
+    repeated block.Block blocks = 3;
+    repeated resource.Resource resources = 4;
 }
 
 message SaveProjectResponse {

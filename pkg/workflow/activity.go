@@ -1,12 +1,21 @@
 package workflow
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
+	"fmt"
+	"github.com/fullstorydev/grpcurl"
+	"github.com/golang/protobuf/jsonpb"
+	"github.com/golang/protobuf/proto"
 	"github.com/pkg/errors"
+	grpcanal "github.com/protoflow-labs/protoflow/pkg/grpc"
 	"github.com/rs/zerolog/log"
 	"go.temporal.io/sdk/workflow"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+	"io"
 )
 
 type Activity struct{}
@@ -26,24 +35,66 @@ func getResource[T any](resources map[string]any) (*T, error) {
 	return instance, nil
 }
 
-func (a *Activity) ExecuteGRPCNode(ctx workflow.Context, node *GRPCNode, input Input) (Result, error) {
-	log.Debug().Msgf("executing node: %s", node.Service)
+type ProtoType struct{}
 
-	g, err := getResource[GRPCResource](input.Resources)
+func (a *Activity) ExecuteGRPCNode(ctx workflow.Context, node *GRPCNode, input Input) (Result, error) {
+	log.Info().Msgf("executing node: %s", node.Service)
+
+	g, err := getResource[grpc.ClientConn](input.Resources)
 	if err != nil {
 		return Result{}, errors.Wrap(err, "error getting GRPC resource")
 	}
 
-	conn, err := grpc.Dial(g.Host, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		return Result{}, errors.Wrapf(err, "unable to connect to python server at %s", g.Host)
-	}
-	var reply interface{}
+	requestFunc := func(m proto.Message) error {
+		req, err := json.Marshal(input.Params)
+		if err != nil {
+			return err
+		}
 
-	err = conn.Invoke(context.Background(), node.Method, input.Params, reply)
-	return Result{
-		Data: reply,
-	}, err
+		if err := jsonpb.Unmarshal(bytes.NewReader(req), m); err != nil {
+			return status.Errorf(codes.InvalidArgument, err.Error())
+		}
+		return io.EOF
+	}
+	var headers []string
+	methods, err := grpcanal.AllMethodsViaReflection(context.Background(), g)
+	if err != nil {
+		return Result{}, errors.Wrap(err, "error getting all methods")
+	}
+
+	methodName := node.Package + "." + node.Service + "." + node.Method
+
+	// TODO breadchris do we have to do this to make this call?
+	for _, m := range methods {
+		if m.GetFullyQualifiedName() == methodName {
+			descSource, err := grpcurl.DescriptorSourceFromFileDescriptors(m.GetFile())
+			if err != nil {
+				return Result{}, errors.Wrap(err, "error getting descriptor source")
+			}
+			result := grpcanal.RpcResult{
+				DescSource: descSource,
+			}
+			if err := grpcurl.InvokeRPC(context.Background(), descSource, g, methodName, headers, &result, requestFunc); err != nil {
+				return Result{}, err
+			}
+
+			if len(result.Responses) == 0 {
+				return Result{}, fmt.Errorf("no responses received")
+			}
+
+			resp := result.Responses[0]
+			var data interface{}
+			err = json.Unmarshal(resp.Data, &data)
+			if err != nil {
+				return Result{}, errors.Wrapf(err, "error unmarshalling response: %s", string(resp.Data))
+			}
+
+			return Result{
+				Data: data,
+			}, err
+		}
+	}
+	return Result{}, fmt.Errorf("method not found: %s", node.Method)
 }
 
 func (a *Activity) ExecuteRestNode(ctx workflow.Context, node *RESTNode, input Input) (Result, error) {

@@ -11,7 +11,7 @@ message Resource {
   oneof type {
     GRPCService grpc_service = 3;
     RESTService rest_service = 4;
-    Database database = 5;
+    Docstore docstore = 5;
   }
   repeated block.Block blocks = 7;
 }
@@ -25,6 +25,6 @@ message RESTService {
   string schema = 2;
 }
 
-message Database {
-  string host = 1;
+message Docstore {
+  string url = 1;
 }

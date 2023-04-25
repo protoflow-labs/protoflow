@@ -21,7 +21,7 @@ func ResourceFromProto(r *gen.Resource) (Resource, error) {
 }
 
 type Resource interface {
-	New() (interface{}, error)
+	New() (any, error)
 }
 
 type GRPCResource struct {

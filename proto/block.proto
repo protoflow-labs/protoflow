@@ -11,17 +11,12 @@ message Block {
     REST rest = 4;
     GRPC grpc = 5;
     Collection collection = 6;
-    Entity entity = 7;
-    Input input = 8;
+    Input input = 7;
   }
 }
 
 message Input {
   repeated FieldDefinition fields = 4;
-}
-
-message Entity {
-  string collection = 1;
 }
 
 message Collection {
@@ -50,6 +45,7 @@ message REST {
 }
 
 message GRPC {
-  string service = 1;
-  string method = 2;
+  string package = 1;
+  string service = 2;
+  string method = 3;
 }

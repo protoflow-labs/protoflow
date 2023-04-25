@@ -74,13 +74,7 @@ export class Block extends Message<Block> {
     case: "collection";
   } | {
     /**
-     * @generated from field: block.Entity entity = 7;
-     */
-    value: Entity;
-    case: "entity";
-  } | {
-    /**
-     * @generated from field: block.Input input = 8;
+     * @generated from field: block.Input input = 7;
      */
     value: Input;
     case: "input";
@@ -100,8 +94,7 @@ export class Block extends Message<Block> {
     { no: 4, name: "rest", kind: "message", T: REST, oneof: "type" },
     { no: 5, name: "grpc", kind: "message", T: GRPC, oneof: "type" },
     { no: 6, name: "collection", kind: "message", T: Collection, oneof: "type" },
-    { no: 7, name: "entity", kind: "message", T: Entity, oneof: "type" },
-    { no: 8, name: "input", kind: "message", T: Input, oneof: "type" },
+    { no: 7, name: "input", kind: "message", T: Input, oneof: "type" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Block {
@@ -155,43 +148,6 @@ export class Input extends Message<Input> {
 
   static equals(a: Input | PlainMessage<Input> | undefined, b: Input | PlainMessage<Input> | undefined): boolean {
     return proto3.util.equals(Input, a, b);
-  }
-}
-
-/**
- * @generated from message block.Entity
- */
-export class Entity extends Message<Entity> {
-  /**
-   * @generated from field: string collection = 1;
-   */
-  collection = "";
-
-  constructor(data?: PartialMessage<Entity>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "block.Entity";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "collection", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Entity {
-    return new Entity().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Entity {
-    return new Entity().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Entity {
-    return new Entity().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: Entity | PlainMessage<Entity> | undefined, b: Entity | PlainMessage<Entity> | undefined): boolean {
-    return proto3.util.equals(Entity, a, b);
   }
 }
 
@@ -366,12 +322,17 @@ export class REST extends Message<REST> {
  */
 export class GRPC extends Message<GRPC> {
   /**
-   * @generated from field: string service = 1;
+   * @generated from field: string package = 1;
+   */
+  package = "";
+
+  /**
+   * @generated from field: string service = 2;
    */
   service = "";
 
   /**
-   * @generated from field: string method = 2;
+   * @generated from field: string method = 3;
    */
   method = "";
 
@@ -383,8 +344,9 @@ export class GRPC extends Message<GRPC> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "block.GRPC";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "service", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "method", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 1, name: "package", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "service", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "method", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GRPC {

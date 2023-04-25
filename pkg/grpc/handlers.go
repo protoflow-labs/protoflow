@@ -412,7 +412,7 @@ func (e errReadFail) Error() string {
 	return e.err.Error()
 }
 
-func invokeRPC(ctx context.Context, methodName string, ch grpc.ClientConnInterface, descSource grpcurl.DescriptorSource, reqHdrs http.Header, body io.Reader, options *InvokeOptions) (*rpcResult, error) {
+func invokeRPC(ctx context.Context, methodName string, ch grpc.ClientConnInterface, descSource grpcurl.DescriptorSource, reqHdrs http.Header, body io.Reader, options *InvokeOptions) (*RpcResult, error) {
 	js, err := io.ReadAll(body)
 	if err != nil {
 		return nil, errReadFail{err: err}
@@ -456,8 +456,8 @@ func invokeRPC(ctx context.Context, methodName string, ch grpc.ClientConnInterfa
 		defer cancel()
 	}
 
-	result := rpcResult{
-		descSource: descSource,
+	result := RpcResult{
+		DescSource: descSource,
 		Requests:   &reqStats,
 	}
 	if err := grpcurl.InvokeRPC(ctx, descSource, ch, methodName, invokeHdrs, &result, requestFunc); err != nil {
@@ -538,8 +538,8 @@ type rpcError struct {
 	Details []rpcResponseElement `json:"details"`
 }
 
-type rpcResult struct {
-	descSource grpcurl.DescriptorSource
+type RpcResult struct {
+	DescSource grpcurl.DescriptorSource
 	Headers    []rpcMetadata        `json:"headers"`
 	Error      *rpcError            `json:"error"`
 	Responses  []rpcResponseElement `json:"responses"`
@@ -547,21 +547,21 @@ type rpcResult struct {
 	Trailers   []rpcMetadata        `json:"trailers"`
 }
 
-func (*rpcResult) OnResolveMethod(*desc.MethodDescriptor) {}
+func (*RpcResult) OnResolveMethod(*desc.MethodDescriptor) {}
 
-func (*rpcResult) OnSendHeaders(metadata.MD) {}
+func (*RpcResult) OnSendHeaders(metadata.MD) {}
 
-func (r *rpcResult) OnReceiveHeaders(md metadata.MD) {
+func (r *RpcResult) OnReceiveHeaders(md metadata.MD) {
 	r.Headers = responseMetadata(md)
 }
 
-func (r *rpcResult) OnReceiveResponse(m proto.Message) {
-	r.Responses = append(r.Responses, responseToJSON(r.descSource, m))
+func (r *RpcResult) OnReceiveResponse(m proto.Message) {
+	r.Responses = append(r.Responses, responseToJSON(r.DescSource, m))
 }
 
-func (r *rpcResult) OnReceiveTrailers(stat *status.Status, md metadata.MD) {
+func (r *RpcResult) OnReceiveTrailers(stat *status.Status, md metadata.MD) {
 	r.Trailers = responseMetadata(md)
-	r.Error = toRpcError(r.descSource, stat)
+	r.Error = toRpcError(r.DescSource, stat)
 }
 
 func responseMetadata(md metadata.MD) []rpcMetadata {

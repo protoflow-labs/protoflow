@@ -38,10 +38,10 @@ export class Resource extends Message<Resource> {
     case: "restService";
   } | {
     /**
-     * @generated from field: resource.Database database = 5;
+     * @generated from field: resource.Docstore docstore = 5;
      */
-    value: Database;
-    case: "database";
+    value: Docstore;
+    case: "docstore";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   /**
@@ -61,7 +61,7 @@ export class Resource extends Message<Resource> {
     { no: 2, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 3, name: "grpc_service", kind: "message", T: GRPCService, oneof: "type" },
     { no: 4, name: "rest_service", kind: "message", T: RESTService, oneof: "type" },
-    { no: 5, name: "database", kind: "message", T: Database, oneof: "type" },
+    { no: 5, name: "docstore", kind: "message", T: Docstore, oneof: "type" },
     { no: 7, name: "blocks", kind: "message", T: Block, repeated: true },
   ]);
 
@@ -163,39 +163,39 @@ export class RESTService extends Message<RESTService> {
 }
 
 /**
- * @generated from message resource.Database
+ * @generated from message resource.Docstore
  */
-export class Database extends Message<Database> {
+export class Docstore extends Message<Docstore> {
   /**
-   * @generated from field: string host = 1;
+   * @generated from field: string url = 1;
    */
-  host = "";
+  url = "";
 
-  constructor(data?: PartialMessage<Database>) {
+  constructor(data?: PartialMessage<Docstore>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "resource.Database";
+  static readonly typeName = "resource.Docstore";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "host", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 1, name: "url", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Database {
-    return new Database().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Docstore {
+    return new Docstore().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Database {
-    return new Database().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Docstore {
+    return new Docstore().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Database {
-    return new Database().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Docstore {
+    return new Docstore().fromJsonString(jsonString, options);
   }
 
-  static equals(a: Database | PlainMessage<Database> | undefined, b: Database | PlainMessage<Database> | undefined): boolean {
-    return proto3.util.equals(Database, a, b);
+  static equals(a: Docstore | PlainMessage<Docstore> | undefined, b: Docstore | PlainMessage<Docstore> | undefined): boolean {
+    return proto3.util.equals(Docstore, a, b);
   }
 }
 

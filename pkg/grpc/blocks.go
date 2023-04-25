@@ -1,18 +1,15 @@
-package project
+package grpc
 
 import (
 	"context"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/gen"
-	grpcanal "github.com/protoflow-labs/protoflow/pkg/grpc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-func EnumerateResource(resource *gen.Resource) (*gen.Resource, error) {
-	resource.Id = uuid.New().String()
-
+func EnumerateResourceBlocks(resource *gen.Resource) ([]*gen.Block, error) {
 	var (
 		blocks []*gen.Block
 		err    error
@@ -27,7 +24,7 @@ func EnumerateResource(resource *gen.Resource) (*gen.Resource, error) {
 	}
 
 	resource.Blocks = blocks
-	return resource, nil
+	return blocks, nil
 }
 
 func blocksFromGRPC(service *gen.GRPCService) ([]*gen.Block, error) {
@@ -40,7 +37,7 @@ func blocksFromGRPC(service *gen.GRPCService) ([]*gen.Block, error) {
 		return nil, errors.Wrapf(err, "unable to connect to python server at %s", service.Host)
 	}
 
-	methodDesc, err := grpcanal.AllMethodsViaReflection(context.Background(), conn)
+	methodDesc, err := AllMethodsViaReflection(context.Background(), conn)
 	if err != nil {
 		return nil, errors.Wrapf(err, "unable to get all methods via reflection")
 	}
@@ -54,6 +51,7 @@ func blocksFromGRPC(service *gen.GRPCService) ([]*gen.Block, error) {
 			Name: serviceName + "." + methodName,
 			Type: &gen.Block_Grpc{
 				Grpc: &gen.GRPC{
+					Package: m.GetFile().GetPackage(),
 					Service: serviceName,
 					Method:  methodName,
 				},

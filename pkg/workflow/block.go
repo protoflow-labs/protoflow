@@ -17,10 +17,6 @@ type RESTNode struct {
 	*gen.REST
 }
 
-type EntityBlock struct {
-	gen.Entity
-}
-
 var activity = &Activity{}
 
 func (s *GRPCNode) Init() error {
@@ -35,17 +31,21 @@ func (s *RESTNode) Execute(executor Executor, input Input) (*Result, error) {
 	return executor.Execute(activity.ExecuteRestNode, s, input)
 }
 
-func NewNode(node *gen.Node) (Node, error) {
-	switch node.Config.(type) {
-	case *gen.Node_Grpc:
-		g := node.GetGrpc()
+func NewNode(node *gen.Node, block *gen.Block) (Node, error) {
+	switch block.Type.(type) {
+	case *gen.Block_Grpc:
+		b := block.GetGrpc()
+		n := node.GetGrpc()
+		if n != nil {
+			if n.Service != "" {
+				b.Service = n.Service
+			}
+			if n.Method != "" {
+				b.Method = n.Method
+			}
+		}
 		return &GRPCNode{
-			GRPC: g,
-		}, nil
-	case *gen.Node_Rest:
-		r := node.GetRest()
-		return &RESTNode{
-			REST: r,
+			GRPC: b,
 		}, nil
 	default:
 		return nil, errors.New("no node found")

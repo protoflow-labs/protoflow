@@ -3,6 +3,7 @@ package project
 import (
 	"context"
 	"encoding/json"
+	"github.com/protoflow-labs/protoflow/pkg/grpc"
 	"html/template"
 	"os"
 
@@ -66,11 +67,13 @@ func (s *Service) CreateResource(ctx context.Context, c *connect.Request[gen.Cre
 	}
 
 	resource := c.Msg.Resource
+	resource.Id = uuid.New().String()
 
-	resource, err = EnumerateResource(resource)
+	blocks, err := grpc.EnumerateResourceBlocks(resource)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to create resource: %s", resource.Name)
 	}
+	resource.Blocks = blocks
 
 	project.Resources = append(project.Resources, resource)
 	_, err = s.store.SaveProject(project)
@@ -153,7 +156,27 @@ func (s *Service) CreateProject(ctx context.Context, req *connect.Request[gen.Cr
 	project := gen.Project{
 		Id:   uuid.NewString(),
 		Name: req.Msg.Name,
+		Resources: []*gen.Resource{
+			{
+				Id:   uuid.NewString(),
+				Name: "local",
+				Type: &gen.Resource_GrpcService{
+					GrpcService: &gen.GRPCService{
+						Host: "localhost:8080",
+					},
+				},
+			},
+		},
 	}
+
+	for _, resource := range project.Resources {
+		blocks, err := grpc.EnumerateResourceBlocks(resource)
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to create resource: %s", resource.Name)
+		}
+		resource.Blocks = blocks
+	}
+
 	_, err := s.store.CreateProject(&project)
 
 	if err != nil {
@@ -175,7 +198,25 @@ func (s *Service) SaveProject(ctx context.Context, req *connect.Request[gen.Save
 
 	project.Graph = req.Msg.Graph
 
-	s.store.SaveProject(project)
+	if len(project.Resources) > 0 {
+		project.Resources = req.Msg.Resources
+		for _, resource := range project.Resources {
+			blocks, err := grpc.EnumerateResourceBlocks(resource)
+			if err != nil {
+				return nil, errors.Wrapf(err, "failed to create resource: %s", resource.Name)
+			}
+			resource.Blocks = blocks
+		}
+	}
+
+	if len(project.Blocks) > 0 {
+		project.Blocks = req.Msg.Blocks
+	}
+
+	_, err = s.store.SaveProject(project)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to save project %s", project.Id)
+	}
 
 	return connect.NewResponse(&gen.SaveProjectResponse{Project: project}), nil
 }

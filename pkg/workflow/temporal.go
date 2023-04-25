@@ -54,7 +54,7 @@ func (m *TemporalManager) ExecuteWorkflowSync(ctx context.Context, w *Workflow, 
 
 // TemporalRun is the entrypoint for a Temporal workflow that will run on a worker
 func TemporalRun(ctx workflow.Context, w *Workflow, nodeID string) (*Result, error) {
-	if w.BlockLookup == nil || w.Graph == nil {
+	if w.NodeLookup == nil || w.Graph == nil {
 		return nil, fmt.Errorf("workflow is not initialized")
 	}
 
