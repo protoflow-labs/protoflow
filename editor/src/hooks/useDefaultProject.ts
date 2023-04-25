@@ -19,7 +19,7 @@ export function useDefaultProject() {
 
     setTimeout(() => {
       setLoading(false);
-    }, 500);
+    }, 1);
   };
 
   const createDefault = async () => {
