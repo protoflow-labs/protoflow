@@ -162,6 +162,11 @@ export class Input extends Message<Input> {
  * @generated from message block.Entity
  */
 export class Entity extends Message<Entity> {
+  /**
+   * @generated from field: string collection = 1;
+   */
+  collection = "";
+
   constructor(data?: PartialMessage<Entity>) {
     super();
     proto3.util.initPartial(data, this);
@@ -170,6 +175,7 @@ export class Entity extends Message<Entity> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "block.Entity";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "collection", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Entity {

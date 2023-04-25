@@ -154,7 +154,7 @@ func (s *Service) CreateProject(ctx context.Context, req *connect.Request[gen.Cr
 		Id:   uuid.NewString(),
 		Name: req.Msg.Name,
 	}
-	_, err := s.store.SaveProject(&project)
+	_, err := s.store.CreateProject(&project)
 
 	if err != nil {
 		return connect.NewResponse(&gen.CreateProjectResponse{Project: nil}), nil
@@ -168,12 +168,16 @@ func (s *Service) DeleteProject(context.Context, *connect.Request[gen.DeleteProj
 }
 
 func (s *Service) SaveProject(ctx context.Context, req *connect.Request[gen.SaveProjectRequest]) (*connect.Response[gen.SaveProjectResponse], error) {
-	s.store.SaveProject(&gen.Project{
-		Id:    req.Msg.ProjectId,
-		Name:  "local",
-		Graph: req.Msg.Graph,
-	})
-	return nil, nil
+	project, err := s.store.GetProject(req.Msg.ProjectId)
+	if err != nil {
+		return nil, err
+	}
+
+	project.Graph = req.Msg.Graph
+
+	s.store.SaveProject(project)
+
+	return connect.NewResponse(&gen.SaveProjectResponse{Project: project}), nil
 }
 
 func (s *Service) generateProto(block *gen.Block) error {

@@ -45,7 +45,7 @@ export class Resource extends Message<Resource> {
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   /**
-   * @generated from field: repeated block.Block blocks = 6;
+   * @generated from field: repeated block.Block blocks = 7;
    */
   blocks: Block[] = [];
 
@@ -62,7 +62,7 @@ export class Resource extends Message<Resource> {
     { no: 3, name: "grpc_service", kind: "message", T: GRPCService, oneof: "type" },
     { no: 4, name: "rest_service", kind: "message", T: RESTService, oneof: "type" },
     { no: 5, name: "database", kind: "message", T: Database, oneof: "type" },
-    { no: 6, name: "blocks", kind: "message", T: Block, repeated: true },
+    { no: 7, name: "blocks", kind: "message", T: Block, repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Resource {

@@ -5,8 +5,7 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3 } from "@bufbuild/protobuf";
-import { Collection, Entity, GRPC, REST } from "./block_pb.js";
-import { Resource } from "./resource_pb.js";
+import { Collection, Entity, GRPC, Input, REST } from "./block_pb.js";
 
 /**
  * @generated from message graph.Graph
@@ -119,12 +118,20 @@ export class Node extends Message<Node> {
      */
     value: Entity;
     case: "entity";
+  } | {
+    /**
+     * @generated from field: block.Input input = 10;
+     */
+    value: Input;
+    case: "input";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   /**
-   * @generated from field: repeated resource.Resource dependencies = 10;
+   * Dependencies
+   *
+   * @generated from field: repeated string resource_ids = 11;
    */
-  dependencies: Resource[] = [];
+  resourceIds: string[] = [];
 
   constructor(data?: PartialMessage<Node>) {
     super();
@@ -143,7 +150,8 @@ export class Node extends Message<Node> {
     { no: 7, name: "grpc", kind: "message", T: GRPC, oneof: "config" },
     { no: 8, name: "collection", kind: "message", T: Collection, oneof: "config" },
     { no: 9, name: "entity", kind: "message", T: Entity, oneof: "config" },
-    { no: 10, name: "dependencies", kind: "message", T: Resource, repeated: true },
+    { no: 10, name: "input", kind: "message", T: Input, oneof: "config" },
+    { no: 11, name: "resource_ids", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Node {

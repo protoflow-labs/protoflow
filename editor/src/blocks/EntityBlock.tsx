@@ -6,11 +6,12 @@ export type EntityBlockProps = NodeProps<EntityData>;
 
 export type EntityData = {
   name: string;
-  table: string;
+  config: { entity?: { collection: string } };
 };
 
 export function EntityBlock(props: EntityBlockProps) {
   const { data, selected } = props;
+
   return (
     <>
       <Card>
