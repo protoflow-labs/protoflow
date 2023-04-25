@@ -26,7 +26,8 @@
     "reactflow": "^11.7.0",
     "scheduler": "0.20.0",
     "tailwind-merge": "^1.12.0",
-    "typescript": "5.0.4"
+    "typescript": "5.0.4",
+    "uuid": "^9.0.0"
   },
   "devDependencies": {
     "autoprefixer": "^10.4.14",

@@ -60,6 +60,20 @@ export function Toolbar() {
       <Button appearance="subtle" size="small">
         View
       </Button>
+      <Menu>
+        <MenuTrigger disableButtonEnhancement>
+          <Button appearance="subtle" size="small">
+            Run
+          </Button>
+        </MenuTrigger>
+
+        <MenuPopover>
+          <MenuList>
+            <MenuItem secondaryContent="Ctrl+R">Run Workflow</MenuItem>
+            <MenuItem secondaryContent="Ctrl+B">Execute Block</MenuItem>
+          </MenuList>
+        </MenuPopover>
+      </Menu>
     </div>
   );
 }
