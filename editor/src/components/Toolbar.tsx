@@ -10,43 +10,19 @@ import {
   MenuTrigger,
 } from "@fluentui/react-components";
 import { toast } from "react-hot-toast";
-import { SaveProjectRequest } from "../../rpc/project_pb";
+import { getUpdatedProject } from "../lib/project";
 
 export function Toolbar() {
   const { project } = useProjectContext();
-  const {
-    props: { edges, nodes },
-  } = useEditorContext();
+  const { props } = useEditorContext();
 
   const onExport = () => {
     if (!project) return;
 
-    const updatedProject = new SaveProjectRequest({
-      projectId: project.id,
-      graph: {
-        id: project.graph?.id || project.id,
-        name: project.graph?.name || project.name,
-        edges: edges.map((edge) => ({
-          id: edge.id,
-          from: edge.source,
-          to: edge.target,
-        })),
-        nodes: nodes.map((node) => {
-          const blockType: any = node.type?.split(".").pop();
-
-          return {
-            id: node.id,
-            name: node.data.name,
-
-            x: node.position.x,
-            y: node.position.y,
-            config: {
-              case: blockType,
-              value: node.data.config[blockType] || node.data.config,
-            },
-          };
-        }),
-      },
+    const updatedProject = getUpdatedProject({
+      project,
+      nodes: props.nodes,
+      edges: props.edges,
     });
 
     for (const node of updatedProject.graph?.nodes || []) {

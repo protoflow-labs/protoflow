@@ -9,7 +9,7 @@ export function EditorActions() {
   const onCancel = useUnselect();
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center justify-between gap-2">
       <Button onClick={onCancel}>Cancel</Button>
       <Button appearance="primary" type="submit">
         Save
