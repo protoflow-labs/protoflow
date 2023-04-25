@@ -3,9 +3,16 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
+import type {
+  BinaryReadOptions,
+  FieldList,
+  JsonReadOptions,
+  JsonValue,
+  PartialMessage,
+  PlainMessage,
+} from "@bufbuild/protobuf";
 import { Message, proto3 } from "@bufbuild/protobuf";
-import { Collection, Entity, GRPC, REST } from "./block_pb.js";
+import { Collection, Entity, GRPC, Input, REST } from "./block_pb.js";
 
 /**
  * @generated from message graph.Graph
@@ -45,19 +52,31 @@ export class Graph extends Message<Graph> {
     { no: 4, name: "edges", kind: "message", T: Edge, repeated: true },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Graph {
+  static fromBinary(
+    bytes: Uint8Array,
+    options?: Partial<BinaryReadOptions>
+  ): Graph {
     return new Graph().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Graph {
+  static fromJson(
+    jsonValue: JsonValue,
+    options?: Partial<JsonReadOptions>
+  ): Graph {
     return new Graph().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Graph {
+  static fromJsonString(
+    jsonString: string,
+    options?: Partial<JsonReadOptions>
+  ): Graph {
     return new Graph().fromJsonString(jsonString, options);
   }
 
-  static equals(a: Graph | PlainMessage<Graph> | undefined, b: Graph | PlainMessage<Graph> | undefined): boolean {
+  static equals(
+    a: Graph | PlainMessage<Graph> | undefined,
+    b: Graph | PlainMessage<Graph> | undefined
+  ): boolean {
     return proto3.util.equals(Graph, a, b);
   }
 }
@@ -94,31 +113,43 @@ export class Node extends Message<Node> {
   /**
    * @generated from oneof graph.Node.config
    */
-  config: {
-    /**
-     * @generated from field: block.REST rest = 6;
-     */
-    value: REST;
-    case: "rest";
-  } | {
-    /**
-     * @generated from field: block.GRPC grpc = 7;
-     */
-    value: GRPC;
-    case: "grpc";
-  } | {
-    /**
-     * @generated from field: block.Collection collection = 8;
-     */
-    value: Collection;
-    case: "collection";
-  } | {
-    /**
-     * @generated from field: block.Entity entity = 9;
-     */
-    value: Entity;
-    case: "entity";
-  } | { case: undefined; value?: undefined } = { case: undefined };
+  config:
+    | {
+        /**
+         * @generated from field: block.REST rest = 6;
+         */
+        value: REST;
+        case: "rest";
+      }
+    | {
+        /**
+         * @generated from field: block.GRPC grpc = 7;
+         */
+        value: GRPC;
+        case: "grpc";
+      }
+    | {
+        /**
+         * @generated from field: block.Collection collection = 8;
+         */
+        value: Collection;
+        case: "collection";
+      }
+    | {
+        /**
+         * @generated from field: block.Entity entity = 9;
+         */
+        value: Entity;
+        case: "entity";
+      }
+    | {
+        /**
+         * @generated from field: block.Input input = 10;
+         */
+        value: Input;
+        case: "input";
+      }
+    | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<Node>) {
     super();
@@ -135,23 +166,42 @@ export class Node extends Message<Node> {
     { no: 5, name: "y", kind: "scalar", T: 2 /* ScalarType.FLOAT */ },
     { no: 6, name: "rest", kind: "message", T: REST, oneof: "config" },
     { no: 7, name: "grpc", kind: "message", T: GRPC, oneof: "config" },
-    { no: 8, name: "collection", kind: "message", T: Collection, oneof: "config" },
+    {
+      no: 8,
+      name: "collection",
+      kind: "message",
+      T: Collection,
+      oneof: "config",
+    },
     { no: 9, name: "entity", kind: "message", T: Entity, oneof: "config" },
+    { no: 10, name: "input", kind: "message", T: Input, oneof: "config" },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Node {
+  static fromBinary(
+    bytes: Uint8Array,
+    options?: Partial<BinaryReadOptions>
+  ): Node {
     return new Node().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Node {
+  static fromJson(
+    jsonValue: JsonValue,
+    options?: Partial<JsonReadOptions>
+  ): Node {
     return new Node().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Node {
+  static fromJsonString(
+    jsonString: string,
+    options?: Partial<JsonReadOptions>
+  ): Node {
     return new Node().fromJsonString(jsonString, options);
   }
 
-  static equals(a: Node | PlainMessage<Node> | undefined, b: Node | PlainMessage<Node> | undefined): boolean {
+  static equals(
+    a: Node | PlainMessage<Node> | undefined,
+    b: Node | PlainMessage<Node> | undefined
+  ): boolean {
     return proto3.util.equals(Node, a, b);
   }
 }
@@ -188,20 +238,31 @@ export class Edge extends Message<Edge> {
     { no: 3, name: "to", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Edge {
+  static fromBinary(
+    bytes: Uint8Array,
+    options?: Partial<BinaryReadOptions>
+  ): Edge {
     return new Edge().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Edge {
+  static fromJson(
+    jsonValue: JsonValue,
+    options?: Partial<JsonReadOptions>
+  ): Edge {
     return new Edge().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Edge {
+  static fromJsonString(
+    jsonString: string,
+    options?: Partial<JsonReadOptions>
+  ): Edge {
     return new Edge().fromJsonString(jsonString, options);
   }
 
-  static equals(a: Edge | PlainMessage<Edge> | undefined, b: Edge | PlainMessage<Edge> | undefined): boolean {
+  static equals(
+    a: Edge | PlainMessage<Edge> | undefined,
+    b: Edge | PlainMessage<Edge> | undefined
+  ): boolean {
     return proto3.util.equals(Edge, a, b);
   }
 }
-

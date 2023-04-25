@@ -1,3 +1,4 @@
+import { projectService } from "@/lib/api";
 import { useEditorContext } from "@/providers/EditorProvider";
 import { useProjectContext } from "@/providers/ProjectProvider";
 import {
@@ -8,7 +9,7 @@ import {
   MenuPopover,
   MenuTrigger,
 } from "@fluentui/react-components";
-import { toast } from "react-hot-toast";
+import { SaveProjectRequest } from "../../rpc/project_pb";
 
 export function Toolbar() {
   const { project } = useProjectContext();
@@ -18,29 +19,42 @@ export function Toolbar() {
 
   const onExport = () => {
     if (!project) return;
-    const updatedProject = {
+
+    const updatedProject = new SaveProjectRequest({
       projectId: project.id,
       graph: {
+        id: project.graph?.id || project.id,
+        name: project.graph?.name || project.name,
         edges: edges.map((edge) => ({
           id: edge.id,
-          source: edge.source,
-          target: edge.target,
+          from: edge.source,
+          to: edge.target,
         })),
-        nodes: nodes.map((node) => ({
-          id: node.id,
-          name: node.data.name,
-          x: node.position.x,
-          y: node.position.y,
-        })),
-      },
-      // projectId: project?.getProjectId(),
-    };
+        nodes: nodes.map((node) => {
+          const blockType: any = node.type?.split(".").pop();
 
-    for (const node of updatedProject.graph.nodes) {
-      if (!node.name) {
-        toast.error("Please name all nodes before exporting");
-      }
-    }
+          return {
+            id: node.id,
+            name: node.data.name,
+
+            x: node.position.x,
+            y: node.position.y,
+            config: {
+              case: blockType,
+              value: node.data.config[blockType] || node.data.config,
+            },
+          };
+        }),
+      },
+    });
+
+    // for (const node of updatedProject.graph.nodes) {
+    //   if (!node.name) {
+    //     toast.error("Please name all nodes before exporting");
+    //   }
+    // }
+
+    projectService.saveProject(updatedProject);
   };
 
   return (

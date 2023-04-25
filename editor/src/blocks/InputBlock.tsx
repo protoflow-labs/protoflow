@@ -1,22 +1,14 @@
 import { Caption1, Card, CardHeader, Text } from "@fluentui/react-components";
-import { ChangeEvent, KeyboardEvent } from "react";
 import { HiPencilSquare } from "react-icons/hi2";
 import { Handle, NodeProps, Position } from "reactflow";
 import { FieldDefinition } from "../../rpc/block_pb";
 
-type InputBlockProps = NodeProps<InputData>;
-
 export type InputData = {
   name: string;
-  fields: FieldDefinition[];
-  lastUpdate: number;
+  config: { input?: { fields: FieldDefinition[] } };
 };
 
-type InputProps = {
-  defaultValue?: string;
-  onKeyUp?: (e: KeyboardEvent<HTMLInputElement>) => void;
-  onChange?: (e: ChangeEvent<HTMLInputElement>) => void;
-};
+type InputBlockProps = NodeProps<InputData>;
 
 export function InputBlock(props: InputBlockProps) {
   const { data, selected } = props;

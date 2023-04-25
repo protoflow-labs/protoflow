@@ -11,6 +11,7 @@ export type EntityData = {
 
 export function EntityBlock(props: EntityBlockProps) {
   const { data, selected } = props;
+
   return (
     <>
       <Card>

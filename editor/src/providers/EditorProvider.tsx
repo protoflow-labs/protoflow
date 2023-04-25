@@ -1,4 +1,5 @@
 import { useNodeTypes } from "@/hooks/useNodeTypes";
+import { configTypes } from "@/lib/configTypes";
 import {
   DragEventHandler,
   ReactNode,
@@ -19,6 +20,7 @@ import {
   applyNodeChanges,
 } from "reactflow";
 import { v4 as uuid } from "uuid";
+import { useProjectContext } from "./ProjectProvider";
 
 type EditorContextType = {
   props: {
@@ -50,7 +52,26 @@ export function EditorProvider({ children }: { children: ReactNode }) {
 }
 
 const useEditorProps = (reactFlowInstance?: ReactFlowInstance) => {
-  const [nodes, setNodes] = useState<Node[]>([]);
+  const { project } = useProjectContext();
+
+  const [nodes, setNodes] = useState<Node[]>(
+    project?.graph?.nodes.map((n) => {
+      const config = configTypes.find((c) => n.config?.case === c.name);
+
+      return {
+        id: n.id,
+        data: {
+          name: n.name,
+          config: {
+            [config!.name]:
+              n.config?.value?.toJson() || n.config?.value || n.config || {},
+          },
+        },
+        position: { x: n.x, y: n.y },
+        type: `protoflow.${config?.name}`,
+      };
+    }) || []
+  );
   const [edges, setEdges] = useState<Edge[]>([]);
   const { nodeTypes } = useNodeTypes();
 
@@ -79,7 +100,7 @@ const useEditorProps = (reactFlowInstance?: ReactFlowInstance) => {
         id: uuid(),
         type,
         position,
-        data: { label: `${type} node` },
+        data: { name: "", config: {} },
       };
 
       setNodes((nds) => [...nds, newNode]);

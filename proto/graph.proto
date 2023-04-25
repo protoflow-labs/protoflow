@@ -23,6 +23,7 @@ message Node {
     block.GRPC grpc = 7;
     block.Collection collection = 8;
     block.Entity entity = 9;
+    block.Input input = 10;
   }
 }
 

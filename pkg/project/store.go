@@ -12,6 +12,7 @@ import (
 )
 
 type Store interface {
+	CreateProject(w *gen.Project) (string, error)
 	SaveProject(w *gen.Project) (string, error)
 	GetProject(projectID string) (*gen.Project, error)
 	ListProjects() ([]*gen.Project, error)
@@ -44,7 +45,7 @@ func NewDBStore(db *gorm.DB) (*DBStore, error) {
 	}, nil
 }
 
-func (s *DBStore) SaveProject(w *gen.Project) (string, error) {
+func (s *DBStore) CreateProject(w *gen.Project) (string, error) {
 	project := model.Project{
 		UUID: model.UUID{
 			ID: uuid.MustParse(w.Id),
@@ -55,6 +56,24 @@ func (s *DBStore) SaveProject(w *gen.Project) (string, error) {
 	}
 
 	res := s.db.Create(&project)
+	if res.Error != nil {
+		return "", res.Error
+	}
+
+	return project.ID.String(), nil
+}
+
+func (s *DBStore) SaveProject(w *gen.Project) (string, error) {
+	project := model.Project{
+		UUID: model.UUID{
+			ID: uuid.MustParse(w.Id),
+		},
+		ProjectJSON: &model.ProjectJSON{
+			Data: w,
+		},
+	}
+
+	res := s.db.Save(&project)
 	if res.Error != nil {
 		return "", res.Error
 	}
