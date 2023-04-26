@@ -1,0 +1,22 @@
+{
+  "name": "An Example Protoflow Project",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "generate": "npx buf generate protos && npx buf build -o gen/image.bin --as-file-descriptor-set",
+    "dev": "npm run generate && npm start",
+    "up": "npm install && npm run dev"
+  },
+  "keywords": [],
+  "author": "",
+  "type": "module",
+  "dependencies": {
+    "@bufbuild/buf": "^1.15.0-1",
+    "@bufbuild/connect": "^0.8.6",
+    "@bufbuild/connect-node": "^0.8.6",
+    "@bufbuild/protobuf": "^1.2.0",
+    "@bufbuild/protoc-gen-connect-es": "^0.8.6",
+    "@bufbuild/protoc-gen-es": "^1.2.0"
+  }
+}

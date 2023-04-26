@@ -13,31 +13,52 @@ import (
 //go:embed *
 var Templates embed.FS
 
-func TemplateGlob(templatePattern string, dest string, data any) error {
-	matches, err := fs.Glob(Templates, templatePattern)
+func TemplateFile(templateFile string, dest string, data any) error {
+	_, filename := path.Split(templateFile)
+	tmpl, err := template.New(filename).Funcs(templateHelpers()).ParseFS(Templates, templateFile)
 	if err != nil {
 		return err
 	}
 
-	for _, match := range matches {
-		_, fileName := path.Split(match)
-		tmpl, err := template.ParseFS(Templates, match)
-		if err != nil {
-			return err
-		}
+	os.MkdirAll(path.Dir(dest), 0700)
 
-		destFile := fmt.Sprintf("%s/%s", dest, strings.ReplaceAll(fileName, "template.", ""))
+	file, err := os.Create(dest)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
 
-		file, err := os.Create(destFile)
-		if err != nil {
-			return err
-		}
-
-		err = tmpl.Execute(file, data)
-		if err != nil {
-			return err
-		}
+	err = tmpl.Execute(file, data)
+	if err != nil {
+		return err
 	}
 
 	return nil
+}
+
+func TemplateDir(templateDir string, destDir string, data any) error {
+	return fs.WalkDir(Templates, templateDir, func(templateFile string, entry fs.DirEntry, _ error) error {
+		if !entry.IsDir() {
+			relativePath := strings.ReplaceAll(templateFile, templateDir, "")
+			destFile := fmt.Sprintf("%s/%s", destDir, strings.ReplaceAll(relativePath, "template.", ""))
+
+			err := TemplateFile(templateFile, destFile, data)
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+}
+
+func templateHelpers() template.FuncMap {
+	return template.FuncMap{
+		"lowercaseFirstLetter": func(s string) string {
+			if len(s) == 0 {
+				return s
+			}
+			first := strings.ToLower(string(s[0]))
+			return first + s[1:]
+		},
+	}
 }
