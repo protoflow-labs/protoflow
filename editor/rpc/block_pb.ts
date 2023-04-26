@@ -78,6 +78,12 @@ export class Block extends Message<Block> {
      */
     value: Input;
     case: "input";
+  } | {
+    /**
+     * @generated from field: block.Bucket bucket = 8;
+     */
+    value: Bucket;
+    case: "bucket";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<Block>) {
@@ -95,6 +101,7 @@ export class Block extends Message<Block> {
     { no: 5, name: "grpc", kind: "message", T: GRPC, oneof: "type" },
     { no: 6, name: "collection", kind: "message", T: Collection, oneof: "type" },
     { no: 7, name: "input", kind: "message", T: Input, oneof: "type" },
+    { no: 8, name: "bucket", kind: "message", T: Bucket, oneof: "type" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Block {
@@ -185,6 +192,43 @@ export class Collection extends Message<Collection> {
 
   static equals(a: Collection | PlainMessage<Collection> | undefined, b: Collection | PlainMessage<Collection> | undefined): boolean {
     return proto3.util.equals(Collection, a, b);
+  }
+}
+
+/**
+ * @generated from message block.Bucket
+ */
+export class Bucket extends Message<Bucket> {
+  /**
+   * @generated from field: string path = 1;
+   */
+  path = "";
+
+  constructor(data?: PartialMessage<Bucket>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "block.Bucket";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "path", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Bucket {
+    return new Bucket().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Bucket {
+    return new Bucket().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Bucket {
+    return new Bucket().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: Bucket | PlainMessage<Bucket> | undefined, b: Bucket | PlainMessage<Bucket> | undefined): boolean {
+    return proto3.util.equals(Bucket, a, b);
   }
 }
 

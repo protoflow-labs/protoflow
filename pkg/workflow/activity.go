@@ -12,7 +12,6 @@ import (
 	grpcanal "github.com/protoflow-labs/protoflow/pkg/grpc"
 	"github.com/rs/zerolog/log"
 	"go.temporal.io/sdk/workflow"
-	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"io"
@@ -40,7 +39,7 @@ type ProtoType struct{}
 func (a *Activity) ExecuteGRPCNode(ctx workflow.Context, node *GRPCNode, input Input) (Result, error) {
 	log.Info().Msgf("executing node: %s", node.Service)
 
-	g, err := getResource[grpc.ClientConn](input.Resources)
+	g, err := getResource[GRPCResource](input.Resources)
 	if err != nil {
 		return Result{}, errors.Wrap(err, "error getting GRPC resource")
 	}
@@ -57,12 +56,16 @@ func (a *Activity) ExecuteGRPCNode(ctx workflow.Context, node *GRPCNode, input I
 		return io.EOF
 	}
 	var headers []string
-	methods, err := grpcanal.AllMethodsViaReflection(context.Background(), g)
+	methods, err := grpcanal.AllMethodsViaReflection(context.Background(), g.Conn)
 	if err != nil {
 		return Result{}, errors.Wrap(err, "error getting all methods")
 	}
 
-	methodName := node.Package + "." + node.Service + "." + node.Method
+	// TODO breadchris is this how you get the fully qualified name?
+	methodName := node.Service + "." + node.Method
+	if node.Package != "" {
+		methodName = node.Package + "." + methodName
+	}
 
 	// TODO breadchris do we have to do this to make this call?
 	for _, m := range methods {
@@ -74,7 +77,7 @@ func (a *Activity) ExecuteGRPCNode(ctx workflow.Context, node *GRPCNode, input I
 			result := grpcanal.RpcResult{
 				DescSource: descSource,
 			}
-			if err := grpcurl.InvokeRPC(context.Background(), descSource, g, methodName, headers, &result, requestFunc); err != nil {
+			if err := grpcurl.InvokeRPC(context.Background(), descSource, g.Conn, methodName, headers, &result, requestFunc); err != nil {
 				return Result{}, err
 			}
 

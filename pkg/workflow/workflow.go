@@ -11,7 +11,7 @@ import (
 
 type Input struct {
 	Params       interface{}
-	Resources    map[string]interface{}
+	Resources    map[string]any
 	Dependencies []string
 }
 
@@ -87,16 +87,26 @@ func FromProject(project *gen.Project) (*Workflow, error) {
 	}, nil
 }
 
+// TODO breadchris can this be a map[string]Resource?
 type Instances map[string]any
 
 func (w *Workflow) Run(logger Logger, executor Executor, nodeID string) (*Result, error) {
+	var cleanupFuncs []func()
+	defer func() {
+		for _, cleanup := range cleanupFuncs {
+			cleanup()
+		}
+	}()
+
+	// TODO breadchris implement resource pool to avoid creating resources for every workflow
 	instances := Instances{}
 	for id, resource := range w.Resources {
-		createdResource, err := resource.New()
+		cleanup, err := resource.Init()
 		if err != nil {
 			return nil, errors.Wrapf(err, "error creating resource %s", id)
 		}
-		instances[id] = createdResource
+		cleanupFuncs = append(cleanupFuncs, cleanup)
+		instances[id] = resource
 	}
 
 	vert, err := w.Graph.Vertex(nodeID)

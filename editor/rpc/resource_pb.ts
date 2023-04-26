@@ -42,6 +42,12 @@ export class Resource extends Message<Resource> {
      */
     value: Docstore;
     case: "docstore";
+  } | {
+    /**
+     * @generated from field: resource.Blobstore blobstore = 6;
+     */
+    value: Blobstore;
+    case: "blobstore";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   /**
@@ -62,6 +68,7 @@ export class Resource extends Message<Resource> {
     { no: 3, name: "grpc_service", kind: "message", T: GRPCService, oneof: "type" },
     { no: 4, name: "rest_service", kind: "message", T: RESTService, oneof: "type" },
     { no: 5, name: "docstore", kind: "message", T: Docstore, oneof: "type" },
+    { no: 6, name: "blobstore", kind: "message", T: Blobstore, oneof: "type" },
     { no: 7, name: "blocks", kind: "message", T: Block, repeated: true },
   ]);
 
@@ -196,6 +203,43 @@ export class Docstore extends Message<Docstore> {
 
   static equals(a: Docstore | PlainMessage<Docstore> | undefined, b: Docstore | PlainMessage<Docstore> | undefined): boolean {
     return proto3.util.equals(Docstore, a, b);
+  }
+}
+
+/**
+ * @generated from message resource.Blobstore
+ */
+export class Blobstore extends Message<Blobstore> {
+  /**
+   * @generated from field: string url = 1;
+   */
+  url = "";
+
+  constructor(data?: PartialMessage<Blobstore>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "resource.Blobstore";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "url", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Blobstore {
+    return new Blobstore().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Blobstore {
+    return new Blobstore().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Blobstore {
+    return new Blobstore().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: Blobstore | PlainMessage<Blobstore> | undefined, b: Blobstore | PlainMessage<Blobstore> | undefined): boolean {
+    return proto3.util.equals(Blobstore, a, b);
   }
 }
 

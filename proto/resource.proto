@@ -12,6 +12,7 @@ message Resource {
     GRPCService grpc_service = 3;
     RESTService rest_service = 4;
     Docstore docstore = 5;
+    Blobstore blobstore = 6;
   }
   repeated block.Block blocks = 7;
 }
@@ -28,3 +29,8 @@ message RESTService {
 message Docstore {
   string url = 1;
 }
+
+message Blobstore {
+  string url = 1;
+}
+
