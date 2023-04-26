@@ -1,4 +1,4 @@
-import { InputData } from "@/blocks/InputBlock";
+import { InputData } from "@/components/blocks/InputBlock";
 import {
   Button,
   Divider,

@@ -1,4 +1,5 @@
 import { generateService, projectService } from "@/lib/api";
+import { checkIsApple } from "@/lib/checkIsApple";
 import { useEditorContext } from "@/providers/EditorProvider";
 import { useProjectContext } from "@/providers/ProjectProvider";
 import {
@@ -10,13 +11,25 @@ import {
   MenuTrigger,
 } from "@fluentui/react-components";
 import { toast } from "react-hot-toast";
+import { useHotkeys } from "react-hotkeys-hook";
 import { getUpdatedProject } from "../lib/project";
 
 export function Toolbar() {
+  const isApple = checkIsApple();
   const { project } = useProjectContext();
   const { props } = useEditorContext();
 
-  const onExport = () => {
+  useHotkeys(isApple ? "meta+s" : "ctrl+s", (event) => {
+    event.preventDefault();
+    onSave();
+  });
+
+  useHotkeys(isApple ? "meta+b" : "ctrl+b", (event) => {
+    event.preventDefault();
+    onBuild();
+  });
+
+  const onSave = () => {
     if (!project) return;
 
     const updatedProject = getUpdatedProject({
@@ -33,10 +46,12 @@ export function Toolbar() {
     }
 
     projectService.saveProject(updatedProject);
+    toast.success("Project saved");
   };
 
   const onBuild = async () => {
     generateService.generate({ projectId: project?.id });
+    toast.success("Project built");
   };
 
   return (
@@ -50,10 +65,10 @@ export function Toolbar() {
 
         <MenuPopover>
           <MenuList>
-            <MenuItem secondaryContent="Ctrl+S">Save</MenuItem>
-            <MenuItem secondaryContent="Ctrl+Shift+E" onClick={onExport}>
-              Export
+            <MenuItem secondaryContent="Ctrl+S" onClick={onSave}>
+              Save
             </MenuItem>
+            <MenuItem secondaryContent="Ctrl+Shift+E">Export</MenuItem>
           </MenuList>
         </MenuPopover>
       </Menu>
@@ -74,7 +89,7 @@ export function Toolbar() {
         <MenuPopover>
           <MenuList>
             <MenuItem secondaryContent="Ctrl+Shift+F5" onClick={onBuild}>
-              Build Project
+              Build
             </MenuItem>
           </MenuList>
         </MenuPopover>

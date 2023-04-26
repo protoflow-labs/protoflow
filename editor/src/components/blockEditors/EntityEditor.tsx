@@ -1,4 +1,4 @@
-import { EntityData } from "@/blocks/EntityBlock";
+import { EntityData } from "@/components/blocks/EntityBlock";
 import { Divider, Field, Input } from "@fluentui/react-components";
 import { useForm } from "react-hook-form";
 import { Node } from "reactflow";
