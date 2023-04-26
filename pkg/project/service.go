@@ -3,12 +3,13 @@ package project
 import (
 	"context"
 	"encoding/json"
-	"github.com/protoflow-labs/protoflow/pkg/grpc"
 	"html/template"
 	"os"
 
+	"github.com/protoflow-labs/protoflow/pkg/grpc"
+
 	"github.com/pkg/errors"
-	genconnect "github.com/protoflow-labs/protoflow/gen/genconnect"
+	"github.com/protoflow-labs/protoflow/gen/genconnect"
 	"github.com/protoflow-labs/protoflow/pkg/workflow"
 	"github.com/protoflow-labs/protoflow/templates"
 	"google.golang.org/protobuf/types/known/anypb"
@@ -41,7 +42,6 @@ func NewService(
 	store Store,
 	manager workflow.Manager,
 ) (*Service, error) {
-	// TODO breadchris this should be loading from an embedded file system
 	blockProtoTemplate, err := template.New("block").ParseFS(templates.Templates, "*.template.proto")
 	if err != nil {
 		return nil, err

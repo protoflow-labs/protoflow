@@ -11,7 +11,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "express": "^4.18.2",
+    "@bufbuild/connect-node": "^0.8.6",
     "glob": "^10.2.2"
   }
 }

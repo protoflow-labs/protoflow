@@ -1,0 +1,14 @@
+version: v1
+managed:
+  enabled: true
+  plugins:
+    - plugin: buf.build/protocolbuffers/go
+      out: ./gen
+      opt:
+        - paths=source_relative
+    - plugin: es
+      opt: target=ts
+      out: ./editor/rpc
+    - plugin: connect-es
+      opt: target=ts
+      out: ./editor/rpc

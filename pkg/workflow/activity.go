@@ -5,6 +5,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
+
 	"github.com/fullstorydev/grpcurl"
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/golang/protobuf/proto"
@@ -14,29 +16,32 @@ import (
 	"go.temporal.io/sdk/workflow"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"io"
 )
 
 type Activity struct{}
+
+var (
+	ErrResourceNotFound = errors.New("resource not found")
+)
 
 func getResource[T any](resources map[string]any) (*T, error) {
 	var instance *T
 	for _, r := range resources {
 		log.Debug().Msgf("resource: %s", r)
-		switch r.(type) {
+		switch r := r.(type) {
 		case *T:
-			instance = r.(*T)
+			instance = r
 		}
 	}
 	if instance == nil {
-		return nil, errors.New("resource not found")
+		return nil, ErrResourceNotFound
 	}
 	return instance, nil
 }
 
 type ProtoType struct{}
 
-func (a *Activity) ExecuteGRPCNode(ctx workflow.Context, node *GRPCNode, input Input) (Result, error) {
+func (a *Activity) ExecuteGRPCNode(ctx context.Context, node *GRPCNode, input Input) (Result, error) {
 	log.Info().Msgf("executing node: %s", node.Service)
 
 	g, ok := input.Resources["grpc"].(*GRPCResource)

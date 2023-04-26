@@ -1,10 +1,11 @@
 package cli
 
 import (
+	"os"
+
 	"github.com/protoflow-labs/protoflow/pkg/temporal"
 	"github.com/protoflow-labs/protoflow/pkg/workflow"
 	"go.uber.org/config"
-	"os"
 
 	"github.com/protoflow-labs/protoflow/pkg/api"
 	logcfg "github.com/protoflow-labs/protoflow/pkg/log"

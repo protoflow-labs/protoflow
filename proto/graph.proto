@@ -25,9 +25,10 @@ message Node {
     block.Collection collection = 8;
     block.Bucket bucket = 9;
     block.Input input = 10;
+    block.Function function = 11;
   }
   // Dependencies
-  repeated string resource_ids = 11;
+  repeated string resource_ids = 12;
 }
 
  message Edge {

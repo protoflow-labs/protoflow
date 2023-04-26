@@ -1,4 +1,4 @@
-import { projectService } from "@/lib/api";
+import { generateService, projectService } from "@/lib/api";
 import { useEditorContext } from "@/providers/EditorProvider";
 import { useProjectContext } from "@/providers/ProjectProvider";
 import {
@@ -35,6 +35,10 @@ export function Toolbar() {
     projectService.saveProject(updatedProject);
   };
 
+  const onBuild = async () => {
+    generateService.generate({ projectId: project?.id });
+  };
+
   return (
     <div className="px-1 py-1">
       <Menu>
@@ -60,6 +64,21 @@ export function Toolbar() {
       <Button appearance="subtle" size="small">
         View
       </Button>
+      <Menu>
+        <MenuTrigger disableButtonEnhancement>
+          <Button appearance="subtle" size="small">
+            Build
+          </Button>
+        </MenuTrigger>
+
+        <MenuPopover>
+          <MenuList>
+            <MenuItem secondaryContent="Ctrl+Shift+F5" onClick={onBuild}>
+              Build Project
+            </MenuItem>
+          </MenuList>
+        </MenuPopover>
+      </Menu>
       <Menu>
         <MenuTrigger disableButtonEnhancement>
           <Button appearance="subtle" size="small">

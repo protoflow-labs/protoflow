@@ -5,7 +5,7 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3 } from "@bufbuild/protobuf";
-import { Bucket, Collection, GRPC, Input, REST } from "./block_pb.js";
+import { Bucket, Collection, Function, GRPC, Input, REST } from "./block_pb.js";
 
 /**
  * @generated from message graph.Graph
@@ -124,12 +124,18 @@ export class Node extends Message<Node> {
      */
     value: Input;
     case: "input";
+  } | {
+    /**
+     * @generated from field: block.Function function = 11;
+     */
+    value: Function;
+    case: "function";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   /**
    * Dependencies
    *
-   * @generated from field: repeated string resource_ids = 11;
+   * @generated from field: repeated string resource_ids = 12;
    */
   resourceIds: string[] = [];
 
@@ -151,7 +157,8 @@ export class Node extends Message<Node> {
     { no: 8, name: "collection", kind: "message", T: Collection, oneof: "config" },
     { no: 9, name: "bucket", kind: "message", T: Bucket, oneof: "config" },
     { no: 10, name: "input", kind: "message", T: Input, oneof: "config" },
-    { no: 11, name: "resource_ids", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
+    { no: 11, name: "function", kind: "message", T: Function, oneof: "config" },
+    { no: 12, name: "resource_ids", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Node {

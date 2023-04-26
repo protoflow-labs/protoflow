@@ -11,6 +11,7 @@ import (
 	"github.com/protoflow-labs/protoflow/pkg/api"
 	"github.com/protoflow-labs/protoflow/pkg/config"
 	"github.com/protoflow-labs/protoflow/pkg/db"
+	"github.com/protoflow-labs/protoflow/pkg/generate"
 	"github.com/protoflow-labs/protoflow/pkg/k8s"
 	"github.com/protoflow-labs/protoflow/pkg/log"
 	"github.com/protoflow-labs/protoflow/pkg/project"
@@ -61,7 +62,11 @@ func Wire(cacheConfig cache.Config) (*cli.App, error) {
 	if err != nil {
 		return nil, err
 	}
-	httpServer := api.NewHTTPServer(service)
+	generateService, err := generate.NewService(dbStore)
+	if err != nil {
+		return nil, err
+	}
+	httpServer := api.NewHTTPServer(service, generateService)
 	app := New(logConfig, httpServer, service, provider)
 	return app, nil
 }

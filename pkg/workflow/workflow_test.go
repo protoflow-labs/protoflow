@@ -2,14 +2,16 @@ package workflow
 
 import (
 	"context"
+	"testing"
+
 	"github.com/protoflow-labs/protoflow/gen"
 	"github.com/protoflow-labs/protoflow/pkg/grpc"
-	"testing"
 )
 
 func TestRun(t *testing.T) {
+	nodeID := "1"
 	r := &gen.Resource{
-		Id: "1",
+		Id: nodeID,
 		Type: &gen.Resource_GrpcService{
 			GrpcService: &gen.GRPCService{
 				Host: "localhost:8080",
@@ -26,7 +28,7 @@ func TestRun(t *testing.T) {
 		Graph: &gen.Graph{
 			Nodes: []*gen.Node{
 				{
-					Id:      "1",
+					Id:      nodeID,
 					BlockId: getProjectsBlockId,
 				},
 			},
@@ -42,10 +44,14 @@ func TestRun(t *testing.T) {
 	ctx := MemoryContext{context.Background()}
 	executor := NewMemoryExecutor(&ctx)
 	logger := &MemoryLogger{}
-	res, err := w.Run(logger, executor, "1")
+	res, err := w.Run(logger, executor, nodeID)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	println(res.Data)
+}
+
+func TestRunWithDependencies(t *testing.T) {
+
 }

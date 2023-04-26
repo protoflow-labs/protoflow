@@ -84,6 +84,12 @@ export class Block extends Message<Block> {
      */
     value: Bucket;
     case: "bucket";
+  } | {
+    /**
+     * @generated from field: block.Function function = 9;
+     */
+    value: Function;
+    case: "function";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<Block>) {
@@ -102,6 +108,7 @@ export class Block extends Message<Block> {
     { no: 6, name: "collection", kind: "message", T: Collection, oneof: "type" },
     { no: 7, name: "input", kind: "message", T: Input, oneof: "type" },
     { no: 8, name: "bucket", kind: "message", T: Bucket, oneof: "type" },
+    { no: 9, name: "function", kind: "message", T: Function, oneof: "type" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Block {
@@ -126,7 +133,7 @@ export class Block extends Message<Block> {
  */
 export class Input extends Message<Input> {
   /**
-   * @generated from field: repeated block.FieldDefinition fields = 4;
+   * @generated from field: repeated block.FieldDefinition fields = 1;
    */
   fields: FieldDefinition[] = [];
 
@@ -138,7 +145,7 @@ export class Input extends Message<Input> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "block.Input";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 4, name: "fields", kind: "message", T: FieldDefinition, repeated: true },
+    { no: 1, name: "fields", kind: "message", T: FieldDefinition, repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Input {
@@ -229,6 +236,43 @@ export class Bucket extends Message<Bucket> {
 
   static equals(a: Bucket | PlainMessage<Bucket> | undefined, b: Bucket | PlainMessage<Bucket> | undefined): boolean {
     return proto3.util.equals(Bucket, a, b);
+  }
+}
+
+/**
+ * @generated from message block.Function
+ */
+export class Function extends Message<Function> {
+  /**
+   * @generated from field: string runtime = 1;
+   */
+  runtime = "";
+
+  constructor(data?: PartialMessage<Function>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "block.Function";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "runtime", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Function {
+    return new Function().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Function {
+    return new Function().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Function {
+    return new Function().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: Function | PlainMessage<Function> | undefined, b: Function | PlainMessage<Function> | undefined): boolean {
+    return proto3.util.equals(Function, a, b);
   }
 }
 
