@@ -10,11 +10,13 @@ import {
   MenuTrigger,
 } from "@fluentui/react-components";
 import { toast } from "react-hot-toast";
-import { getUpdatedProject } from "../lib/project";
+import { getUpdatedProject } from "@/lib/project";
+import { useSelectedNodes } from "@/hooks/useSelectedNodes";
 
 export function Toolbar() {
   const { project } = useProjectContext();
   const { props } = useEditorContext();
+  const selectedNodes = useSelectedNodes();
 
   const onExport = () => {
     if (!project) return;
@@ -38,6 +40,17 @@ export function Toolbar() {
   const onBuild = async () => {
     generateService.generate({ projectId: project?.id });
   };
+
+  const onRun = async () => {
+    if (selectedNodes.length === 0) {
+      toast.error("Please select a node to run");
+      return;
+    }
+
+    const selectedNode = selectedNodes[0];
+    const res = projectService.runWorklow({ projectId: project?.id, nodeId: selectedNode });
+    console.log(res);
+  }
 
   return (
     <div className="px-1 py-1">
@@ -88,7 +101,7 @@ export function Toolbar() {
 
         <MenuPopover>
           <MenuList>
-            <MenuItem secondaryContent="Ctrl+R">Run Workflow</MenuItem>
+            <MenuItem secondaryContent="Ctrl+R" disabled={selectedNodes.length !== 1} onClick={onRun}>Run Workflow</MenuItem>
             <MenuItem secondaryContent="Ctrl+B">Execute Block</MenuItem>
           </MenuList>
         </MenuPopover>

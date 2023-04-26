@@ -2,7 +2,7 @@ import { Card } from "@fluentui/react-components";
 import { useState } from "react";
 import { Node, useOnSelectionChange } from "reactflow";
 import { FieldType } from "../../rpc/block_pb";
-import { EntityEditor } from "./blockEditors/EntityEditor";
+import { CollectionEditor } from "./blockEditors/CollectionEditor";
 import { FunctionEditor } from "./blockEditors/FunctionEditor";
 import { InputEditor } from "./blockEditors/InputEditor";
 
@@ -36,11 +36,14 @@ type NodeEditorProps = {
 };
 
 function NodeEditor(props: NodeEditorProps) {
+  if (!props.node) {
+    return null;
+  }
   switch (props.node?.type) {
     case "protoflow.input":
       return <InputEditor node={props.node} />;
-    case "protoflow.entity":
-      return <EntityEditor node={props.node} />;
+    case "protoflow.collection":
+      return <CollectionEditor node={props.node} />;
     case "protoflow.function":
       return <FunctionEditor node={props.node} />;
     default:

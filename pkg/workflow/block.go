@@ -66,7 +66,7 @@ func (s *CollectionNode) Execute(executor Executor, input Input) (*Result, error
 		return nil, errors.Wrapf(err, "error getting docstore resource")
 	}
 
-	d, cleanup, err := docs.WithKeyField(s.Name)
+	d, cleanup, err := docs.WithCollection(s.Name)
 	if err != nil {
 		return nil, errors.Wrapf(err, "error connecting to collection")
 	}

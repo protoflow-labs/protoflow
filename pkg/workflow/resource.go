@@ -66,10 +66,10 @@ func (r *DocstoreResource) Init() (func(), error) {
 	return nil, nil
 }
 
-func (r *DocstoreResource) WithKeyField(keyfield string) (*docstore.Collection, func(), error) {
-	coll, err := docstore.OpenCollection(context.Background(), r.Url+"/"+keyfield)
+func (r *DocstoreResource) WithCollection(name string) (*docstore.Collection, func(), error) {
+	coll, err := docstore.OpenCollection(context.Background(), r.Url+"/"+name)
 	if err != nil {
-		return nil, nil, fmt.Errorf("could not open collection: %v", err)
+		return nil, nil, errors.Wrapf(err, "could not open docstore collection: %s", name)
 	}
 	return coll, func() {
 		err = coll.Close()

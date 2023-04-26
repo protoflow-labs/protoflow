@@ -89,7 +89,7 @@ func TestDocstoreResource_Init(t *testing.T) {
 		t.Fatal("resource is nil")
 	}
 
-	d, _, err := resource.WithKeyField("Name")
+	d, _, err := resource.WithCollection("Name")
 	if err != nil {
 		t.Fatal(err)
 	}

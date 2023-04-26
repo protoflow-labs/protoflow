@@ -9,7 +9,7 @@ export type EntityData = {
   config: { entity?: { collection: string } };
 };
 
-export function EntityBlock(props: EntityBlockProps) {
+export function CollectionBlock(props: EntityBlockProps) {
   const { data, selected } = props;
 
   return (

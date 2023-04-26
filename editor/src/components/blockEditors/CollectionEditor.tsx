@@ -1,10 +1,10 @@
-import { EntityData } from "@/blocks/EntityBlock";
+import { EntityData } from "@/blocks/CollectionBlock";
 import { Divider, Field, Input } from "@fluentui/react-components";
 import { useForm } from "react-hook-form";
 import { Node } from "reactflow";
 import { EditorActions, useUnselect } from "../EditorActions";
 
-export function EntityEditor(props: { node: Node<EntityData> }) {
+export function CollectionEditor(props: { node: Node<EntityData> }) {
   const onCancel = useUnselect();
   const { register, handleSubmit, watch } = useForm({
     values: {

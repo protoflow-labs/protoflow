@@ -9,6 +9,7 @@ import (
 )
 
 func TestRun(t *testing.T) {
+	// TODO breadchris start server to listen for localhost:8080?
 	nodeID := "1"
 	r := &gen.Resource{
 		Id: nodeID,
@@ -44,12 +45,10 @@ func TestRun(t *testing.T) {
 	ctx := MemoryContext{context.Background()}
 	executor := NewMemoryExecutor(&ctx)
 	logger := &MemoryLogger{}
-	res, err := w.Run(logger, executor, nodeID)
+	_, err = w.Run(logger, executor, nodeID)
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	println(res.Data)
 }
 
 func TestRunWithDependencies(t *testing.T) {

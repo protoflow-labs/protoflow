@@ -42,7 +42,7 @@ var _ Executor = &MemoryExecutor{}
 
 func (e *MemoryExecutor) Execute(activity interface{}, block interface{}, input Input) (*Result, error) {
 	activityArgs := []interface{}{
-		e.ctx, block, input,
+		e.ctx.Context, block, input,
 	}
 	res, err := executeFunction(activity, activityArgs)
 	if err != nil {
