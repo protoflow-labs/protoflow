@@ -6,7 +6,11 @@ type FunctionBlockProps = NodeProps<FunctionData>;
 
 export type FunctionData = {
   name: string;
-  language: string;
+  config: {
+    function?: {
+      runtime: string;
+    };
+  };
 };
 
 export function FunctionBlock(props: FunctionBlockProps) {

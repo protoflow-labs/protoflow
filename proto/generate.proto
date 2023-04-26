@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package generate;
+option go_package = "generate";
+
+service GenerateService {
+    rpc Generate(GenerateRequest) returns (GenerateResponse);
+}
+
+message GenerateRequest {
+    string project_id = 1;
+}
+
+message GenerateResponse {
+    string project_id = 1;
+}

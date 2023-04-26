@@ -1,6 +1,8 @@
 import { Code, ConnectError } from "@bufbuild/connect";
 import { RunService } from "./gen/run_connect.js";
 
+import { helloWorld } from "./helloWorld.js";
+
 export default (registry) => (router) => {
   return router.service(RunService, {
     // implements rpc Run
@@ -15,6 +17,10 @@ export default (registry) => (router) => {
       return {
         output,
       };
+    },
+
+    async helloWorld(req) {
+      return helloWorld(req);
     },
   });
 };

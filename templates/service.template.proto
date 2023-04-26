@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+package protoflow;
+
+service {{index . "Runtime"}}Service {
+    {{- range index . "Methods"}}
+    {{. -}}(string) returns (string);
+    {{- end}}
+}

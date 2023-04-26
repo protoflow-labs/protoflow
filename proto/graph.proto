@@ -19,14 +19,17 @@ message Node {
   string block_id = 3;
   float x = 4;
   float y = 5;
-  oneof config {
-    block.REST rest = 6;
-    block.GRPC grpc = 7;
-    block.Collection collection = 8;
-    block.Input input = 9;
-  }
+
   // Dependencies
-  repeated string resource_ids = 10;
+  repeated string resource_ids = 6;
+
+  oneof config {
+    block.REST rest = 7;
+    block.GRPC grpc = 8;
+    block.Collection collection = 9;
+    block.Input input = 10;
+    block.Function function = 11;
+  }
 }
 
  message Edge {

@@ -12,15 +12,20 @@ message Block {
     GRPC grpc = 5;
     Collection collection = 6;
     Input input = 7;
+    Function function = 8;
   }
 }
 
 message Input {
-  repeated FieldDefinition fields = 4;
+  repeated FieldDefinition fields = 1;
 }
 
 message Collection {
   string name = 1;
+}
+
+message Function {
+  string runtime = 1;
 }
 
 message Result {

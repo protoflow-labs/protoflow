@@ -5,7 +5,7 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3 } from "@bufbuild/protobuf";
-import { Collection, GRPC, Input, REST } from "./block_pb.js";
+import { Collection, Function, GRPC, Input, REST } from "./block_pb.js";
 
 /**
  * @generated from message graph.Graph
@@ -92,40 +92,46 @@ export class Node extends Message<Node> {
   y = 0;
 
   /**
+   * Dependencies
+   *
+   * @generated from field: repeated string resource_ids = 6;
+   */
+  resourceIds: string[] = [];
+
+  /**
    * @generated from oneof graph.Node.config
    */
   config: {
     /**
-     * @generated from field: block.REST rest = 6;
+     * @generated from field: block.REST rest = 7;
      */
     value: REST;
     case: "rest";
   } | {
     /**
-     * @generated from field: block.GRPC grpc = 7;
+     * @generated from field: block.GRPC grpc = 8;
      */
     value: GRPC;
     case: "grpc";
   } | {
     /**
-     * @generated from field: block.Collection collection = 8;
+     * @generated from field: block.Collection collection = 9;
      */
     value: Collection;
     case: "collection";
   } | {
     /**
-     * @generated from field: block.Input input = 9;
+     * @generated from field: block.Input input = 10;
      */
     value: Input;
     case: "input";
+  } | {
+    /**
+     * @generated from field: block.Function function = 11;
+     */
+    value: Function;
+    case: "function";
   } | { case: undefined; value?: undefined } = { case: undefined };
-
-  /**
-   * Dependencies
-   *
-   * @generated from field: repeated string resource_ids = 10;
-   */
-  resourceIds: string[] = [];
 
   constructor(data?: PartialMessage<Node>) {
     super();
@@ -140,11 +146,12 @@ export class Node extends Message<Node> {
     { no: 3, name: "block_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 4, name: "x", kind: "scalar", T: 2 /* ScalarType.FLOAT */ },
     { no: 5, name: "y", kind: "scalar", T: 2 /* ScalarType.FLOAT */ },
-    { no: 6, name: "rest", kind: "message", T: REST, oneof: "config" },
-    { no: 7, name: "grpc", kind: "message", T: GRPC, oneof: "config" },
-    { no: 8, name: "collection", kind: "message", T: Collection, oneof: "config" },
-    { no: 9, name: "input", kind: "message", T: Input, oneof: "config" },
-    { no: 10, name: "resource_ids", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
+    { no: 6, name: "resource_ids", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
+    { no: 7, name: "rest", kind: "message", T: REST, oneof: "config" },
+    { no: 8, name: "grpc", kind: "message", T: GRPC, oneof: "config" },
+    { no: 9, name: "collection", kind: "message", T: Collection, oneof: "config" },
+    { no: 10, name: "input", kind: "message", T: Input, oneof: "config" },
+    { no: 11, name: "function", kind: "message", T: Function, oneof: "config" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Node {
