@@ -10,6 +10,7 @@ import (
 
 	"github.com/protoflow-labs/protoflow/gen"
 	"github.com/protoflow-labs/protoflow/templates"
+	"github.com/rs/zerolog/log"
 )
 
 type Generator struct {
@@ -129,6 +130,12 @@ func (g *Generator) GenerateServices() error {
 	args := []string{"buf", "generate", "proto"}
 
 	_, err := exec.Command(cmd, args...).Output()
+	if err != nil {
+		log.Err(err)
+	}
 
+	err = templates.TemplateGlob("node/*", g.projectDir, map[string]interface{}{
+		"Something": 1,
+	})
 	return err
 }
