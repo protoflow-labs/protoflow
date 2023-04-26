@@ -88,7 +88,7 @@ export function Toolbar() {
 
         <MenuPopover>
           <MenuList>
-            <MenuItem secondaryContent="Ctrl+Shift+F5" onClick={onBuild}>
+            <MenuItem secondaryContent="Ctrl+B" onClick={onBuild}>
               Build
             </MenuItem>
           </MenuList>
