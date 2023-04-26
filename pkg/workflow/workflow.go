@@ -94,7 +94,9 @@ func (w *Workflow) Run(logger Logger, executor Executor, nodeID string) (*Result
 	var cleanupFuncs []func()
 	defer func() {
 		for _, cleanup := range cleanupFuncs {
-			cleanup()
+			if cleanup != nil {
+				cleanup()
+			}
 		}
 	}()
 

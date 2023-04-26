@@ -39,9 +39,9 @@ type ProtoType struct{}
 func (a *Activity) ExecuteGRPCNode(ctx workflow.Context, node *GRPCNode, input Input) (Result, error) {
 	log.Info().Msgf("executing node: %s", node.Service)
 
-	g, err := getResource[GRPCResource](input.Resources)
-	if err != nil {
-		return Result{}, errors.Wrap(err, "error getting GRPC resource")
+	g, ok := input.Resources["grpc"].(*GRPCResource)
+	if !ok {
+		return Result{}, fmt.Errorf("error getting GRPC resource: %s.%s", node.Service, node.Method)
 	}
 
 	requestFunc := func(m proto.Message) error {

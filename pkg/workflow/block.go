@@ -20,20 +20,35 @@ type GRPCNode struct {
 	*gen.GRPC
 }
 
+var _ Node = &GRPCNode{}
+
 type RESTNode struct {
 	BaseNode
 	*gen.REST
 }
+
+var _ Node = &RESTNode{}
 
 type CollectionNode struct {
 	BaseNode
 	*gen.Collection
 }
 
+var _ Node = &CollectionNode{}
+
 type BucketNode struct {
 	BaseNode
 	*gen.Bucket
 }
+
+var _ Node = &BucketNode{}
+
+type InputNode struct {
+	BaseNode
+	*gen.Input
+}
+
+var _ Node = &InputNode{}
 
 var activity = &Activity{}
 
@@ -50,7 +65,14 @@ func (s *CollectionNode) Execute(executor Executor, input Input) (*Result, error
 	if err != nil {
 		return nil, errors.Wrapf(err, "error getting docstore resource")
 	}
-	err = docs.Collection.Create(context.Background(), input.Params)
+
+	d, cleanup, err := docs.WithKeyField(s.Name)
+	if err != nil {
+		return nil, errors.Wrapf(err, "error connecting to collection")
+	}
+	defer cleanup()
+
+	err = d.Create(context.Background(), input.Params)
 	return &Result{
 		Data: input.Params,
 	}, nil
@@ -74,7 +96,20 @@ func (s *BucketNode) Execute(executor Executor, input Input) (*Result, error) {
 			return nil, errors.Wrapf(err, "error marshaling input params")
 		}
 	}
-	err = bucket.Bucket.WriteAll(context.Background(), s.Path, bucketData, nil)
+
+	b, cleanup, err := bucket.WithPath(s.Path)
+	if err != nil {
+		return nil, errors.Wrapf(err, "error connecting to bucket")
+	}
+	defer cleanup()
+
+	err = b.WriteAll(context.Background(), s.Path, bucketData, nil)
+	return &Result{
+		Data: input.Params,
+	}, nil
+}
+
+func (s *InputNode) Execute(executor Executor, input Input) (*Result, error) {
 	return &Result{
 		Data: input.Params,
 	}, nil
@@ -83,20 +118,102 @@ func (s *BucketNode) Execute(executor Executor, input Input) (*Result, error) {
 func NewNode(node *gen.Node, block *gen.Block) (Node, error) {
 	switch block.Type.(type) {
 	case *gen.Block_Grpc:
-		b := block.GetGrpc()
-		n := node.GetGrpc()
-		if n != nil {
-			if n.Service != "" {
-				b.Service = n.Service
-			}
-			if n.Method != "" {
-				b.Method = n.Method
-			}
-		}
-		return &GRPCNode{
-			GRPC: b,
-		}, nil
+		return NewGRPCNode(node, block), nil
+	case *gen.Block_Collection:
+		return NewCollectionNode(node, block), nil
+	case *gen.Block_Bucket:
+		return NewBucketNode(node, block), nil
+	case *gen.Block_Rest:
+		return NewRestNode(node, block), nil
+	case *gen.Block_Input:
+		return NewInputNode(node, block), nil
 	default:
 		return nil, errors.New("no node found")
+	}
+}
+
+func NewGRPCNode(node *gen.Node, block *gen.Block) *GRPCNode {
+	b := block.GetGrpc()
+	n := node.GetGrpc()
+	if n != nil {
+		if n.Service != "" {
+			b.Service = n.Service
+		}
+		if n.Method != "" {
+			b.Method = n.Method
+		}
+	}
+	return &GRPCNode{
+		BaseNode: BaseNode{
+			ResourceIDs: node.ResourceIds,
+		},
+		GRPC: b,
+	}
+}
+
+func NewRestNode(node *gen.Node, block *gen.Block) *RESTNode {
+	b := block.GetRest()
+	n := node.GetRest()
+	if n != nil {
+		if n.Path != "" {
+			b.Path = n.Path
+		}
+		if n.Method != "" {
+			b.Method = n.Method
+		}
+	}
+	return &RESTNode{
+		BaseNode: BaseNode{
+			ResourceIDs: node.ResourceIds,
+		},
+		REST: b,
+	}
+}
+
+func NewCollectionNode(node *gen.Node, block *gen.Block) *CollectionNode {
+	b := block.GetCollection()
+	n := node.GetCollection()
+	if n != nil {
+		if n.Name != "" {
+			b.Name = n.Name
+		}
+	}
+	return &CollectionNode{
+		BaseNode: BaseNode{
+			ResourceIDs: node.ResourceIds,
+		},
+		Collection: b,
+	}
+}
+
+func NewBucketNode(node *gen.Node, block *gen.Block) *BucketNode {
+	b := block.GetBucket()
+	n := node.GetBucket()
+	if n != nil {
+		if n.Path != "" {
+			b.Path = n.Path
+		}
+	}
+	return &BucketNode{
+		BaseNode: BaseNode{
+			ResourceIDs: node.ResourceIds,
+		},
+		Bucket: b,
+	}
+}
+
+func NewInputNode(node *gen.Node, block *gen.Block) *InputNode {
+	b := block.GetInput()
+	n := node.GetInput()
+	if n != nil {
+		if n.Fields != nil {
+			b.Fields = n.Fields
+		}
+	}
+	return &InputNode{
+		BaseNode: BaseNode{
+			ResourceIDs: node.ResourceIds,
+		},
+		Input: b,
 	}
 }

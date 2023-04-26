@@ -11,18 +11,17 @@ func TestBlobstoreResource_Init(t *testing.T) {
 		Id: "1",
 		Type: &gen.Resource_Blobstore{
 			Blobstore: &gen.Blobstore{
-				Url: "mem://collection/test",
+				Url: "mem://",
 			},
 		},
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
-	cleanup, err := r.Init()
+	_, err = r.Init()
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer cleanup()
 
 	resources := map[string]any{
 		"1": r,
@@ -41,11 +40,18 @@ func TestBlobstoreResource_Init(t *testing.T) {
 	if resource == nil {
 		t.Fatal("resource is nil")
 	}
-	err = resource.Bucket.WriteAll(context.Background(), "test", []byte("test"), nil)
+
+	b, cleanup, err := resource.WithPath("test")
 	if err != nil {
 		t.Fatal(err)
 	}
-	data, err := resource.Bucket.ReadAll(context.Background(), "test")
+	defer cleanup()
+
+	err = b.WriteAll(context.Background(), "test", []byte("test"), nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	data, err := b.ReadAll(context.Background(), "test")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -59,18 +65,17 @@ func TestDocstoreResource_Init(t *testing.T) {
 		Id: "1",
 		Type: &gen.Resource_Docstore{
 			Docstore: &gen.Docstore{
-				Url: "mem://collection/Name",
+				Url: "mem://collection",
 			},
 		},
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
-	cleanup, err := r.Init()
+	_, err = r.Init()
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer cleanup()
 
 	resources := map[string]any{
 		"1": r,
@@ -84,6 +89,11 @@ func TestDocstoreResource_Init(t *testing.T) {
 		t.Fatal("resource is nil")
 	}
 
+	d, _, err := resource.WithKeyField("Name")
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	type Player struct {
 		Name  string
 		Score int
@@ -94,7 +104,7 @@ func TestDocstoreResource_Init(t *testing.T) {
 		Score: 100,
 	}
 
-	err = resource.Collection.Create(context.Background(), &createPlayer)
+	err = d.Create(context.Background(), &createPlayer)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -102,7 +112,7 @@ func TestDocstoreResource_Init(t *testing.T) {
 	getPlayer := Player{
 		Name: "chris",
 	}
-	err = resource.Collection.Get(context.Background(), &getPlayer)
+	err = d.Get(context.Background(), &getPlayer)
 	if err != nil {
 		t.Fatal(err)
 	}
