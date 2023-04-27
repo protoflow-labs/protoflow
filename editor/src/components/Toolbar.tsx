@@ -1,5 +1,7 @@
+import { useSelectedNodes } from "@/hooks/useSelectedNodes";
 import { generateService, projectService } from "@/lib/api";
 import { checkIsApple } from "@/lib/checkIsApple";
+import { getUpdatedProject } from "@/lib/project";
 import { useEditorContext } from "@/providers/EditorProvider";
 import { useProjectContext } from "@/providers/ProjectProvider";
 import {
@@ -11,8 +13,6 @@ import {
   MenuTrigger,
 } from "@fluentui/react-components";
 import { toast } from "react-hot-toast";
-import { getUpdatedProject } from "@/lib/project";
-import { useSelectedNodes } from "@/hooks/useSelectedNodes";
 import { useHotkeys } from "react-hotkeys-hook";
 
 export function Toolbar() {
@@ -29,6 +29,11 @@ export function Toolbar() {
   useHotkeys(isApple ? "meta+b" : "ctrl+b", (event) => {
     event.preventDefault();
     onBuild();
+  });
+
+  useHotkeys(isApple ? "meta+r" : "ctrl+r", (event) => {
+    event.preventDefault();
+    onRun();
   });
 
   const onSave = async () => {
@@ -59,7 +64,7 @@ export function Toolbar() {
   };
 
   const onRun = async () => {
-    if (selectedNodes.length === 0) {
+    if (selectedNodes.length !== 1) {
       toast.error("Please select a node to run");
       return;
     }
