@@ -2,6 +2,7 @@ package workflow
 
 import (
 	"fmt"
+
 	"github.com/dominikbraun/graph"
 	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/gen"
@@ -172,11 +173,17 @@ func (w *Workflow) traverseWorkflow(logger Logger, instances Instances, executor
 	}
 
 	log.Debug().Interface("result", res).Msg("node result")
+	nextResSet := false
 	for neighbor := range w.AdjMap[vert] {
 		logger.Info("Traversing workflow", "nodeID", neighbor)
-		_, err = w.traverseWorkflow(logger, instances, executor, neighbor, nextBlockInput)
+		neighborRes, err := w.traverseWorkflow(logger, instances, executor, neighbor, nextBlockInput)
 		if err != nil {
 			return nil, errors.Wrapf(err, "error traversing workflow %s", neighbor)
+		}
+
+		if !nextResSet {
+			res = neighborRes
+			nextResSet = true
 		}
 	}
 	return &Result{

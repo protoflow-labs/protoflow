@@ -4,11 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
+	"strings"
+
+	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/gen"
 	"github.com/protoflow-labs/protoflow/pkg/util"
-	"io"
-	"strings"
 )
 
 type Node interface {
@@ -90,13 +92,33 @@ func (s *CollectionNode) Execute(executor Executor, input Input) (*Result, error
 		return nil, fmt.Errorf("error getting docstore resource: %s", s.Collection.Name)
 	}
 
-	d, cleanup, err := docs.WithCollection(s.Collection.Name)
+	collection, cleanup, err := docs.WithCollection(s.Collection.Name)
 	if err != nil {
 		return nil, errors.Wrapf(err, "error connecting to collection")
 	}
 	defer cleanup()
 
-	err = d.Create(context.Background(), input.Params)
+	records := make([]map[string]interface{}, 0)
+
+	switch input := input.Params.(type) {
+	case map[string]interface{}:
+		records = append(records, input)
+	case []*map[string]interface{}:
+		for _, record := range input {
+			records = append(records, *record)
+		}
+	}
+
+	for _, record := range records {
+		if record["id"] == nil {
+			record["id"] = uuid.NewString()
+		}
+		err = collection.Create(context.Background(), record)
+		if err != nil {
+			return nil, errors.Wrapf(err, "error creating doc")
+		}
+	}
+
 	return &Result{
 		Data: input.Params,
 	}, nil
@@ -138,7 +160,7 @@ func (s *BucketNode) Execute(executor Executor, input Input) (*Result, error) {
 
 func (s *InputNode) Execute(executor Executor, input Input) (*Result, error) {
 	return &Result{
-		Data: "hello from input",
+		Data: map[string]any{},
 	}, nil
 	//return &Result{
 	//	Data: input.Params,

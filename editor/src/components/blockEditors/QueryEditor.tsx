@@ -15,7 +15,7 @@ export function QueryEditor(props: { node: Node<QueryData> }) {
     values: {
       name: props.node.data.name || "",
       config: {
-        ...props.node.data.config.query,
+        collection: props.node.data.config.query?.collection || "",
       } as Query,
     },
   });
