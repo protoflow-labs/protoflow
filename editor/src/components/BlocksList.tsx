@@ -22,7 +22,6 @@ function NodeButton(props: { children: ReactNode; nodeType: string }) {
       onDragStart={(e) => {
         e.dataTransfer.setData("application/reactflow", props.nodeType);
         e.dataTransfer.effectAllowed = "move";
-        console.log({ nodeType: props.nodeType });
       }}
     >
       <Button size="small" className="w-full">
