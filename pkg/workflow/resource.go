@@ -5,14 +5,18 @@ import (
 	"fmt"
 	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/gen"
+	"github.com/protoflow-labs/protoflow/pkg/util"
 	"github.com/rs/zerolog/log"
 	"gocloud.dev/blob"
 	_ "gocloud.dev/blob/fileblob"
 	_ "gocloud.dev/blob/memblob"
 	"gocloud.dev/docstore"
+	"gocloud.dev/docstore/memdocstore"
 	_ "gocloud.dev/docstore/memdocstore"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"path"
+	"strings"
 )
 
 const (
@@ -83,10 +87,28 @@ func (r *DocstoreResource) Init() (func(), error) {
 }
 
 func (r *DocstoreResource) WithCollection(name string) (*docstore.Collection, func(), error) {
-	coll, err := docstore.OpenCollection(context.Background(), r.Url+"/"+name)
+	var (
+		coll *docstore.Collection
+		err  error
+	)
+	if strings.HasPrefix(r.Url, "mem://") {
+		// TODO breadchris replace this with cache.Cache.GetFolder
+		protoDir, err := util.ProtoflowHomeDir()
+		if err != nil {
+			return nil, nil, errors.Wrap(err, "could not get protoflow home dir")
+		}
+
+		// TODO breadchris "id" is
+		coll, err = memdocstore.OpenCollection("id", &memdocstore.Options{
+			Filename: path.Join(protoDir, name+".json"),
+		})
+	} else {
+		coll, err = docstore.OpenCollection(context.Background(), r.Url+"/"+name)
+	}
 	if err != nil {
 		return nil, nil, errors.Wrapf(err, "could not open docstore collection: %s", name)
 	}
+
 	return coll, func() {
 		err = coll.Close()
 		if err != nil {

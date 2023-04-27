@@ -2,17 +2,13 @@ package util
 
 import (
 	"os"
+	"path"
 )
 
-func CreateTempDir() (string, func(), error) {
-	dir, err := os.MkdirTemp("", "example")
+func ProtoflowHomeDir() (string, error) {
+	homeDir, err := os.UserHomeDir()
 	if err != nil {
-		return "", nil, err
+		return "", err
 	}
-
-	cleanup := func() {
-		os.RemoveAll(dir)
-	}
-
-	return dir, cleanup, nil
+	return path.Join(homeDir, ".protoflow"), nil
 }

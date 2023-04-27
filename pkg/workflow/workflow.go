@@ -41,7 +41,7 @@ func FromProject(project *gen.Project) (*Workflow, error) {
 		},
 		"docs": &DocstoreResource{
 			Docstore: &gen.Docstore{
-				Url: "",
+				Url: "mem://",
 			},
 		},
 		"bucket": &BlobstoreResource{

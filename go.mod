@@ -14,10 +14,11 @@ require (
 	github.com/google/wire v0.5.0
 	github.com/jhump/protoreflect v1.15.1
 	github.com/lib/pq v1.10.8
-	github.com/lunabrain-ai/lunabrain v0.0.0-20230421181844-7a8aeedaf602
+	github.com/lunabrain-ai/lunabrain v0.0.0-20230427175702-0fc86b34e370
 	github.com/mattn/go-sqlite3 v1.14.16
 	github.com/pkg/errors v0.9.1
 	github.com/rs/zerolog v1.29.1
+	github.com/stretchr/testify v1.8.2
 	github.com/urfave/cli/v2 v2.25.1
 	go.temporal.io/sdk v1.22.1
 	go.uber.org/config v1.4.0
@@ -105,7 +106,6 @@ require (
 	github.com/spf13/cobra v1.6.1 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/stretchr/objx v0.5.0 // indirect
-	github.com/stretchr/testify v1.8.2 // indirect
 	github.com/tetratelabs/wazero v1.0.1 // indirect
 	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
 	go.opencensus.io v0.24.0 // indirect

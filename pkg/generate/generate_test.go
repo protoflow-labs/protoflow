@@ -25,7 +25,7 @@ func TestGenerate(t *testing.T) {
 		},
 	}
 
-	generator, err := NewFromProject(project)
+	generator, err := NewGenerate(project)
 	assert.NoError(t, err)
 
 	err = generator.Generate()

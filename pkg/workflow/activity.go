@@ -48,7 +48,7 @@ func (a *Activity) ExecuteRestNode(ctx workflow.Context, node *RESTNode, input I
 }
 
 func (a *Activity) ExecuteFunctionNode(ctx context.Context, node *FunctionNode, input Input) (Result, error) {
-	log.Debug().Msgf("executing input: %v", node.Function.Runtime)
+	log.Debug().Msgf("executing function node: %v", node.Function.Runtime)
 	g, ok := input.Resources[LanguageServiceType].(*LanguageServiceResource)
 	if !ok {
 		return Result{}, fmt.Errorf("error getting GRPC resource: %s.%s", node.Function.Runtime, node.Name)

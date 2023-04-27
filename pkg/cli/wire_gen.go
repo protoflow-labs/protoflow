@@ -62,7 +62,8 @@ func Wire(cacheConfig cache.Config) (*cli.App, error) {
 	if err != nil {
 		return nil, err
 	}
-	generateService, err := generate.NewService(dbStore)
+	generateGenerate := generate.NewGenerate(localCache)
+	generateService, err := generate.NewService(dbStore, generateGenerate)
 	if err != nil {
 		return nil, err
 	}

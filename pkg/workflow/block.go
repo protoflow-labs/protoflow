@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/gen"
+	"github.com/protoflow-labs/protoflow/pkg/util"
 	"strings"
 )
 
@@ -164,7 +165,7 @@ func NewNode(resources ResourceMap, node *gen.Node) (Node, error) {
 // NewBaseNode creates a new BaseNode from a gen.Node, gen.Node cannot be embedded into BaseNode because proto deserialization will fail on the type
 func NewBaseNode(node *gen.Node) BaseNode {
 	return BaseNode{
-		Name:        node.Name,
+		Name:        util.ToTitleCase(node.Name),
 		ResourceIDs: node.ResourceIds,
 	}
 }
