@@ -115,35 +115,6 @@ func TestBuildingGraph(t *testing.T) {
 				},
 			},
 		},
-		Blocks: []*gen.Block{
-			{
-				Id:   "crawl-block",
-				Name: "Crawl Website",
-				Type: &gen.Block_Function{
-					Function: &gen.Function{
-						Runtime: "go",
-					},
-				},
-			},
-			{
-				Id:   "normalize-html-block",
-				Name: "Normalize HTML",
-				Type: &gen.Block_Function{
-					Function: &gen.Function{
-						Runtime: "go",
-					},
-				},
-			},
-			{
-				Id:   "create-embeddings-block",
-				Name: "Create Embeddings",
-				Type: &gen.Block_Function{
-					Function: &gen.Function{
-						Runtime: "go",
-					},
-				},
-			},
-		},
 	}
 
 	w, err := FromProject(p)
