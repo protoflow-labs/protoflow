@@ -26,7 +26,7 @@ type EditorContextType = {
   props: {
     edges: Edge[];
     nodes: Node[];
-    blockTypes: Record<string, any>;
+    nodeTypes: Record<string, any>;
     onConnect: (params: Connection) => void;
     onDragOver: DragEventHandler;
     onDrop: DragEventHandler<HTMLDivElement>;
@@ -79,7 +79,7 @@ const useEditorProps = (reactFlowInstance?: ReactFlowInstance) => {
       target: e.to,
     })) || []
   );
-  const { blockTypes } = useBlockTypes();
+  const { nodeTypes } = useBlockTypes();
 
   const onConnect = useCallback((params: Connection) => {
     if (!params.source || !params.target) return;
@@ -125,7 +125,7 @@ const useEditorProps = (reactFlowInstance?: ReactFlowInstance) => {
   return {
     edges,
     nodes,
-    blockTypes,
+    nodeTypes,
     onConnect,
     onDragOver,
     onDrop,

@@ -1,8 +1,12 @@
-import { EntityData } from "@/components/blocks/EntityBlock";
-import { Divider, Field, Input } from "@fluentui/react-components";
 import { useForm } from "react-hook-form";
 import { Node } from "reactflow";
 import { EditorActions, useUnselect } from "../EditorActions";
+import {Field, Input} from "@fluentui/react-components";
+
+export type EntityData = {
+  name: string;
+  config: { entity?: { collection: string } };
+};
 
 export function CollectionEditor(props: { node: Node<EntityData> }) {
   const onCancel = useUnselect();

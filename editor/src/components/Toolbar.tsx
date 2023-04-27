@@ -31,7 +31,7 @@ export function Toolbar() {
     onBuild();
   });
 
-  const onSave = () => {
+  const onSave = async () => {
     if (!project) return;
 
     const updatedProject = getUpdatedProject({
@@ -47,11 +47,13 @@ export function Toolbar() {
       }
     }
 
-    projectService.saveProject(updatedProject);
+    await projectService.saveProject(updatedProject);
     toast.success("Project saved");
   };
 
   const onBuild = async () => {
+    await onSave();
+
     generateService.generate({ projectId: project?.id });
     toast.success("Project built");
   };

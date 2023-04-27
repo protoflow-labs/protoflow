@@ -2,9 +2,12 @@ package workflow
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/pkg/errors"
+	"github.com/protoflow-labs/protoflow/gen"
 	grpcanal "github.com/protoflow-labs/protoflow/pkg/grpc"
+	"github.com/protoflow-labs/protoflow/pkg/util"
 	"github.com/rs/zerolog/log"
 	"go.temporal.io/sdk/workflow"
 )
@@ -51,9 +54,18 @@ func (a *Activity) ExecuteFunctionNode(ctx context.Context, node *FunctionNode, 
 		return Result{}, fmt.Errorf("error getting GRPC resource: %s.%s", node.Function.Runtime, node.Name)
 	}
 
+	ser, err := json.Marshal(input.Params)
+	if err != nil {
+		return Result{}, errors.Wrapf(err, "error marshalling params: %s", node.Name)
+	}
+
+	inputData := gen.Data{
+		Value: string(ser),
+	}
+
 	// TODO breadchris how is the method name formatted?
-	methodName := node.Function.Runtime + "." + node.Name
-	data, err := grpcanal.CallMethod(g.Conn, &input, methodName)
+	methodName := fmt.Sprintf("protoflow.%sService.%s", node.Function.Runtime, util.ToTitleCase(node.Name))
+	data, err := grpcanal.CallMethod(g.Conn, inputData, methodName)
 	if err != nil {
 		return Result{}, errors.Wrapf(err, "error calling method: %s", node.Name)
 	}

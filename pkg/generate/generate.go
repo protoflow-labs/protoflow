@@ -2,6 +2,7 @@ package generate
 
 import (
 	"fmt"
+	"github.com/protoflow-labs/protoflow/pkg/util"
 	"os"
 
 	"github.com/pkg/errors"
@@ -19,6 +20,10 @@ type Generator struct {
 func NewFromProject(project *gen.Project) (*Generator, error) {
 	if project == nil {
 		return nil, errors.New("project must be provided")
+	}
+
+	for _, node := range project.GetGraph().GetNodes() {
+		node.Name = util.ToTitleCase(node.Name)
 	}
 
 	return &Generator{

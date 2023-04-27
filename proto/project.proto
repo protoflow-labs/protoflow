@@ -36,8 +36,12 @@ message RunBlockRequest {
     google.protobuf.Any input = 3;
 }
 
+message Data {
+    string value = 1;
+}
+
 message RunOutput {
-    google.protobuf.Any output = 1;
+    string output = 1;
 }
 
 message Project {

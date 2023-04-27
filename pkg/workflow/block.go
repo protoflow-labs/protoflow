@@ -129,8 +129,11 @@ func (s *BucketNode) Execute(executor Executor, input Input) (*Result, error) {
 
 func (s *InputNode) Execute(executor Executor, input Input) (*Result, error) {
 	return &Result{
-		Data: input.Params,
+		Data: "hello from input",
 	}, nil
+	//return &Result{
+	//	Data: input.Params,
+	//}, nil
 }
 
 func (f *FunctionNode) Execute(executor Executor, input Input) (*Result, error) {

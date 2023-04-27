@@ -2,7 +2,6 @@ package workflow
 
 import (
 	"fmt"
-
 	"github.com/dominikbraun/graph"
 	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/gen"
@@ -38,6 +37,16 @@ func FromProject(project *gen.Project) (*Workflow, error) {
 			LanguageService: &gen.LanguageService{
 				Runtime: gen.Runtime_NODE,
 				Host:    "localhost:8086",
+			},
+		},
+		"docs": &DocstoreResource{
+			Docstore: &gen.Docstore{
+				Url: "",
+			},
+		},
+		"bucket": &BlobstoreResource{
+			Blobstore: &gen.Blobstore{
+				Url: "file:///home/breadchris/.protoflow",
 			},
 		},
 	}

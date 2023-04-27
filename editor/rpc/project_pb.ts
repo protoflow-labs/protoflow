@@ -107,13 +107,50 @@ export class RunBlockRequest extends Message<RunBlockRequest> {
 }
 
 /**
+ * @generated from message project.Data
+ */
+export class Data extends Message<Data> {
+  /**
+   * @generated from field: string value = 1;
+   */
+  value = "";
+
+  constructor(data?: PartialMessage<Data>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "project.Data";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "value", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Data {
+    return new Data().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Data {
+    return new Data().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Data {
+    return new Data().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: Data | PlainMessage<Data> | undefined, b: Data | PlainMessage<Data> | undefined): boolean {
+    return proto3.util.equals(Data, a, b);
+  }
+}
+
+/**
  * @generated from message project.RunOutput
  */
 export class RunOutput extends Message<RunOutput> {
   /**
-   * @generated from field: google.protobuf.Any output = 1;
+   * @generated from field: string output = 1;
    */
-  output?: Any;
+  output = "";
 
   constructor(data?: PartialMessage<RunOutput>) {
     super();
@@ -123,7 +160,7 @@ export class RunOutput extends Message<RunOutput> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "project.RunOutput";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "output", kind: "message", T: Any },
+    { no: 1, name: "output", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): RunOutput {

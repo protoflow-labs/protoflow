@@ -132,13 +132,13 @@ func (s *Service) RunWorklow(ctx context.Context, c *connect.Request[gen.RunWork
 		return nil, err
 	}
 
-	output, err := resultToAny(res)
+	out, err := json.Marshal(res.Data)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrapf(err, "failed to marshal result data")
 	}
 
 	return connect.NewResponse(&gen.RunOutput{
-		Output: output,
+		Output: string(out),
 	}), nil
 }
 

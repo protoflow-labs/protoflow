@@ -3,6 +3,7 @@ package templates
 import (
 	"embed"
 	"fmt"
+	"github.com/protoflow-labs/protoflow/pkg/util"
 	"html/template"
 	"io/fs"
 	"os"
@@ -59,6 +60,9 @@ func templateHelpers() template.FuncMap {
 			}
 			first := strings.ToLower(string(s[0]))
 			return first + s[1:]
+		},
+		"titlecase": func(s string) string {
+			return util.ToTitleCase(s)
 		},
 	}
 }
