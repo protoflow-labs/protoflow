@@ -1,7 +1,7 @@
+import { Divider, Field, Input } from "@fluentui/react-components";
 import { useForm } from "react-hook-form";
 import { Node } from "reactflow";
 import { EditorActions, useUnselect } from "../EditorActions";
-import {Field, Input} from "@fluentui/react-components";
 
 export type EntityData = {
   name: string;
