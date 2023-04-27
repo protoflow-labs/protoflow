@@ -92,6 +92,12 @@ export class Block extends Message<Block> {
      */
     value: Function;
     case: "function";
+  } | {
+    /**
+     * @generated from field: block.Query query = 10;
+     */
+    value: Query;
+    case: "query";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<Block>) {
@@ -111,6 +117,7 @@ export class Block extends Message<Block> {
     { no: 7, name: "input", kind: "message", T: Input, oneof: "type" },
     { no: 8, name: "bucket", kind: "message", T: Bucket, oneof: "type" },
     { no: 9, name: "function", kind: "message", T: Function, oneof: "type" },
+    { no: 10, name: "query", kind: "message", T: Query, oneof: "type" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Block {
@@ -275,6 +282,43 @@ export class Function extends Message<Function> {
 
   static equals(a: Function | PlainMessage<Function> | undefined, b: Function | PlainMessage<Function> | undefined): boolean {
     return proto3.util.equals(Function, a, b);
+  }
+}
+
+/**
+ * @generated from message block.Query
+ */
+export class Query extends Message<Query> {
+  /**
+   * @generated from field: string collection = 1;
+   */
+  collection = "";
+
+  constructor(data?: PartialMessage<Query>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "block.Query";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "collection", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Query {
+    return new Query().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Query {
+    return new Query().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Query {
+    return new Query().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: Query | PlainMessage<Query> | undefined, b: Query | PlainMessage<Query> | undefined): boolean {
+    return proto3.util.equals(Query, a, b);
   }
 }
 

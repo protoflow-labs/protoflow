@@ -15,6 +15,7 @@ message Block {
     Input input = 7;
     Bucket bucket = 8;
     Function function = 9;
+    Query query = 10;
   }
   // TODO breadchris a block is a blueprint and should declare what dependency types it needs
 }
@@ -33,6 +34,10 @@ message Bucket {
 
 message Function {
   string runtime = 1;
+}
+
+message Query {
+  string collection = 1;
 }
 
 message Result {

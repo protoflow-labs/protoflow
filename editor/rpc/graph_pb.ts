@@ -5,7 +5,7 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3 } from "@bufbuild/protobuf";
-import { Bucket, Collection, Function, GRPC, Input, REST } from "./block_pb.js";
+import { Bucket, Collection, Function, GRPC, Input, Query, REST } from "./block_pb.js";
 
 /**
  * @generated from message graph.Graph
@@ -92,52 +92,56 @@ export class Node extends Message<Node> {
   y = 0;
 
   /**
+   * @generated from field: repeated string resource_ids = 6;
+   */
+  resourceIds: string[] = [];
+
+  /**
    * @generated from oneof graph.Node.config
    */
   config: {
     /**
-     * @generated from field: block.REST rest = 6;
+     * @generated from field: block.REST rest = 7;
      */
     value: REST;
     case: "rest";
   } | {
     /**
-     * @generated from field: block.GRPC grpc = 7;
+     * @generated from field: block.GRPC grpc = 8;
      */
     value: GRPC;
     case: "grpc";
   } | {
     /**
-     * @generated from field: block.Collection collection = 8;
+     * @generated from field: block.Collection collection = 9;
      */
     value: Collection;
     case: "collection";
   } | {
     /**
-     * @generated from field: block.Bucket bucket = 9;
+     * @generated from field: block.Bucket bucket = 10;
      */
     value: Bucket;
     case: "bucket";
   } | {
     /**
-     * @generated from field: block.Input input = 10;
+     * @generated from field: block.Input input = 11;
      */
     value: Input;
     case: "input";
   } | {
     /**
-     * @generated from field: block.Function function = 11;
+     * @generated from field: block.Function function = 12;
      */
     value: Function;
     case: "function";
+  } | {
+    /**
+     * @generated from field: block.Query query = 13;
+     */
+    value: Query;
+    case: "query";
   } | { case: undefined; value?: undefined } = { case: undefined };
-
-  /**
-   * Dependencies
-   *
-   * @generated from field: repeated string resource_ids = 12;
-   */
-  resourceIds: string[] = [];
 
   constructor(data?: PartialMessage<Node>) {
     super();
@@ -152,13 +156,14 @@ export class Node extends Message<Node> {
     { no: 3, name: "block_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 4, name: "x", kind: "scalar", T: 2 /* ScalarType.FLOAT */ },
     { no: 5, name: "y", kind: "scalar", T: 2 /* ScalarType.FLOAT */ },
-    { no: 6, name: "rest", kind: "message", T: REST, oneof: "config" },
-    { no: 7, name: "grpc", kind: "message", T: GRPC, oneof: "config" },
-    { no: 8, name: "collection", kind: "message", T: Collection, oneof: "config" },
-    { no: 9, name: "bucket", kind: "message", T: Bucket, oneof: "config" },
-    { no: 10, name: "input", kind: "message", T: Input, oneof: "config" },
-    { no: 11, name: "function", kind: "message", T: Function, oneof: "config" },
-    { no: 12, name: "resource_ids", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
+    { no: 6, name: "resource_ids", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
+    { no: 7, name: "rest", kind: "message", T: REST, oneof: "config" },
+    { no: 8, name: "grpc", kind: "message", T: GRPC, oneof: "config" },
+    { no: 9, name: "collection", kind: "message", T: Collection, oneof: "config" },
+    { no: 10, name: "bucket", kind: "message", T: Bucket, oneof: "config" },
+    { no: 11, name: "input", kind: "message", T: Input, oneof: "config" },
+    { no: 12, name: "function", kind: "message", T: Function, oneof: "config" },
+    { no: 13, name: "query", kind: "message", T: Query, oneof: "config" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Node {

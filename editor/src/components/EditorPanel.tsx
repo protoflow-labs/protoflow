@@ -6,6 +6,7 @@ import { BucketEditor } from "./blockEditors/BucketEditor";
 import { CollectionEditor } from "./blockEditors/CollectionEditor";
 import { FunctionEditor } from "./blockEditors/FunctionEditor";
 import { InputEditor } from "./blockEditors/InputEditor";
+import { QueryEditor } from "./blockEditors/QueryEditor";
 
 export function EditorPanel() {
   const [activeNode, setActiveNode] = useState<Node | null>(null);
@@ -46,6 +47,8 @@ function NodeEditor(props: NodeEditorProps) {
       return <InputEditor node={props.node} />;
     case "protoflow.collection":
       return <CollectionEditor node={props.node} />;
+    case "protoflow.query":
+      return <QueryEditor node={props.node} />;
     case "protoflow.function":
       return <FunctionEditor node={props.node} />;
     case "protoflow.bucket":
