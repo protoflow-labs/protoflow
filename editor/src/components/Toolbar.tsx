@@ -33,7 +33,7 @@ export function Toolbar() {
     onBuild();
   });
 
-  useHotkeys(isApple ? "meta+enter" : "ctrl+enter", (e) => {
+  useHotkeys("shift+enter", (e) => {
     e.preventDefault();
     e.stopPropagation();
     onRun();
@@ -73,7 +73,7 @@ export function Toolbar() {
     }
 
     const selectedNode = selectedNodes[0];
-    const res = projectService.runWorklow({
+    const res = await projectService.runWorklow({
       projectId: project?.id,
       nodeId: selectedNode.id,
     });
