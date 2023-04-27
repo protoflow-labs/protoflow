@@ -31,7 +31,7 @@ export function Toolbar() {
     onBuild();
   });
 
-  useHotkeys(isApple ? "meta+r" : "ctrl+r", (event) => {
+  useHotkeys(isApple ? "meta+enter" : "ctrl+enter", (event) => {
     event.preventDefault();
     onRun();
   });
