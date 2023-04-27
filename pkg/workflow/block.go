@@ -3,16 +3,24 @@ package workflow
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/gen"
+	"strings"
 )
 
 type Node interface {
 	Execute(executor Executor, input Input) (*Result, error)
+	Dependencies() []string
 }
 
 type BaseNode struct {
+	Name        string
 	ResourceIDs []string
+}
+
+func (n *BaseNode) Dependencies() []string {
+	return n.ResourceIDs
 }
 
 type GRPCNode struct {
@@ -50,6 +58,13 @@ type InputNode struct {
 
 var _ Node = &InputNode{}
 
+type FunctionNode struct {
+	BaseNode
+	Function *gen.Function
+}
+
+var _ Node = &FunctionNode{}
+
 var activity = &Activity{}
 
 func (s *GRPCNode) Execute(executor Executor, input Input) (*Result, error) {
@@ -61,12 +76,12 @@ func (s *RESTNode) Execute(executor Executor, input Input) (*Result, error) {
 }
 
 func (s *CollectionNode) Execute(executor Executor, input Input) (*Result, error) {
-	docs, err := getResource[DocstoreResource](input.Resources)
-	if err != nil {
-		return nil, errors.Wrapf(err, "error getting docstore resource")
+	docs, ok := input.Resources[DocstoreResourceType].(*DocstoreResource)
+	if !ok {
+		return nil, fmt.Errorf("error getting docstore resource: %s", s.Collection.Name)
 	}
 
-	d, cleanup, err := docs.WithCollection(s.Name)
+	d, cleanup, err := docs.WithCollection(s.Collection.Name)
 	if err != nil {
 		return nil, errors.Wrapf(err, "error connecting to collection")
 	}
@@ -79,12 +94,15 @@ func (s *CollectionNode) Execute(executor Executor, input Input) (*Result, error
 }
 
 func (s *BucketNode) Execute(executor Executor, input Input) (*Result, error) {
-	bucket, err := getResource[BlobstoreResource](input.Resources)
-	if err != nil {
-		return nil, errors.Wrapf(err, "error getting bucket resource")
+	bucket, ok := input.Resources[BlobstoreResourceType].(*BlobstoreResource)
+	if !ok {
+		return nil, fmt.Errorf("error getting blobstore resource: %s", s.Bucket.Path)
 	}
 
-	var bucketData []byte
+	var (
+		err        error
+		bucketData []byte
+	)
 	switch input.Params.(type) {
 	case []byte:
 		bucketData = input.Params.([]byte)
@@ -99,7 +117,7 @@ func (s *BucketNode) Execute(executor Executor, input Input) (*Result, error) {
 
 	b, cleanup, err := bucket.WithPath(s.Path)
 	if err != nil {
-		return nil, errors.Wrapf(err, "error connecting to bucket")
+		return nil, errors.Wrapf(err, fmt.Sprintf("error connecting to bucket: %s", s.Path))
 	}
 	defer cleanup()
 
@@ -115,105 +133,104 @@ func (s *InputNode) Execute(executor Executor, input Input) (*Result, error) {
 	}, nil
 }
 
-func NewNode(node *gen.Node, block *gen.Block) (Node, error) {
-	switch block.Type.(type) {
-	case *gen.Block_Grpc:
-		return NewGRPCNode(node, block), nil
-	case *gen.Block_Collection:
-		return NewCollectionNode(node, block), nil
-	case *gen.Block_Bucket:
-		return NewBucketNode(node, block), nil
-	case *gen.Block_Rest:
-		return NewRestNode(node, block), nil
-	case *gen.Block_Input:
-		return NewInputNode(node, block), nil
+func (f *FunctionNode) Execute(executor Executor, input Input) (*Result, error) {
+	return executor.Execute(activity.ExecuteFunctionNode, f, input)
+}
+
+type ResourceMap map[string]Resource
+
+func NewNode(resources ResourceMap, node *gen.Node) (Node, error) {
+	switch node.Config.(type) {
+	case *gen.Node_Grpc:
+		return NewGRPCNode(resources, node), nil
+	case *gen.Node_Collection:
+		return NewCollectionNode(resources, node), nil
+	case *gen.Node_Bucket:
+		return NewBucketNode(resources, node), nil
+	case *gen.Node_Rest:
+		return NewRestNode(resources, node), nil
+	case *gen.Node_Input:
+		return NewInputNode(node), nil
+	case *gen.Node_Function:
+		return NewFunctionNode(resources, node), nil
 	default:
 		return nil, errors.New("no node found")
 	}
 }
 
-func NewGRPCNode(node *gen.Node, block *gen.Block) *GRPCNode {
-	b := block.GetGrpc()
-	n := node.GetGrpc()
-	if n != nil {
-		if n.Service != "" {
-			b.Service = n.Service
-		}
-		if n.Method != "" {
-			b.Method = n.Method
+// NewBaseNode creates a new BaseNode from a gen.Node, gen.Node cannot be embedded into BaseNode because proto deserialization will fail on the type
+func NewBaseNode(node *gen.Node) BaseNode {
+	return BaseNode{
+		Name:        node.Name,
+		ResourceIDs: node.ResourceIds,
+	}
+}
+
+// TODO breadchris we are ignoring blocks that are not set on the node, nodes should have blocks
+func NewGRPCNode(resources ResourceMap, node *gen.Node) *GRPCNode {
+	for id, r := range resources {
+		if r.Name() == GRPCResourceType {
+			node.ResourceIds = append(node.ResourceIds, id)
 		}
 	}
 	return &GRPCNode{
-		BaseNode: BaseNode{
-			ResourceIDs: node.ResourceIds,
-		},
-		GRPC: b,
+		BaseNode: NewBaseNode(node),
+		GRPC:     node.GetGrpc(),
 	}
 }
 
-func NewRestNode(node *gen.Node, block *gen.Block) *RESTNode {
-	b := block.GetRest()
-	n := node.GetRest()
-	if n != nil {
-		if n.Path != "" {
-			b.Path = n.Path
-		}
-		if n.Method != "" {
-			b.Method = n.Method
-		}
-	}
+func NewRestNode(resources ResourceMap, node *gen.Node) *RESTNode {
 	return &RESTNode{
-		BaseNode: BaseNode{
-			ResourceIDs: node.ResourceIds,
-		},
-		REST: b,
+		BaseNode: NewBaseNode(node),
+		REST:     node.GetRest(),
 	}
 }
 
-func NewCollectionNode(node *gen.Node, block *gen.Block) *CollectionNode {
-	b := block.GetCollection()
-	n := node.GetCollection()
-	if n != nil {
-		if n.Name != "" {
-			b.Name = n.Name
+func NewCollectionNode(resources ResourceMap, node *gen.Node) *CollectionNode {
+	for id, r := range resources {
+		if r.Name() == DocstoreResourceType {
+			node.ResourceIds = append(node.ResourceIds, id)
 		}
 	}
 	return &CollectionNode{
-		BaseNode: BaseNode{
-			ResourceIDs: node.ResourceIds,
-		},
-		Collection: b,
+		BaseNode:   NewBaseNode(node),
+		Collection: node.GetCollection(),
 	}
 }
 
-func NewBucketNode(node *gen.Node, block *gen.Block) *BucketNode {
-	b := block.GetBucket()
-	n := node.GetBucket()
-	if n != nil {
-		if n.Path != "" {
-			b.Path = n.Path
+func NewBucketNode(resources ResourceMap, node *gen.Node) *BucketNode {
+	for id, r := range resources {
+		if r.Name() == BlobstoreResourceType {
+			node.ResourceIds = append(node.ResourceIds, id)
 		}
 	}
 	return &BucketNode{
-		BaseNode: BaseNode{
-			ResourceIDs: node.ResourceIds,
-		},
-		Bucket: b,
+		BaseNode: NewBaseNode(node),
+		Bucket:   node.GetBucket(),
 	}
 }
 
-func NewInputNode(node *gen.Node, block *gen.Block) *InputNode {
-	b := block.GetInput()
-	n := node.GetInput()
-	if n != nil {
-		if n.Fields != nil {
-			b.Fields = n.Fields
+func NewInputNode(node *gen.Node) *InputNode {
+	return &InputNode{
+		BaseNode: NewBaseNode(node),
+		Input:    node.GetInput(),
+	}
+}
+
+func NewFunctionNode(resources ResourceMap, node *gen.Node) *FunctionNode {
+	for id, r := range resources {
+		if r.Name() == LanguageServiceType {
+			service, ok := r.(*LanguageServiceResource)
+
+			// TODO breadchris this seems ok for now, should do better
+			if !ok || strings.ToLower(service.Runtime.String()) != strings.ToLower(node.GetFunction().Runtime) {
+				continue
+			}
+			node.ResourceIds = append(node.ResourceIds, id)
 		}
 	}
-	return &InputNode{
-		BaseNode: BaseNode{
-			ResourceIDs: node.ResourceIds,
-		},
-		Input: b,
+	return &FunctionNode{
+		BaseNode: NewBaseNode(node),
+		Function: node.GetFunction(),
 	}
 }

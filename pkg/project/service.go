@@ -60,6 +60,27 @@ func (s *Service) GetResources(ctx context.Context, c *connect.Request[gen.GetRe
 	panic("implement me")
 }
 
+func (s *Service) GetBlocks(ctx context.Context, c *connect.Request[gen.GetResourcesRequest]) (*connect.Response[gen.GetResourcesResponse], error) {
+	project, err := s.store.GetProject(c.Msg.ProjectId)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get project %s", c.Msg.ProjectId)
+	}
+
+	var resources []*gen.Resource
+	for _, resource := range project.Resources {
+		blocks, err := grpc.EnumerateResourceBlocks(resource)
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to get blocks for resource: %s", resource.Name)
+		}
+		resource.Blocks = blocks
+		resources = append(resources, resource)
+	}
+
+	return connect.NewResponse(&gen.GetResourcesResponse{
+		Resources: resources,
+	}), nil
+}
+
 func (s *Service) CreateResource(ctx context.Context, c *connect.Request[gen.CreateResourceRequest]) (*connect.Response[gen.CreateResourceResponse], error) {
 	project, err := s.store.GetProject(c.Msg.ProjectId)
 	if err != nil {
@@ -68,12 +89,6 @@ func (s *Service) CreateResource(ctx context.Context, c *connect.Request[gen.Cre
 
 	resource := c.Msg.Resource
 	resource.Id = uuid.New().String()
-
-	blocks, err := grpc.EnumerateResourceBlocks(resource)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to create resource: %s", resource.Name)
-	}
-	resource.Blocks = blocks
 
 	project.Resources = append(project.Resources, resource)
 	_, err = s.store.SaveProject(project)
@@ -200,17 +215,6 @@ func (s *Service) SaveProject(ctx context.Context, req *connect.Request[gen.Save
 
 	if len(project.Resources) > 0 {
 		project.Resources = req.Msg.Resources
-		for _, resource := range project.Resources {
-			blocks, err := grpc.EnumerateResourceBlocks(resource)
-			if err != nil {
-				return nil, errors.Wrapf(err, "failed to create resource: %s", resource.Name)
-			}
-			resource.Blocks = blocks
-		}
-	}
-
-	if len(project.Blocks) > 0 {
-		project.Blocks = req.Msg.Blocks
 	}
 
 	_, err = s.store.SaveProject(project)

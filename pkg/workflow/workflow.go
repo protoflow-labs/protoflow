@@ -32,7 +32,17 @@ type Workflow struct {
 func FromProject(project *gen.Project) (*Workflow, error) {
 	g := graph.New(graph.StringHash, graph.Directed(), graph.PreventCycles())
 
-	projectResources := map[string]Resource{}
+	// TODO breadchris this should not be hardcoded, this should be provided to the service when it is created?
+	projectResources := map[string]Resource{
+		"js": &LanguageServiceResource{
+			LanguageService: &gen.LanguageService{
+				Runtime: gen.Runtime_NODE,
+				Host:    "localhost:8086",
+			},
+		},
+	}
+
+	// TODO breadchris blocks will be used in the future to associate with nodes, but for now they are not used
 	blockLookup := map[string]*gen.Block{}
 	for _, resource := range project.Resources {
 		for _, block := range resource.Blocks {
@@ -53,13 +63,8 @@ func FromProject(project *gen.Project) (*Workflow, error) {
 			return nil, err
 		}
 
-		block, ok := blockLookup[node.BlockId]
-		if !ok {
-			return nil, fmt.Errorf("block not found: %s", node.BlockId)
-		}
-
 		// add block to lookup to be used for execution
-		builtNode, err := NewNode(node, block)
+		builtNode, err := NewNode(projectResources, node)
 		if err != nil {
 			return nil, errors.Wrapf(err, "error creating block for node %s", node.Id)
 		}
@@ -88,8 +93,9 @@ func FromProject(project *gen.Project) (*Workflow, error) {
 }
 
 // TODO breadchris can this be a map[string]Resource?
-type Instances map[string]any
+type Instances map[string]Resource
 
+// TODO breadchris nodeID should not be needed, the workflow should already be a slice of the graph that is configured to run
 func (w *Workflow) Run(logger Logger, executor Executor, nodeID string) (*Result, error) {
 	var cleanupFuncs []func()
 	defer func() {
@@ -127,23 +133,36 @@ func (w *Workflow) Run(logger Logger, executor Executor, nodeID string) (*Result
 }
 
 func (w *Workflow) traverseWorkflow(logger Logger, instances Instances, executor Executor, vert string, input Input) (*Result, error) {
-	block, ok := w.NodeLookup[vert]
+	node, ok := w.NodeLookup[vert]
 	if !ok {
 		return nil, fmt.Errorf("vertex not found: %s", vert)
 	}
 
-	input.Resources = instances
-	res, err := block.Execute(executor, input)
+	log.Debug().Str("vert", vert).Msg("injecting dependencies for node")
+	input.Resources = map[string]any{}
+	for _, resourceID := range node.Dependencies() {
+		resource, ok := instances[resourceID]
+		if !ok {
+			return nil, fmt.Errorf("resource not found: %s", resourceID)
+		}
+		if _, ok := input.Resources[resource.Name()]; ok {
+			logger.Warn("Resource type already exists in input", "resource", resource.Name())
+			continue
+		}
+		input.Resources[resource.Name()] = resource
+	}
+
+	log.Debug().Str("vert", vert).Msg("executing node")
+	res, err := node.Execute(executor, input)
 	if err != nil {
-		return nil, errors.Wrapf(err, "error executing block: %s", vert)
+		return nil, errors.Wrapf(err, "error executing node: %s", vert)
 	}
 
 	nextBlockInput := Input{
-		Params:    res.Data,
-		Resources: instances,
+		Params: res.Data,
 	}
 
-	log.Debug().Interface("result", res).Msg("block result")
+	log.Debug().Interface("result", res).Msg("node result")
 	for neighbor := range w.AdjMap[vert] {
 		logger.Info("Traversing workflow", "nodeID", neighbor)
 		_, err = w.traverseWorkflow(logger, instances, executor, neighbor, nextBlockInput)

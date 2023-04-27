@@ -13,8 +13,20 @@ message Resource {
     RESTService rest_service = 4;
     Docstore docstore = 5;
     Blobstore blobstore = 6;
+    LanguageService language_service = 7;
   }
-  repeated block.Block blocks = 7;
+  repeated block.Block blocks = 8;
+}
+
+enum Runtime {
+  NODE = 0;
+  GO = 1;
+  PYTHON = 2;
+}
+
+message LanguageService {
+  string host = 1;
+  Runtime runtime = 2;
 }
 
 message GRPCService {

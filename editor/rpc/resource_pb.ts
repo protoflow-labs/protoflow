@@ -8,6 +8,32 @@ import { Message, proto3 } from "@bufbuild/protobuf";
 import { Block } from "./block_pb.js";
 
 /**
+ * @generated from enum resource.Runtime
+ */
+export enum Runtime {
+  /**
+   * @generated from enum value: NODE = 0;
+   */
+  NODE = 0,
+
+  /**
+   * @generated from enum value: GO = 1;
+   */
+  GO = 1,
+
+  /**
+   * @generated from enum value: PYTHON = 2;
+   */
+  PYTHON = 2,
+}
+// Retrieve enum metadata with: proto3.getEnumType(Runtime)
+proto3.util.setEnumType(Runtime, "resource.Runtime", [
+  { no: 0, name: "NODE" },
+  { no: 1, name: "GO" },
+  { no: 2, name: "PYTHON" },
+]);
+
+/**
  * @generated from message resource.Resource
  */
 export class Resource extends Message<Resource> {
@@ -48,10 +74,16 @@ export class Resource extends Message<Resource> {
      */
     value: Blobstore;
     case: "blobstore";
+  } | {
+    /**
+     * @generated from field: resource.LanguageService language_service = 7;
+     */
+    value: LanguageService;
+    case: "languageService";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   /**
-   * @generated from field: repeated block.Block blocks = 7;
+   * @generated from field: repeated block.Block blocks = 8;
    */
   blocks: Block[] = [];
 
@@ -69,7 +101,8 @@ export class Resource extends Message<Resource> {
     { no: 4, name: "rest_service", kind: "message", T: RESTService, oneof: "type" },
     { no: 5, name: "docstore", kind: "message", T: Docstore, oneof: "type" },
     { no: 6, name: "blobstore", kind: "message", T: Blobstore, oneof: "type" },
-    { no: 7, name: "blocks", kind: "message", T: Block, repeated: true },
+    { no: 7, name: "language_service", kind: "message", T: LanguageService, oneof: "type" },
+    { no: 8, name: "blocks", kind: "message", T: Block, repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Resource {
@@ -86,6 +119,49 @@ export class Resource extends Message<Resource> {
 
   static equals(a: Resource | PlainMessage<Resource> | undefined, b: Resource | PlainMessage<Resource> | undefined): boolean {
     return proto3.util.equals(Resource, a, b);
+  }
+}
+
+/**
+ * @generated from message resource.LanguageService
+ */
+export class LanguageService extends Message<LanguageService> {
+  /**
+   * @generated from field: string host = 1;
+   */
+  host = "";
+
+  /**
+   * @generated from field: resource.Runtime runtime = 2;
+   */
+  runtime = Runtime.NODE;
+
+  constructor(data?: PartialMessage<LanguageService>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "resource.LanguageService";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "host", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "runtime", kind: "enum", T: proto3.getEnumType(Runtime) },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): LanguageService {
+    return new LanguageService().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): LanguageService {
+    return new LanguageService().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): LanguageService {
+    return new LanguageService().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: LanguageService | PlainMessage<LanguageService> | undefined, b: LanguageService | PlainMessage<LanguageService> | undefined): boolean {
+    return proto3.util.equals(LanguageService, a, b);
   }
 }
 

@@ -15,6 +15,13 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
+const (
+	GRPCResourceType      = "grpc"
+	DocstoreResourceType  = "docstore"
+	BlobstoreResourceType = "blobstore"
+	LanguageServiceType   = "language"
+)
+
 func ResourceFromProto(r *gen.Resource) (Resource, error) {
 	switch t := r.Type.(type) {
 	case *gen.Resource_GrpcService:
@@ -36,11 +43,16 @@ func ResourceFromProto(r *gen.Resource) (Resource, error) {
 
 type Resource interface {
 	Init() (func(), error)
+	Name() string
 }
 
 type GRPCResource struct {
 	*gen.GRPCService
 	Conn *grpc.ClientConn
+}
+
+func (r *GRPCResource) Name() string {
+	return GRPCResourceType
 }
 
 func (r *GRPCResource) Init() (func(), error) {
@@ -60,6 +72,10 @@ func (r *GRPCResource) Init() (func(), error) {
 
 type DocstoreResource struct {
 	*gen.Docstore
+}
+
+func (r *DocstoreResource) Name() string {
+	return DocstoreResourceType
 }
 
 func (r *DocstoreResource) Init() (func(), error) {
@@ -83,6 +99,10 @@ type BlobstoreResource struct {
 	*gen.Blobstore
 }
 
+func (r *BlobstoreResource) Name() string {
+	return BlobstoreResourceType
+}
+
 func (r *BlobstoreResource) Init() (func(), error) {
 	return nil, nil
 }
@@ -103,4 +123,28 @@ func (r *BlobstoreResource) WithPath(path string) (*blob.Bucket, func(), error) 
 			log.Error().Err(err).Msg("error closing blobstore bucket")
 		}
 	}, nil
+}
+
+type LanguageServiceResource struct {
+	*gen.LanguageService
+	Conn *grpc.ClientConn
+}
+
+func (r *LanguageServiceResource) Name() string {
+	return LanguageServiceType
+}
+
+func (r *LanguageServiceResource) Init() (func(), error) {
+	conn, err := grpc.Dial(r.Host, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		return nil, errors.Wrapf(err, "unable to connect to grpc server at %s", r.Host)
+	}
+	cleanup := func() {
+		err = conn.Close()
+		if err != nil {
+			log.Error().Err(err).Msg("error closing grpc connection")
+		}
+	}
+	r.Conn = conn
+	return cleanup, nil
 }

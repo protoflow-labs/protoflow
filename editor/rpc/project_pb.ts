@@ -6,7 +6,6 @@
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Any, Message, proto3 } from "@bufbuild/protobuf";
 import { Graph } from "./graph_pb.js";
-import { Block } from "./block_pb.js";
 import { Resource } from "./resource_pb.js";
 
 /**
@@ -184,12 +183,7 @@ export class Project extends Message<Project> {
   graph?: Graph;
 
   /**
-   * @generated from field: repeated block.Block blocks = 8;
-   */
-  blocks: Block[] = [];
-
-  /**
-   * @generated from field: repeated resource.Resource resources = 9;
+   * @generated from field: repeated resource.Resource resources = 8;
    */
   resources: Resource[] = [];
 
@@ -208,8 +202,7 @@ export class Project extends Message<Project> {
     { no: 5, name: "created_at", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 6, name: "updated_at", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 7, name: "graph", kind: "message", T: Graph },
-    { no: 8, name: "blocks", kind: "message", T: Block, repeated: true },
-    { no: 9, name: "resources", kind: "message", T: Resource, repeated: true },
+    { no: 8, name: "resources", kind: "message", T: Resource, repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Project {
@@ -610,9 +603,9 @@ export class DeleteProjectResponse extends Message<DeleteProjectResponse> {
  */
 export class GetResourcesRequest extends Message<GetResourcesRequest> {
   /**
-   * @generated from field: string id = 1;
+   * @generated from field: string project_id = 1;
    */
-  id = "";
+  projectId = "";
 
   constructor(data?: PartialMessage<GetResourcesRequest>) {
     super();
@@ -622,7 +615,7 @@ export class GetResourcesRequest extends Message<GetResourcesRequest> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "project.GetResourcesRequest";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 1, name: "project_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetResourcesRequest {
@@ -694,12 +687,7 @@ export class SaveProjectRequest extends Message<SaveProjectRequest> {
   graph?: Graph;
 
   /**
-   * @generated from field: repeated block.Block blocks = 3;
-   */
-  blocks: Block[] = [];
-
-  /**
-   * @generated from field: repeated resource.Resource resources = 4;
+   * @generated from field: repeated resource.Resource resources = 3;
    */
   resources: Resource[] = [];
 
@@ -713,8 +701,7 @@ export class SaveProjectRequest extends Message<SaveProjectRequest> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "project_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "graph", kind: "message", T: Graph },
-    { no: 3, name: "blocks", kind: "message", T: Block, repeated: true },
-    { no: 4, name: "resources", kind: "message", T: Resource, repeated: true },
+    { no: 3, name: "resources", kind: "message", T: Resource, repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SaveProjectRequest {

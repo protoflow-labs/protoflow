@@ -69,6 +69,7 @@ func (FieldType) EnumDescriptor() ([]byte, []int) {
 	return file_block_proto_rawDescGZIP(), []int{0}
 }
 
+// TODO breadchris think through this more
 type Block struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache

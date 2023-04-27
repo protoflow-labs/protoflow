@@ -48,9 +48,12 @@ export function Toolbar() {
     }
 
     const selectedNode = selectedNodes[0];
-    const res = projectService.runWorklow({ projectId: project?.id, nodeId: selectedNode });
+    const res = projectService.runWorklow({
+      projectId: project?.id,
+      nodeId: selectedNode.id,
+    });
     console.log(res);
-  }
+  };
 
   return (
     <div className="px-1 py-1">
@@ -101,7 +104,13 @@ export function Toolbar() {
 
         <MenuPopover>
           <MenuList>
-            <MenuItem secondaryContent="Ctrl+R" disabled={selectedNodes.length !== 1} onClick={onRun}>Run Workflow</MenuItem>
+            <MenuItem
+              secondaryContent="Ctrl+R"
+              disabled={selectedNodes.length !== 1}
+              onClick={onRun}
+            >
+              Run Workflow
+            </MenuItem>
             <MenuItem secondaryContent="Ctrl+B">Execute Block</MenuItem>
           </MenuList>
         </MenuPopover>

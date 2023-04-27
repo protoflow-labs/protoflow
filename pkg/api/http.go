@@ -1,7 +1,10 @@
 package api
 
 import (
+	"context"
 	"fmt"
+	"github.com/bufbuild/connect-go"
+	"github.com/rs/zerolog/log"
 	"net/http"
 
 	"github.com/protoflow-labs/protoflow/gen/genconnect"
@@ -15,14 +18,33 @@ type HTTPServer struct {
 	mux *http.ServeMux
 }
 
+func NewLogInterceptor() connect.UnaryInterceptorFunc {
+	interceptor := func(next connect.UnaryFunc) connect.UnaryFunc {
+		return func(
+			ctx context.Context,
+			req connect.AnyRequest,
+		) (connect.AnyResponse, error) {
+			resp, err := next(ctx, req)
+			if err != nil {
+				log.Error().Msgf("connect error: %+v\n", err)
+			}
+			return resp, err
+		}
+	}
+	return interceptor
+}
+
 func NewHTTPServer(projectService genconnect.ProjectServiceHandler, generateService genconnect.GenerateServiceHandler) *HTTPServer {
 	mux := http.NewServeMux()
+
+	interceptors := connect.WithInterceptors(NewLogInterceptor())
+
 	// The generated constructors return a path and a plain net/http
 	// handler.
-	projectRoutes, projectHandlers := genconnect.NewProjectServiceHandler(projectService)
+	projectRoutes, projectHandlers := genconnect.NewProjectServiceHandler(projectService, interceptors)
 	mux.Handle(projectRoutes, projectHandlers)
 
-	generateRoutes, generateHandlers := genconnect.NewGenerateServiceHandler(generateService)
+	generateRoutes, generateHandlers := genconnect.NewGenerateServiceHandler(generateService, interceptors)
 	mux.Handle(generateRoutes, generateHandlers)
 
 	reflector := grpcreflect.NewStaticReflector(

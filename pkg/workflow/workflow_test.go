@@ -51,6 +51,113 @@ func TestRun(t *testing.T) {
 	}
 }
 
-func TestRunWithDependencies(t *testing.T) {
+func TestBuildingGraph(t *testing.T) {
+	p := &gen.Project{
+		Graph: &gen.Graph{
+			Edges: []*gen.Edge{
+				{
+					From: "input-node",
+					To:   "crawl-node",
+				},
+				{
+					From: "crawl-node",
+					To:   "normalize-html-node",
+				},
+				{
+					From: "normalize-html-node",
+					To:   "create-embeddings-node",
+				},
+			},
+			Nodes: []*gen.Node{
+				{
+					Id:   "input-node",
+					Name: "Website",
+					Config: &gen.Node_Input{
+						Input: &gen.Input{
+							Fields: []*gen.FieldDefinition{
+								{
+									Name: "url",
+									Type: gen.FieldType_STRING,
+								},
+							},
+						},
+					},
+				},
+				{
+					Id:   "crawl-node",
+					Name: "Crawl Website",
+					Config: &gen.Node_Function{
+						Function: &gen.Function{
+							Runtime: "go",
+						},
+					},
+					BlockId: "crawl-block",
+				},
+				{
+					Id:   "normalize-html-node",
+					Name: "Crawl Website",
+					Config: &gen.Node_Function{
+						Function: &gen.Function{
+							Runtime: "go",
+						},
+					},
+					BlockId: "normalize-html-block",
+				},
+				{
+					Id:   "create-embeddings-node",
+					Name: "Create Embeddings for HTML",
+					Config: &gen.Node_Function{
+						Function: &gen.Function{
+							Runtime: "go",
+						},
+					},
+					BlockId: "create-embeddings-block",
+				},
+			},
+		},
+		Blocks: []*gen.Block{
+			{
+				Id:   "crawl-block",
+				Name: "Crawl Website",
+				Type: &gen.Block_Function{
+					Function: &gen.Function{
+						Runtime: "go",
+					},
+				},
+			},
+			{
+				Id:   "normalize-html-block",
+				Name: "Normalize HTML",
+				Type: &gen.Block_Function{
+					Function: &gen.Function{
+						Runtime: "go",
+					},
+				},
+			},
+			{
+				Id:   "create-embeddings-block",
+				Name: "Create Embeddings",
+				Type: &gen.Block_Function{
+					Function: &gen.Function{
+						Runtime: "go",
+					},
+				},
+			},
+		},
+	}
 
+	w, err := FromProject(p)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	ctx := MemoryContext{context.Background()}
+	executor := NewMemoryExecutor(&ctx)
+	logger := &MemoryLogger{}
+
+	entrypointNode := "input-node"
+	_, err = w.Run(logger, executor, entrypointNode)
+	if err != nil {
+		t.Fatal(err)
+	}
 }

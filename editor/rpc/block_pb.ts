@@ -33,6 +33,8 @@ proto3.util.setEnumType(FieldType, "block.FieldType", [
 ]);
 
 /**
+ * TODO breadchris think through this more
+ *
  * @generated from message block.Block
  */
 export class Block extends Message<Block> {

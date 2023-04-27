@@ -3,6 +3,7 @@ syntax = "proto3";
 package block;
 option go_package = "block";
 
+// TODO breadchris think through this more
 message Block {
   string id = 1;
   string name = 2;
@@ -15,6 +16,7 @@ message Block {
     Bucket bucket = 8;
     Function function = 9;
   }
+  // TODO breadchris a block is a blueprint and should declare what dependency types it needs
 }
 
 message Input {

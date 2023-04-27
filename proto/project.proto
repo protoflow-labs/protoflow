@@ -13,6 +13,7 @@ service ProjectService {
     rpc GetProjects(GetProjectsRequest) returns (GetProjectsResponse) {}
     rpc CreateProject(CreateProjectRequest) returns (CreateProjectResponse) {}
     rpc DeleteProject(DeleteProjectRequest) returns (DeleteProjectResponse) {}
+
     rpc GetResources(GetResourcesRequest) returns (GetResourcesResponse) {}
 
     rpc SaveProject(SaveProjectRequest) returns (SaveProjectResponse) {}
@@ -47,8 +48,7 @@ message Project {
     string created_at = 5;
     string updated_at = 6;
     graph.Graph graph = 7;
-    repeated block.Block blocks = 8;
-    repeated resource.Resource resources = 9;
+    repeated resource.Resource resources = 8;
 }
 
 message CreateResourceRequest {
@@ -93,7 +93,7 @@ message DeleteProjectResponse {
 }
 
 message GetResourcesRequest {
-    string id = 1;
+    string project_id = 1;
 }
 
 message GetResourcesResponse {
@@ -103,8 +103,7 @@ message GetResourcesResponse {
 message SaveProjectRequest {
     string project_id = 1;
     graph.Graph graph = 2;
-    repeated block.Block blocks = 3;
-    repeated resource.Resource resources = 4;
+    repeated resource.Resource resources = 3;
 }
 
 message SaveProjectResponse {
