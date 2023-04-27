@@ -3,21 +3,17 @@ package generate
 import (
 	"fmt"
 	"os"
-	"os/exec"
-	"text/template"
 
 	"github.com/pkg/errors"
 
 	"github.com/protoflow-labs/protoflow/gen"
 	"github.com/protoflow-labs/protoflow/templates"
-	"github.com/rs/zerolog/log"
 )
 
 type Generator struct {
-	project              *gen.Project
-	projectDir           string
-	functionNodes        []*gen.Node
-	serviceProtoTemplate *template.Template
+	project       *gen.Project
+	projectDir    string
+	functionNodes []*gen.Node
 }
 
 func NewFromProject(project *gen.Project) (*Generator, error) {
@@ -25,15 +21,8 @@ func NewFromProject(project *gen.Project) (*Generator, error) {
 		return nil, errors.New("project must be provided")
 	}
 
-	serviceProtoTemplate, err := template.
-		ParseFS(templates.Templates, "service.template.proto")
-	if err != nil {
-		return nil, err
-	}
-
 	return &Generator{
-		project:              project,
-		serviceProtoTemplate: serviceProtoTemplate,
+		project: project,
 	}, nil
 }
 
@@ -80,7 +69,6 @@ func (g *Generator) MakeProjectDir() error {
 
 func (g *Generator) ScaffoldFunctions() error {
 	nodes := g.project.GetGraph().GetNodes()
-
 	for _, node := range nodes {
 		if node.GetFunction() == nil {
 			continue
@@ -89,7 +77,17 @@ func (g *Generator) ScaffoldFunctions() error {
 		g.functionNodes = append(g.functionNodes, node)
 
 		// create function directory
-		os.MkdirAll(g.projectDir+"/functions/"+node.GetName(), 0700)
+		funcDir := g.projectDir + "/functions/" + node.GetName()
+		os.MkdirAll(funcDir, 0700)
+
+		if node.GetFunction().Runtime == "node" {
+			err := templates.TemplateFile("node/function.index.template.js", funcDir+"/index.js", map[string]interface{}{
+				"Node": node,
+			})
+			if err != nil {
+				return err
+			}
+		}
 	}
 
 	return nil
@@ -106,36 +104,22 @@ func (g *Generator) GenerateServiceProtos() error {
 	}
 
 	for runtime, methods := range functions {
-		protoFile, err := os.Create(fmt.Sprintf("%s/%s.service.proto", protosDir, runtime))
-		if err != nil {
-			return err
-		}
-
-		err = g.serviceProtoTemplate.Execute(protoFile, map[string]interface{}{
+		protoFilename := fmt.Sprintf("%s/%s.service.proto", protosDir, runtime)
+		err := templates.TemplateFile("service.template.proto", protoFilename, map[string]interface{}{
 			"Runtime": runtime,
 			"Methods": methods,
 		})
 		if err != nil {
 			return err
 		}
-
-		protoFile.Close()
 	}
 
 	return nil
 }
 
 func (g *Generator) GenerateServices() error {
-	cmd := "npx"
-	args := []string{"buf", "generate", "proto"}
-
-	_, err := exec.Command(cmd, args...).Output()
-	if err != nil {
-		log.Err(err)
-	}
-
-	err = templates.TemplateGlob("node/*", g.projectDir, map[string]interface{}{
-		"Something": 1,
+	err := templates.TemplateDir("node/project", g.projectDir, map[string]interface{}{
+		"FunctionNodes": g.functionNodes,
 	})
 	return err
 }

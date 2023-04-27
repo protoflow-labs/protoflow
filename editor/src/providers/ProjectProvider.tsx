@@ -9,7 +9,7 @@ import {
   Title3,
 } from "@fluentui/react-components";
 import { createContext, useCallback, useContext } from "react";
-import { HiExclamationCircle, HiPlus } from "react-icons/hi";
+import { HiExclamationCircle, HiPlus } from "react-icons/hi2";
 import { Project } from "../../rpc/project_pb";
 
 type ProjectContextType = {

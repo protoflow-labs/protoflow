@@ -1,4 +1,5 @@
 import { generateService, projectService } from "@/lib/api";
+import { checkIsApple } from "@/lib/checkIsApple";
 import { useEditorContext } from "@/providers/EditorProvider";
 import { useProjectContext } from "@/providers/ProjectProvider";
 import {
@@ -12,13 +13,25 @@ import {
 import { toast } from "react-hot-toast";
 import { getUpdatedProject } from "@/lib/project";
 import { useSelectedNodes } from "@/hooks/useSelectedNodes";
+import { useHotkeys } from "react-hotkeys-hook";
 
 export function Toolbar() {
+  const isApple = checkIsApple();
   const { project } = useProjectContext();
   const { props } = useEditorContext();
   const selectedNodes = useSelectedNodes();
 
-  const onExport = () => {
+  useHotkeys(isApple ? "meta+s" : "ctrl+s", (event) => {
+    event.preventDefault();
+    onSave();
+  });
+
+  useHotkeys(isApple ? "meta+b" : "ctrl+b", (event) => {
+    event.preventDefault();
+    onBuild();
+  });
+
+  const onSave = () => {
     if (!project) return;
 
     const updatedProject = getUpdatedProject({
@@ -35,10 +48,12 @@ export function Toolbar() {
     }
 
     projectService.saveProject(updatedProject);
+    toast.success("Project saved");
   };
 
   const onBuild = async () => {
     generateService.generate({ projectId: project?.id });
+    toast.success("Project built");
   };
 
   const onRun = async () => {
@@ -66,10 +81,10 @@ export function Toolbar() {
 
         <MenuPopover>
           <MenuList>
-            <MenuItem secondaryContent="Ctrl+S">Save</MenuItem>
-            <MenuItem secondaryContent="Ctrl+Shift+E" onClick={onExport}>
-              Export
+            <MenuItem secondaryContent="Ctrl+S" onClick={onSave}>
+              Save
             </MenuItem>
+            <MenuItem secondaryContent="Ctrl+Shift+E">Export</MenuItem>
           </MenuList>
         </MenuPopover>
       </Menu>
@@ -89,8 +104,8 @@ export function Toolbar() {
 
         <MenuPopover>
           <MenuList>
-            <MenuItem secondaryContent="Ctrl+Shift+F5" onClick={onBuild}>
-              Build Project
+            <MenuItem secondaryContent="Ctrl+B" onClick={onBuild}>
+              Build
             </MenuItem>
           </MenuList>
         </MenuPopover>

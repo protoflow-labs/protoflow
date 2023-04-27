@@ -1,23 +1,23 @@
-import { useNodeTypes } from "@/hooks/useNodeTypes";
+import { useBlockTypes } from "@/hooks/useBlockTypes";
 import { configTypes } from "@/lib/configTypes";
 import {
+  createContext,
   DragEventHandler,
   ReactNode,
-  createContext,
   useCallback,
   useContext,
   useState,
 } from "react";
 import {
+  addEdge,
+  applyEdgeChanges,
+  applyNodeChanges,
   Connection,
   Edge,
   Node,
   OnEdgesChange,
   OnNodesChange,
   ReactFlowInstance,
-  addEdge,
-  applyEdgeChanges,
-  applyNodeChanges,
 } from "reactflow";
 import { v4 as uuid } from "uuid";
 import { useProjectContext } from "./ProjectProvider";
@@ -26,7 +26,7 @@ type EditorContextType = {
   props: {
     edges: Edge[];
     nodes: Node[];
-    nodeTypes: Record<string, any>;
+    blockTypes: Record<string, any>;
     onConnect: (params: Connection) => void;
     onDragOver: DragEventHandler;
     onDrop: DragEventHandler<HTMLDivElement>;
@@ -79,7 +79,7 @@ const useEditorProps = (reactFlowInstance?: ReactFlowInstance) => {
       target: e.to,
     })) || []
   );
-  const { nodeTypes } = useNodeTypes();
+  const { blockTypes } = useBlockTypes();
 
   const onConnect = useCallback((params: Connection) => {
     if (!params.source || !params.target) return;
@@ -125,7 +125,7 @@ const useEditorProps = (reactFlowInstance?: ReactFlowInstance) => {
   return {
     edges,
     nodes,
-    nodeTypes,
+    blockTypes,
     onConnect,
     onDragOver,
     onDrop,

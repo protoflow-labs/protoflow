@@ -1,4 +1,4 @@
-import { FunctionData } from "@/blocks/FunctionBlock";
+import { FunctionData } from "@/components/blocks/FunctionBlock";
 import { Divider, Field, Input, Select } from "@fluentui/react-components";
 import { useForm } from "react-hook-form";
 import { Node } from "reactflow";
