@@ -1,32 +1,35 @@
 import { Divider, Field, Input } from "@fluentui/react-components";
 import { useForm } from "react-hook-form";
 import { Node } from "reactflow";
+import { Collection } from "../../../rpc/block_pb";
 import { EditorActions, useUnselect } from "../EditorActions";
 
-export type EntityData = {
+export type CollectionData = {
   name: string;
-  config: { entity?: { collection: string } };
+  config: { collection?: Partial<Collection> };
 };
 
-export function CollectionEditor(props: { node: Node<EntityData> }) {
+export function CollectionEditor(props: { node: Node<CollectionData> }) {
   const onCancel = useUnselect();
   const { register, handleSubmit, watch } = useForm({
     values: {
       name: props.node.data.name || "",
-      collection: props.node.data.config.entity?.collection || "",
+      config: {
+        ...props.node.data.config.collection,
+      } as Collection,
     },
   });
 
   const onSubmit = (data: any) => {
     props.node.data.name = data.name;
 
-    if (!props.node.data.config.entity) {
-      props.node.data.config.entity = {
-        collection: "",
+    if (!props.node.data.config.collection) {
+      props.node.data.config.collection = {
+        name: "",
       };
     }
 
-    props.node.data.config.entity.collection = data.collection;
+    props.node.data.config.collection.name = data.config.name;
 
     onCancel();
   };
@@ -40,7 +43,7 @@ export function CollectionEditor(props: { node: Node<EntityData> }) {
           <Input value={values.name} {...register("name")} />
         </Field>
         <Field label="Table" required>
-          <Input value={values.collection} {...register("collection")} />
+          <Input value={values.config.name} {...register("config.name")} />
         </Field>
         <Divider />
         <EditorActions />
