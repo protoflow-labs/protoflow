@@ -136,7 +136,7 @@ func (w *Workflow) Run(logger Logger, executor Executor, nodeID string) (*Result
 	})
 	if err != nil {
 		logger.Error("Error traversing workflow", "error", err)
-		return nil, nil
+		return nil, err
 	}
 	return res, nil
 }

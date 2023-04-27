@@ -39,7 +39,13 @@ func (m MemoryLogger) Warn(msg string, keyvals ...interface{}) {
 func (m MemoryLogger) Error(msg string, keyvals ...interface{}) {
 	errLog := log.Error().Str("file", fileLine())
 	for i := 0; i < len(keyvals); i += 2 {
-		errLog = errLog.Str(keyvals[i].(string), fmt.Sprintf("%+v", keyvals[i+1]))
+		tag := keyvals[i].(string)
+		value := keyvals[i+1]
+		if value.(error) != nil {
+			errLog = errLog.Err(value.(error))
+			continue
+		}
+		errLog = errLog.Str(tag, fmt.Sprintf("%+v", value))
 	}
 	errLog.Msg(msg)
 }

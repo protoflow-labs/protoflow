@@ -7,6 +7,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/gen"
 	"github.com/protoflow-labs/protoflow/pkg/util"
+	"io"
 	"strings"
 )
 
@@ -62,6 +63,13 @@ var _ Node = &InputNode{}
 type FunctionNode struct {
 	BaseNode
 	Function *gen.Function
+}
+
+var _ Node = &FunctionNode{}
+
+type QueryNode struct {
+	BaseNode
+	Query *gen.Query
 }
 
 var _ Node = &FunctionNode{}
@@ -141,6 +149,36 @@ func (f *FunctionNode) Execute(executor Executor, input Input) (*Result, error) 
 	return executor.Execute(activity.ExecuteFunctionNode, f, input)
 }
 
+func (s *QueryNode) Execute(executor Executor, input Input) (*Result, error) {
+	docResource, ok := input.Resources[DocstoreResourceType].(*DocstoreResource)
+	if !ok {
+		return nil, fmt.Errorf("error getting docstore resource: %s", s.Query.Collection)
+	}
+
+	d, cleanup, err := docResource.WithCollection(s.Query.Collection)
+	if err != nil {
+		return nil, errors.Wrapf(err, "error connecting to collection")
+	}
+	defer cleanup()
+
+	var docs []*map[string]interface{}
+	iter := d.Query().Get(context.Background())
+	for {
+		doc := map[string]interface{}{}
+		err = iter.Next(context.Background(), doc)
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			return nil, errors.Wrapf(err, "error iterating over query results")
+		}
+		docs = append(docs, &doc)
+	}
+	return &Result{
+		Data: docs,
+	}, nil
+}
+
 type ResourceMap map[string]Resource
 
 func NewNode(resources ResourceMap, node *gen.Node) (Node, error) {
@@ -157,6 +195,8 @@ func NewNode(resources ResourceMap, node *gen.Node) (Node, error) {
 		return NewInputNode(node), nil
 	case *gen.Node_Function:
 		return NewFunctionNode(resources, node), nil
+	case *gen.Node_Query:
+		return NewQueryNode(resources, node), nil
 	default:
 		return nil, errors.New("no node found")
 	}
@@ -236,5 +276,17 @@ func NewFunctionNode(resources ResourceMap, node *gen.Node) *FunctionNode {
 	return &FunctionNode{
 		BaseNode: NewBaseNode(node),
 		Function: node.GetFunction(),
+	}
+}
+
+func NewQueryNode(resources ResourceMap, node *gen.Node) *QueryNode {
+	for id, r := range resources {
+		if r.Name() == DocstoreResourceType {
+			node.ResourceIds = append(node.ResourceIds, id)
+		}
+	}
+	return &QueryNode{
+		BaseNode: NewBaseNode(node),
+		Query:    node.GetQuery(),
 	}
 }
