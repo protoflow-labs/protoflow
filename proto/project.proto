@@ -3,7 +3,6 @@ syntax = "proto3";
 import "graph.proto";
 import "block.proto";
 import "resource.proto";
-import "google/protobuf/any.proto";
 
 package project;
 option go_package = "project";
@@ -27,13 +26,13 @@ service ProjectService {
 message RunWorkflowRequest {
     string project_id = 1;
     string node_id = 2;
-    google.protobuf.Any input = 3;
+    string input = 3;
 }
 
 message RunNodeRequest {
     string project_id = 1;
     string node_id = 2;
-    google.protobuf.Any input = 3;
+    string input = 3;
 }
 
 message Data {

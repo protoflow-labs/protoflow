@@ -108,7 +108,7 @@ func FromProject(project *gen.Project, cache cache.Cache) (*Workflow, error) {
 type Instances map[string]Resource
 
 // TODO breadchris nodeID should not be needed, the workflow should already be a slice of the graph that is configured to run
-func (w *Workflow) Run(logger Logger, executor Executor, nodeID string) (*Result, error) {
+func (w *Workflow) Run(logger Logger, executor Executor, nodeID string, input string) (*Result, error) {
 	var cleanupFuncs []func()
 	defer func() {
 		for _, cleanup := range cleanupFuncs {
@@ -135,7 +135,7 @@ func (w *Workflow) Run(logger Logger, executor Executor, nodeID string) (*Result
 	}
 
 	res, err := w.traverseWorkflow(logger, instances, executor, vert, Input{
-		Params: nil,
+		Params: input,
 	})
 	if err != nil {
 		logger.Error("Error traversing workflow", "error", err)

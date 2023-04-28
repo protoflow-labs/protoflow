@@ -4,7 +4,7 @@
 // @ts-nocheck
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
-import { Any, Message, proto3 } from "@bufbuild/protobuf";
+import { Message, proto3 } from "@bufbuild/protobuf";
 import { Graph } from "./graph_pb.js";
 import { Resource } from "./resource_pb.js";
 
@@ -23,9 +23,9 @@ export class RunWorkflowRequest extends Message<RunWorkflowRequest> {
   nodeId = "";
 
   /**
-   * @generated from field: google.protobuf.Any input = 3;
+   * @generated from field: string input = 3;
    */
-  input?: Any;
+  input = "";
 
   constructor(data?: PartialMessage<RunWorkflowRequest>) {
     super();
@@ -37,7 +37,7 @@ export class RunWorkflowRequest extends Message<RunWorkflowRequest> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "project_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "node_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 3, name: "input", kind: "message", T: Any },
+    { no: 3, name: "input", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): RunWorkflowRequest {
@@ -72,9 +72,9 @@ export class RunNodeRequest extends Message<RunNodeRequest> {
   nodeId = "";
 
   /**
-   * @generated from field: google.protobuf.Any input = 3;
+   * @generated from field: string input = 3;
    */
-  input?: Any;
+  input = "";
 
   constructor(data?: PartialMessage<RunNodeRequest>) {
     super();
@@ -86,7 +86,7 @@ export class RunNodeRequest extends Message<RunNodeRequest> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "project_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "node_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 3, name: "input", kind: "message", T: Any },
+    { no: 3, name: "input", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): RunNodeRequest {

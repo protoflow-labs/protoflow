@@ -10,6 +10,7 @@ import {
 } from "@fluentui/react-components";
 import { createContext, useCallback, useContext, useState } from "react";
 import { HiExclamationCircle, HiPlus } from "react-icons/hi2";
+import { Node } from "reactflow";
 import { Project } from "../../rpc/project_pb";
 
 type ProjectContextType = {
@@ -17,7 +18,7 @@ type ProjectContextType = {
   output: any;
 
   resetOutput: () => void;
-  runWorkflow: (nodeId: string) => Promise<any>;
+  runWorkflow: (node: Node) => Promise<any>;
   saveProject: () => Promise<void>;
 };
 
@@ -45,11 +46,13 @@ export default function ProjectProvider({ children }: ProjectProviderProps) {
   }, [project]);
 
   const runWorkflow = useCallback(
-    async (nodeId: string) => {
+    async (node: Node) => {
       if (!project) return;
+
       const res = await projectService.runWorklow({
-        nodeId,
+        nodeId: node.id,
         projectId: project.id,
+        input: localStorage.getItem(`${node.data.name}-sampleData`) || ''
       });
 
       setOutput(res.output);

@@ -23,7 +23,7 @@ export function ActionBar() {
   const onRun = async () => {
     if (!project) return;
 
-    await runWorkflow(selectedNodes[0].id);
+    await runWorkflow(selectedNodes[0]);
   };
 
   useEffect(() => {

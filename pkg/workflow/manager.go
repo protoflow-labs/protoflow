@@ -3,6 +3,7 @@ package workflow
 import (
 	"context"
 	"fmt"
+
 	"github.com/google/wire"
 	"github.com/protoflow-labs/protoflow/pkg/temporal"
 	"go.uber.org/config"
@@ -11,8 +12,8 @@ import (
 const TaskQueue = "protoflow"
 
 type Manager interface {
-	ExecuteWorkflow(ctx context.Context, w *Workflow, nodeID string) (string, error)
-	ExecuteWorkflowSync(ctx context.Context, w *Workflow, nodeID string) (*Result, error)
+	ExecuteWorkflow(ctx context.Context, w *Workflow, nodeID string, input string) (string, error)
+	ExecuteWorkflowSync(ctx context.Context, w *Workflow, nodeID string, input string) (*Result, error)
 	CleanupResources() error
 }
 

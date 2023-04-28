@@ -3,8 +3,9 @@ package workflow
 import (
 	"context"
 	"fmt"
-	"github.com/google/uuid"
 	"sync"
+
+	"github.com/google/uuid"
 )
 
 type MemoryManager struct {
@@ -15,7 +16,7 @@ func NewMemoryManager() *MemoryManager {
 	return &MemoryManager{}
 }
 
-func (m *MemoryManager) ExecuteWorkflow(ctx context.Context, w *Workflow, nodeID string) (string, error) {
+func (m *MemoryManager) ExecuteWorkflow(ctx context.Context, w *Workflow, nodeID string, input string) (string, error) {
 	if w.NodeLookup == nil || w.Graph == nil {
 		return "", fmt.Errorf("workflow is not initialized")
 	}
@@ -25,11 +26,11 @@ func (m *MemoryManager) ExecuteWorkflow(ctx context.Context, w *Workflow, nodeID
 	memoryCtx := &MemoryContext{Context: ctx}
 	executor := NewMemoryExecutor(memoryCtx)
 
-	_, err := w.Run(logger, executor, nodeID)
+	_, err := w.Run(logger, executor, nodeID, input)
 	return uuid.New().String(), err
 }
 
-func (m *MemoryManager) ExecuteWorkflowSync(ctx context.Context, w *Workflow, nodeID string) (*Result, error) {
+func (m *MemoryManager) ExecuteWorkflowSync(ctx context.Context, w *Workflow, nodeID string, input string) (*Result, error) {
 	if w.NodeLookup == nil || w.Graph == nil {
 		return nil, fmt.Errorf("workflow is not initialized")
 	}
@@ -39,7 +40,7 @@ func (m *MemoryManager) ExecuteWorkflowSync(ctx context.Context, w *Workflow, no
 	memoryCtx := &MemoryContext{Context: ctx}
 	executor := NewMemoryExecutor(memoryCtx)
 
-	return w.Run(logger, executor, nodeID)
+	return w.Run(logger, executor, nodeID, input)
 }
 
 func (m *MemoryManager) CleanupResources() error {

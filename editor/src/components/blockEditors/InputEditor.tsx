@@ -1,31 +1,46 @@
 import { InputData } from "@/components/blocks/InputBlock";
 import {
   Button,
+  Checkbox,
   Divider,
   Dropdown,
   Field,
   Input,
   Option,
 } from "@fluentui/react-components";
-import { useForm } from "react-hook-form";
+import { useState } from "react";
+import { UseFormSetValue, useForm } from "react-hook-form";
 import { HiOutlineTrash, HiPlus } from "react-icons/hi2";
+import { TbFileText } from "react-icons/tb";
 import { Node } from "reactflow";
 import {
   FieldDefinition,
-  FieldType,
-  Input as InputPb,
+  FieldType
 } from "../../../rpc/block_pb";
 import { EditorActions, useUnselect } from "../EditorActions";
 import { fieldTypeMap } from "../EditorPanel";
 
+type Form = {
+  name: string;
+  config: {
+    fields: FieldDefinition[]
+    sampleData: {
+      [key: string]: string | number | boolean;
+    }
+  }
+}
+
 export function InputEditor({ node }: { node: Node<InputData> }) {
+  const [showSampleDataForm, setShowSampleDataForm] = useState(false);
   const onCancel = useUnselect();
-  const { watch, setValue, register, handleSubmit } = useForm({
+  const sampleDataStorageKey = `${node.data.name}-sampleData`;
+  const { watch, setValue, register, handleSubmit } = useForm<Form>({
     values: {
       name: node.data.name || "",
       config: {
         fields: node.data.config.input?.fields || [],
-      } as InputPb,
+        sampleData: JSON.parse(localStorage.getItem(sampleDataStorageKey) || '{}')
+      },
     },
   });
 
@@ -39,6 +54,7 @@ export function InputEditor({ node }: { node: Node<InputData> }) {
     }
 
     node.data.config.input.fields = data.config.fields;
+    localStorage.setItem(sampleDataStorageKey, JSON.stringify(data.config.sampleData));
 
     onCancel();
   };
@@ -80,6 +96,10 @@ export function InputEditor({ node }: { node: Node<InputData> }) {
                       "config.fields",
                       values.config.fields.filter((_, i) => i !== index)
                     );
+
+                    const newSampleData = { ...values.config.sampleData };
+                    delete newSampleData[field.name];
+                    setValue('config.sampleData', newSampleData)
                   }}
                 />
               </div>
@@ -101,9 +121,45 @@ export function InputEditor({ node }: { node: Node<InputData> }) {
             Add Field
           </Button>
         </div>
+        <TbFileText onClick={() => setShowSampleDataForm(!showSampleDataForm)}/>
+        { showSampleDataForm && (
+          <div>
+            { values.config.fields.map((field, index) => (
+              <div key={`${field.name}-${index}`} className="flex items-center gap-2 mb-2">
+                <Field label={field.name}>
+                  <SampleDataField field={field} values={values} setValue={setValue}/>
+                </Field>
+              </div>
+            )) }
+          </div>)}
         <Divider />
         <EditorActions />
       </div>
     </form>
   );
+}
+
+function SampleDataField({ field, values, setValue }: {
+  field: FieldDefinition,
+  values: Form,
+  setValue: UseFormSetValue<Form>
+}) {
+  switch (field.type) {
+    case FieldType.STRING:
+      return <Input
+          value={String(values.config.sampleData[field.name] || '')}
+          onChange={(_, data) => setValue(`config.sampleData.${field.name}`, data.value)}
+        />;
+    case FieldType.INTEGER:
+      return <Input
+        type="number"
+        value={String(values.config.sampleData[field.name])}
+        onChange={(_, data) => setValue(`config.sampleData.${field.name}`, Number(data.value))}
+      />;
+    case FieldType.BOOLEAN:
+      return <Checkbox
+          checked={Boolean(values.config.sampleData[field.name])}
+          onChange={(_, data) => setValue(`config.sampleData.${field.name}`, data.checked)}
+        />;
+  }
 }

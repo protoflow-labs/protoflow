@@ -131,7 +131,7 @@ func (s *Service) RunWorklow(ctx context.Context, c *connect.Request[gen.RunWork
 		return nil, err
 	}
 
-	res, err := s.manager.ExecuteWorkflowSync(ctx, w, c.Msg.NodeId)
+	res, err := s.manager.ExecuteWorkflowSync(ctx, w, c.Msg.NodeId, c.Msg.Input)
 	if err != nil {
 		return nil, err
 	}

@@ -160,7 +160,7 @@ func (s *BucketNode) Execute(executor Executor, input Input) (*Result, error) {
 
 func (s *InputNode) Execute(executor Executor, input Input) (*Result, error) {
 	return &Result{
-		Data: map[string]any{},
+		Data: input.Params,
 	}, nil
 	//return &Result{
 	//	Data: input.Params,

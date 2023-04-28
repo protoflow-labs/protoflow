@@ -3,12 +3,13 @@ package workflow
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/google/wire"
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/workflow"
-	"time"
 )
 
 var _ Manager = (*TemporalManager)(nil)
@@ -28,7 +29,7 @@ func NewTemporalManager(client client.Client) *TemporalManager {
 	}
 }
 
-func (m *TemporalManager) ExecuteWorkflow(ctx context.Context, w *Workflow, nodeID string) (string, error) {
+func (m *TemporalManager) ExecuteWorkflow(ctx context.Context, w *Workflow, nodeID string, input string) (string, error) {
 	workflowOptions := client.StartWorkflowOptions{
 		ID:        w.ID,
 		TaskQueue: TaskQueue,
@@ -47,13 +48,13 @@ func (m *TemporalManager) ExecuteWorkflow(ctx context.Context, w *Workflow, node
 	return we.GetRunID(), nil
 }
 
-func (m *TemporalManager) ExecuteWorkflowSync(ctx context.Context, w *Workflow, nodeID string) (*Result, error) {
+func (m *TemporalManager) ExecuteWorkflowSync(ctx context.Context, w *Workflow, nodeID string, input string) (*Result, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
 // TemporalRun is the entrypoint for a Temporal workflow that will run on a worker
-func TemporalRun(ctx workflow.Context, w *Workflow, nodeID string) (*Result, error) {
+func TemporalRun(ctx workflow.Context, w *Workflow, nodeID string, input string) (*Result, error) {
 	if w.NodeLookup == nil || w.Graph == nil {
 		return nil, fmt.Errorf("workflow is not initialized")
 	}
@@ -73,7 +74,7 @@ func TemporalRun(ctx workflow.Context, w *Workflow, nodeID string) (*Result, err
 
 	logger.Info("Starting workflow", "workflowID", workflow.GetInfo(ctx).WorkflowExecution.ID, "nodeID", nodeID)
 
-	return w.Run(logger, executor, nodeID)
+	return w.Run(logger, executor, nodeID, input)
 }
 
 func (m *TemporalManager) CleanupResources() error {

@@ -62,7 +62,7 @@ export function Toolbar() {
   }, [project, props.nodes, props.edges]);
 
   const onBuild = async () => {
-    await onSave();
+    await  onSave();
 
     generateService.generate({ projectId: project?.id });
     toast.success("Project built");
@@ -75,7 +75,7 @@ export function Toolbar() {
     }
 
     const selectedNode = selectedNodes[0];
-    runWorkflow(selectedNode.id);
+    runWorkflow(selectedNode);
   };
 
   useEffect(() => {
