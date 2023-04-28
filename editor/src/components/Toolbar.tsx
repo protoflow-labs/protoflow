@@ -78,6 +78,7 @@ export function Toolbar() {
       nodeId: selectedNode.id,
     });
 
+    // TODO: Show output on the screen
     console.log(res);
   };
 
