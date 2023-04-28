@@ -11,6 +11,7 @@ export default function BlocksList() {
       <NodeButton nodeType="protoflow.queue">Queue</NodeButton>
       <NodeButton nodeType="protoflow.bucket">Bucket</NodeButton>
       <NodeButton nodeType="protoflow.email">Email</NodeButton>
+      <NodeButton nodeType="protoflow.rest">REST</NodeButton>
     </div>
   );
 }

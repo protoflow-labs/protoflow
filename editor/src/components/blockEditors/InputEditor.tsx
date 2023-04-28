@@ -10,7 +10,11 @@ import {
 import { useForm } from "react-hook-form";
 import { HiOutlineTrash, HiPlus } from "react-icons/hi2";
 import { Node } from "reactflow";
-import { FieldDefinition, FieldType } from "../../../rpc/block_pb";
+import {
+  FieldDefinition,
+  FieldType,
+  Input as InputPb,
+} from "../../../rpc/block_pb";
 import { EditorActions, useUnselect } from "../EditorActions";
 import { fieldTypeMap } from "../EditorPanel";
 
@@ -19,7 +23,9 @@ export function InputEditor({ node }: { node: Node<InputData> }) {
   const { watch, setValue, register, handleSubmit } = useForm({
     values: {
       name: node.data.name || "",
-      fields: node.data.config.input?.fields || [],
+      config: {
+        fields: node.data.config.input?.fields || [],
+      } as InputPb,
     },
   });
 
@@ -32,7 +38,7 @@ export function InputEditor({ node }: { node: Node<InputData> }) {
       };
     }
 
-    node.data.config.input.fields = data.fields;
+    node.data.config.input.fields = data.config.fields;
 
     onCancel();
   };
@@ -47,17 +53,20 @@ export function InputEditor({ node }: { node: Node<InputData> }) {
         </Field>
         <div className="flex flex-col">
           <Field label="Fields">
-            {values.fields?.map((field, index) => (
+            {values.config.fields?.map((field, index) => (
               <div key={index} className="flex items-center gap-2 mb-2">
                 <Input
-                  value={values.fields[index].name}
-                  {...register(`fields.${index}.name`)}
+                  value={values.config.fields[index].name}
+                  {...register(`config.fields.${index}.name`)}
                 />
                 <Dropdown
                   id={"fieldType" + index}
                   value={fieldTypeMap[field.type || FieldType.STRING]}
                   onOptionSelect={(_, data) => {
-                    setValue(`fields.${index}.type`, Number(data.optionValue));
+                    setValue(
+                      `config.fields.${index}.type`,
+                      Number(data.optionValue)
+                    );
                   }}
                 >
                   <Option value={String(FieldType.STRING)}>String</Option>
@@ -68,8 +77,8 @@ export function InputEditor({ node }: { node: Node<InputData> }) {
                   icon={<HiOutlineTrash className="h-4 w-4" />}
                   onClick={() => {
                     setValue(
-                      "fields",
-                      values.fields.filter((_, i) => i !== index)
+                      "config.fields",
+                      values.config.fields.filter((_, i) => i !== index)
                     );
                   }}
                 />
@@ -80,8 +89,8 @@ export function InputEditor({ node }: { node: Node<InputData> }) {
           <Button
             icon={<HiPlus className="w-4 h-4" />}
             onClick={() => {
-              setValue("fields", [
-                ...(values.fields || []),
+              setValue("config.fields", [
+                ...(values.config.fields || []),
                 new FieldDefinition({
                   name: "",
                   type: FieldType.STRING,
