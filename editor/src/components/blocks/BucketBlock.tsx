@@ -1,6 +1,7 @@
-import { Caption1, Card, CardHeader, Text } from "@fluentui/react-components";
+import { Caption1, CardHeader, Text } from "@fluentui/react-components";
 import { TbBucket } from "react-icons/tb";
 import { Handle, NodeProps, Position } from "reactflow";
+import { BlockCard } from "./BlockCard";
 
 export type BucketBlockProps = NodeProps<BucketData>;
 
@@ -12,7 +13,7 @@ export function BucketBlock(props: BucketBlockProps) {
   const { data, selected } = props;
   return (
     <>
-      <Card>
+      <BlockCard selected={selected}>
         <CardHeader
           image={<TbBucket className="h-5 w-5 bg-gray-800" />}
           header={
@@ -20,7 +21,7 @@ export function BucketBlock(props: BucketBlockProps) {
           }
           description={<Caption1>Bucket</Caption1>}
         />
-      </Card>
+      </BlockCard>
       <Handle type="source" position={Position.Bottom} className="z-10" />
       <Handle type="target" position={Position.Top} className="z-10" />
     </>
