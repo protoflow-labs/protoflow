@@ -47,6 +47,14 @@ func NewHTTPServer(projectService genconnect.ProjectServiceHandler, generateServ
 	generateRoutes, generateHandlers := genconnect.NewGenerateServiceHandler(generateService, interceptors)
 	mux.Handle(generateRoutes, generateHandlers)
 
+	recoverCall := func(_ context.Context, spec connect.Spec, _ http.Header, p any) error {
+		log.Error().Msgf("%+v\n", p)
+		if err, ok := p.(error); ok {
+			return err
+		}
+		return fmt.Errorf("panic: %v", p)
+	}
+
 	reflector := grpcreflect.NewStaticReflector(
 		"project.ProjectService",
 		"generate.GenerateService",
@@ -54,10 +62,10 @@ func NewHTTPServer(projectService genconnect.ProjectServiceHandler, generateServ
 		// for these fully-qualified protobuf service names, so you'd more likely
 		// reference userv1.UserServiceName and groupv1.GroupServiceName.
 	)
-	mux.Handle(grpcreflect.NewHandlerV1(reflector))
+	mux.Handle(grpcreflect.NewHandlerV1(reflector, connect.WithRecover(recoverCall)))
 	// Many tools still expect the older version of the server reflection API, so
 	// most servers should mount both handlers.
-	mux.Handle(grpcreflect.NewHandlerV1Alpha(reflector))
+	mux.Handle(grpcreflect.NewHandlerV1Alpha(reflector, connect.WithRecover(recoverCall)))
 
 	return &HTTPServer{
 		mux: mux,

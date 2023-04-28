@@ -4,9 +4,11 @@ import (
 	"context"
 	"fmt"
 	"github.com/google/uuid"
+	"sync"
 )
 
 type MemoryManager struct {
+	resourceCleanup sync.Cond
 }
 
 func NewMemoryManager() *MemoryManager {
@@ -38,4 +40,9 @@ func (m *MemoryManager) ExecuteWorkflowSync(ctx context.Context, w *Workflow, no
 	executor := NewMemoryExecutor(memoryCtx)
 
 	return w.Run(logger, executor, nodeID)
+}
+
+func (m *MemoryManager) CleanupResources() error {
+	//TODO implement me
+	panic("implement me")
 }

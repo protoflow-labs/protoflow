@@ -75,3 +75,8 @@ func TemporalRun(ctx workflow.Context, w *Workflow, nodeID string) (*Result, err
 
 	return w.Run(logger, executor, nodeID)
 }
+
+func (m *TemporalManager) CleanupResources() error {
+	//TODO implement me
+	panic("implement me")
+}

@@ -1,7 +1,6 @@
 package workflow
 
 import (
-	"bufio"
 	"context"
 	"fmt"
 	"io"
@@ -158,10 +157,9 @@ func (r *BlobstoreResource) WithPath(path string) (*blob.Bucket, func(), error) 
 
 type LanguageServiceResource struct {
 	*gen.LanguageService
-	Conn      *grpc.ClientConn
-	cache     cache.Cache
-	cmd       *exec.Cmd
-	cmdStdOut io.ReadCloser
+	Conn  *grpc.ClientConn
+	cache cache.Cache
+	cmd   *exec.Cmd
 }
 
 func (r *LanguageServiceResource) Name() string {
@@ -177,6 +175,9 @@ func (r *LanguageServiceResource) Init() (func(), error) {
 		return nil, errors.Wrapf(err, "unable to connect to grpc server at %s", r.Host)
 	}
 	cleanup := func() {
+		if !r.CloseOnCleanup {
+			return
+		}
 		if r.cmd != nil && r.cmd.Process != nil {
 			syscall.Kill(-r.cmd.Process.Pid, syscall.SIGKILL)
 		}
@@ -207,7 +208,6 @@ func (r *LanguageServiceResource) ensureRunning() error {
 	if err != nil {
 		return err
 	}
-	r.cmdStdOut = stdout
 
 	if err = r.cmd.Start(); err != nil {
 		return err
@@ -217,7 +217,15 @@ func (r *LanguageServiceResource) ensureRunning() error {
 		return err
 	}
 
-	return r.waitForPort()
+	err = r.waitForPort()
+	if err != nil {
+		out, err := io.ReadAll(stdout)
+		if err != nil {
+			return errors.Wrapf(err, "Unable to get the %s language server running, failed to read stdout", r.Name())
+		}
+		return errors.Wrapf(err, "Unable to get the %s language server running: %s", r.Name(), string(out))
+	}
+	return nil
 }
 
 func (r *LanguageServiceResource) waitForPort() error {
@@ -236,15 +244,5 @@ func (r *LanguageServiceResource) waitForPort() error {
 			time.Sleep(retryInterval)
 		}
 	}
-	return fmt.Errorf("port did not come online in time: %s", r.getCommandOutput())
-}
-
-func (r *LanguageServiceResource) getCommandOutput() string {
-	output := ""
-	scanner := bufio.NewScanner(r.cmdStdOut)
-	for scanner.Scan() {
-		output += scanner.Text()
-	}
-
-	return output
+	return fmt.Errorf("port did not come online in time")
 }

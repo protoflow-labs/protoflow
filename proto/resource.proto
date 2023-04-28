@@ -27,6 +27,7 @@ enum Runtime {
 message LanguageService {
   string host = 1;
   Runtime runtime = 2;
+  bool close_on_cleanup = 3;
 }
 
 message GRPCService {

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/pkg/errors"
+	"io"
 	"net/http"
 	"strings"
 )
@@ -38,8 +39,13 @@ func InvokeMethodOnUrl(method, url string, headers map[string]string, data inter
 		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
 	}
 
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "error reading response body as json")
+	}
+
 	var respBody interface{}
-	err = json.NewDecoder(resp.Body).Decode(&respBody)
+	err = json.Unmarshal(body, &respBody)
 	if err != nil {
 		return nil, errors.Wrapf(err, "error decoding response body")
 	}

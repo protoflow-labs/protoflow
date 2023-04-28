@@ -9,7 +9,6 @@ import (
 	grpcanal "github.com/protoflow-labs/protoflow/pkg/grpc"
 	"github.com/protoflow-labs/protoflow/pkg/util"
 	"github.com/rs/zerolog/log"
-	"go.temporal.io/sdk/workflow"
 )
 
 type Activity struct{}
@@ -20,7 +19,8 @@ var (
 
 type ProtoType struct{}
 
-func (a *Activity) ExecuteGRPCNode(ctx workflow.Context, node *GRPCNode, input Input) (Result, error) {
+// TODO breadchris this should be workflow.Context, but for the memory executor it needs context.Context
+func (a *Activity) ExecuteGRPCNode(ctx context.Context, node *GRPCNode, input Input) (Result, error) {
 	log.Info().Msgf("executing node: %s", node.Service)
 
 	g, ok := input.Resources[GRPCResourceType].(*GRPCResource)
@@ -42,7 +42,7 @@ func (a *Activity) ExecuteGRPCNode(ctx workflow.Context, node *GRPCNode, input I
 	}, fmt.Errorf("method not found: %s", node.Method)
 }
 
-func (a *Activity) ExecuteRestNode(ctx workflow.Context, node *RESTNode, input Input) (Result, error) {
+func (a *Activity) ExecuteRestNode(ctx context.Context, node *RESTNode, input Input) (Result, error) {
 	log.Debug().Msgf("executing rest: %v", node.Method)
 	res, err := util.InvokeMethodOnUrl(node.Method, node.Path, node.Headers, input.Params)
 	if err != nil {

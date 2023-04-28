@@ -13,6 +13,7 @@ const TaskQueue = "protoflow"
 type Manager interface {
 	ExecuteWorkflow(ctx context.Context, w *Workflow, nodeID string) (string, error)
 	ExecuteWorkflowSync(ctx context.Context, w *Workflow, nodeID string) (*Result, error)
+	CleanupResources() error
 }
 
 var ProviderSet = wire.NewSet(

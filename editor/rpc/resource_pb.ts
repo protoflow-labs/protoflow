@@ -136,6 +136,11 @@ export class LanguageService extends Message<LanguageService> {
    */
   runtime = Runtime.NODE;
 
+  /**
+   * @generated from field: bool close_on_cleanup = 3;
+   */
+  closeOnCleanup = false;
+
   constructor(data?: PartialMessage<LanguageService>) {
     super();
     proto3.util.initPartial(data, this);
@@ -146,6 +151,7 @@ export class LanguageService extends Message<LanguageService> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "host", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "runtime", kind: "enum", T: proto3.getEnumType(Runtime) },
+    { no: 3, name: "close_on_cleanup", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): LanguageService {
