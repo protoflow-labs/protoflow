@@ -207,14 +207,9 @@ export class GRPCService extends Message<GRPCService> {
  */
 export class RESTService extends Message<RESTService> {
   /**
-   * @generated from field: string host = 1;
+   * @generated from field: string base_url = 1;
    */
-  host = "";
-
-  /**
-   * @generated from field: string schema = 2;
-   */
-  schema = "";
+  baseUrl = "";
 
   constructor(data?: PartialMessage<RESTService>) {
     super();
@@ -224,8 +219,7 @@ export class RESTService extends Message<RESTService> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "resource.RESTService";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "host", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "schema", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 1, name: "base_url", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): RESTService {

@@ -21,7 +21,7 @@ service ProjectService {
     rpc CreateResource(CreateResourceRequest) returns (CreateResourceResponse) {}
 
     rpc RunWorklow(RunWorkflowRequest) returns (RunOutput) {}
-    rpc RunBlock(RunBlockRequest) returns (RunOutput) {}
+    rpc RunNode(RunNodeRequest) returns (RunOutput) {}
 }
 
 message RunWorkflowRequest {
@@ -30,9 +30,9 @@ message RunWorkflowRequest {
     google.protobuf.Any input = 3;
 }
 
-message RunBlockRequest {
+message RunNodeRequest {
     string project_id = 1;
-    string block_id = 2;
+    string node_id = 2;
     google.protobuf.Any input = 3;
 }
 

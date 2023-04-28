@@ -30,7 +30,7 @@ type ProjectServiceClient interface {
 	SaveProject(ctx context.Context, in *SaveProjectRequest, opts ...grpc.CallOption) (*SaveProjectResponse, error)
 	CreateResource(ctx context.Context, in *CreateResourceRequest, opts ...grpc.CallOption) (*CreateResourceResponse, error)
 	RunWorklow(ctx context.Context, in *RunWorkflowRequest, opts ...grpc.CallOption) (*RunOutput, error)
-	RunBlock(ctx context.Context, in *RunBlockRequest, opts ...grpc.CallOption) (*RunOutput, error)
+	RunNode(ctx context.Context, in *RunNodeRequest, opts ...grpc.CallOption) (*RunOutput, error)
 }
 
 type projectServiceClient struct {
@@ -113,9 +113,9 @@ func (c *projectServiceClient) RunWorklow(ctx context.Context, in *RunWorkflowRe
 	return out, nil
 }
 
-func (c *projectServiceClient) RunBlock(ctx context.Context, in *RunBlockRequest, opts ...grpc.CallOption) (*RunOutput, error) {
+func (c *projectServiceClient) RunNode(ctx context.Context, in *RunNodeRequest, opts ...grpc.CallOption) (*RunOutput, error) {
 	out := new(RunOutput)
-	err := c.cc.Invoke(ctx, "/project.ProjectService/RunBlock", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/project.ProjectService/RunNode", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -134,7 +134,7 @@ type ProjectServiceServer interface {
 	SaveProject(context.Context, *SaveProjectRequest) (*SaveProjectResponse, error)
 	CreateResource(context.Context, *CreateResourceRequest) (*CreateResourceResponse, error)
 	RunWorklow(context.Context, *RunWorkflowRequest) (*RunOutput, error)
-	RunBlock(context.Context, *RunBlockRequest) (*RunOutput, error)
+	RunNode(context.Context, *RunNodeRequest) (*RunOutput, error)
 }
 
 // UnimplementedProjectServiceServer should be embedded to have forward compatible implementations.
@@ -165,8 +165,8 @@ func (UnimplementedProjectServiceServer) CreateResource(context.Context, *Create
 func (UnimplementedProjectServiceServer) RunWorklow(context.Context, *RunWorkflowRequest) (*RunOutput, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RunWorklow not implemented")
 }
-func (UnimplementedProjectServiceServer) RunBlock(context.Context, *RunBlockRequest) (*RunOutput, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method RunBlock not implemented")
+func (UnimplementedProjectServiceServer) RunNode(context.Context, *RunNodeRequest) (*RunOutput, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RunNode not implemented")
 }
 
 // UnsafeProjectServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -324,20 +324,20 @@ func _ProjectService_RunWorklow_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ProjectService_RunBlock_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RunBlockRequest)
+func _ProjectService_RunNode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RunNodeRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ProjectServiceServer).RunBlock(ctx, in)
+		return srv.(ProjectServiceServer).RunNode(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/project.ProjectService/RunBlock",
+		FullMethod: "/project.ProjectService/RunNode",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ProjectServiceServer).RunBlock(ctx, req.(*RunBlockRequest))
+		return srv.(ProjectServiceServer).RunNode(ctx, req.(*RunNodeRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -382,8 +382,8 @@ var ProjectService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _ProjectService_RunWorklow_Handler,
 		},
 		{
-			MethodName: "RunBlock",
-			Handler:    _ProjectService_RunBlock_Handler,
+			MethodName: "RunNode",
+			Handler:    _ProjectService_RunNode_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -146,7 +146,7 @@ func (s *Service) RunWorklow(ctx context.Context, c *connect.Request[gen.RunWork
 	}), nil
 }
 
-func (s *Service) RunBlock(ctx context.Context, c *connect.Request[gen.RunBlockRequest]) (*connect.Response[gen.RunOutput], error) {
+func (s *Service) RunNode(ctx context.Context, c *connect.Request[gen.RunNodeRequest]) (*connect.Response[gen.RunOutput], error) {
 	//TODO implement me
 	panic("implement me")
 }

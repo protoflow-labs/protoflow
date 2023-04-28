@@ -58,51 +58,51 @@ export class RunWorkflowRequest extends Message<RunWorkflowRequest> {
 }
 
 /**
- * @generated from message project.RunBlockRequest
+ * @generated from message project.RunNodeRequest
  */
-export class RunBlockRequest extends Message<RunBlockRequest> {
+export class RunNodeRequest extends Message<RunNodeRequest> {
   /**
    * @generated from field: string project_id = 1;
    */
   projectId = "";
 
   /**
-   * @generated from field: string block_id = 2;
+   * @generated from field: string node_id = 2;
    */
-  blockId = "";
+  nodeId = "";
 
   /**
    * @generated from field: google.protobuf.Any input = 3;
    */
   input?: Any;
 
-  constructor(data?: PartialMessage<RunBlockRequest>) {
+  constructor(data?: PartialMessage<RunNodeRequest>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "project.RunBlockRequest";
+  static readonly typeName = "project.RunNodeRequest";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "project_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "block_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "node_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 3, name: "input", kind: "message", T: Any },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): RunBlockRequest {
-    return new RunBlockRequest().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): RunNodeRequest {
+    return new RunNodeRequest().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): RunBlockRequest {
-    return new RunBlockRequest().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): RunNodeRequest {
+    return new RunNodeRequest().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): RunBlockRequest {
-    return new RunBlockRequest().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): RunNodeRequest {
+    return new RunNodeRequest().fromJsonString(jsonString, options);
   }
 
-  static equals(a: RunBlockRequest | PlainMessage<RunBlockRequest> | undefined, b: RunBlockRequest | PlainMessage<RunBlockRequest> | undefined): boolean {
-    return proto3.util.equals(RunBlockRequest, a, b);
+  static equals(a: RunNodeRequest | PlainMessage<RunNodeRequest> | undefined, b: RunNodeRequest | PlainMessage<RunNodeRequest> | undefined): boolean {
+    return proto3.util.equals(RunNodeRequest, a, b);
   }
 }
 

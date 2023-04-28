@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-func InvokeMethodOnUrl(method, url string, data interface{}) (interface{}, error) {
+func InvokeMethodOnUrl(method, url string, headers map[string]string, data interface{}) (interface{}, error) {
 	method = strings.ToUpper(method)
 
 	reqBody, err := json.Marshal(data)
@@ -23,6 +23,9 @@ func InvokeMethodOnUrl(method, url string, data interface{}) (interface{}, error
 	}
 
 	req.Header.Set("Content-Type", "application/json")
+	for k, v := range headers {
+		req.Header.Set(k, v)
+	}
 
 	client := &http.Client{}
 	resp, err := client.Do(req)

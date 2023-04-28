@@ -44,7 +44,7 @@ func (a *Activity) ExecuteGRPCNode(ctx workflow.Context, node *GRPCNode, input I
 
 func (a *Activity) ExecuteRestNode(ctx workflow.Context, node *RESTNode, input Input) (Result, error) {
 	log.Debug().Msgf("executing rest: %v", node.Method)
-	res, err := util.InvokeMethodOnUrl(node.Method, node.Path, input.Params)
+	res, err := util.InvokeMethodOnUrl(node.Method, node.Path, node.Headers, input.Params)
 	if err != nil {
 		return Result{}, errors.Wrapf(err, "error invoking method: %s", node.Method)
 	}

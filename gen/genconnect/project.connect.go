@@ -57,8 +57,8 @@ const (
 	// ProjectServiceRunWorklowProcedure is the fully-qualified name of the ProjectService's RunWorklow
 	// RPC.
 	ProjectServiceRunWorklowProcedure = "/project.ProjectService/RunWorklow"
-	// ProjectServiceRunBlockProcedure is the fully-qualified name of the ProjectService's RunBlock RPC.
-	ProjectServiceRunBlockProcedure = "/project.ProjectService/RunBlock"
+	// ProjectServiceRunNodeProcedure is the fully-qualified name of the ProjectService's RunNode RPC.
+	ProjectServiceRunNodeProcedure = "/project.ProjectService/RunNode"
 )
 
 // ProjectServiceClient is a client for the project.ProjectService service.
@@ -71,7 +71,7 @@ type ProjectServiceClient interface {
 	SaveProject(context.Context, *connect_go.Request[gen.SaveProjectRequest]) (*connect_go.Response[gen.SaveProjectResponse], error)
 	CreateResource(context.Context, *connect_go.Request[gen.CreateResourceRequest]) (*connect_go.Response[gen.CreateResourceResponse], error)
 	RunWorklow(context.Context, *connect_go.Request[gen.RunWorkflowRequest]) (*connect_go.Response[gen.RunOutput], error)
-	RunBlock(context.Context, *connect_go.Request[gen.RunBlockRequest]) (*connect_go.Response[gen.RunOutput], error)
+	RunNode(context.Context, *connect_go.Request[gen.RunNodeRequest]) (*connect_go.Response[gen.RunOutput], error)
 }
 
 // NewProjectServiceClient constructs a client for the project.ProjectService service. By default,
@@ -124,9 +124,9 @@ func NewProjectServiceClient(httpClient connect_go.HTTPClient, baseURL string, o
 			baseURL+ProjectServiceRunWorklowProcedure,
 			opts...,
 		),
-		runBlock: connect_go.NewClient[gen.RunBlockRequest, gen.RunOutput](
+		runNode: connect_go.NewClient[gen.RunNodeRequest, gen.RunOutput](
 			httpClient,
-			baseURL+ProjectServiceRunBlockProcedure,
+			baseURL+ProjectServiceRunNodeProcedure,
 			opts...,
 		),
 	}
@@ -142,7 +142,7 @@ type projectServiceClient struct {
 	saveProject    *connect_go.Client[gen.SaveProjectRequest, gen.SaveProjectResponse]
 	createResource *connect_go.Client[gen.CreateResourceRequest, gen.CreateResourceResponse]
 	runWorklow     *connect_go.Client[gen.RunWorkflowRequest, gen.RunOutput]
-	runBlock       *connect_go.Client[gen.RunBlockRequest, gen.RunOutput]
+	runNode        *connect_go.Client[gen.RunNodeRequest, gen.RunOutput]
 }
 
 // GetProject calls project.ProjectService.GetProject.
@@ -185,9 +185,9 @@ func (c *projectServiceClient) RunWorklow(ctx context.Context, req *connect_go.R
 	return c.runWorklow.CallUnary(ctx, req)
 }
 
-// RunBlock calls project.ProjectService.RunBlock.
-func (c *projectServiceClient) RunBlock(ctx context.Context, req *connect_go.Request[gen.RunBlockRequest]) (*connect_go.Response[gen.RunOutput], error) {
-	return c.runBlock.CallUnary(ctx, req)
+// RunNode calls project.ProjectService.RunNode.
+func (c *projectServiceClient) RunNode(ctx context.Context, req *connect_go.Request[gen.RunNodeRequest]) (*connect_go.Response[gen.RunOutput], error) {
+	return c.runNode.CallUnary(ctx, req)
 }
 
 // ProjectServiceHandler is an implementation of the project.ProjectService service.
@@ -200,7 +200,7 @@ type ProjectServiceHandler interface {
 	SaveProject(context.Context, *connect_go.Request[gen.SaveProjectRequest]) (*connect_go.Response[gen.SaveProjectResponse], error)
 	CreateResource(context.Context, *connect_go.Request[gen.CreateResourceRequest]) (*connect_go.Response[gen.CreateResourceResponse], error)
 	RunWorklow(context.Context, *connect_go.Request[gen.RunWorkflowRequest]) (*connect_go.Response[gen.RunOutput], error)
-	RunBlock(context.Context, *connect_go.Request[gen.RunBlockRequest]) (*connect_go.Response[gen.RunOutput], error)
+	RunNode(context.Context, *connect_go.Request[gen.RunNodeRequest]) (*connect_go.Response[gen.RunOutput], error)
 }
 
 // NewProjectServiceHandler builds an HTTP handler from the service implementation. It returns the
@@ -250,9 +250,9 @@ func NewProjectServiceHandler(svc ProjectServiceHandler, opts ...connect_go.Hand
 		svc.RunWorklow,
 		opts...,
 	))
-	mux.Handle(ProjectServiceRunBlockProcedure, connect_go.NewUnaryHandler(
-		ProjectServiceRunBlockProcedure,
-		svc.RunBlock,
+	mux.Handle(ProjectServiceRunNodeProcedure, connect_go.NewUnaryHandler(
+		ProjectServiceRunNodeProcedure,
+		svc.RunNode,
 		opts...,
 	))
 	return "/project.ProjectService/", mux
@@ -293,6 +293,6 @@ func (UnimplementedProjectServiceHandler) RunWorklow(context.Context, *connect_g
 	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("project.ProjectService.RunWorklow is not implemented"))
 }
 
-func (UnimplementedProjectServiceHandler) RunBlock(context.Context, *connect_go.Request[gen.RunBlockRequest]) (*connect_go.Response[gen.RunOutput], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("project.ProjectService.RunBlock is not implemented"))
+func (UnimplementedProjectServiceHandler) RunNode(context.Context, *connect_go.Request[gen.RunNodeRequest]) (*connect_go.Response[gen.RunOutput], error) {
+	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("project.ProjectService.RunNode is not implemented"))
 }

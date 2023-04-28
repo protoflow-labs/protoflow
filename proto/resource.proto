@@ -34,8 +34,7 @@ message GRPCService {
 }
 
 message RESTService {
-  string host = 1;
-  string schema = 2;
+  string base_url = 1;
 }
 
 message Docstore {
