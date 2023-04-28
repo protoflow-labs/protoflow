@@ -6,6 +6,7 @@ import (
 	"html/template"
 	"os"
 
+	"github.com/lunabrain-ai/lunabrain/pkg/store/cache"
 	"github.com/protoflow-labs/protoflow/pkg/grpc"
 
 	"github.com/pkg/errors"
@@ -26,6 +27,7 @@ type Service struct {
 	manager            workflow.Manager
 	clientset          *kubernetes.Clientset
 	blockProtoTemplate *template.Template
+	cache              cache.Cache
 }
 
 var ProviderSet = wire.NewSet(
@@ -41,6 +43,7 @@ func NewService(
 	clientset *kubernetes.Clientset,
 	store Store,
 	manager workflow.Manager,
+	cache cache.Cache,
 ) (*Service, error) {
 	blockProtoTemplate, err := template.New("block").ParseFS(templates.Templates, "*.template.proto")
 	if err != nil {
@@ -52,6 +55,7 @@ func NewService(
 		manager:            manager,
 		clientset:          clientset,
 		blockProtoTemplate: blockProtoTemplate,
+		cache:              cache,
 	}, nil
 }
 
@@ -122,7 +126,7 @@ func (s *Service) RunWorklow(ctx context.Context, c *connect.Request[gen.RunWork
 		return nil, errors.Wrapf(err, "failed to get project %s", c.Msg.ProjectId)
 	}
 
-	w, err := workflow.FromProject(project)
+	w, err := workflow.FromProject(project, s.cache)
 	if err != nil {
 		return nil, err
 	}

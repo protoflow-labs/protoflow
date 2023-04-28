@@ -1,4 +1,4 @@
-import { Divider, Field, Input } from "@fluentui/react-components";
+import { Divider, Field, Input, Select } from "@fluentui/react-components";
 import { useForm } from "react-hook-form";
 import { Node } from "reactflow";
 import { Collection } from "../../../rpc/block_pb";
@@ -15,7 +15,7 @@ export function CollectionEditor(props: { node: Node<CollectionData> }) {
     values: {
       name: props.node.data.name || "",
       config: {
-        ...props.node.data.config.collection,
+        name: props.node.data.config.collection?.name || "",
       } as Collection,
     },
   });
@@ -44,6 +44,12 @@ export function CollectionEditor(props: { node: Node<CollectionData> }) {
         </Field>
         <Field label="Table" required>
           <Input value={values.config.name} {...register("config.name")} />
+        </Field>
+        <Field label="On conflict" required>
+          <Select>
+            <option value="do_nothing">Do nothing</option>
+            <option value="do_update">Do update</option>
+          </Select>
         </Field>
         <Divider />
         <EditorActions />

@@ -19,20 +19,23 @@ export function Toolbar() {
   const isApple = checkIsApple();
   const { project } = useProjectContext();
   const { props } = useEditorContext();
-  const selectedNodes = useSelectedNodes();
+  const { selectedNodes } = useSelectedNodes();
 
-  useHotkeys(isApple ? "meta+s" : "ctrl+s", (event) => {
-    event.preventDefault();
+  useHotkeys(isApple ? "meta+s" : "ctrl+s", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
     onSave();
   });
 
-  useHotkeys(isApple ? "meta+b" : "ctrl+b", (event) => {
-    event.preventDefault();
+  useHotkeys(isApple ? "meta+b" : "ctrl+b", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
     onBuild();
   });
 
-  useHotkeys(isApple ? "meta+enter" : "ctrl+enter", (event) => {
-    event.preventDefault();
+  useHotkeys("shift+enter", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
     onRun();
   });
 
@@ -70,10 +73,11 @@ export function Toolbar() {
     }
 
     const selectedNode = selectedNodes[0];
-    const res = projectService.runWorklow({
+    const res = await projectService.runWorklow({
       projectId: project?.id,
       nodeId: selectedNode.id,
     });
+
     console.log(res);
   };
 

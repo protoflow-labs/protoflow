@@ -58,7 +58,7 @@ func Wire(cacheConfig cache.Config) (*cli.App, error) {
 	if err != nil {
 		return nil, err
 	}
-	service, err := project.NewService(clientset, dbStore, manager)
+	service, err := project.NewService(clientset, dbStore, manager, localCache)
 	if err != nil {
 		return nil, err
 	}

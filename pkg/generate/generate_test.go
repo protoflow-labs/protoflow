@@ -3,6 +3,7 @@ package generate
 import (
 	"testing"
 
+	"github.com/lunabrain-ai/lunabrain/pkg/store/cache"
 	"github.com/protoflow-labs/protoflow/gen"
 	"github.com/stretchr/testify/assert"
 )
@@ -25,9 +26,14 @@ func TestGenerate(t *testing.T) {
 		},
 	}
 
-	generator, err := NewGenerate(project)
+	cache, err := cache.NewLocalCache(cache.Config{
+		Name: ".protoflow_test",
+	})
 	assert.NoError(t, err)
 
-	err = generator.Generate()
+	generator := NewGenerate(cache)
+	assert.NoError(t, err)
+
+	err = generator.Generate(project)
 	assert.NoError(t, err)
 }

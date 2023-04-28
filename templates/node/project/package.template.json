@@ -5,8 +5,7 @@
   "main": "server.js",
   "scripts": {
     "generate": "npx buf generate protos && npx buf build -o gen/image.bin --as-file-descriptor-set",
-    "dev": "npm run generate && npm start",
-    "up": "npm install && npm run dev"
+    "dev": "npm install && npm run generate && npm start"
   },
   "keywords": [],
   "author": "",
