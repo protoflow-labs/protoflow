@@ -18,7 +18,18 @@ import {
   FieldType
 } from "../../../rpc/block_pb";
 import { EditorActions, useUnselect } from "../EditorActions";
-import { fieldTypeMap } from "../EditorPanel";
+
+const fieldTypeToDisplay = {
+  [FieldType.STRING]: "String",
+  [FieldType.INTEGER]: "Integer",
+  [FieldType.BOOLEAN]: "Boolean",
+};
+
+export const stringToFieldType = {
+  "STRING": FieldType.STRING,
+  "INTEGER": FieldType.INTEGER,
+  "BOOLEAN": FieldType.BOOLEAN,
+}
 
 type Form = {
   name: string;
@@ -38,7 +49,12 @@ export function InputEditor({ node }: { node: Node<InputData> }) {
     values: {
       name: node.data.name || "",
       config: {
-        fields: node.data.config.input?.fields || [],
+        fields: node.data.config.input?.fields?.map(value => ({
+          ...value,
+          // TODO - Really really hacky, but connect seems to serialize enums differently
+          // than the typescript expects
+          type: ((stringToFieldType as any)[value.type as any] || value.type || 0)
+        }  as FieldDefinition)) || [],
         sampleData: JSON.parse(localStorage.getItem(sampleDataStorageKey) || '{}')
       },
     },
@@ -77,7 +93,7 @@ export function InputEditor({ node }: { node: Node<InputData> }) {
                 />
                 <Dropdown
                   id={"fieldType" + index}
-                  value={fieldTypeMap[field.type || FieldType.STRING]}
+                  value={fieldTypeToDisplay[field.type || FieldType.STRING]}
                   onOptionSelect={(_, data) => {
                     setValue(
                       `config.fields.${index}.type`,

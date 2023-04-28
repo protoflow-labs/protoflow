@@ -1,7 +1,6 @@
 import { Card } from "@fluentui/react-components";
 import { useState } from "react";
 import { Node, useOnSelectionChange } from "reactflow";
-import { FieldType } from "../../rpc/block_pb";
 import { BucketEditor } from "./blockEditors/BucketEditor";
 import { CollectionEditor } from "./blockEditors/CollectionEditor";
 import { FunctionEditor } from "./blockEditors/FunctionEditor";
@@ -61,9 +60,3 @@ function NodeEditor(props: NodeEditorProps) {
       return null;
   }
 }
-
-export const fieldTypeMap = {
-  [FieldType.STRING]: "String",
-  [FieldType.INTEGER]: "Integer",
-  [FieldType.BOOLEAN]: "Boolean",
-};
