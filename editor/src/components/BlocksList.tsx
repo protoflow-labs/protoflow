@@ -3,7 +3,7 @@ import { ReactNode } from "react";
 
 export default function BlocksList() {
   return (
-    <div className="absolute flex flex-col gap-1 m-3 z-10">
+    <div className="absolute flex flex-col gap-1 m-3 z-10 top-8">
       <NodeButton nodeType="protoflow.input">Input</NodeButton>
       <NodeButton nodeType="protoflow.collection">Collection</NodeButton>
       <NodeButton nodeType="protoflow.function">Function</NodeButton>

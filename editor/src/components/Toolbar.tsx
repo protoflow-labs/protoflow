@@ -12,14 +12,16 @@ import {
   MenuPopover,
   MenuTrigger,
 } from "@fluentui/react-components";
+import { useCallback, useEffect, useRef } from "react";
 import { toast } from "react-hot-toast";
 import { useHotkeys } from "react-hotkeys-hook";
 
 export function Toolbar() {
   const isApple = checkIsApple();
-  const { project } = useProjectContext();
+  const { project, runWorkflow } = useProjectContext();
   const { props } = useEditorContext();
   const { selectedNodes } = useSelectedNodes();
+  const prevNodeLength = useRef(0);
 
   useHotkeys(isApple ? "meta+s" : "ctrl+s", (e) => {
     e.preventDefault();
@@ -39,7 +41,7 @@ export function Toolbar() {
     onRun();
   });
 
-  const onSave = async () => {
+  const onSave = useCallback(async () => {
     if (!project) return;
 
     const updatedProject = getUpdatedProject({
@@ -57,7 +59,7 @@ export function Toolbar() {
 
     await projectService.saveProject(updatedProject);
     toast.success("Project saved");
-  };
+  }, [project, props.nodes, props.edges]);
 
   const onBuild = async () => {
     await onSave();
@@ -73,17 +75,22 @@ export function Toolbar() {
     }
 
     const selectedNode = selectedNodes[0];
-    const res = await projectService.runWorklow({
-      projectId: project?.id,
-      nodeId: selectedNode.id,
-    });
-
-    // TODO: Show output on the screen
-    console.log(res);
+    runWorkflow(selectedNode.id);
   };
 
+  useEffect(() => {
+    if (
+      selectedNodes.length === 0 &&
+      selectedNodes.length !== prevNodeLength.current
+    ) {
+      onSave();
+    }
+
+    prevNodeLength.current = selectedNodes.length;
+  }, [selectedNodes, onSave]);
+
   return (
-    <div className="px-1 py-1">
+    <div className="px-1 py-1 absolute z-10 top-0">
       <Menu>
         <MenuTrigger disableButtonEnhancement>
           <Button appearance="subtle" size="small">
