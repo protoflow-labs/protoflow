@@ -11,6 +11,7 @@ import { RESTEditor } from "./blockEditors/RESTEditor";
 
 export function EditorPanel() {
   const [activeNode, setActiveNode] = useState<Node | null>(null);
+
   useOnSelectionChange({
     onChange: ({ nodes }) => {
       if (nodes.length !== 1) {

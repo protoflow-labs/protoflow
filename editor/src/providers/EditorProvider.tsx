@@ -23,6 +23,7 @@ import { v4 as uuid } from "uuid";
 import { useProjectContext } from "./ProjectProvider";
 
 type EditorContextType = {
+  mode: Mode;
   props: {
     edges: Edge[];
     nodes: Node[];
@@ -34,18 +35,23 @@ type EditorContextType = {
     onNodesChange: OnNodesChange;
   };
   setInstance: (instance: ReactFlowInstance) => void;
+  setMode: (mode: Mode) => void;
 };
+
+type Mode = "editor" | "run";
 
 const EditorContext = createContext<EditorContextType>({} as any);
 
 export const useEditorContext = () => useContext(EditorContext);
+export const useEditorMode = () => useEditorContext().mode;
 
 export function EditorProvider({ children }: { children: ReactNode }) {
   const [instance, setInstance] = useState<ReactFlowInstance>();
+  const [mode, setMode] = useState<Mode>("editor");
   const props = useEditorProps(instance);
 
   return (
-    <EditorContext.Provider value={{ props, setInstance }}>
+    <EditorContext.Provider value={{ props, mode, setMode, setInstance }}>
       {children}
     </EditorContext.Provider>
   );
@@ -72,6 +78,7 @@ const useEditorProps = (reactFlowInstance?: ReactFlowInstance) => {
       };
     }) || []
   );
+
   const [edges, setEdges] = useState<Edge[]>(
     project?.graph?.edges?.map((e) => ({
       id: e.id,
@@ -79,6 +86,7 @@ const useEditorProps = (reactFlowInstance?: ReactFlowInstance) => {
       target: e.to,
     })) || []
   );
+
   const { nodeTypes } = useBlockTypes();
 
   const onConnect = useCallback((params: Connection) => {
