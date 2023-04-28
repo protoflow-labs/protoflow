@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/dominikbraun/graph"
+	"github.com/lunabrain-ai/lunabrain/pkg/store/cache"
 	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/gen"
 	"github.com/rs/zerolog/log"
@@ -29,7 +30,7 @@ type Workflow struct {
 	Resources map[string]Resource
 }
 
-func FromProject(project *gen.Project) (*Workflow, error) {
+func FromProject(project *gen.Project, cache cache.Cache) (*Workflow, error) {
 	g := graph.New(graph.StringHash, graph.Directed(), graph.PreventCycles())
 
 	// TODO breadchris this should not be hardcoded, this should be provided to the service when it is created?
@@ -39,6 +40,7 @@ func FromProject(project *gen.Project) (*Workflow, error) {
 				Runtime: gen.Runtime_NODE,
 				Host:    "localhost:8086",
 			},
+			cache: cache,
 		},
 		"docs": &DocstoreResource{
 			Docstore: &gen.Docstore{

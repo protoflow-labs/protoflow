@@ -1,8 +1,19 @@
 package workflow
 
 import (
+	"bufio"
 	"context"
 	"fmt"
+	"io"
+	"net"
+	"os"
+	"os/exec"
+	"path"
+	"strings"
+	"syscall"
+	"time"
+
+	"github.com/lunabrain-ai/lunabrain/pkg/store/cache"
 	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/gen"
 	"github.com/protoflow-labs/protoflow/pkg/util"
@@ -15,8 +26,6 @@ import (
 	_ "gocloud.dev/docstore/memdocstore"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-	"path"
-	"strings"
 )
 
 const (
@@ -149,7 +158,10 @@ func (r *BlobstoreResource) WithPath(path string) (*blob.Bucket, func(), error) 
 
 type LanguageServiceResource struct {
 	*gen.LanguageService
-	Conn *grpc.ClientConn
+	Conn      *grpc.ClientConn
+	cache     cache.Cache
+	cmd       *exec.Cmd
+	cmdStdOut io.ReadCloser
 }
 
 func (r *LanguageServiceResource) Name() string {
@@ -157,11 +169,17 @@ func (r *LanguageServiceResource) Name() string {
 }
 
 func (r *LanguageServiceResource) Init() (func(), error) {
+	if err := r.ensureRunning(); err != nil {
+		return nil, errors.Wrapf(err, "Unable to get the %s language server running", r.Name())
+	}
 	conn, err := grpc.Dial(r.Host, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return nil, errors.Wrapf(err, "unable to connect to grpc server at %s", r.Host)
 	}
 	cleanup := func() {
+		if r.cmd != nil && r.cmd.Process != nil {
+			syscall.Kill(-r.cmd.Process.Pid, syscall.SIGKILL)
+		}
 		err = conn.Close()
 		if err != nil {
 			log.Error().Err(err).Msg("error closing grpc connection")
@@ -169,4 +187,64 @@ func (r *LanguageServiceResource) Init() (func(), error) {
 	}
 	r.Conn = conn
 	return cleanup, nil
+}
+
+func (r *LanguageServiceResource) ensureRunning() error {
+	originalWd, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+
+	// TODO - Figure out how to pass project name in cleanly
+	projectFolder, _ := r.cache.GetFolder("projects/local")
+	if err := os.Chdir(projectFolder); err != nil {
+		return err
+	}
+
+	r.cmd = exec.Command("npm", "run", "dev")
+	r.cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
+	stdout, err := r.cmd.StdoutPipe()
+	if err != nil {
+		return err
+	}
+	r.cmdStdOut = stdout
+
+	if err = r.cmd.Start(); err != nil {
+		return err
+	}
+
+	if err := os.Chdir(originalWd); err != nil {
+		return err
+	}
+
+	return r.waitForPort()
+}
+
+func (r *LanguageServiceResource) waitForPort() error {
+	maxRetries := 20
+	retryInterval := 2 * time.Second
+
+	fmt.Printf("Waiting for %s to start listening...\n", r.LanguageService.Host)
+	for i := 1; i <= maxRetries; i++ {
+		conn, err := net.DialTimeout("tcp", r.LanguageService.Host, time.Second)
+		if err == nil {
+			conn.Close()
+			fmt.Printf("%s is now listening!\n", r.LanguageService.Host)
+			return nil
+		} else {
+			fmt.Printf("%s is not yet listening (attempt %d/%d)\n", r.LanguageService.Host, i, maxRetries)
+			time.Sleep(retryInterval)
+		}
+	}
+	return fmt.Errorf("port did not come online in time: %s", r.getCommandOutput())
+}
+
+func (r *LanguageServiceResource) getCommandOutput() string {
+	output := ""
+	scanner := bufio.NewScanner(r.cmdStdOut)
+	for scanner.Scan() {
+		output += scanner.Text()
+	}
+
+	return output
 }
