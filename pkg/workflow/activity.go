@@ -43,7 +43,11 @@ func (a *Activity) ExecuteGRPCNode(ctx context.Context, node *GRPCNode, input In
 }
 
 func (a *Activity) ExecuteRestNode(ctx context.Context, node *RESTNode, input Input) (Result, error) {
-	log.Debug().Msgf("executing rest: %v", node.Method)
+	log.Debug().
+		Interface("headers", node.Headers).
+		Str("method", node.Method).
+		Str("path", node.Path).
+		Msgf("executing rest")
 	res, err := util.InvokeMethodOnUrl(node.Method, node.Path, node.Headers, input.Params)
 	if err != nil {
 		return Result{}, errors.Wrapf(err, "error invoking method: %s", node.Method)

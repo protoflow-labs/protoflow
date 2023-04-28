@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/gob"
 	"os"
 
 	"github.com/lunabrain-ai/lunabrain/pkg/store/cache"
@@ -9,6 +10,9 @@ import (
 )
 
 func main() {
+	// TODO breadchris gob doesn't know how to serialize map[string]interface{}, register it, should this be a specific type?
+	gob.Register(map[string]interface{}{})
+
 	cacheConfig := cache.Config{
 		Name: ".protoflow",
 	}

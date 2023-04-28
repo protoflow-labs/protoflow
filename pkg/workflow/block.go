@@ -98,7 +98,7 @@ func (s *CollectionNode) Execute(executor Executor, input Input) (*Result, error
 	}
 	defer cleanup()
 
-	records := make([]map[string]interface{}, 0)
+	var records []map[string]interface{}
 
 	switch input := input.Params.(type) {
 	case map[string]interface{}:

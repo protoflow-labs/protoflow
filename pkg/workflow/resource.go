@@ -96,31 +96,48 @@ func (r *DocstoreResource) Init() (func(), error) {
 
 func (r *DocstoreResource) WithCollection(name string) (*docstore.Collection, func(), error) {
 	var (
-		coll *docstore.Collection
-		err  error
+		coll     *docstore.Collection
+		err      error
+		protoDir string
 	)
 	if strings.HasPrefix(r.Url, "mem://") {
 		// TODO breadchris replace this with cache.Cache.GetFolder
-		protoDir, err := util.ProtoflowHomeDir()
+		protoDir, err = util.ProtoflowHomeDir()
 		if err != nil {
 			return nil, nil, errors.Wrap(err, "could not get protoflow home dir")
 		}
 
+		filename := path.Join(protoDir, name+".json")
+
 		// TODO breadchris "id" is
 		coll, err = memdocstore.OpenCollection("id", &memdocstore.Options{
-			Filename: path.Join(protoDir, name+".json"),
+			Filename: filename,
 		})
+		if err != nil {
+			// remove file if it exists
+			if os.IsNotExist(err) {
+				return nil, nil, errors.Wrapf(err, "could not open memory docstore collection: %s", name)
+			}
+			err = os.Remove(filename)
+			if err != nil {
+				return nil, nil, errors.Wrapf(err, "could not remove memory docstore collection: %s", name)
+			}
+		}
 	} else {
 		coll, err = docstore.OpenCollection(context.Background(), r.Url+"/"+name)
-	}
-	if err != nil {
-		return nil, nil, errors.Wrapf(err, "could not open docstore collection: %s", name)
+		if err != nil {
+			return nil, nil, errors.Wrapf(err, "could not open docstore collection: %s", name)
+		}
 	}
 
 	return coll, func() {
+		if coll == nil {
+			log.Debug().Msg("docstore collection is nil")
+			return
+		}
 		err = coll.Close()
 		if err != nil {
-			log.Error().Err(err).Msg("error closing docstore collection")
+			log.Error().Msgf("error closing docstore collection: %+v", err)
 		}
 	}, nil
 }
@@ -175,6 +192,7 @@ func (r *LanguageServiceResource) Init() (func(), error) {
 		return nil, errors.Wrapf(err, "unable to connect to grpc server at %s", r.Host)
 	}
 	cleanup := func() {
+		// TODO breadchris configure this from the frontend? configure?
 		if !r.CloseOnCleanup {
 			return
 		}
