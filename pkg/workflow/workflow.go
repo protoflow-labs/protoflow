@@ -4,9 +4,9 @@ import (
 	"fmt"
 
 	"github.com/dominikbraun/graph"
-	"github.com/lunabrain-ai/lunabrain/pkg/store/cache"
 	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/gen"
+	"github.com/protoflow-labs/protoflow/pkg/cache"
 	"github.com/rs/zerolog/log"
 )
 

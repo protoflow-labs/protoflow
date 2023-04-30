@@ -7,7 +7,7 @@ import (
 	"github.com/protoflow-labs/protoflow/pkg/temporal"
 	"github.com/protoflow-labs/protoflow/pkg/workflow"
 
-	"github.com/lunabrain-ai/lunabrain/pkg/store/cache"
+	"github.com/protoflow-labs/protoflow/pkg/cache"
 	"github.com/protoflow-labs/protoflow/pkg/db"
 	"github.com/protoflow-labs/protoflow/pkg/log"
 	"go.uber.org/config"

@@ -7,7 +7,7 @@
 package cli
 
 import (
-	"github.com/lunabrain-ai/lunabrain/pkg/store/cache"
+	"github.com/protoflow-labs/protoflow/pkg/cache"
 	"github.com/protoflow-labs/protoflow/pkg/api"
 	"github.com/protoflow-labs/protoflow/pkg/config"
 	"github.com/protoflow-labs/protoflow/pkg/db"

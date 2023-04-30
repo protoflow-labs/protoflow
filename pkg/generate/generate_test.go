@@ -3,8 +3,8 @@ package generate
 import (
 	"testing"
 
-	"github.com/lunabrain-ai/lunabrain/pkg/store/cache"
 	"github.com/protoflow-labs/protoflow/gen"
+	"github.com/protoflow-labs/protoflow/pkg/cache"
 	"github.com/stretchr/testify/assert"
 )
 

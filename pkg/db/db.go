@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/glebarez/sqlite"
 	"github.com/google/wire"
-	"github.com/lunabrain-ai/lunabrain/pkg/store/cache"
+	"github.com/protoflow-labs/protoflow/pkg/cache"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )

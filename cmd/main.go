@@ -4,7 +4,7 @@ import (
 	"encoding/gob"
 	"os"
 
-	"github.com/lunabrain-ai/lunabrain/pkg/store/cache"
+	"github.com/protoflow-labs/protoflow/pkg/cache"
 	"github.com/protoflow-labs/protoflow/pkg/cli"
 	"github.com/rs/zerolog/log"
 )

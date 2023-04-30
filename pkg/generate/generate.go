@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"path"
 
-	"github.com/lunabrain-ai/lunabrain/pkg/store/cache"
+	"github.com/protoflow-labs/protoflow/pkg/cache"
 	"github.com/protoflow-labs/protoflow/pkg/util"
 
 	"github.com/pkg/errors"

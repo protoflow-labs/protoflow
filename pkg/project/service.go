@@ -6,7 +6,7 @@ import (
 	"html/template"
 	"os"
 
-	"github.com/lunabrain-ai/lunabrain/pkg/store/cache"
+	"github.com/protoflow-labs/protoflow/pkg/cache"
 	"github.com/protoflow-labs/protoflow/pkg/grpc"
 
 	"github.com/pkg/errors"

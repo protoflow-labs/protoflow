@@ -1,0 +1,22 @@
+name: Build Go
+
+on:
+  push:
+    branches:
+    - "*"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: stable
+
+      - name: Build application
+        run: go build -v ./...

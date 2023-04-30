@@ -5,8 +5,8 @@ package cli
 
 import (
 	"github.com/google/wire"
-	"github.com/lunabrain-ai/lunabrain/pkg/store/cache"
 	"github.com/protoflow-labs/protoflow/pkg/api"
+	"github.com/protoflow-labs/protoflow/pkg/cache"
 	"github.com/protoflow-labs/protoflow/pkg/config"
 	"github.com/protoflow-labs/protoflow/pkg/generate"
 	"github.com/protoflow-labs/protoflow/pkg/k8s"

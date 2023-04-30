@@ -12,9 +12,9 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/lunabrain-ai/lunabrain/pkg/store/cache"
 	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/gen"
+	"github.com/protoflow-labs/protoflow/pkg/cache"
 	"github.com/protoflow-labs/protoflow/pkg/util"
 	"github.com/rs/zerolog/log"
 	"gocloud.dev/blob"
@@ -193,9 +193,9 @@ func (r *LanguageServiceResource) Init() (func(), error) {
 	}
 	cleanup := func() {
 		// TODO breadchris configure this from the frontend? configure?
-		if !r.CloseOnCleanup {
-			return
-		}
+		//if !r.CloseOnCleanup {
+		//	return
+		//}
 		if r.cmd != nil && r.cmd.Process != nil {
 			syscall.Kill(-r.cmd.Process.Pid, syscall.SIGKILL)
 		}
