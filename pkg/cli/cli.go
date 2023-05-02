@@ -49,11 +49,11 @@ func New(
 				},
 			},
 			{
-				Name: "serve",
+				Name: "studio",
 				Flags: []cli.Flag{
 					&cli.IntFlag{
 						Name:  "http",
-						Usage: "Port for the http server",
+						Usage: "Port for the studio",
 					},
 				},
 				Action: func(ctx *cli.Context) error {

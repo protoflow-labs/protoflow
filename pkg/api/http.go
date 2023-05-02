@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/bufbuild/connect-go"
-	"github.com/protoflow-labs/protoflow/editor/public"
+	"github.com/protoflow-labs/protoflow/studio/public"
 	"github.com/rs/zerolog/log"
 	"net/http"
 	"os"

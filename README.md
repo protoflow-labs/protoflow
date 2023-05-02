@@ -15,11 +15,25 @@ or
 go install github.com/protoflow-labs/protoflow@latest
 ```
 
+## Run
+Visually build your microservice with Protoflow Studio:
+```shell
+protoflow studio
+```
+
 ## Demo
 [![youtube demo screenshot](http://img.youtube.com/vi/ZnUyUbh-Xp8/0.jpg)](https://www.youtube.com/watch?v=ZnUyUbh-Xp8)
 
 ## Hack
 ```shell
+go run main.go studio
+```
+
+### Studio
+```shell
+cd studio
+pnpm install
+npm run dev
 ```
 
 ### Haphazard notes
