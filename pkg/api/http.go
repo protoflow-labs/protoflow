@@ -4,8 +4,11 @@ import (
 	"context"
 	"fmt"
 	"github.com/bufbuild/connect-go"
+	"github.com/protoflow-labs/protoflow/editor/public"
 	"github.com/rs/zerolog/log"
 	"net/http"
+	"os"
+	"strings"
 
 	"github.com/protoflow-labs/protoflow/gen/genconnect"
 
@@ -35,17 +38,17 @@ func NewLogInterceptor() connect.UnaryInterceptorFunc {
 }
 
 func NewHTTPServer(projectService genconnect.ProjectServiceHandler, generateService genconnect.GenerateServiceHandler) *HTTPServer {
-	mux := http.NewServeMux()
+	apiMux := http.NewServeMux()
 
 	interceptors := connect.WithInterceptors(NewLogInterceptor())
 
 	// The generated constructors return a path and a plain net/http
 	// handler.
 	projectRoutes, projectHandlers := genconnect.NewProjectServiceHandler(projectService, interceptors)
-	mux.Handle(projectRoutes, projectHandlers)
+	apiMux.Handle(projectRoutes, projectHandlers)
 
 	generateRoutes, generateHandlers := genconnect.NewGenerateServiceHandler(generateService, interceptors)
-	mux.Handle(generateRoutes, generateHandlers)
+	apiMux.Handle(generateRoutes, generateHandlers)
 
 	recoverCall := func(_ context.Context, spec connect.Spec, _ http.Header, p any) error {
 		log.Error().Msgf("%+v\n", p)
@@ -62,10 +65,38 @@ func NewHTTPServer(projectService genconnect.ProjectServiceHandler, generateServ
 		// for these fully-qualified protobuf service names, so you'd more likely
 		// reference userv1.UserServiceName and groupv1.GroupServiceName.
 	)
-	mux.Handle(grpcreflect.NewHandlerV1(reflector, connect.WithRecover(recoverCall)))
+	apiMux.Handle(grpcreflect.NewHandlerV1(reflector, connect.WithRecover(recoverCall)))
 	// Many tools still expect the older version of the server reflection API, so
 	// most servers should mount both handlers.
-	mux.Handle(grpcreflect.NewHandlerV1Alpha(reflector, connect.WithRecover(recoverCall)))
+	apiMux.Handle(grpcreflect.NewHandlerV1Alpha(reflector, connect.WithRecover(recoverCall)))
+
+	assets := public.Assets
+	fs := http.FS(public.Assets)
+	httpFileServer := http.FileServer(fs)
+	mux := http.NewServeMux()
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		// If the path is '/api', forward the request to the other mux handlers
+		if strings.HasPrefix(r.URL.Path, "/api") {
+			r.URL.Path = strings.Replace(r.URL.Path, "/api", "", 1)
+			apiMux.ServeHTTP(w, r)
+			return
+		}
+
+		filePath := r.URL.Path
+		if strings.Index(r.URL.Path, "/") == 0 {
+			filePath = r.URL.Path[1:]
+		}
+
+		f, err := assets.Open(filePath)
+		if os.IsNotExist(err) {
+			r.URL.Path = "/"
+		}
+		if err == nil {
+			f.Close()
+		}
+		log.Debug().Msgf("serving file: %s", filePath)
+		httpFileServer.ServeHTTP(w, r)
+	})
 
 	return &HTTPServer{
 		mux: mux,

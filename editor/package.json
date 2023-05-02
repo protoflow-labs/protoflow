@@ -14,6 +14,7 @@
     "@types/node": "18.16.0",
     "@types/react": "18.0.38",
     "@types/react-dom": "18.0.11",
+    "esbuild-plugin-swc": "^1.0.1",
     "esbuild-style-plugin": "^1.6.1",
     "eslint": "8.39.0",
     "framer-motion": "^10.12.4",

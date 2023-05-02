@@ -6,7 +6,7 @@ import { GenerateService } from "../../rpc/generate_connect";
 import { ProjectService } from "../../rpc/project_connect";
 
 const transport = createConnectTransport({
-  baseUrl: "http://localhost:8080",
+  baseUrl: "/api",
 });
 
 export const projectService = createPromiseClient(ProjectService, transport);

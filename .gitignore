@@ -5,3 +5,4 @@ env/
 .protoflow.yaml
 
 dist/
+bin/

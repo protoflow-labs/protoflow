@@ -46,6 +46,7 @@ require (
 	github.com/docker/go-units v0.5.0 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/emicklei/go-restful/v3 v3.10.2 // indirect
+	github.com/evanw/esbuild v0.17.18 // indirect
 	github.com/facebookgo/clock v0.0.0-20150410010913-600d898af40a // indirect
 	github.com/felixge/fgprof v0.9.3 // indirect
 	github.com/glebarez/go-sqlite v1.21.1 // indirect
