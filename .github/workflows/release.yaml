@@ -27,8 +27,6 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: '18.x'
-      - name: Install npx
-        run: npm install -g npx
 
       - name: Install Dependencies
         run: npm install
