@@ -6,7 +6,6 @@ import (
 	"github.com/dominikbraun/graph"
 	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/gen"
-	"github.com/protoflow-labs/protoflow/pkg/cache"
 	"github.com/rs/zerolog/log"
 )
 
@@ -30,29 +29,8 @@ type Workflow struct {
 	Resources map[string]Resource
 }
 
-func FromProject(project *gen.Project, cache cache.Cache) (*Workflow, error) {
+func FromProject(project *gen.Project, resources ResourceMap) (*Workflow, error) {
 	g := graph.New(graph.StringHash, graph.Directed(), graph.PreventCycles())
-
-	// TODO breadchris this should not be hardcoded, this should be provided to the service when it is created?
-	projectResources := map[string]Resource{
-		"js": &LanguageServiceResource{
-			LanguageService: &gen.LanguageService{
-				Runtime: gen.Runtime_NODE,
-				Host:    "localhost:8086",
-			},
-			cache: cache,
-		},
-		"docs": &DocstoreResource{
-			Docstore: &gen.Docstore{
-				Url: "mem://",
-			},
-		},
-		"bucket": &BlobstoreResource{
-			Blobstore: &gen.Blobstore{
-				Url: "file:///home/breadchris/.protoflow",
-			},
-		},
-	}
 
 	// TODO breadchris blocks will be used in the future to associate with nodes, but for now they are not used
 	blockLookup := map[string]*gen.Block{}
@@ -65,7 +43,7 @@ func FromProject(project *gen.Project, cache cache.Cache) (*Workflow, error) {
 		if err != nil {
 			return nil, errors.Wrapf(err, "error creating resource for node %s", resource.Id)
 		}
-		projectResources[resource.Id] = r
+		resources[resource.Id] = r
 	}
 
 	nodeLookup := map[string]Node{}
@@ -76,7 +54,7 @@ func FromProject(project *gen.Project, cache cache.Cache) (*Workflow, error) {
 		}
 
 		// add block to lookup to be used for execution
-		builtNode, err := NewNode(projectResources, node)
+		builtNode, err := NewNode(resources, node)
 		if err != nil {
 			return nil, errors.Wrapf(err, "error creating block for node %s", node.Id)
 		}
@@ -100,7 +78,7 @@ func FromProject(project *gen.Project, cache cache.Cache) (*Workflow, error) {
 		Graph:      g,
 		NodeLookup: nodeLookup,
 		AdjMap:     adjMap,
-		Resources:  projectResources,
+		Resources:  resources,
 	}, nil
 }
 

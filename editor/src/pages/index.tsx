@@ -3,7 +3,6 @@ import { ActionPanel } from "@/components/ActionPanel";
 import BlocksList from "@/components/BlocksList";
 import { useEditorContext } from "@/providers/EditorProvider";
 import { useProjectContext } from "@/providers/ProjectProvider";
-import Head from "next/head";
 import { Background, ReactFlow } from "reactflow";
 
 import "reactflow/dist/style.css";
@@ -18,13 +17,8 @@ export default function Home() {
 
   return (
     <>
-      <Head>
-        <title>Protoflow</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
       <main className="flex">
-        <div className="flex flex-1">
+        <div className="flex flex-1" style={{height: 800, width: 800}}>
           <BlocksList />
           <ActionPanel />
           <ReactFlow

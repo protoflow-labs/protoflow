@@ -45,7 +45,7 @@ func TestRun(t *testing.T) {
 	ctx := MemoryContext{context.Background()}
 	executor := NewMemoryExecutor(&ctx)
 	logger := &MemoryLogger{}
-	_, err = w.Run(logger, executor, nodeID)
+	_, err = w.Run(logger, executor, nodeID, "")
 	if err != nil {
 		t.Fatal(err)
 	}

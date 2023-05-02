@@ -175,7 +175,7 @@ func (r *BlobstoreResource) WithPath(path string) (*blob.Bucket, func(), error) 
 type LanguageServiceResource struct {
 	*gen.LanguageService
 	Conn  *grpc.ClientConn
-	cache cache.Cache
+	Cache cache.Cache
 	cmd   *exec.Cmd
 }
 
@@ -215,7 +215,7 @@ func (r *LanguageServiceResource) ensureRunning() error {
 	}
 
 	// TODO - Figure out how to pass project name in cleanly
-	projectFolder, _ := r.cache.GetFolder("projects/local")
+	projectFolder, _ := r.Cache.GetFolder("projects/local")
 	if err := os.Chdir(projectFolder); err != nil {
 		return err
 	}

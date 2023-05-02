@@ -126,7 +126,33 @@ func (s *Service) RunWorklow(ctx context.Context, c *connect.Request[gen.RunWork
 		return nil, errors.Wrapf(err, "failed to get project %s", c.Msg.ProjectId)
 	}
 
-	w, err := workflow.FromProject(project, s.cache)
+	bucketDir, err := s.cache.GetFolder(".protoflow")
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get bucket dir")
+	}
+
+	// TODO breadchris this should not be hardcoded, this should be provided to the service when it is created?
+	projectResources := workflow.ResourceMap{
+		"js": &workflow.LanguageServiceResource{
+			LanguageService: &gen.LanguageService{
+				Runtime: gen.Runtime_NODE,
+				Host:    "localhost:8086",
+			},
+			Cache: s.cache,
+		},
+		"docs": &workflow.DocstoreResource{
+			Docstore: &gen.Docstore{
+				Url: "mem://",
+			},
+		},
+		"bucket": &workflow.BlobstoreResource{
+			Blobstore: &gen.Blobstore{
+				Url: "file://" + bucketDir,
+			},
+		},
+	}
+
+	w, err := workflow.FromProject(project, projectResources)
 	if err != nil {
 		return nil, err
 	}
