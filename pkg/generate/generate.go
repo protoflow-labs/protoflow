@@ -32,6 +32,7 @@ func NewGenerate(cache cache.Cache) *Generate {
 func (g *Generate) Generate(project *gen.Project) error {
 	var err error
 
+	// normalize all node names
 	for _, node := range project.GetGraph().GetNodes() {
 		node.Name = util.ToTitleCase(node.Name)
 	}
