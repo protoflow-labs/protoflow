@@ -18,6 +18,10 @@ go install github.com/protoflow-labs/protoflow@latest
 ## Demo
 [![youtube demo screenshot](http://img.youtube.com/vi/ZnUyUbh-Xp8/0.jpg)](https://www.youtube.com/watch?v=ZnUyUbh-Xp8)
 
+## Hack
+```shell
+```
+
 ### Haphazard notes
 - "a framework to easily build small/modular grpc services" -> yes, i want to make it so you bring your code:  
   ``` js
