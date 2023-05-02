@@ -21,7 +21,7 @@ plugins:
       - require_unimplemented_servers=false
   - plugin: es
     opt: target=ts
-    out: ./editor/rpc
+    out: ./studio/rpc
   - plugin: connect-es
     opt: target=ts
-    out: ./editor/rpc
+    out: ./studio/rpc
