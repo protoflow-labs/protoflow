@@ -34,6 +34,10 @@ func Wire(cacheConfig cache.Config) (*cli.App, error) {
 	if err != nil {
 		return nil, err
 	}
+	apiConfig, err := api.NewConfig(provider)
+	if err != nil {
+		return nil, err
+	}
 	clientset, err := k8s.NewClientset()
 	if err != nil {
 		return nil, err
@@ -67,7 +71,10 @@ func Wire(cacheConfig cache.Config) (*cli.App, error) {
 	if err != nil {
 		return nil, err
 	}
-	httpServer := api.NewHTTPServer(service, generateService)
+	httpServer, err := api.NewHTTPServer(apiConfig, service, generateService)
+	if err != nil {
+		return nil, err
+	}
 	app := New(logConfig, httpServer, service, provider)
 	return app, nil
 }

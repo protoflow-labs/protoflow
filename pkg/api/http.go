@@ -4,9 +4,12 @@ import (
 	"context"
 	"fmt"
 	"github.com/bufbuild/connect-go"
+	"github.com/google/wire"
 	"github.com/protoflow-labs/protoflow/studio/public"
 	"github.com/rs/zerolog/log"
 	"net/http"
+	"net/http/httputil"
+	"net/url"
 	"os"
 	"strings"
 
@@ -18,8 +21,14 @@ import (
 )
 
 type HTTPServer struct {
-	mux *http.ServeMux
+	config Config
+	mux    *http.ServeMux
 }
+
+var ProviderSet = wire.NewSet(
+	NewConfig,
+	NewHTTPServer,
+)
 
 func NewLogInterceptor() connect.UnaryInterceptorFunc {
 	interceptor := func(next connect.UnaryFunc) connect.UnaryFunc {
@@ -37,7 +46,11 @@ func NewLogInterceptor() connect.UnaryInterceptorFunc {
 	return interceptor
 }
 
-func NewHTTPServer(projectService genconnect.ProjectServiceHandler, generateService genconnect.GenerateServiceHandler) *HTTPServer {
+func NewHTTPServer(
+	config Config,
+	projectService genconnect.ProjectServiceHandler,
+	generateService genconnect.GenerateServiceHandler,
+) (*HTTPServer, error) {
 	apiMux := http.NewServeMux()
 
 	interceptors := connect.WithInterceptors(NewLogInterceptor())
@@ -73,6 +86,13 @@ func NewHTTPServer(projectService genconnect.ProjectServiceHandler, generateServ
 	assets := public.Assets
 	fs := http.FS(public.Assets)
 	httpFileServer := http.FileServer(fs)
+
+	u, err := url.Parse(config.StudioProxy)
+	if err != nil {
+		return nil, err
+	}
+	proxy := httputil.NewSingleHostReverseProxy(u)
+
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		// If the path is '/api', forward the request to the other mux handlers
@@ -82,25 +102,30 @@ func NewHTTPServer(projectService genconnect.ProjectServiceHandler, generateServ
 			return
 		}
 
-		filePath := r.URL.Path
-		if strings.Index(r.URL.Path, "/") == 0 {
-			filePath = r.URL.Path[1:]
-		}
+		if config.StudioProxy != "" {
+			proxy.ServeHTTP(w, r)
+		} else {
+			filePath := r.URL.Path
+			if strings.Index(r.URL.Path, "/") == 0 {
+				filePath = r.URL.Path[1:]
+			}
 
-		f, err := assets.Open(filePath)
-		if os.IsNotExist(err) {
-			r.URL.Path = "/"
+			f, err := assets.Open(filePath)
+			if os.IsNotExist(err) {
+				r.URL.Path = "/"
+			}
+			if err == nil {
+				f.Close()
+			}
+			log.Debug().Msgf("serving file: %s", filePath)
+			httpFileServer.ServeHTTP(w, r)
 		}
-		if err == nil {
-			f.Close()
-		}
-		log.Debug().Msgf("serving file: %s", filePath)
-		httpFileServer.ServeHTTP(w, r)
 	})
 
 	return &HTTPServer{
-		mux: mux,
-	}
+		config: config,
+		mux:    mux,
+	}, nil
 }
 
 func (h *HTTPServer) Serve(port int) error {

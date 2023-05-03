@@ -21,6 +21,6 @@ func Wire(cacheConfig cache.Config) (*urfavcli.App, error) {
 		k8s.ProviderSet,
 		project.ProviderSet,
 		generate.ProviderSet,
-		api.NewHTTPServer,
+		api.ProviderSet,
 	))
 }
