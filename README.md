@@ -25,9 +25,12 @@ protoflow studio
 [![youtube demo screenshot](http://img.youtube.com/vi/ZnUyUbh-Xp8/0.jpg)](https://www.youtube.com/watch?v=ZnUyUbh-Xp8)
 
 ## Hack
+### Backend
 ```shell
 go run main.go studio
 ```
+
+Backend will proxy to the frontend, so you can just open http://localhost:8080 to see the frontend.
 
 ### Studio
 ```shell
@@ -35,6 +38,8 @@ cd studio
 pnpm install
 npm run dev
 ```
+
+Starts the studio frontend at http://localhost:8000.
 
 ### Haphazard notes
 - "a framework to easily build small/modular grpc services" -> yes, i want to make it so you bring your code:  
