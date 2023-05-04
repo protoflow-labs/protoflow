@@ -11,6 +11,12 @@ type Config struct {
 	StudioProxy string `yaml:"studio_proxy"`
 }
 
+func NewDefaultConfig(studioProxy string) Config {
+	return Config{
+		StudioProxy: studioProxy,
+	}
+}
+
 func NewConfig(config config.Provider) (cfg Config, err error) {
 	err = config.Get(ConfigurationKey).Populate(&cfg)
 	if err != nil {

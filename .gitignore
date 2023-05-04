@@ -4,5 +4,7 @@ env/
 .idea/
 .protoflow.yaml
 
+studio/public/build/
+
 dist/
 bin/

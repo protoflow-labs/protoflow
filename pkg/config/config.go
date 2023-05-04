@@ -1,6 +1,7 @@
 package config
 
 import (
+	"github.com/protoflow-labs/protoflow/pkg/api"
 	"os"
 	"path"
 
@@ -23,6 +24,7 @@ type BaseConfig struct {
 	Workflow workflow.Config `yaml:"workflow"`
 	DB       db.Config       `yaml:"db"`
 	Temporal temporal.Config `yaml:"temporal"`
+	API      api.Config      `yaml:"api"`
 }
 
 func NewDefaultConfig() BaseConfig {
@@ -31,6 +33,7 @@ func NewDefaultConfig() BaseConfig {
 		Workflow: workflow.NewDefaultConfig(),
 		DB:       db.NewDefaultConfig(),
 		Temporal: temporal.NewDefaultConfig(),
+		API:      api.NewDefaultConfig(studioProxy),
 	}
 }
 

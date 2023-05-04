@@ -87,6 +87,7 @@ func NewHTTPServer(
 	fs := http.FS(public.Assets)
 	httpFileServer := http.FileServer(fs)
 
+	// TODO breadchris break this up into a separate function
 	u, err := url.Parse(config.StudioProxy)
 	if err != nil {
 		return nil, err
