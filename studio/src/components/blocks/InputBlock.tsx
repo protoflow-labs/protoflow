@@ -1,7 +1,7 @@
 import { Caption1, CardHeader, Text } from "@fluentui/react-components";
 import { HiPencilSquare } from "react-icons/hi2";
 import { Handle, NodeProps, Position } from "reactflow";
-import { FieldDefinition } from "../../../rpc/block_pb";
+import { FieldDefinition } from "@/rpc/block_pb";
 import { BlockCard } from "./BlockCard";
 
 export type InputData = {

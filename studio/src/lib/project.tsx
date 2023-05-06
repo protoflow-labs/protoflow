@@ -1,5 +1,5 @@
 import { Edge, Node } from "reactflow";
-import { Project } from "../../rpc/project_pb";
+import { Project } from "@/rpc/project_pb";
 
 export function getUpdatedProject({
   project,

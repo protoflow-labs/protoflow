@@ -22,7 +22,7 @@ import (
 // Injectors from wire.go:
 
 func Wire(cacheConfig cache.Config) (*cli.App, error) {
-	localCache, err := cache.NewLocalCache(cacheConfig)
+	localCache, err := cache.NewUserCache(cacheConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -66,8 +66,11 @@ func Wire(cacheConfig cache.Config) (*cli.App, error) {
 	if err != nil {
 		return nil, err
 	}
-	generateGenerate := generate.NewGenerate(localCache)
-	generateService, err := generate.NewService(dbStore, generateGenerate)
+	generateConfig, err := generate.NewConfig(provider)
+	if err != nil {
+		return nil, err
+	}
+	generateService, err := generate.NewService(generateConfig, dbStore)
 	if err != nil {
 		return nil, err
 	}

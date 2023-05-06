@@ -9,9 +9,9 @@ import {
 import { useForm } from "react-hook-form";
 import { HiOutlineTrash, HiPlus } from "react-icons/hi2";
 import { Node } from "reactflow";
-import { REST } from "../../../rpc/block_pb";
+import { REST } from "@/rpc/block_pb";
 import { EditorActions, useUnselect } from "../EditorActions";
-import { RESTData } from "../blocks/RESTBlock";
+import { RESTData } from "@/components/blocks/RESTBlock";
 
 export function RESTEditor({ node }: { node: Node<RESTData> }) {
   const onCancel = useUnselect();

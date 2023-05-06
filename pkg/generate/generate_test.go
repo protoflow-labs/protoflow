@@ -26,7 +26,7 @@ func TestGenerate(t *testing.T) {
 		},
 	}
 
-	cache, err := cache.NewLocalCache(cache.Config{
+	cache, err := cache.NewUserCache(cache.Config{
 		Name: ".protoflow_test",
 	})
 	assert.NoError(t, err)

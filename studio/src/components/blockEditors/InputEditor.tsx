@@ -16,7 +16,7 @@ import { Node } from "reactflow";
 import {
   FieldDefinition,
   FieldType
-} from "../../../rpc/block_pb";
+} from "@/rpc/block_pb";
 import { EditorActions, useUnselect } from "../EditorActions";
 
 const fieldTypeToDisplay = {

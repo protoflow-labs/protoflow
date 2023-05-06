@@ -4,29 +4,31 @@ import (
 	"context"
 	"github.com/bufbuild/connect-go"
 	"github.com/google/wire"
+	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/gen"
 	"github.com/protoflow-labs/protoflow/gen/genconnect"
+	"github.com/protoflow-labs/protoflow/pkg/cache"
 	"github.com/protoflow-labs/protoflow/pkg/project"
+	"path"
 )
 
 type Service struct {
-	store     project.Store
-	generator Generator
+	config Config
+	store  project.Store
 }
 
 var _ genconnect.GenerateServiceHandler = (*Service)(nil)
 
 var ProviderSet = wire.NewSet(
+	NewConfig,
 	NewService,
-	NewGenerate,
 	wire.Bind(new(genconnect.GenerateServiceHandler), new(*Service)),
-	wire.Bind(new(Generator), new(*Generate)),
 )
 
-func NewService(store project.Store, generator Generator) (*Service, error) {
+func NewService(config Config, store project.Store) (*Service, error) {
 	return &Service{
-		store:     store,
-		generator: generator,
+		config: config,
+		store:  store,
 	}, nil
 }
 
@@ -36,7 +38,20 @@ func (s *Service) Generate(ctx context.Context, req *connect.Request[gen.Generat
 		return nil, err
 	}
 
-	if err := s.generator.Generate(p); err != nil {
+	var projectDir string
+	// if there is a project path defined, use this for where the codeBucket goes
+	if s.config.ProjectPath != "" {
+		projectDir = s.config.ProjectPath
+	} else {
+		projectDir = path.Join("projects", p.Name)
+	}
+	c, err := cache.FromDir(projectDir)
+	if err != nil {
+		return nil, errors.Wrapf(err, "error creating codeBucket from %s", projectDir)
+	}
+
+	generator := NewGenerate(c)
+	if err := generator.Generate(p); err != nil {
 		return nil, err
 	}
 

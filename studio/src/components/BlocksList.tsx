@@ -1,7 +1,9 @@
-import { Button } from "@fluentui/react-components";
+import {Accordion, AccordionItem, Button} from "@fluentui/react-components";
 import { ReactNode } from "react";
+import {useProjectResources} from "@/hooks/useProjectResources";
 
 export default function BlocksList() {
+  const { resources } = useProjectResources();
   return (
     <div className="absolute flex flex-col gap-1 m-3 z-10 top-8">
       <NodeButton nodeType="protoflow.input">Input</NodeButton>
@@ -12,6 +14,15 @@ export default function BlocksList() {
       <NodeButton nodeType="protoflow.bucket">Bucket</NodeButton>
       <NodeButton nodeType="protoflow.email">Email</NodeButton>
       <NodeButton nodeType="protoflow.rest">REST</NodeButton>
+      <Accordion>
+        {resources && resources.map((resource) => {
+          return (
+            <AccordionItem value={resource.name}>
+              {resource.name}
+            </AccordionItem>
+          );
+        })}
+      </Accordion>
     </div>
   );
 }

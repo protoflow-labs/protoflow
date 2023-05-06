@@ -27,6 +27,7 @@ type ProjectServiceClient interface {
 	CreateProject(ctx context.Context, in *CreateProjectRequest, opts ...grpc.CallOption) (*CreateProjectResponse, error)
 	DeleteProject(ctx context.Context, in *DeleteProjectRequest, opts ...grpc.CallOption) (*DeleteProjectResponse, error)
 	GetResources(ctx context.Context, in *GetResourcesRequest, opts ...grpc.CallOption) (*GetResourcesResponse, error)
+	DeleteResource(ctx context.Context, in *DeleteResourceRequest, opts ...grpc.CallOption) (*DeleteResourceResponse, error)
 	SaveProject(ctx context.Context, in *SaveProjectRequest, opts ...grpc.CallOption) (*SaveProjectResponse, error)
 	CreateResource(ctx context.Context, in *CreateResourceRequest, opts ...grpc.CallOption) (*CreateResourceResponse, error)
 	RunWorklow(ctx context.Context, in *RunWorkflowRequest, opts ...grpc.CallOption) (*RunOutput, error)
@@ -86,6 +87,15 @@ func (c *projectServiceClient) GetResources(ctx context.Context, in *GetResource
 	return out, nil
 }
 
+func (c *projectServiceClient) DeleteResource(ctx context.Context, in *DeleteResourceRequest, opts ...grpc.CallOption) (*DeleteResourceResponse, error) {
+	out := new(DeleteResourceResponse)
+	err := c.cc.Invoke(ctx, "/project.ProjectService/DeleteResource", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *projectServiceClient) SaveProject(ctx context.Context, in *SaveProjectRequest, opts ...grpc.CallOption) (*SaveProjectResponse, error) {
 	out := new(SaveProjectResponse)
 	err := c.cc.Invoke(ctx, "/project.ProjectService/SaveProject", in, out, opts...)
@@ -131,6 +141,7 @@ type ProjectServiceServer interface {
 	CreateProject(context.Context, *CreateProjectRequest) (*CreateProjectResponse, error)
 	DeleteProject(context.Context, *DeleteProjectRequest) (*DeleteProjectResponse, error)
 	GetResources(context.Context, *GetResourcesRequest) (*GetResourcesResponse, error)
+	DeleteResource(context.Context, *DeleteResourceRequest) (*DeleteResourceResponse, error)
 	SaveProject(context.Context, *SaveProjectRequest) (*SaveProjectResponse, error)
 	CreateResource(context.Context, *CreateResourceRequest) (*CreateResourceResponse, error)
 	RunWorklow(context.Context, *RunWorkflowRequest) (*RunOutput, error)
@@ -155,6 +166,9 @@ func (UnimplementedProjectServiceServer) DeleteProject(context.Context, *DeleteP
 }
 func (UnimplementedProjectServiceServer) GetResources(context.Context, *GetResourcesRequest) (*GetResourcesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetResources not implemented")
+}
+func (UnimplementedProjectServiceServer) DeleteResource(context.Context, *DeleteResourceRequest) (*DeleteResourceResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteResource not implemented")
 }
 func (UnimplementedProjectServiceServer) SaveProject(context.Context, *SaveProjectRequest) (*SaveProjectResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SaveProject not implemented")
@@ -270,6 +284,24 @@ func _ProjectService_GetResources_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ProjectService_DeleteResource_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteResourceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProjectServiceServer).DeleteResource(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/project.ProjectService/DeleteResource",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProjectServiceServer).DeleteResource(ctx, req.(*DeleteResourceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _ProjectService_SaveProject_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(SaveProjectRequest)
 	if err := dec(in); err != nil {
@@ -368,6 +400,10 @@ var ProjectService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetResources",
 			Handler:    _ProjectService_GetResources_Handler,
+		},
+		{
+			MethodName: "DeleteResource",
+			Handler:    _ProjectService_DeleteResource_Handler,
 		},
 		{
 			MethodName: "SaveProject",

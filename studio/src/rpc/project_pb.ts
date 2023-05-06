@@ -9,6 +9,172 @@ import { Graph } from "./graph_pb.js";
 import { Resource } from "./resource_pb.js";
 
 /**
+ * @generated from message project.DeleteResourceRequest
+ */
+export class DeleteResourceRequest extends Message<DeleteResourceRequest> {
+  /**
+   * @generated from field: string project_id = 1;
+   */
+  projectId = "";
+
+  /**
+   * @generated from field: string resource_id = 2;
+   */
+  resourceId = "";
+
+  constructor(data?: PartialMessage<DeleteResourceRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "project.DeleteResourceRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "project_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "resource_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DeleteResourceRequest {
+    return new DeleteResourceRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): DeleteResourceRequest {
+    return new DeleteResourceRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): DeleteResourceRequest {
+    return new DeleteResourceRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: DeleteResourceRequest | PlainMessage<DeleteResourceRequest> | undefined, b: DeleteResourceRequest | PlainMessage<DeleteResourceRequest> | undefined): boolean {
+    return proto3.util.equals(DeleteResourceRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message project.DeleteResourceResponse
+ */
+export class DeleteResourceResponse extends Message<DeleteResourceResponse> {
+  constructor(data?: PartialMessage<DeleteResourceResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "project.DeleteResourceResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DeleteResourceResponse {
+    return new DeleteResourceResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): DeleteResourceResponse {
+    return new DeleteResourceResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): DeleteResourceResponse {
+    return new DeleteResourceResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: DeleteResourceResponse | PlainMessage<DeleteResourceResponse> | undefined, b: DeleteResourceResponse | PlainMessage<DeleteResourceResponse> | undefined): boolean {
+    return proto3.util.equals(DeleteResourceResponse, a, b);
+  }
+}
+
+/**
+ * @generated from message project.RuntimeData
+ */
+export class RuntimeData extends Message<RuntimeData> {
+  /**
+   * @generated from field: string name = 1;
+   */
+  name = "";
+
+  /**
+   * @generated from field: repeated string calls = 2;
+   */
+  calls: string[] = [];
+
+  /**
+   * @generated from field: project.GraphData graph = 3;
+   */
+  graph?: GraphData;
+
+  constructor(data?: PartialMessage<RuntimeData>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "project.RuntimeData";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "calls", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
+    { no: 3, name: "graph", kind: "message", T: GraphData },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): RuntimeData {
+    return new RuntimeData().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): RuntimeData {
+    return new RuntimeData().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): RuntimeData {
+    return new RuntimeData().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: RuntimeData | PlainMessage<RuntimeData> | undefined, b: RuntimeData | PlainMessage<RuntimeData> | undefined): boolean {
+    return proto3.util.equals(RuntimeData, a, b);
+  }
+}
+
+/**
+ * @generated from message project.GraphData
+ */
+export class GraphData extends Message<GraphData> {
+  /**
+   * @generated from field: float x = 1;
+   */
+  x = 0;
+
+  /**
+   * @generated from field: float y = 2;
+   */
+  y = 0;
+
+  constructor(data?: PartialMessage<GraphData>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "project.GraphData";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "x", kind: "scalar", T: 2 /* ScalarType.FLOAT */ },
+    { no: 2, name: "y", kind: "scalar", T: 2 /* ScalarType.FLOAT */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GraphData {
+    return new GraphData().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GraphData {
+    return new GraphData().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GraphData {
+    return new GraphData().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GraphData | PlainMessage<GraphData> | undefined, b: GraphData | PlainMessage<GraphData> | undefined): boolean {
+    return proto3.util.equals(GraphData, a, b);
+  }
+}
+
+/**
  * @generated from message project.RunWorkflowRequest
  */
 export class RunWorkflowRequest extends Message<RunWorkflowRequest> {

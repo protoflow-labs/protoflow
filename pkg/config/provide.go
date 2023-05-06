@@ -7,7 +7,7 @@ import (
 )
 
 var ProviderSet = wire.NewSet(
-	cache.NewLocalCache,
+	cache.NewUserCache,
 	wire.Bind(new(cache.Cache), new(*cache.LocalCache)),
 
 	log.NewConfig,

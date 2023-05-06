@@ -14,6 +14,7 @@ service ProjectService {
     rpc DeleteProject(DeleteProjectRequest) returns (DeleteProjectResponse) {}
 
     rpc GetResources(GetResourcesRequest) returns (GetResourcesResponse) {}
+    rpc DeleteResource(DeleteResourceRequest) returns (DeleteResourceResponse) {}
 
     rpc SaveProject(SaveProjectRequest) returns (SaveProjectResponse) {}
 
@@ -21,6 +22,24 @@ service ProjectService {
 
     rpc RunWorklow(RunWorkflowRequest) returns (RunOutput) {}
     rpc RunNode(RunNodeRequest) returns (RunOutput) {}
+}
+
+message DeleteResourceRequest {
+    string project_id = 1;
+    string resource_id = 2;
+}
+
+message DeleteResourceResponse {}
+
+message RuntimeData {
+  string name = 1;
+  repeated string calls = 2;
+  GraphData graph = 3;
+}
+
+message GraphData {
+  float x = 1;
+  float y = 2;
 }
 
 message RunWorkflowRequest {

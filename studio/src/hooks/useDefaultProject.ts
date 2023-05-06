@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { Project } from "../../rpc/project_pb";
-import { projectService } from "../lib/api";
+import { Project } from "@/rpc/project_pb";
+import { projectService } from "@/lib/api";
 
 export function useDefaultProject() {
   const [loading, setLoading] = useState(true);

@@ -18,38 +18,42 @@ type Generator interface {
 }
 
 type Generate struct {
-	cache cache.Cache
+	codeBucket cache.Cache
 }
 
 var _ Generator = &Generate{}
 
-func NewGenerate(cache cache.Cache) *Generate {
+func NewGenerate(c cache.Cache) *Generate {
 	return &Generate{
-		cache: cache,
+		codeBucket: c,
 	}
 }
 
 func (g *Generate) Generate(project *gen.Project) error {
 	var err error
 
+	// TODO breadchris support multiple languages
+	code, err := g.codeBucket.WithDir("nodejs")
+	if err != nil {
+		return errors.Wrapf(err, "error creating codeBucket for %s", "nodejs")
+	}
+
 	// normalize all node names
 	for _, node := range project.GetGraph().GetNodes() {
 		node.Name = util.ToTitleCase(node.Name)
 	}
 
-	projectDir := path.Join("projects", project.GetName())
-
-	functionNodes, err := g.ScaffoldFunctions(project, projectDir)
+	functionNodes, err := g.ScaffoldFunctions(code, project)
 	if err != nil {
 		return errors.Wrapf(err, "error scaffolding functions for %s", project.GetName())
 	}
 
-	err = g.GenerateServiceProtos(projectDir, functionNodes)
+	err = g.GenerateServiceProtos(code, functionNodes)
 	if err != nil {
 		return errors.Wrapf(err, "error generating service protos for %s", project.GetName())
 	}
 
-	err = g.GenerateServices(projectDir, functionNodes)
+	err = g.GenerateServices(code, functionNodes)
 	if err != nil {
 		return errors.Wrapf(err, "error generating services for %s", project.GetName())
 	}
@@ -57,7 +61,7 @@ func (g *Generate) Generate(project *gen.Project) error {
 	return nil
 }
 
-func (g *Generate) ScaffoldFunctions(project *gen.Project, projectDir string) ([]*gen.Node, error) {
+func (g *Generate) ScaffoldFunctions(code cache.Cache, project *gen.Project) ([]*gen.Node, error) {
 	nodes := project.GetGraph().GetNodes()
 	var funcNodes []*gen.Node
 	for _, node := range nodes {
@@ -68,8 +72,8 @@ func (g *Generate) ScaffoldFunctions(project *gen.Project, projectDir string) ([
 		funcNodes = append(funcNodes, node)
 
 		// create function directory
-		funcDir := path.Join(projectDir, "functions", node.GetName())
-		funcDirPath, err := g.cache.GetFolder(funcDir)
+		funcDir := path.Join("functions", node.GetName())
+		funcDirPath, err := code.GetFolder(funcDir)
 		if err != nil {
 			return nil, errors.Wrapf(err, "error creating function directory %s", funcDir)
 		}
@@ -87,10 +91,10 @@ func (g *Generate) ScaffoldFunctions(project *gen.Project, projectDir string) ([
 	return funcNodes, nil
 }
 
-func (g *Generate) GenerateServiceProtos(projectDir string, functionNodes []*gen.Node) error {
+func (g *Generate) GenerateServiceProtos(code cache.Cache, functionNodes []*gen.Node) error {
 	functions := make(map[string][]string, 0)
 
-	protosPath, err := g.cache.GetFolder(path.Join(projectDir, "protos"))
+	protosPath, err := code.GetFolder("protos")
 	if err != nil {
 		return errors.Wrapf(err, "error getting protos folder %s", path.Join(protosPath, "protos"))
 	}
@@ -112,10 +116,10 @@ func (g *Generate) GenerateServiceProtos(projectDir string, functionNodes []*gen
 	return nil
 }
 
-func (g *Generate) GenerateServices(projectDir string, functionNodes []*gen.Node) error {
-	projectPath, err := g.cache.GetFolder(projectDir)
+func (g *Generate) GenerateServices(code cache.Cache, functionNodes []*gen.Node) error {
+	projectPath, err := code.GetFolder("/")
 	if err != nil {
-		return errors.Wrapf(err, "error getting project folder %s", projectDir)
+		return errors.Wrapf(err, "error getting project folder")
 	}
 	return templates.TemplateDir("node/project", projectPath, map[string]interface{}{
 		"FunctionNodes": functionNodes,

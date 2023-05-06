@@ -8,18 +8,22 @@ import {
   Spinner,
   Title3,
 } from "@fluentui/react-components";
-import { createContext, useCallback, useContext, useState } from "react";
+import {createContext, useCallback, useContext, useEffect, useState} from "react";
 import { HiExclamationCircle, HiPlus } from "react-icons/hi2";
 import { Node } from "reactflow";
-import { Project } from "../../rpc/project_pb";
+import { Project } from "@/rpc/project_pb";
+import {useProjectResources} from "@/hooks/useProjectResources";
+import {Resource} from "@/rpc/resource_pb";
 
 type ProjectContextType = {
   project: Project | undefined;
+  resources: Resource[] | undefined;
   output: any;
 
   resetOutput: () => void;
   runWorkflow: (node: Node) => Promise<any>;
   saveProject: () => Promise<void>;
+  loadResources: () => Promise<void>;
 };
 
 type ProjectProviderProps = {
@@ -33,6 +37,7 @@ export const useResetOutput = () => useProjectContext().resetOutput;
 
 export default function ProjectProvider({ children }: ProjectProviderProps) {
   const { project, loading, createDefault } = useDefaultProject();
+  const { resources, loading: loadingResources, loadProjectResources } = useProjectResources();
   const [output, setOutput] = useState<any>(null);
 
   const resetOutput = useCallback(() => {
@@ -59,6 +64,19 @@ export default function ProjectProvider({ children }: ProjectProviderProps) {
     },
     [project]
   );
+
+  const loadResources = useCallback(async () => {
+    if (!project) return;
+
+    await loadProjectResources(project.id);
+  }, [project]);
+
+  // TODO breadchris should this happen every time the project is changed?
+  useEffect(() => {
+    if (project) {
+      void loadResources();
+    }
+  }, [project]);
 
   if (loading) {
     return (
@@ -92,7 +110,15 @@ export default function ProjectProvider({ children }: ProjectProviderProps) {
 
   return (
     <ProjectContext.Provider
-      value={{ project, output, resetOutput, runWorkflow, saveProject }}
+      value={{
+        project,
+        resources,
+        output,
+        resetOutput,
+        runWorkflow,
+        saveProject,
+        loadResources,
+      }}
     >
       {children}
     </ProjectContext.Provider>

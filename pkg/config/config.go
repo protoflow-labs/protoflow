@@ -2,6 +2,7 @@ package config
 
 import (
 	"github.com/protoflow-labs/protoflow/pkg/api"
+	"github.com/protoflow-labs/protoflow/pkg/generate"
 	"os"
 	"path"
 
@@ -25,6 +26,7 @@ type BaseConfig struct {
 	DB       db.Config       `yaml:"db"`
 	Temporal temporal.Config `yaml:"temporal"`
 	API      api.Config      `yaml:"api"`
+	Generate generate.Config `yaml:"generate"`
 }
 
 func NewDefaultConfig() BaseConfig {
@@ -34,6 +36,7 @@ func NewDefaultConfig() BaseConfig {
 		DB:       db.NewDefaultConfig(),
 		Temporal: temporal.NewDefaultConfig(),
 		API:      api.NewDefaultConfig(studioProxy),
+		Generate: generate.NewDefaultConfig(),
 	}
 }
 

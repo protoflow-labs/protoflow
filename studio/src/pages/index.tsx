@@ -18,7 +18,7 @@ export default function Home() {
   return (
     <>
       <main className="flex">
-        <div className="flex flex-1" style={{height: 800, width: 800}}>
+        <div className="flex flex-1">
           <BlocksList />
           <ActionPanel />
           <ReactFlow

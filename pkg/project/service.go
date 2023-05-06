@@ -60,11 +60,6 @@ func NewService(
 }
 
 func (s *Service) GetResources(ctx context.Context, c *connect.Request[gen.GetResourcesRequest]) (*connect.Response[gen.GetResourcesResponse], error) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (s *Service) GetBlocks(ctx context.Context, c *connect.Request[gen.GetResourcesRequest]) (*connect.Response[gen.GetResourcesResponse], error) {
 	project, err := s.store.GetProject(c.Msg.ProjectId)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get project %s", c.Msg.ProjectId)
@@ -83,6 +78,27 @@ func (s *Service) GetBlocks(ctx context.Context, c *connect.Request[gen.GetResou
 	return connect.NewResponse(&gen.GetResourcesResponse{
 		Resources: resources,
 	}), nil
+}
+
+func (s *Service) DeleteResource(ctx context.Context, c *connect.Request[gen.DeleteResourceRequest]) (*connect.Response[gen.DeleteResourceResponse], error) {
+	project, err := s.store.GetProject(c.Msg.ProjectId)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get project %s", c.Msg.ProjectId)
+	}
+
+	var newResources []*gen.Resource
+	for _, resource := range project.Resources {
+		if resource.Id == c.Msg.ResourceId {
+			continue
+		}
+		newResources = append(newResources, resource)
+	}
+	project.Resources = newResources
+	_, err = s.store.SaveProject(project)
+	if err != nil {
+		return nil, err
+	}
+	return connect.NewResponse(&gen.DeleteResourceResponse{}), nil
 }
 
 func (s *Service) CreateResource(ctx context.Context, c *connect.Request[gen.CreateResourceRequest]) (*connect.Response[gen.CreateResourceResponse], error) {

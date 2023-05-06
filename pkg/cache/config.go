@@ -11,7 +11,12 @@ type Config struct {
 	Name string `yaml:"name"`
 }
 
-// TODO breadchris break up this config
+func NewDefaultConfig() Config {
+	return Config{
+		Name: ".protoflow",
+	}
+}
+
 func NewConfig(config config.Provider) (cfg Config, err error) {
 	err = config.Get(ConfigurationKey).Populate(&cfg)
 	if err != nil {

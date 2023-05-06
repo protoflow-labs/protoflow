@@ -11,10 +11,12 @@ import {
   MenuList,
   MenuPopover,
   MenuTrigger,
+  Dialog
 } from "@fluentui/react-components";
-import { useCallback, useEffect, useRef } from "react";
+import {useCallback, useEffect, useRef, useState} from "react";
 import { toast } from "react-hot-toast";
 import { useHotkeys } from "react-hotkeys-hook";
+import {AddResourceDialog} from "@/components/AddResourceDialog";
 
 export function Toolbar() {
   const isApple = checkIsApple();
@@ -22,6 +24,7 @@ export function Toolbar() {
   const { props } = useEditorContext();
   const { selectedNodes } = useSelectedNodes();
   const prevNodeLength = useRef(0);
+  const [addResourceOpen, setAddResourceOpen] = useState(false);
 
   useHotkeys(isApple ? "meta+s" : "ctrl+s", (e) => {
     e.preventDefault();
@@ -39,6 +42,12 @@ export function Toolbar() {
     e.preventDefault();
     e.stopPropagation();
     onRun();
+  });
+
+  useHotkeys("ctrl+shift+a", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onAddResource();
   });
 
   const onSave = useCallback(async () => {
@@ -78,6 +87,10 @@ export function Toolbar() {
     runWorkflow(selectedNode);
   };
 
+  const onAddResource = async () => {
+    setAddResourceOpen(true);
+  }
+
   useEffect(() => {
     if (
       selectedNodes.length === 0 &&
@@ -103,7 +116,12 @@ export function Toolbar() {
             <MenuItem secondaryContent="Ctrl+S" onClick={onSave}>
               Save
             </MenuItem>
-            <MenuItem secondaryContent="Ctrl+Shift+E">Export</MenuItem>
+            <MenuItem secondaryContent="Ctrl+Shift+E">
+              Export
+            </MenuItem>
+            <MenuItem secondaryContent="Ctrl+Shift+A" onClick={onAddResource}>
+              Add Resource
+            </MenuItem>
           </MenuList>
         </MenuPopover>
       </Menu>
@@ -149,6 +167,7 @@ export function Toolbar() {
           </MenuList>
         </MenuPopover>
       </Menu>
+      <AddResourceDialog open={addResourceOpen} close={() => setAddResourceOpen(false)} />
     </div>
   );
 }
