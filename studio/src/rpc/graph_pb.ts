@@ -92,6 +92,8 @@ export class Node extends Message<Node> {
   y = 0;
 
   /**
+   * resource dependencies
+   *
    * @generated from field: repeated string resource_ids = 6;
    */
   resourceIds: string[] = [];

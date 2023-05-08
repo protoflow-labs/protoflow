@@ -17,13 +17,11 @@ import (
 	"github.com/google/uuid"
 	"github.com/google/wire"
 	"github.com/protoflow-labs/protoflow/gen"
-	"k8s.io/client-go/kubernetes"
 )
 
 type Service struct {
 	store              Store
 	manager            workflow.Manager
-	clientset          *kubernetes.Clientset
 	blockProtoTemplate *template.Template
 	cache              cache.Cache
 }
@@ -38,7 +36,6 @@ var ProviderSet = wire.NewSet(
 var _ genconnect.ProjectServiceHandler = (*Service)(nil)
 
 func NewService(
-	clientset *kubernetes.Clientset,
 	store Store,
 	manager workflow.Manager,
 	cache cache.Cache,
@@ -51,7 +48,6 @@ func NewService(
 	return &Service{
 		store:              store,
 		manager:            manager,
-		clientset:          clientset,
 		blockProtoTemplate: blockProtoTemplate,
 		cache:              cache,
 	}, nil

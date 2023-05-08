@@ -96,11 +96,12 @@ type Node struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Id          string   `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Name        string   `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	BlockId     string   `protobuf:"bytes,3,opt,name=block_id,json=blockId,proto3" json:"block_id,omitempty"`
-	X           float32  `protobuf:"fixed32,4,opt,name=x,proto3" json:"x,omitempty"`
-	Y           float32  `protobuf:"fixed32,5,opt,name=y,proto3" json:"y,omitempty"`
+	Id      string  `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Name    string  `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	BlockId string  `protobuf:"bytes,3,opt,name=block_id,json=blockId,proto3" json:"block_id,omitempty"`
+	X       float32 `protobuf:"fixed32,4,opt,name=x,proto3" json:"x,omitempty"`
+	Y       float32 `protobuf:"fixed32,5,opt,name=y,proto3" json:"y,omitempty"`
+	// resource dependencies
 	ResourceIds []string `protobuf:"bytes,6,rep,name=resource_ids,json=resourceIds,proto3" json:"resource_ids,omitempty"`
 	// Types that are assignable to Config:
 	//

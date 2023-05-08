@@ -12,7 +12,6 @@ import (
 	"github.com/protoflow-labs/protoflow/pkg/config"
 	"github.com/protoflow-labs/protoflow/pkg/db"
 	"github.com/protoflow-labs/protoflow/pkg/generate"
-	"github.com/protoflow-labs/protoflow/pkg/k8s"
 	"github.com/protoflow-labs/protoflow/pkg/log"
 	"github.com/protoflow-labs/protoflow/pkg/project"
 	"github.com/protoflow-labs/protoflow/pkg/workflow"
@@ -38,10 +37,6 @@ func Wire(cacheConfig cache.Config) (*cli.App, error) {
 	if err != nil {
 		return nil, err
 	}
-	clientset, err := k8s.NewClientset()
-	if err != nil {
-		return nil, err
-	}
 	dbConfig, err := db.NewConfig(provider)
 	if err != nil {
 		return nil, err
@@ -62,7 +57,7 @@ func Wire(cacheConfig cache.Config) (*cli.App, error) {
 	if err != nil {
 		return nil, err
 	}
-	service, err := project.NewService(clientset, dbStore, manager, localCache)
+	service, err := project.NewService(dbStore, manager, localCache)
 	if err != nil {
 		return nil, err
 	}
