@@ -7,6 +7,7 @@ import { FunctionEditor } from "./blockEditors/FunctionEditor";
 import { InputEditor } from "./blockEditors/InputEditor";
 import { QueryEditor } from "./blockEditors/QueryEditor";
 import { RESTEditor } from "./blockEditors/RESTEditor";
+import {GRPCEditor} from "@/components/blockEditors/GRPCEditor";
 
 export function EditorPanel() {
   const [activeNode, setActiveNode] = useState<Node | null>(null);
@@ -56,6 +57,8 @@ function NodeEditor(props: NodeEditorProps) {
       return <BucketEditor node={props.node} />;
     case "protoflow.rest":
       return <RESTEditor node={props.node} />;
+    case "protoflow.grpc":
+      return <GRPCEditor node={props.node} />;
     default:
       return null;
   }

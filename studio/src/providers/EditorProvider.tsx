@@ -21,6 +21,7 @@ import {
 } from "reactflow";
 import { v4 as uuid } from "uuid";
 import { useProjectContext } from "./ProjectProvider";
+import {Block} from "@/rpc/block_pb";
 
 type EditorContextType = {
   mode: Mode;
@@ -37,6 +38,15 @@ type EditorContextType = {
   setInstance: (instance: ReactFlowInstance) => void;
   setMode: (mode: Mode) => void;
 };
+
+export const ReactFlowProtoflowKey = "application/reactflow";
+
+export type ReactFlowProtoflowData = {
+  type: string;
+  name: string | undefined;
+  config: Block['type'] | undefined;
+  resourceIds: string[];
+}
 
 type Mode = "editor" | "run";
 
@@ -104,17 +114,28 @@ const useEditorProps = (reactFlowInstance?: ReactFlowInstance) => {
     (e) => {
       e.preventDefault();
 
-      const type = e.dataTransfer.getData("application/reactflow");
+      const data = e.dataTransfer.getData(ReactFlowProtoflowKey);
+      const { type, name, config, resourceIds } = JSON.parse(data) as ReactFlowProtoflowData;
+
       const position = reactFlowInstance!.project({
         x: e.clientX,
         y: e.clientY,
       });
 
+      // TODO breadchris protobuf type expects object in the form { grpc: { ... } }
+      const configType = config && config.case ? {
+        [config.case]: config.value
+      } : {};
+
       const newNode = {
         id: uuid(),
         type,
         position,
-        data: { name: "", config: {} },
+        data: {
+          name: name || "",
+          config: configType,
+        },
+        resourceIds,
       };
 
       setNodes((nds) => [...nds, newNode]);

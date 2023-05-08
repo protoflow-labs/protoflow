@@ -3,11 +3,9 @@ package project
 import (
 	"context"
 	"encoding/json"
-	"html/template"
-	"os"
-
 	"github.com/protoflow-labs/protoflow/pkg/cache"
 	"github.com/protoflow-labs/protoflow/pkg/grpc"
+	"html/template"
 
 	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/gen/genconnect"
@@ -59,20 +57,28 @@ func NewService(
 	}, nil
 }
 
-func (s *Service) GetResources(ctx context.Context, c *connect.Request[gen.GetResourcesRequest]) (*connect.Response[gen.GetResourcesResponse], error) {
-	project, err := s.store.GetProject(c.Msg.ProjectId)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get project %s", c.Msg.ProjectId)
-	}
-
+func hydrateBlocksForResources(projectResources []*gen.Resource) ([]*gen.Resource, error) {
 	var resources []*gen.Resource
-	for _, resource := range project.Resources {
+	for _, resource := range projectResources {
 		blocks, err := grpc.EnumerateResourceBlocks(resource)
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to get blocks for resource: %s", resource.Name)
 		}
 		resource.Blocks = blocks
 		resources = append(resources, resource)
+	}
+	return resources, nil
+}
+
+func (s *Service) GetResources(ctx context.Context, c *connect.Request[gen.GetResourcesRequest]) (*connect.Response[gen.GetResourcesResponse], error) {
+	project, err := s.store.GetProject(c.Msg.ProjectId)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get project %s", c.Msg.ProjectId)
+	}
+
+	resources, err := hydrateBlocksForResources(project.Resources)
+	if err != nil {
+		return nil, err
 	}
 
 	return connect.NewResponse(&gen.GetResourcesResponse{
@@ -195,7 +201,6 @@ func (s *Service) RunNode(ctx context.Context, c *connect.Request[gen.RunNodeReq
 
 func (s *Service) GetProject(context.Context, *connect.Request[gen.GetProjectRequest]) (*connect.Response[gen.GetProjectResponse], error) {
 	proj, err := s.store.GetProject("local")
-
 	if err != nil {
 		return nil, err
 	}
@@ -259,7 +264,7 @@ func (s *Service) SaveProject(ctx context.Context, req *connect.Request[gen.Save
 
 	project.Graph = req.Msg.Graph
 
-	if len(project.Resources) > 0 {
+	if len(req.Msg.Resources) > 0 {
 		project.Resources = req.Msg.Resources
 	}
 
@@ -269,20 +274,4 @@ func (s *Service) SaveProject(ctx context.Context, req *connect.Request[gen.Save
 	}
 
 	return connect.NewResponse(&gen.SaveProjectResponse{Project: project}), nil
-}
-
-func (s *Service) generateProto(block *gen.Block) error {
-	file, err := os.Create(".persistence/proto/" + block.Name + ".proto")
-	if err != nil {
-		return err
-	}
-
-	defer file.Close()
-
-	err = s.blockProtoTemplate.Execute(file, block)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }

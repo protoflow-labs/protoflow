@@ -40,7 +40,7 @@ repo="protoflow"
 releases=$(curl -s "https://api.github.com/repos/${owner}/${repo}/releases")
 
 # Use jq to get the latest release tag name
-latest=$(echo $releases | jq -r '.[0].tag_name')
+latest=$(echo $releases | grep -oP '(?<=tag_name": ")[0-9]+\.[0-9]+\.[0-9]+' | head -n1)
 
 version=$latest
 

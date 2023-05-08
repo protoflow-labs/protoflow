@@ -22,7 +22,7 @@ interface AddResourceDialogProps {
 }
 
 export const AddResourceDialog: FC<AddResourceDialogProps> = ({open, close}) => {
-  const { project } = useProjectContext();
+  const { project, loadResources, loadingResources } = useProjectContext();
   const onCancel = useUnselect();
 
   const { register, handleSubmit, watch } = useForm({
@@ -37,6 +37,11 @@ export const AddResourceDialog: FC<AddResourceDialogProps> = ({open, close}) => 
       toast.error('No project loaded');
       return;
     }
+    if (loadingResources) {
+      console.log('resources are already being loaded');
+      return;
+    }
+    // TODO breadchris support different resource types
     await projectService.createResource({
       projectId: project.id,
       resource: {
@@ -49,7 +54,9 @@ export const AddResourceDialog: FC<AddResourceDialogProps> = ({open, close}) => 
         }
       }
     })
-    onCancel();
+    toast.success('Resource added');
+    await loadResources();
+    close();
   };
 
   const values = watch();
@@ -74,9 +81,9 @@ export const AddResourceDialog: FC<AddResourceDialogProps> = ({open, close}) => 
           </DialogContent>
           <DialogActions>
             <DialogTrigger disableButtonEnhancement>
-              <Button appearance="secondary">Close</Button>
+              <Button appearance="secondary" disabled={loadingResources}>Close</Button>
             </DialogTrigger>
-            <Button appearance="primary" onClick={handleSubmit(onSubmit)}>Add</Button>
+            <Button appearance="primary" onClick={handleSubmit(onSubmit)} disabled={loadingResources}>Add</Button>
           </DialogActions>
         </DialogBody>
       </DialogSurface>

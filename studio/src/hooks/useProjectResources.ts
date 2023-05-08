@@ -4,8 +4,9 @@ import {Resource} from "@/rpc/resource_pb";
 
 export function useProjectResources() {
   const [loading, setLoading] = useState(true);
-  const [resources, setResources] = useState<Resource[]>();
+  const [resources, setResources] = useState<Resource[]>([]);
   const loadProjectResources = async (projectId: string) => {
+    setLoading(true);
     try {
       const { resources } = await projectService.getResources({
         projectId,
@@ -14,10 +15,7 @@ export function useProjectResources() {
     } catch (e) {
       console.error(e);
     }
-
-    setTimeout(() => {
-      setLoading(false);
-    }, 1);
+    setLoading(false);
   };
 
   return {

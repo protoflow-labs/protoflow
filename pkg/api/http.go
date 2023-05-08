@@ -96,31 +96,37 @@ func NewHTTPServer(
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		// If the path is '/api', forward the request to the other mux handlers
-		if strings.HasPrefix(r.URL.Path, "/api") {
-			r.URL.Path = strings.Replace(r.URL.Path, "/api", "", 1)
-			apiMux.ServeHTTP(w, r)
+		log.Debug().Msgf("request: %s", r.URL.Path)
+
+		// If the path is '/studio', forward the request to the other mux handlers
+		if r.URL.Path == "/studio" || strings.HasPrefix(r.URL.Path, "/studio/") || r.URL.Path == "/esbuild" {
+			r.URL.Path = strings.Replace(r.URL.Path, "/studio", "", 1)
+
+			if config.StudioProxy != "" {
+				proxy.ServeHTTP(w, r)
+			} else {
+				filePath := r.URL.Path
+				if strings.Index(r.URL.Path, "/") == 0 {
+					filePath = r.URL.Path[1:]
+				}
+
+				f, err := assets.Open(filePath)
+				if os.IsNotExist(err) {
+					r.URL.Path = "/"
+				}
+				if err == nil {
+					f.Close()
+				}
+				log.Debug().Msgf("serving file: %s", filePath)
+				httpFileServer.ServeHTTP(w, r)
+			}
 			return
 		}
-
-		if config.StudioProxy != "" {
-			proxy.ServeHTTP(w, r)
-		} else {
-			filePath := r.URL.Path
-			if strings.Index(r.URL.Path, "/") == 0 {
-				filePath = r.URL.Path[1:]
-			}
-
-			f, err := assets.Open(filePath)
-			if os.IsNotExist(err) {
-				r.URL.Path = "/"
-			}
-			if err == nil {
-				f.Close()
-			}
-			log.Debug().Msgf("serving file: %s", filePath)
-			httpFileServer.ServeHTTP(w, r)
+		if strings.HasPrefix(r.URL.Path, "/api/") {
+			r.URL.Path = strings.Replace(r.URL.Path, "/api", "", 1)
 		}
+		apiMux.ServeHTTP(w, r)
+		return
 	})
 
 	return &HTTPServer{

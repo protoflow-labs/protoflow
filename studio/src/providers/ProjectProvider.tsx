@@ -17,12 +17,12 @@ import {Resource} from "@/rpc/resource_pb";
 
 type ProjectContextType = {
   project: Project | undefined;
-  resources: Resource[] | undefined;
+  resources: Resource[];
   output: any;
+  loadingResources: boolean;
 
   resetOutput: () => void;
   runWorkflow: (node: Node) => Promise<any>;
-  saveProject: () => Promise<void>;
   loadResources: () => Promise<void>;
 };
 
@@ -43,12 +43,6 @@ export default function ProjectProvider({ children }: ProjectProviderProps) {
   const resetOutput = useCallback(() => {
     setOutput(null);
   }, []);
-
-  const saveProject = useCallback(async () => {
-    if (!project) return;
-
-    await projectService.saveProject(project);
-  }, [project]);
 
   const runWorkflow = useCallback(
     async (node: Node) => {
@@ -116,8 +110,8 @@ export default function ProjectProvider({ children }: ProjectProviderProps) {
         output,
         resetOutput,
         runWorkflow,
-        saveProject,
         loadResources,
+        loadingResources,
       }}
     >
       {children}

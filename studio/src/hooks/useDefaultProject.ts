@@ -15,7 +15,9 @@ export function useDefaultProject() {
       }
 
       setProject(defaultProject);
-    } catch (e) {}
+    } catch (e) {
+      console.error(e);
+    }
 
     setTimeout(() => {
       setLoading(false);

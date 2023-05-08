@@ -6,6 +6,7 @@ import { QueryBlock } from "@/components/blocks/QueryBlock";
 import { QueueBlock } from "@/components/blocks/QueueBlock";
 import { RESTBlock } from "@/components/blocks/RESTBlock";
 import { useMemo } from "react";
+import {GRPCBlock} from "@/components/blocks/GRPCBlock";
 
 export function useBlockTypes() {
   const nodeTypes = useMemo(
@@ -17,6 +18,7 @@ export function useBlockTypes() {
       "protoflow.queue": QueueBlock,
       "protoflow.bucket": BucketBlock,
       "protoflow.rest": RESTBlock,
+      "protoflow.grpc": GRPCBlock,
     }),
     []
   );

@@ -5,6 +5,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/gen"
+	"github.com/rs/zerolog/log"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -41,6 +42,8 @@ func blocksFromGRPC(service *gen.GRPCService) ([]*gen.Block, error) {
 	if err != nil {
 		return nil, errors.Wrapf(err, "unable to get all methods via reflection")
 	}
+
+	log.Debug().Str("service", service.Host).Msgf("found %d methods", len(methodDesc))
 
 	var blocks []*gen.Block
 	for _, m := range methodDesc {
