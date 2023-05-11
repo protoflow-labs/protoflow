@@ -10,8 +10,6 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 	"io"
 )
 
@@ -25,11 +23,11 @@ func CallMethod(conn *grpc.ClientConn, input interface{}, fullQlName string) (in
 	requestFunc := func(m proto.Message) error {
 		req, err := json.Marshal(input)
 		if err != nil {
-			return err
+			return errors.Wrapf(err, "error marshalling input: %v", input)
 		}
 
 		if err := jsonpb.Unmarshal(bytes.NewReader(req), m); err != nil {
-			return status.Errorf(codes.InvalidArgument, err.Error())
+			return errors.Wrapf(err, "error unmarshalling input: %s", string(req))
 		}
 		return io.EOF
 	}
@@ -44,7 +42,7 @@ func CallMethod(conn *grpc.ClientConn, input interface{}, fullQlName string) (in
 				DescSource: descSource,
 			}
 			if err := grpcurl.InvokeRPC(context.Background(), descSource, conn, fullQlName, headers, &result, requestFunc); err != nil {
-				return nil, err
+				return nil, errors.Wrapf(err, "error invoking rpc %s", fullQlName)
 			}
 
 			if len(result.Responses) == 0 {

@@ -14,6 +14,8 @@ import { Node } from "reactflow";
 import { Project } from "@/rpc/project_pb";
 import {useProjectResources} from "@/hooks/useProjectResources";
 import {Resource} from "@/rpc/resource_pb";
+import {toast} from "react-hot-toast";
+import {useErrorBoundary} from "react-error-boundary";
 
 type ProjectContextType = {
   project: Project | undefined;
@@ -39,6 +41,7 @@ export default function ProjectProvider({ children }: ProjectProviderProps) {
   const { project, loading, createDefault } = useDefaultProject();
   const { resources, loading: loadingResources, loadProjectResources } = useProjectResources();
   const [output, setOutput] = useState<any>(null);
+  const { showBoundary } = useErrorBoundary();
 
   const resetOutput = useCallback(() => {
     setOutput(null);
@@ -48,13 +51,18 @@ export default function ProjectProvider({ children }: ProjectProviderProps) {
     async (node: Node) => {
       if (!project) return;
 
-      const res = await projectService.runWorklow({
-        nodeId: node.id,
-        projectId: project.id,
-        input: localStorage.getItem(`${node.data.name}-sampleData`) || ''
-      });
+      try {
+        const res = await projectService.runWorklow({
+          nodeId: node.id,
+          projectId: project.id,
+          input: localStorage.getItem(`${node.data.name}-sampleData`) || ''
+        });
 
-      setOutput(res.output);
+        setOutput(res.output);
+      } catch(e) {
+        // @ts-ignore
+        toast.error(e.toString());
+      }
     },
     [project]
   );

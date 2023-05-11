@@ -2,14 +2,17 @@ import { Caption1, CardHeader, Text } from "@fluentui/react-components";
 import {MdCode, MdHttp, MdOutbound} from "react-icons/md";
 import { Handle, NodeProps, Position } from "reactflow";
 import { BlockCard } from "./BlockCard";
+import {DescriptorProto} from "@bufbuild/protobuf";
+import {GRPC} from "@/rpc/block_pb";
 
 export type GRPCBlockProps = NodeProps<GRPCData>;
 
 export type GRPCData = {
   name: string;
   config: {
-    grpc: { package: string; service: string; method: string };
+    grpc: GRPC
   };
+  fields: GRPC['input']
 };
 
 export function GRPCBlock(props: GRPCBlockProps) {

@@ -17,6 +17,7 @@ import {useCallback, useEffect, useRef, useState} from "react";
 import { toast } from "react-hot-toast";
 import { useHotkeys } from "react-hotkeys-hook";
 import {AddResourceDialog} from "@/components/AddResourceDialog";
+import { useErrorBoundary } from "react-error-boundary";
 
 export function Toolbar() {
   const isApple = checkIsApple();
@@ -84,7 +85,7 @@ export function Toolbar() {
     }
 
     const selectedNode = selectedNodes[0];
-    runWorkflow(selectedNode);
+    await runWorkflow(selectedNode);
   };
 
   const onAddResource = async () => {

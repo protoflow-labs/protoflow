@@ -15,20 +15,20 @@ import { TbFileText } from "react-icons/tb";
 import { Node } from "reactflow";
 import {
   FieldDefinition,
-  FieldType
+  FieldDefinition_FieldType
 } from "@/rpc/block_pb";
 import { EditorActions, useUnselect } from "../EditorActions";
 
-const fieldTypeToDisplay = {
-  [FieldType.STRING]: "String",
-  [FieldType.INTEGER]: "Integer",
-  [FieldType.BOOLEAN]: "Boolean",
+const FieldDefinition_FieldTypeToDisplay = {
+  [FieldDefinition_FieldType.STRING]: "String",
+  [FieldDefinition_FieldType.INTEGER]: "Integer",
+  [FieldDefinition_FieldType.BOOLEAN]: "Boolean",
 };
 
-export const stringToFieldType = {
-  "STRING": FieldType.STRING,
-  "INTEGER": FieldType.INTEGER,
-  "BOOLEAN": FieldType.BOOLEAN,
+export const stringToFieldDefinition_FieldType = {
+  "STRING": FieldDefinition_FieldType.STRING,
+  "INTEGER": FieldDefinition_FieldType.INTEGER,
+  "BOOLEAN": FieldDefinition_FieldType.BOOLEAN,
 }
 
 type Form = {
@@ -53,7 +53,7 @@ export function InputEditor({ node }: { node: Node<InputData> }) {
           ...value,
           // TODO - Really really hacky, but connect seems to serialize enums differently
           // than the typescript expects
-          type: ((stringToFieldType as any)[value.type as any] || value.type || 0)
+          type: ((stringToFieldDefinition_FieldType as any)[value.type as any] || value.type || 0)
         }  as FieldDefinition)) || [],
         sampleData: JSON.parse(localStorage.getItem(sampleDataStorageKey) || '{}')
       },
@@ -92,8 +92,8 @@ export function InputEditor({ node }: { node: Node<InputData> }) {
                   {...register(`config.fields.${index}.name`)}
                 />
                 <Dropdown
-                  id={"fieldType" + index}
-                  value={fieldTypeToDisplay[field.type || FieldType.STRING]}
+                  id={"FieldDefinition_FieldType" + index}
+                  value={FieldDefinition_FieldTypeToDisplay[field.type || FieldDefinition_FieldType.STRING]}
                   onOptionSelect={(_, data) => {
                     setValue(
                       `config.fields.${index}.type`,
@@ -101,9 +101,9 @@ export function InputEditor({ node }: { node: Node<InputData> }) {
                     );
                   }}
                 >
-                  <Option value={String(FieldType.STRING)}>String</Option>
-                  <Option value={String(FieldType.INTEGER)}>Integer</Option>
-                  <Option value={String(FieldType.BOOLEAN)}>Boolean</Option>
+                  <Option value={String(FieldDefinition_FieldType.STRING)}>String</Option>
+                  <Option value={String(FieldDefinition_FieldType.INTEGER)}>Integer</Option>
+                  <Option value={String(FieldDefinition_FieldType.BOOLEAN)}>Boolean</Option>
                 </Dropdown>
                 <Button
                   icon={<HiOutlineTrash className="h-4 w-4" />}
@@ -129,7 +129,7 @@ export function InputEditor({ node }: { node: Node<InputData> }) {
                 ...(values.config.fields || []),
                 new FieldDefinition({
                   name: "",
-                  type: FieldType.STRING,
+                  type: FieldDefinition_FieldType.STRING,
                 }),
               ]);
             }}
@@ -161,18 +161,18 @@ function SampleDataField({ field, values, setValue }: {
   setValue: UseFormSetValue<Form>
 }) {
   switch (field.type) {
-    case FieldType.STRING:
+    case FieldDefinition_FieldType.STRING:
       return <Input
           value={String(values.config.sampleData[field.name] || '')}
           onChange={(_, data) => setValue(`config.sampleData.${field.name}`, data.value)}
         />;
-    case FieldType.INTEGER:
+    case FieldDefinition_FieldType.INTEGER:
       return <Input
         type="number"
         value={String(values.config.sampleData[field.name])}
         onChange={(_, data) => setValue(`config.sampleData.${field.name}`, Number(data.value))}
       />;
-    case FieldType.BOOLEAN:
+    case FieldDefinition_FieldType.BOOLEAN:
       return <Checkbox
           checked={Boolean(values.config.sampleData[field.name])}
           onChange={(_, data) => setValue(`config.sampleData.${field.name}`, data.checked)}

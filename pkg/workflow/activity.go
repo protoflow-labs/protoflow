@@ -35,7 +35,7 @@ func (a *Activity) ExecuteGRPCNode(ctx context.Context, node *GRPCNode, input In
 	}
 	data, err := grpcanal.CallMethod(g.Conn, &input, methodName)
 	if err != nil {
-		return Result{}, errors.Wrapf(err, "error calling method: %s", node.Method)
+		return Result{}, errors.Wrapf(err, "error calling method: %s", methodName)
 	}
 	return Result{
 		Data: data,

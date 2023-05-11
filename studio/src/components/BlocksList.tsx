@@ -43,6 +43,9 @@ export default function BlocksList() {
                 {resource.name}
               </AccordionHeader>
               <AccordionPanel>
+                {resource.blocks.length === 0 && (
+                  <div className="text-gray-400">No blocks</div>
+                )}
                 {resource.blocks.map((block) => {
                   // TODO breadchris support more block types
                   return (

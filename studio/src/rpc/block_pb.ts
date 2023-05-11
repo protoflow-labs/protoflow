@@ -4,33 +4,7 @@
 // @ts-nocheck
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
-import { Message, proto3 } from "@bufbuild/protobuf";
-
-/**
- * @generated from enum block.FieldType
- */
-export enum FieldType {
-  /**
-   * @generated from enum value: STRING = 0;
-   */
-  STRING = 0,
-
-  /**
-   * @generated from enum value: INTEGER = 1;
-   */
-  INTEGER = 1,
-
-  /**
-   * @generated from enum value: BOOLEAN = 2;
-   */
-  BOOLEAN = 2,
-}
-// Retrieve enum metadata with: proto3.getEnumType(FieldType)
-proto3.util.setEnumType(FieldType, "block.FieldType", [
-  { no: 0, name: "STRING" },
-  { no: 1, name: "INTEGER" },
-  { no: 2, name: "BOOLEAN" },
-]);
+import { DescriptorProto, EnumDescriptorProto, Message, proto3 } from "@bufbuild/protobuf";
 
 /**
  * TODO breadchris think through this more
@@ -369,9 +343,9 @@ export class FieldDefinition extends Message<FieldDefinition> {
   name = "";
 
   /**
-   * @generated from field: block.FieldType type = 2;
+   * @generated from field: block.FieldDefinition.FieldType type = 2;
    */
-  type = FieldType.STRING;
+  type = FieldDefinition_FieldType.STRING;
 
   constructor(data?: PartialMessage<FieldDefinition>) {
     super();
@@ -382,7 +356,7 @@ export class FieldDefinition extends Message<FieldDefinition> {
   static readonly typeName = "block.FieldDefinition";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "type", kind: "enum", T: proto3.getEnumType(FieldType) },
+    { no: 2, name: "type", kind: "enum", T: proto3.getEnumType(FieldDefinition_FieldType) },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): FieldDefinition {
@@ -401,6 +375,32 @@ export class FieldDefinition extends Message<FieldDefinition> {
     return proto3.util.equals(FieldDefinition, a, b);
   }
 }
+
+/**
+ * @generated from enum block.FieldDefinition.FieldType
+ */
+export enum FieldDefinition_FieldType {
+  /**
+   * @generated from enum value: STRING = 0;
+   */
+  STRING = 0,
+
+  /**
+   * @generated from enum value: INTEGER = 1;
+   */
+  INTEGER = 1,
+
+  /**
+   * @generated from enum value: BOOLEAN = 2;
+   */
+  BOOLEAN = 2,
+}
+// Retrieve enum metadata with: proto3.getEnumType(FieldDefinition_FieldType)
+proto3.util.setEnumType(FieldDefinition_FieldType, "block.FieldDefinition.FieldType", [
+  { no: 0, name: "STRING" },
+  { no: 1, name: "INTEGER" },
+  { no: 2, name: "BOOLEAN" },
+]);
 
 /**
  * @generated from message block.REST
@@ -470,6 +470,26 @@ export class GRPC extends Message<GRPC> {
    */
   method = "";
 
+  /**
+   * @generated from field: google.protobuf.DescriptorProto input = 4;
+   */
+  input?: DescriptorProto;
+
+  /**
+   * @generated from field: google.protobuf.DescriptorProto output = 5;
+   */
+  output?: DescriptorProto;
+
+  /**
+   * @generated from field: map<string, google.protobuf.DescriptorProto> desc_lookup = 6;
+   */
+  descLookup: { [key: string]: DescriptorProto } = {};
+
+  /**
+   * @generated from field: map<string, google.protobuf.EnumDescriptorProto> enum_lookup = 7;
+   */
+  enumLookup: { [key: string]: EnumDescriptorProto } = {};
+
   constructor(data?: PartialMessage<GRPC>) {
     super();
     proto3.util.initPartial(data, this);
@@ -481,6 +501,10 @@ export class GRPC extends Message<GRPC> {
     { no: 1, name: "package", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "service", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 3, name: "method", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "input", kind: "message", T: DescriptorProto },
+    { no: 5, name: "output", kind: "message", T: DescriptorProto },
+    { no: 6, name: "desc_lookup", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "message", T: DescriptorProto} },
+    { no: 7, name: "enum_lookup", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "message", T: EnumDescriptorProto} },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GRPC {

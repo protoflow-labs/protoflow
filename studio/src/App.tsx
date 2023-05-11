@@ -1,4 +1,14 @@
-import {FluentProvider, webDarkTheme} from "@fluentui/react-components";
+import {
+  Button,
+  Dialog, DialogActions,
+  DialogBody,
+  DialogContent,
+  DialogSurface,
+  DialogTitle,
+  DialogTrigger,
+  FluentProvider,
+  webDarkTheme
+} from "@fluentui/react-components";
 import {ReactFlowProvider} from "reactflow";
 import {HotkeysProvider} from "react-hotkeys-hook/src/HotkeysProvider";
 import ProjectProvider from "@/providers/ProjectProvider";
@@ -7,23 +17,50 @@ import {Toolbar} from "@/components/Toolbar";
 import {Toaster} from "react-hot-toast";
 import {AppRoutes} from "@/routes";
 import {BrowserRouter} from "react-router-dom";
+import {ErrorBoundary} from "react-error-boundary";
+import {useState} from "react";
+
+const Fallback: React.FC<{ error: Error }> = ({error}) => {
+  const [open, setOpen] = useState(true);
+  return (
+    <Dialog open={open}>
+      <DialogSurface>
+        <DialogBody>
+          <DialogTitle>Unhandled Error</DialogTitle>
+          <DialogContent>
+            {error.toString()}
+          </DialogContent>
+          <DialogActions>
+            <DialogTrigger disableButtonEnhancement>
+              <Button appearance="secondary" onClick={() => window.location.reload()}>Close</Button>
+            </DialogTrigger>
+          </DialogActions>
+        </DialogBody>
+      </DialogSurface>
+    </Dialog>
+  );
+}
 
 export default function App() {
   return (
-    <FluentProvider theme={webDarkTheme}>
-      <ReactFlowProvider>
-        <HotkeysProvider initiallyActiveScopes={["editor"]}>
-          <ProjectProvider>
-            <EditorProvider>
-              <Toolbar />
-              <BrowserRouter>
-                <AppRoutes />
-              </BrowserRouter>
-              <Toaster />
-            </EditorProvider>
-          </ProjectProvider>
-        </HotkeysProvider>
-      </ReactFlowProvider>
-    </FluentProvider>
+      <FluentProvider theme={webDarkTheme}>
+        <ErrorBoundary
+          FallbackComponent={Fallback}
+        >
+        <ReactFlowProvider>
+          <HotkeysProvider initiallyActiveScopes={["editor"]}>
+            <ProjectProvider>
+              <EditorProvider>
+                <Toolbar/>
+                <BrowserRouter>
+                  <AppRoutes/>
+                </BrowserRouter>
+                <Toaster/>
+              </EditorProvider>
+            </ProjectProvider>
+          </HotkeysProvider>
+        </ReactFlowProvider>
+        </ErrorBoundary>
+      </FluentProvider>
   )
 }
