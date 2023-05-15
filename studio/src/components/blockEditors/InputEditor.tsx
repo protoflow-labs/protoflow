@@ -18,6 +18,7 @@ import {
   FieldDefinition_FieldType
 } from "@/rpc/block_pb";
 import { EditorActions, useUnselect } from "../EditorActions";
+import {getNodeDataKey} from "@/providers/ProjectProvider";
 
 const FieldDefinition_FieldTypeToDisplay = {
   [FieldDefinition_FieldType.STRING]: "String",
@@ -44,7 +45,7 @@ type Form = {
 export function InputEditor({ node }: { node: Node<InputData> }) {
   const [showSampleDataForm, setShowSampleDataForm] = useState(false);
   const onCancel = useUnselect();
-  const sampleDataStorageKey = `${node.data.name}-sampleData`;
+  const sampleDataStorageKey = getNodeDataKey(node);
   const { watch, setValue, register, handleSubmit } = useForm<Form>({
     values: {
       name: node.data.name || "",

@@ -12,7 +12,8 @@ export type GRPCData = {
   config: {
     grpc: GRPC
   };
-  fields: GRPC['input']
+  input: GRPC['input']
+  resourceIds: string[];
 };
 
 export function GRPCBlock(props: GRPCBlockProps) {

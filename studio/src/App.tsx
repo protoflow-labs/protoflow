@@ -18,9 +18,9 @@ import {Toaster} from "react-hot-toast";
 import {AppRoutes} from "@/routes";
 import {BrowserRouter} from "react-router-dom";
 import {ErrorBoundary} from "react-error-boundary";
-import {useState} from "react";
+import {ErrorInfo, useState} from "react";
 
-const Fallback: React.FC<{ error: Error }> = ({error}) => {
+const Fallback: React.FC<{ error: Error, resetErrorBoundary: () => void }> = ({error, resetErrorBoundary}) => {
   const [open, setOpen] = useState(true);
   return (
     <Dialog open={open}>
@@ -28,11 +28,12 @@ const Fallback: React.FC<{ error: Error }> = ({error}) => {
         <DialogBody>
           <DialogTitle>Unhandled Error</DialogTitle>
           <DialogContent>
-            {error.toString()}
+            <h4>{error.message.toString()}</h4>
+            <pre>{error.stack}</pre>
           </DialogContent>
           <DialogActions>
             <DialogTrigger disableButtonEnhancement>
-              <Button appearance="secondary" onClick={() => window.location.reload()}>Close</Button>
+              <Button appearance="secondary" onClick={() => resetErrorBoundary()}>Close</Button>
             </DialogTrigger>
           </DialogActions>
         </DialogBody>

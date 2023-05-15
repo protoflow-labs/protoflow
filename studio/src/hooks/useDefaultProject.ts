@@ -7,14 +7,15 @@ export function useDefaultProject() {
   const [project, setProject] = useState<Project>();
   const loadProject = async () => {
     try {
-      const { projects } = await projectService.getProjects({});
+      const { projects } = await projectService.getProjects({
+        name: "local",
+      });
 
-      const defaultProject = projects.find((p) => p.name === "local");
-      if (!defaultProject) {
-        throw new Error("No default project found");
+      if (projects.length !== 1) {
+        throw new Error(`No default project found: ${projects}`);
       }
 
-      setProject(defaultProject);
+      setProject(projects[0]);
     } catch (e) {
       console.error(e);
     }

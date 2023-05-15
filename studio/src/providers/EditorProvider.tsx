@@ -20,7 +20,7 @@ import {
   ReactFlowInstance,
 } from "reactflow";
 import { v4 as uuid } from "uuid";
-import { useProjectContext } from "./ProjectProvider";
+import {getDataFromNode, getNodeDataKey, useProjectContext} from "./ProjectProvider";
 import {Block} from "@/rpc/block_pb";
 
 type EditorContextType = {
@@ -82,6 +82,7 @@ const useEditorProps = (reactFlowInstance?: ReactFlowInstance) => {
             [config!.name]:
               n.config?.value?.toJson() || n.config?.value || n.config || {},
           },
+          resourceIds: n.resourceIds,
         },
         position: { x: n.x, y: n.y },
         type: `protoflow.${config?.name}`,
@@ -102,8 +103,10 @@ const useEditorProps = (reactFlowInstance?: ReactFlowInstance) => {
   const onConnect = useCallback((params: Connection) => {
     if (!params.source || !params.target) return;
 
-    setEdges((eds) => addEdge({ ...params, id: uuid() }, eds));
-  }, []);
+    setEdges((eds) => {
+      return addEdge({ ...params, id: uuid() }, eds)
+    });
+  }, [nodes]);
 
   const onDragOver: DragEventHandler = useCallback((e) => {
     e.preventDefault();
@@ -134,8 +137,8 @@ const useEditorProps = (reactFlowInstance?: ReactFlowInstance) => {
         data: {
           name: name || "",
           config: configType,
+          resourceIds,
         },
-        resourceIds,
       };
 
       setNodes((nds) => [...nds, newNode]);

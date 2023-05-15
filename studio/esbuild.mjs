@@ -1,6 +1,7 @@
 import esbuild from "esbuild";
 import {postcssModules, sassPlugin} from "esbuild-sass-plugin";
 import { swcPlugin } from "esbuild-plugin-swc";
+import polyfill from "esbuild-plugin-node-polyfills";
 import tailwindcss from 'tailwindcss';
 import autoprefixer from 'autoprefixer';
 import postcss from "postcss";
@@ -33,6 +34,7 @@ const options = {
     plugins: [
         // TODO breadchris use swc over tsc
         // swcPlugin(),
+        polyfill,
         sassPlugin({
             filter: /\.css$/,
             type: "style",
@@ -57,9 +59,6 @@ const options = {
     sourcemap: "linked",
     define: {
         "global": "window",
-        "process": "{}",
-        "process.env": "{}",
-        "process.env.NODE_ENV": nodeEnv,
     },
     logLevel: 'info'
 };

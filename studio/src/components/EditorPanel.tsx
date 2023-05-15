@@ -1,6 +1,6 @@
 import { Card } from "@fluentui/react-components";
 import { useState } from "react";
-import { Node, useOnSelectionChange } from "reactflow";
+import {Edge, EdgeChange, Node, useEdgesState, useOnSelectionChange} from "reactflow";
 import { BucketEditor } from "./blockEditors/BucketEditor";
 import { CollectionEditor } from "./blockEditors/CollectionEditor";
 import { FunctionEditor } from "./blockEditors/FunctionEditor";

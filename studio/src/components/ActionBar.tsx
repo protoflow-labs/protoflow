@@ -8,7 +8,9 @@ import {
   makeStyles,
 } from "@fluentui/react-components";
 import { AnimatePresence, LazyMotion, domAnimation, m } from "framer-motion";
+import React from "react";
 import { useEffect, useState } from "react";
+import {JsonViewer} from "@/components/jsonViewer";
 
 const useOverrides = makeStyles({
   card: {},
@@ -47,9 +49,10 @@ export function ActionBar() {
               {output && (
                 <Card className="max-w-5xl">
                   <CardHeader header={<Text weight="semibold">Output</Text>} />
-                  <code className="block overflow-auto max-w-3xl max-h-96">
-                    {JSON.stringify(JSON.parse(output), null, 2)}
-                  </code>
+                  {/*<code className="block overflow-auto max-w-3xl max-h-96">*/}
+                  {/*  {JSON.stringify(JSON.parse(output), null, 2)}*/}
+                  {/*</code>*/}
+                  <JsonViewer data={JSON.parse(output)} />
                 </Card>
               )}
               <Card className={overrides.card}>

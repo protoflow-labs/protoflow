@@ -32,6 +32,14 @@ type ProjectProviderProps = {
   children: React.ReactNode;
 };
 
+export function getNodeDataKey(node: Node) {
+  return `${node.id}-sampleData`;
+}
+
+export function getDataFromNode(node: Node) {
+  return localStorage.getItem(getNodeDataKey(node));
+}
+
 const ProjectContext = createContext<ProjectContextType>({} as any);
 
 export const useProjectContext = () => useContext(ProjectContext);
@@ -55,7 +63,8 @@ export default function ProjectProvider({ children }: ProjectProviderProps) {
         const res = await projectService.runWorklow({
           nodeId: node.id,
           projectId: project.id,
-          input: localStorage.getItem(`${node.data.name}-sampleData`) || ''
+          // TODO breadchris this is garbo, we need a better data structure to represent data input
+          input: getDataFromNode(node) || ''
         });
 
         setOutput(res.output);
