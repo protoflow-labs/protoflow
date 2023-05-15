@@ -28,12 +28,14 @@ func NewGormDB(config Config, cache cache.Cache) (*gorm.DB, error) {
 		return nil, fmt.Errorf("unknown db driver: %s", config.Driver)
 	}
 
-	db, err := gorm.Open(openedDb, &gorm.Config{})
+	db, err := gorm.Open(openedDb, &gorm.Config{
+		Logger: Logger{},
+	})
 	if err != nil {
 		return nil, err
 	}
 
 	// TODO breadchris automigrate
 
-	return db.Debug(), nil
+	return db, nil
 }

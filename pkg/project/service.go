@@ -175,7 +175,14 @@ func (s *Service) RunWorklow(ctx context.Context, c *connect.Request[gen.RunWork
 		return nil, err
 	}
 
-	res, err := s.manager.ExecuteWorkflowSync(ctx, w, c.Msg.NodeId, c.Msg.Input)
+	// TODO breadchris this is a _little_ sketchy, we would like to be able to use the correct type, which might just be some data!
+	var workflowInput map[string]interface{}
+	err = json.Unmarshal([]byte(c.Msg.Input), &workflowInput)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to unmarshal workflow input")
+	}
+
+	res, err := s.manager.ExecuteWorkflowSync(ctx, w, c.Msg.NodeId, workflowInput)
 	if err != nil {
 		return nil, err
 	}

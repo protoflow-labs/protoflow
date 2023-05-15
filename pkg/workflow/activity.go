@@ -13,12 +13,6 @@ import (
 
 type Activity struct{}
 
-var (
-	ErrResourceNotFound = errors.New("resource not found")
-)
-
-type ProtoType struct{}
-
 // TODO breadchris this should be workflow.Context, but for the memory executor it needs context.Context
 func (a *Activity) ExecuteGRPCNode(ctx context.Context, node *GRPCNode, input Input) (Result, error) {
 	log.Info().Msgf("executing node: %s", node.Service)
@@ -33,13 +27,14 @@ func (a *Activity) ExecuteGRPCNode(ctx context.Context, node *GRPCNode, input In
 	if node.Package != "" {
 		methodName = node.Package + "." + methodName
 	}
-	data, err := grpcanal.CallMethod(g.Conn, &input, methodName)
+
+	data, err := grpcanal.CallMethod(g.Conn, &input.Params, methodName)
 	if err != nil {
 		return Result{}, errors.Wrapf(err, "error calling method: %s", methodName)
 	}
 	return Result{
 		Data: data,
-	}, fmt.Errorf("method not found: %s", node.Method)
+	}, nil
 }
 
 func (a *Activity) ExecuteRestNode(ctx context.Context, node *RESTNode, input Input) (Result, error) {

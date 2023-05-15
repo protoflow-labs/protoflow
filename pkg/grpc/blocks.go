@@ -115,6 +115,7 @@ func blocksFromGRPC(service *gen.GRPCService) ([]*gen.Block, error) {
 					Output:     m.GetOutputType().AsDescriptorProto(),
 					DescLookup: md.descLookup,
 					EnumLookup: md.enumLookup,
+					MethodDesc: m.AsMethodDescriptorProto(),
 				},
 			},
 		})

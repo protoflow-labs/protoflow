@@ -29,14 +29,14 @@ func NewTemporalManager(client client.Client) *TemporalManager {
 	}
 }
 
-func (m *TemporalManager) ExecuteWorkflow(ctx context.Context, w *Workflow, nodeID string, input string) (string, error) {
+func (m *TemporalManager) ExecuteWorkflow(ctx context.Context, w *Workflow, nodeID string, input interface{}) (string, error) {
 	workflowOptions := client.StartWorkflowOptions{
 		ID:        w.ID,
 		TaskQueue: TaskQueue,
 		// CronSchedule: workflow.CronSchedule,
 	}
 
-	we, err := m.client.ExecuteWorkflow(ctx, workflowOptions, TemporalRun, w, nodeID)
+	we, err := m.client.ExecuteWorkflow(ctx, workflowOptions, TemporalRun, w, nodeID, input)
 	if err != nil {
 		return "", errors.Wrapf(err, "failed to start workflow %s", w.ID)
 	}
@@ -48,7 +48,7 @@ func (m *TemporalManager) ExecuteWorkflow(ctx context.Context, w *Workflow, node
 	return we.GetRunID(), nil
 }
 
-func (m *TemporalManager) ExecuteWorkflowSync(ctx context.Context, w *Workflow, nodeID string, input string) (*Result, error) {
+func (m *TemporalManager) ExecuteWorkflowSync(ctx context.Context, w *Workflow, nodeID string, input interface{}) (*Result, error) {
 	//TODO implement me
 	panic("implement me")
 }

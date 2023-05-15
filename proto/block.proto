@@ -70,4 +70,5 @@ message GRPC {
   google.protobuf.DescriptorProto output = 5;
   map<string, google.protobuf.DescriptorProto> desc_lookup = 6;
   map<string, google.protobuf.EnumDescriptorProto> enum_lookup = 7;
+  google.protobuf.MethodDescriptorProto method_desc = 8;
 }

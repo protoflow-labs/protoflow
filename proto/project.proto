@@ -24,6 +24,16 @@ service ProjectService {
     rpc RunNode(RunNodeRequest) returns (RunOutput) {}
 }
 
+message WorkflowRun {
+    string id = 1;
+    string project_id = 2;
+    string node_id = 3;
+    string input = 4;
+    string output = 5;
+    string created_at = 6;
+    string updated_at = 7;
+}
+
 message DeleteResourceRequest {
     string project_id = 1;
     string resource_id = 2;

@@ -16,7 +16,7 @@ func NewMemoryManager() *MemoryManager {
 	return &MemoryManager{}
 }
 
-func (m *MemoryManager) ExecuteWorkflow(ctx context.Context, w *Workflow, nodeID string, input string) (string, error) {
+func (m *MemoryManager) ExecuteWorkflow(ctx context.Context, w *Workflow, nodeID string, input interface{}) (string, error) {
 	if w.NodeLookup == nil || w.Graph == nil {
 		return "", fmt.Errorf("workflow is not initialized")
 	}
@@ -30,7 +30,7 @@ func (m *MemoryManager) ExecuteWorkflow(ctx context.Context, w *Workflow, nodeID
 	return uuid.New().String(), err
 }
 
-func (m *MemoryManager) ExecuteWorkflowSync(ctx context.Context, w *Workflow, nodeID string, input string) (*Result, error) {
+func (m *MemoryManager) ExecuteWorkflowSync(ctx context.Context, w *Workflow, nodeID string, input interface{}) (*Result, error) {
 	if w.NodeLookup == nil || w.Graph == nil {
 		return nil, fmt.Errorf("workflow is not initialized")
 	}

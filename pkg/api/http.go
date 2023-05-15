@@ -98,6 +98,12 @@ func NewHTTPServer(
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		log.Debug().Msgf("request: %s", r.URL.Path)
 
+		if r.URL.Path == "/" {
+			// redirect to /studio
+			http.Redirect(w, r, "/studio", http.StatusFound)
+			return
+		}
+
 		// If the path is '/studio', forward the request to the other mux handlers
 		if r.URL.Path == "/studio" || strings.HasPrefix(r.URL.Path, "/studio/") || r.URL.Path == "/esbuild" {
 			r.URL.Path = strings.Replace(r.URL.Path, "/studio", "", 1)

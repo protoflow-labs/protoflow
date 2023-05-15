@@ -1,7 +1,9 @@
 package workflow
 
 import (
+	"encoding/json"
 	"fmt"
+	"math"
 
 	"github.com/dominikbraun/graph"
 	"github.com/pkg/errors"
@@ -86,7 +88,7 @@ func FromProject(project *gen.Project, resources ResourceMap) (*Workflow, error)
 type Instances map[string]Resource
 
 // TODO breadchris nodeID should not be needed, the workflow should already be a slice of the graph that is configured to run
-func (w *Workflow) Run(logger Logger, executor Executor, nodeID string, input string) (*Result, error) {
+func (w *Workflow) Run(logger Logger, executor Executor, nodeID string, input interface{}) (*Result, error) {
 	var cleanupFuncs []func()
 	defer func() {
 		for _, cleanup := range cleanupFuncs {
@@ -142,7 +144,7 @@ func (w *Workflow) traverseWorkflow(logger Logger, instances Instances, executor
 		input.Resources[resource.Name()] = resource
 	}
 
-	log.Debug().Str("vert", vert).Msg("executing node")
+	log.Debug().Str("vert", vert).Interface("resources", input.Resources).Msg("executing node")
 	res, err := node.Execute(executor, input)
 	if err != nil {
 		return nil, errors.Wrapf(err, "error executing node: %s", vert)
@@ -152,7 +154,12 @@ func (w *Workflow) traverseWorkflow(logger Logger, instances Instances, executor
 		Params: res.Data,
 	}
 
-	log.Debug().Interface("result", res).Msg("node result")
+	bytes, err := json.Marshal(res)
+	if err != nil {
+		return nil, errors.Wrapf(err, "error marshalling result for node %s", vert)
+	}
+	log.Debug().Str("result", string(bytes[:int(math.Min(float64(len(bytes)), 512))])).Msg("node result")
+
 	nextResSet := false
 	for neighbor := range w.AdjMap[vert] {
 		logger.Info("Traversing workflow", "nodeID", neighbor)

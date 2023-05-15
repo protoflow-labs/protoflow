@@ -12,8 +12,8 @@ import (
 const TaskQueue = "protoflow"
 
 type Manager interface {
-	ExecuteWorkflow(ctx context.Context, w *Workflow, nodeID string, input string) (string, error)
-	ExecuteWorkflowSync(ctx context.Context, w *Workflow, nodeID string, input string) (*Result, error)
+	ExecuteWorkflow(ctx context.Context, w *Workflow, nodeID string, input interface{}) (string, error)
+	ExecuteWorkflowSync(ctx context.Context, w *Workflow, nodeID string, input interface{}) (*Result, error)
 	CleanupResources() error
 }
 
