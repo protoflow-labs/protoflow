@@ -7,11 +7,44 @@ import (
 	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/gen"
 	grpcanal "github.com/protoflow-labs/protoflow/pkg/grpc"
+	"github.com/protoflow-labs/protoflow/pkg/grpc/bufcurl"
 	"github.com/protoflow-labs/protoflow/pkg/util"
 	"github.com/rs/zerolog/log"
+	"io"
+	"net/url"
 )
 
 type Activity struct{}
+
+func getInvokeOptions(base, serviceName, methodName string, outputStream bufcurl.OutputStream) grpcanal.InvokeOptions {
+	grpcURL := fmt.Sprintf("%s/%s/%s", base, serviceName, methodName)
+	return grpcanal.InvokeOptions{
+		OutputStream:          outputStream,
+		TLSConfig:             bufcurl.TLSSettings{},
+		URL:                   grpcURL,
+		Protocol:              "grpc",
+		Headers:               nil,
+		UserAgent:             "",
+		ReflectProtocol:       "grpc-v1",
+		ReflectHeaders:        nil,
+		UnixSocket:            "",
+		HTTP2PriorKnowledge:   true,
+		NoKeepAlive:           false,
+		KeepAliveTimeSeconds:  0,
+		ConnectTimeoutSeconds: 0,
+	}
+}
+
+func formatHost(host string) (string, error) {
+	u, err := url.Parse(host)
+	if err != nil {
+		return "", errors.Wrapf(err, "error parsing url: %s", host)
+	}
+	if u.Scheme == "" {
+		u.Scheme = "http"
+	}
+	return u.String(), nil
+}
 
 // TODO breadchris this should be workflow.Context, but for the memory executor it needs context.Context
 func (a *Activity) ExecuteGRPCNode(ctx context.Context, node *GRPCNode, input Input) (Result, error) {
@@ -22,15 +55,41 @@ func (a *Activity) ExecuteGRPCNode(ctx context.Context, node *GRPCNode, input In
 		return Result{}, fmt.Errorf("error getting GRPC resource: %s.%s", node.Service, node.Method)
 	}
 
-	// TODO breadchris is this how you get the fully qualified name?
-	methodName := node.Service + "." + node.Method
+	serviceName := node.Service
 	if node.Package != "" {
-		methodName = node.Package + "." + methodName
+		serviceName = node.Package + "." + serviceName
 	}
 
-	data, err := grpcanal.CallMethod(g.Conn, &input.Params, methodName)
+	host, err := formatHost(g.Host)
 	if err != nil {
-		return Result{}, errors.Wrapf(err, "error calling method: %s", methodName)
+		return Result{}, errors.Wrapf(err, "error formatting host: %s", g.Host)
+	}
+
+	inputStream := bufcurl.NewMemoryInputStream()
+	outputStream := bufcurl.NewMemoryOutputStream()
+	go func() {
+		// TODO breadchris we are relying on this grpc call to close the output stream. How can the stream be closed by the caller?
+		defer outputStream.Close()
+		err := grpcanal.ExecuteCurl(ctx, getInvokeOptions(host, serviceName, node.Method, outputStream), inputStream)
+		if err != nil {
+			outputStream.Error(err)
+		}
+	}()
+	inputStream.Push(input.Params)
+	inputStream.Close()
+
+	var data any
+	for {
+		output, err := outputStream.Next()
+		if err != nil {
+			if err != io.EOF {
+				return Result{}, errors.Wrapf(err, "error reading output stream")
+			}
+			break
+		}
+
+		// TODO breadchris whatever the last output is, is the data. Streaming is not supported yet.
+		data = output
 	}
 	return Result{
 		Data: data,
@@ -69,11 +128,41 @@ func (a *Activity) ExecuteFunctionNode(ctx context.Context, node *FunctionNode, 
 	}
 
 	// TODO breadchris how is the method name formatted?
-	methodName := fmt.Sprintf("protoflow.%sService.%s", node.Function.Runtime, util.ToTitleCase(node.Name))
-	data, err := grpcanal.CallMethod(g.Conn, inputData, methodName)
+	serviceName := fmt.Sprintf("protoflow.%sService", node.Function.Runtime)
+	methodName := util.ToTitleCase(node.Name)
+
+	host, err := formatHost(g.Host)
 	if err != nil {
-		return Result{}, errors.Wrapf(err, "error calling method: %s", node.Name)
+		return Result{}, errors.Wrapf(err, "error formatting host: %s", g.Host)
 	}
+
+	inputStream := bufcurl.NewMemoryInputStream()
+	outputStream := bufcurl.NewMemoryOutputStream()
+	go func() {
+		// TODO breadchris we are relying on this grpc call to close the output stream. How can the stream be closed by the caller?
+		defer outputStream.Close()
+		err := grpcanal.ExecuteCurl(ctx, getInvokeOptions(host, serviceName, methodName, outputStream), inputStream)
+		if err != nil {
+			outputStream.Error(err)
+		}
+	}()
+	inputStream.Push(inputData)
+	inputStream.Close()
+
+	var data any
+	for {
+		output, err := outputStream.Next()
+		if err != nil {
+			if err != io.EOF {
+				return Result{}, errors.Wrapf(err, "error reading output stream")
+			}
+			break
+		}
+
+		// TODO breadchris whatever the last output is, is the data. Streaming is not supported yet.
+		data = output
+	}
+
 	return Result{
 		Data: data,
 	}, nil

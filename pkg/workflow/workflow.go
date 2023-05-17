@@ -11,16 +11,6 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-type Input struct {
-	Params       interface{}
-	Resources    map[string]any
-	Dependencies []string
-}
-
-type Result struct {
-	Data interface{}
-}
-
 type AdjMap map[string]map[string]graph.Edge[string]
 
 type Workflow struct {
@@ -154,7 +144,8 @@ func (w *Workflow) traverseWorkflow(logger Logger, instances Instances, executor
 		Params: res.Data,
 	}
 
-	bytes, err := json.Marshal(res)
+	// TODO breadchris just used for debugging, remove
+	bytes, err := json.Marshal(res.Data)
 	if err != nil {
 		return nil, errors.Wrapf(err, "error marshalling result for node %s", vert)
 	}

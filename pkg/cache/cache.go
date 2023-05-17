@@ -1,11 +1,12 @@
 package cache
 
 import (
-	"github.com/google/wire"
-	"github.com/pkg/errors"
 	"os"
 	"os/user"
 	"path"
+
+	"github.com/google/wire"
+	"github.com/pkg/errors"
 )
 
 type Cache interface {
@@ -58,9 +59,9 @@ func NewUserCache(c Config) (*LocalCache, error) {
 }
 
 func FromDir(dir string) (*LocalCache, error) {
-	// check to see if dir exists
-	if _, err := os.Stat(dir); os.IsNotExist(err) {
-		return nil, errors.Wrapf(err, "could not find dir: %v", dir)
+	err := ensureDirExists(dir)
+	if err != nil {
+		return nil, err
 	}
 	return &LocalCache{
 		dir: dir,

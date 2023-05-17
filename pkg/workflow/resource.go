@@ -60,7 +60,6 @@ type Resource interface {
 
 type GRPCResource struct {
 	*gen.GRPCService
-	Conn *grpc.ClientConn
 }
 
 func (r *GRPCResource) Name() string {
@@ -68,18 +67,7 @@ func (r *GRPCResource) Name() string {
 }
 
 func (r *GRPCResource) Init() (func(), error) {
-	conn, err := grpc.Dial(r.Host, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		return nil, errors.Wrapf(err, "unable to connect to grpc server at %s", r.Host)
-	}
-	cleanup := func() {
-		err = conn.Close()
-		if err != nil {
-			log.Error().Err(err).Msg("error closing grpc connection")
-		}
-	}
-	r.Conn = conn
-	return cleanup, nil
+	return nil, nil
 }
 
 type DocstoreResource struct {

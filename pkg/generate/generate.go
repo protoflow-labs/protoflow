@@ -2,6 +2,7 @@ package generate
 
 import (
 	"fmt"
+	"os"
 	"path"
 
 	"github.com/protoflow-labs/protoflow/pkg/cache"
@@ -105,7 +106,16 @@ func (g *Generate) GenerateServiceProtos(code cache.Cache, functionNodes []*gen.
 
 	for runtime, methods := range functions {
 		protoPath := fmt.Sprintf("%s/%s.service.proto", protosPath, runtime)
-		err := templates.TemplateFile("service.template.proto", protoPath, map[string]interface{}{
+
+		// check if file exists with os
+		if _, err := os.Stat(protoPath); err == nil {
+			// TODO breadchris we want to be more intelligent here. If the proto file exists, we should check if the methods are the same
+			// and compile a new protofile with changes
+			// proto file exists, skip
+			continue
+		}
+
+		err = templates.TemplateFile("service.template.proto", protoPath, map[string]interface{}{
 			"Runtime": runtime,
 			"Methods": methods,
 		})

@@ -3,9 +3,10 @@ package project
 import (
 	"context"
 	"encoding/json"
+	"html/template"
+
 	"github.com/protoflow-labs/protoflow/pkg/cache"
 	"github.com/protoflow-labs/protoflow/pkg/grpc"
-	"html/template"
 
 	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/gen/genconnect"
@@ -173,6 +174,11 @@ func (s *Service) RunWorklow(ctx context.Context, c *connect.Request[gen.RunWork
 	w, err := workflow.FromProject(project, projectResources)
 	if err != nil {
 		return nil, err
+	}
+
+	// TODO breadchris temporary for when the input is not set
+	if c.Msg.Input == "" {
+		c.Msg.Input = "{}"
 	}
 
 	// TODO breadchris this is a _little_ sketchy, we would like to be able to use the correct type, which might just be some data!

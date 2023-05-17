@@ -1,9 +1,9 @@
-import {Accordion, AccordionHeader, AccordionItem, AccordionPanel, Button} from "@fluentui/react-components";
+import { Accordion, AccordionHeader, AccordionItem, AccordionPanel, Button } from "@fluentui/react-components";
 import { ReactNode } from "react";
-import {useProjectResources} from "@/hooks/useProjectResources";
-import {useProjectContext} from "@/providers/ProjectProvider";
-import {ReactFlowProtoflowData, ReactFlowProtoflowKey} from "@/providers/EditorProvider";
-import {Block} from "@/rpc/block_pb";
+import { useProjectResources } from "@/hooks/useProjectResources";
+import { useProjectContext } from "@/providers/ProjectProvider";
+import { ReactFlowProtoflowData, ReactFlowProtoflowKey } from "@/providers/EditorProvider";
+import { Block } from "@/rpc/block_pb";
 
 interface NodeBlock {
   type: string
@@ -12,14 +12,11 @@ interface NodeBlock {
 export default function BlocksList() {
   const { resources } = useProjectContext();
   const builtinBlocks: NodeBlock[] = [
-      { type: "protoflow.input", name: "Input" },
-      { type: "protoflow.collection", name: "Collection"},
-      { type: "protoflow.function", name: "Function" },
-      { type: "protoflow.query", name: "Query" },
-      { type: "protoflow.queue", name: "Queue" },
-      { type: "protoflow.bucket", name: "Bucket" },
-      { type: "protoflow.email", name: "Email" },
-      { type: "protoflow.rest", name: "REST" },
+    { type: "protoflow.input", name: "Input" },
+    { type: "protoflow.collection", name: "Collection" },
+    { type: "protoflow.function", name: "Function" },
+    { type: "protoflow.bucket", name: "Bucket" },
+    { type: "protoflow.rest", name: "REST" },
   ]
   return (
     <div className="absolute flex flex-col gap-1 m-3 z-10 top-8">
