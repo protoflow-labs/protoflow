@@ -147,10 +147,8 @@ func (inv *invoker) handleUnary(ctx context.Context, input InputStream, headers 
 	}
 	err = inv.handleResponse(resp.Msg.data, msg)
 	if err != nil {
-		inv.outputStream.Error(err)
 		return err
 	}
-	inv.outputStream.Push(msg)
 	return nil
 }
 
@@ -188,10 +186,8 @@ func (inv *invoker) handleClientStream(ctx context.Context, input InputStream, h
 	err = inv.handleResponse(resp.Msg.data, msg)
 	if err != nil {
 		// TODO breadchris we want to capture all errors, not just the last one
-		inv.outputStream.Error(err)
 		return err
 	}
-	inv.outputStream.Push(msg)
 	return nil
 }
 
@@ -304,8 +300,13 @@ func (inv *invoker) handleResponse(data []byte, msg *dynamicpb.Message) error {
 	if err != nil {
 		return err
 	}
-	_, err = fmt.Fprintf(inv.output, "%s\n", outputBytes)
-	inv.outputStream.Push(msg)
+
+	var out any
+	err = json.Unmarshal(outputBytes, &out)
+	if err != nil {
+		return errors.Wrapf(err, "error marshalling output")
+	}
+	inv.outputStream.Push(out)
 	return err
 }
 
@@ -351,28 +352,24 @@ func (inv *invoker) handleStreamRequest(provider messageProvider, msg *dynamicpb
 	return nil, false
 }
 
-func (inv *invoker) handleStreamResponse(stream serverStream) error {
+func (inv *invoker) handleStreamResponse(stream serverStream) (retErr error) {
 	defer func() {
 		err := stream.CloseResponse()
-		if err != nil {
-			inv.outputStream.Error(err)
+		if err != nil && retErr == nil {
+			retErr = err
 		}
 	}()
 	msg := dynamicpb.NewMessage(inv.md.Output())
 	for {
 		responseMsg, err := stream.Receive()
 		if errors.Is(err, io.EOF) {
-			inv.outputStream.Error(err)
 			return err
 		} else if err != nil {
-			inv.outputStream.Error(err)
 			return err
 		}
 		if err := inv.handleResponse(responseMsg.data, msg); err != nil {
-			inv.outputStream.Error(err)
 			return err
 		}
-		inv.outputStream.Push(msg)
 	}
 }
 

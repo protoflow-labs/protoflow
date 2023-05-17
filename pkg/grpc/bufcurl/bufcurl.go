@@ -96,8 +96,8 @@ func NewMemoryOutputStream() *MemoryOutputStream {
 	}
 }
 
-func (m *MemoryOutputStream) Push(any any) {
-	m.Out <- any
+func (m *MemoryOutputStream) Push(a any) {
+	m.Out <- a
 }
 
 func (m *MemoryOutputStream) Error(err error) {

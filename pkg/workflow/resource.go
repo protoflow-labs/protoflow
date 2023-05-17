@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"net/url"
 	"os"
 	"os/exec"
 	"path"
@@ -238,9 +239,14 @@ func (r *LanguageServiceResource) waitForPort() error {
 	maxRetries := 20
 	retryInterval := 2 * time.Second
 
+	u, err := url.Parse(r.LanguageService.Host)
+	if err != nil {
+		return errors.Wrapf(err, "Unable to parse url %s", r.LanguageService.Host)
+	}
+
 	fmt.Printf("Waiting for %s to start listening...\n", r.LanguageService.Host)
 	for i := 1; i <= maxRetries; i++ {
-		conn, err := net.DialTimeout("tcp", r.LanguageService.Host, time.Second)
+		conn, err := net.DialTimeout("tcp", u.Host, time.Second)
 		if err == nil {
 			conn.Close()
 			fmt.Printf("%s is now listening!\n", r.LanguageService.Host)

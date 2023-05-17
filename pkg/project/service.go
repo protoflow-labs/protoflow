@@ -155,7 +155,7 @@ func (s *Service) RunWorklow(ctx context.Context, c *connect.Request[gen.RunWork
 		"js": &workflow.LanguageServiceResource{
 			LanguageService: &gen.LanguageService{
 				Runtime: gen.Runtime_NODE,
-				Host:    "localhost:8086",
+				Host:    "http://localhost:8086",
 			},
 			Cache: s.cache,
 		},

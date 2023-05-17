@@ -75,8 +75,10 @@ func (a *Activity) ExecuteGRPCNode(ctx context.Context, node *GRPCNode, input In
 			outputStream.Error(err)
 		}
 	}()
-	inputStream.Push(input.Params)
-	inputStream.Close()
+	go func() {
+		inputStream.Push(input.Params)
+		inputStream.Close()
+	}()
 
 	var data any
 	for {
@@ -123,6 +125,7 @@ func (a *Activity) ExecuteFunctionNode(ctx context.Context, node *FunctionNode, 
 		return Result{}, errors.Wrapf(err, "error marshalling params: %s", node.Name)
 	}
 
+	// TODO breadchris this type is hardcoded, but the type should be dynamically determined based on what code is being called
 	inputData := gen.Data{
 		Value: string(ser),
 	}
@@ -136,6 +139,7 @@ func (a *Activity) ExecuteFunctionNode(ctx context.Context, node *FunctionNode, 
 		return Result{}, errors.Wrapf(err, "error formatting host: %s", g.Host)
 	}
 
+	// TODO breadchris this is duplicated code from the GRPC node, does this need to be duplicated?
 	inputStream := bufcurl.NewMemoryInputStream()
 	outputStream := bufcurl.NewMemoryOutputStream()
 	go func() {
@@ -146,9 +150,10 @@ func (a *Activity) ExecuteFunctionNode(ctx context.Context, node *FunctionNode, 
 			outputStream.Error(err)
 		}
 	}()
-	inputStream.Push(inputData)
-	inputStream.Close()
-
+	go func() {
+		inputStream.Push(inputData)
+		inputStream.Close()
+	}()
 	var data any
 	for {
 		output, err := outputStream.Next()
@@ -158,6 +163,12 @@ func (a *Activity) ExecuteFunctionNode(ctx context.Context, node *FunctionNode, 
 			}
 			break
 		}
+
+		o, err := json.Marshal(output)
+		if err != nil {
+			return Result{}, errors.Wrapf(err, "error marshalling output: %s", node.Name)
+		}
+		println("output", string(o))
 
 		// TODO breadchris whatever the last output is, is the data. Streaming is not supported yet.
 		data = output
