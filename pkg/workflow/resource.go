@@ -3,19 +3,15 @@ package workflow
 import (
 	"context"
 	"fmt"
-	"io"
 	"net"
 	"net/url"
 	"os"
-	"os/exec"
 	"path"
 	"strings"
-	"syscall"
 	"time"
 
 	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/gen"
-	"github.com/protoflow-labs/protoflow/pkg/cache"
 	"github.com/protoflow-labs/protoflow/pkg/util"
 	"github.com/rs/zerolog/log"
 	"gocloud.dev/blob"
@@ -24,8 +20,6 @@ import (
 	"gocloud.dev/docstore"
 	"gocloud.dev/docstore/memdocstore"
 	_ "gocloud.dev/docstore/memdocstore"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 )
 
 const (
@@ -68,6 +62,15 @@ func (r *GRPCResource) Name() string {
 }
 
 func (r *GRPCResource) Init() (func(), error) {
+	// TODO breadchris this is a hack to get the grpc server running, this is not ideal
+	if !strings.HasPrefix(r.Host, "http://") {
+		r.Host = "http://" + r.Host
+	}
+	if err := ensureRunning(r.Host); err != nil {
+		// TODO breadchris ignore errors for now
+		// return nil, errors.Wrapf(err, "unable to get the %s grpc server running", r.Name())
+		return nil, nil
+	}
 	return nil, nil
 }
 
@@ -163,9 +166,7 @@ func (r *BlobstoreResource) WithPath(path string) (*blob.Bucket, func(), error) 
 
 type LanguageServiceResource struct {
 	*gen.LanguageService
-	Conn  *grpc.ClientConn
-	Cache cache.Cache
-	cmd   *exec.Cmd
+	GRPC *GRPCResource
 }
 
 func (r *LanguageServiceResource) Name() string {
@@ -173,88 +174,32 @@ func (r *LanguageServiceResource) Name() string {
 }
 
 func (r *LanguageServiceResource) Init() (func(), error) {
-	if err := r.ensureRunning(); err != nil {
-		return nil, errors.Wrapf(err, "Unable to get the %s language server running", r.Name())
+	r.GRPC = &GRPCResource{
+		GRPCService: r.LanguageService.Grpc,
 	}
-	conn, err := grpc.Dial(r.Host, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		return nil, errors.Wrapf(err, "unable to connect to grpc server at %s", r.Host)
-	}
-	cleanup := func() {
-		// TODO breadchris configure this from the frontend? configure?
-		//if !r.CloseOnCleanup {
-		//	return
-		//}
-		if r.cmd != nil && r.cmd.Process != nil {
-			syscall.Kill(-r.cmd.Process.Pid, syscall.SIGKILL)
-		}
-		err = conn.Close()
-		if err != nil {
-			log.Error().Err(err).Msg("error closing grpc connection")
-		}
-	}
-	r.Conn = conn
-	return cleanup, nil
+	return r.GRPC.Init()
 }
 
-func (r *LanguageServiceResource) ensureRunning() error {
-	originalWd, err := os.Getwd()
-	if err != nil {
-		return err
-	}
-
-	// TODO - Figure out how to pass project name in cleanly
-	projectFolder, _ := r.Cache.GetFolder("projects/local")
-	if err := os.Chdir(projectFolder); err != nil {
-		return err
-	}
-
-	r.cmd = exec.Command("npm", "run", "dev")
-	r.cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
-	stdout, err := r.cmd.StdoutPipe()
-	if err != nil {
-		return err
-	}
-
-	if err = r.cmd.Start(); err != nil {
-		return err
-	}
-
-	if err := os.Chdir(originalWd); err != nil {
-		return err
-	}
-
-	err = r.waitForPort()
-	if err != nil {
-		out, err := io.ReadAll(stdout)
-		if err != nil {
-			return errors.Wrapf(err, "Unable to get the %s language server running, failed to read stdout", r.Name())
-		}
-		return errors.Wrapf(err, "Unable to get the %s language server running: %s", r.Name(), string(out))
-	}
-	return nil
-}
-
-func (r *LanguageServiceResource) waitForPort() error {
-	maxRetries := 20
+func ensureRunning(host string) error {
+	maxRetries := 1
 	retryInterval := 2 * time.Second
 
-	u, err := url.Parse(r.LanguageService.Host)
+	u, err := url.Parse(host)
 	if err != nil {
-		return errors.Wrapf(err, "Unable to parse url %s", r.LanguageService.Host)
+		return errors.Wrapf(err, "unable to parse url %s", host)
 	}
 
-	fmt.Printf("Waiting for %s to start listening...\n", r.LanguageService.Host)
+	log.Debug().Str("host", host).Msg("waiting for host to come online")
 	for i := 1; i <= maxRetries; i++ {
 		conn, err := net.DialTimeout("tcp", u.Host, time.Second)
 		if err == nil {
 			conn.Close()
-			fmt.Printf("%s is now listening!\n", r.LanguageService.Host)
+			log.Debug().Str("host", host).Msg("host is not listening")
 			return nil
 		} else {
-			fmt.Printf("%s is not yet listening (attempt %d/%d)\n", r.LanguageService.Host, i, maxRetries)
+			log.Debug().Err(err).Int("attempt", i).Int("max", maxRetries).Msg("error connecting to host")
 			time.Sleep(retryInterval)
 		}
 	}
-	return fmt.Errorf("port did not come online in time")
+	return errors.New("host did not come online in time")
 }

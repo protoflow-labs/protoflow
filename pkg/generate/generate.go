@@ -44,17 +44,17 @@ func (g *Generate) Generate(project *gen.Project) error {
 		node.Name = util.ToTitleCase(node.Name)
 	}
 
-	functionNodes, err := g.ScaffoldFunctions(code, project)
+	functionNodes, err := g.scaffoldFunctions(code, project)
 	if err != nil {
 		return errors.Wrapf(err, "error scaffolding functions for %s", project.GetName())
 	}
 
-	err = g.GenerateServiceProtos(code, functionNodes)
+	err = g.generateServiceProtos(code, functionNodes)
 	if err != nil {
 		return errors.Wrapf(err, "error generating service protos for %s", project.GetName())
 	}
 
-	err = g.GenerateServices(code, functionNodes)
+	err = g.generateServices(code, functionNodes)
 	if err != nil {
 		return errors.Wrapf(err, "error generating services for %s", project.GetName())
 	}
@@ -62,7 +62,7 @@ func (g *Generate) Generate(project *gen.Project) error {
 	return nil
 }
 
-func (g *Generate) ScaffoldFunctions(code cache.Cache, project *gen.Project) ([]*gen.Node, error) {
+func (g *Generate) scaffoldFunctions(code cache.Cache, project *gen.Project) ([]*gen.Node, error) {
 	nodes := project.GetGraph().GetNodes()
 	var funcNodes []*gen.Node
 	for _, node := range nodes {
@@ -92,7 +92,7 @@ func (g *Generate) ScaffoldFunctions(code cache.Cache, project *gen.Project) ([]
 	return funcNodes, nil
 }
 
-func (g *Generate) GenerateServiceProtos(code cache.Cache, functionNodes []*gen.Node) error {
+func (g *Generate) generateServiceProtos(code cache.Cache, functionNodes []*gen.Node) error {
 	functions := make(map[string][]string, 0)
 
 	protosPath, err := code.GetFolder("protos")
@@ -126,7 +126,7 @@ func (g *Generate) GenerateServiceProtos(code cache.Cache, functionNodes []*gen.
 	return nil
 }
 
-func (g *Generate) GenerateServices(code cache.Cache, functionNodes []*gen.Node) error {
+func (g *Generate) generateServices(code cache.Cache, functionNodes []*gen.Node) error {
 	projectPath, err := code.GetFolder("/")
 	if err != nil {
 		return errors.Wrapf(err, "error getting project folder")
@@ -134,4 +134,10 @@ func (g *Generate) GenerateServices(code cache.Cache, functionNodes []*gen.Node)
 	return templates.TemplateDir("node/project", projectPath, map[string]interface{}{
 		"FunctionNodes": functionNodes,
 	})
+}
+
+func (g *Generate) generateDeployment(code cache.Cache, project *gen.Project) error {
+	// TODO breadchris build a docker-compose file to bring up the project in one command
+	// https://github.com/compose-spec/compose-go/blob/32b078a49aebb9a4a67af1423ec508f70b8928f7/types/types.go#L29
+	return nil
 }

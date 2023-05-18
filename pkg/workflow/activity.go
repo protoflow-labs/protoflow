@@ -114,10 +114,10 @@ func (a *Activity) ExecuteRestNode(ctx context.Context, node *RESTNode, input In
 }
 
 func (a *Activity) ExecuteFunctionNode(ctx context.Context, node *FunctionNode, input Input) (Result, error) {
-	log.Debug().Msgf("executing function node: %v", node.Function.Runtime)
+	log.Debug().Msgf("executing function node: %s.%s", node.Function.Runtime, node.Name)
 	g, ok := input.Resources[LanguageServiceType].(*LanguageServiceResource)
 	if !ok {
-		return Result{}, fmt.Errorf("error getting GRPC resource: %s.%s", node.Function.Runtime, node.Name)
+		return Result{}, fmt.Errorf("error getting language service resource: %s.%s", node.Function.Runtime, node.Name)
 	}
 
 	ser, err := json.Marshal(input.Params)
@@ -134,9 +134,9 @@ func (a *Activity) ExecuteFunctionNode(ctx context.Context, node *FunctionNode, 
 	serviceName := fmt.Sprintf("protoflow.%sService", node.Function.Runtime)
 	methodName := util.ToTitleCase(node.Name)
 
-	host, err := formatHost(g.Host)
+	host, err := formatHost(g.Grpc.Host)
 	if err != nil {
-		return Result{}, errors.Wrapf(err, "error formatting host: %s", g.Host)
+		return Result{}, errors.Wrapf(err, "error formatting host: %s", g.Grpc.Host)
 	}
 
 	// TODO breadchris this is duplicated code from the GRPC node, does this need to be duplicated?
@@ -163,12 +163,6 @@ func (a *Activity) ExecuteFunctionNode(ctx context.Context, node *FunctionNode, 
 			}
 			break
 		}
-
-		o, err := json.Marshal(output)
-		if err != nil {
-			return Result{}, errors.Wrapf(err, "error marshalling output: %s", node.Name)
-		}
-		println("output", string(o))
 
 		// TODO breadchris whatever the last output is, is the data. Streaming is not supported yet.
 		data = output

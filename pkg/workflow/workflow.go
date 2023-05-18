@@ -1,10 +1,7 @@
 package workflow
 
 import (
-	"encoding/json"
 	"fmt"
-	"math"
-
 	"github.com/dominikbraun/graph"
 	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/gen"
@@ -88,6 +85,7 @@ func (w *Workflow) Run(logger Logger, executor Executor, nodeID string, input in
 		}
 	}()
 
+	// TODO breadchris make a slice of resources that are needed for the workflow
 	// TODO breadchris implement resource pool to avoid creating resources for every workflow
 	instances := Instances{}
 	for id, resource := range w.Resources {
@@ -108,7 +106,7 @@ func (w *Workflow) Run(logger Logger, executor Executor, nodeID string, input in
 		Params: input,
 	})
 	if err != nil {
-		logger.Error("Error traversing workflow", "error", err)
+		logger.Error("failed to traverse workflow", "error", err)
 		return nil, err
 	}
 	return res, nil
@@ -121,17 +119,9 @@ func (w *Workflow) traverseWorkflow(logger Logger, instances Instances, executor
 	}
 
 	log.Debug().Str("vert", vert).Msg("injecting dependencies for node")
-	input.Resources = map[string]any{}
-	for _, resourceID := range node.Dependencies() {
-		resource, ok := instances[resourceID]
-		if !ok {
-			return nil, fmt.Errorf("resource not found: %s", resourceID)
-		}
-		if _, ok := input.Resources[resource.Name()]; ok {
-			logger.Warn("Resource type already exists in input", "resource", resource.Name())
-			continue
-		}
-		input.Resources[resource.Name()] = resource
+	err := injectDepsForNode(logger, instances, &input, node)
+	if err != nil {
+		return nil, err
 	}
 
 	log.Debug().Str("vert", vert).Interface("resources", input.Resources).Msg("executing node")
@@ -140,25 +130,28 @@ func (w *Workflow) traverseWorkflow(logger Logger, instances Instances, executor
 		return nil, errors.Wrapf(err, "error executing node: %s", vert)
 	}
 
-	nextBlockInput := Input{
-		Params: res.Data,
+	var nextBlockInput Input
+	if res.Stream != nil {
+		// if the result is a stream, pass the stream to the next block
+		nextBlockInput = Input{
+			Stream: res.Stream,
+		}
+	} else {
+		// otherwise pass the singular result data to the next block
+		nextBlockInput = Input{
+			Params: res.Data,
+		}
 	}
-
-	// TODO breadchris just used for debugging, remove
-	bytes, err := json.Marshal(res.Data)
-	if err != nil {
-		return nil, errors.Wrapf(err, "error marshalling result for node %s", vert)
-	}
-	log.Debug().Str("result", string(bytes[:int(math.Min(float64(len(bytes)), 512))])).Msg("node result")
 
 	nextResSet := false
 	for neighbor := range w.AdjMap[vert] {
-		logger.Info("Traversing workflow", "nodeID", neighbor)
+		logger.Info("traversing workflow", "nodeID", neighbor)
 		neighborRes, err := w.traverseWorkflow(logger, instances, executor, neighbor, nextBlockInput)
 		if err != nil {
 			return nil, errors.Wrapf(err, "error traversing workflow %s", neighbor)
 		}
 
+		// TODO breadchris how should multiple results be handled?
 		if !nextResSet {
 			res = neighborRes
 			nextResSet = true
@@ -167,4 +160,20 @@ func (w *Workflow) traverseWorkflow(logger Logger, instances Instances, executor
 	return &Result{
 		Data: res.Data,
 	}, nil
+}
+
+func injectDepsForNode(logger Logger, instances Instances, input *Input, node Node) error {
+	input.Resources = map[string]any{}
+	for _, resourceID := range node.Dependencies() {
+		resource, ok := instances[resourceID]
+		if !ok {
+			return fmt.Errorf("resource not found: %s", resourceID)
+		}
+		if _, ok := input.Resources[resource.Name()]; ok {
+			logger.Warn("resource type already exists in input", "resource", resource.Name())
+			continue
+		}
+		input.Resources[resource.Name()] = resource
+	}
+	return nil
 }

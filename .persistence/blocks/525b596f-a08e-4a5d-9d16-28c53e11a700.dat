@@ -1,1 +1,0 @@
-{"id":"525b596f-a08e-4a5d-9d16-28c53e11a700","name":"CreateUserInput","type":"message","x":395,"y":-161.5,"inputFields":[{"name":"first_name"},{"name":"last_name"},{"name":"email"}]}

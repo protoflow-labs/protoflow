@@ -2,6 +2,7 @@ package bufcurl
 
 import (
 	"github.com/protoflow-labs/protoflow/pkg/grpc/verbose"
+	"github.com/rs/zerolog/log"
 	"go.uber.org/zap"
 	"io"
 	"os"
@@ -74,6 +75,12 @@ func (c Container) Logger() *zap.Logger {
 	panic("implement me")
 }
 
+type ZeroLogPrinter struct{}
+
+func (z *ZeroLogPrinter) Printf(format string, args ...interface{}) {
+	log.Trace().Msgf(format, args...)
+}
+
 func (c Container) VerbosePrinter() verbose.Printer {
-	return verbose.NewWritePrinter(os.Stdout, "buf")
+	return &ZeroLogPrinter{}
 }

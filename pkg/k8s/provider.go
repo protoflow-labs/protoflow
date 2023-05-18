@@ -14,6 +14,7 @@ var ProviderSet = wire.NewSet(
 
 // NewClientset returns a new kubernetes clientset.
 func NewClientset() (*kubernetes.Clientset, error) {
+	// TODO breadchris this should use a bucket to access the kube config
 	config, err := clientcmd.BuildConfigFromFlags("", os.Getenv("HOME")+"/.kube/config")
 	if err != nil {
 		return nil, err

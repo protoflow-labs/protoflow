@@ -151,13 +151,15 @@ func (s *Service) RunWorklow(ctx context.Context, c *connect.Request[gen.RunWork
 	}
 
 	// TODO breadchris this should not be hardcoded, this should be provided to the service when it is created?
+	// TODO breadchris also where are the project resources?
 	projectResources := workflow.ResourceMap{
 		"js": &workflow.LanguageServiceResource{
 			LanguageService: &gen.LanguageService{
 				Runtime: gen.Runtime_NODE,
-				Host:    "http://localhost:8086",
+				Grpc: &gen.GRPCService{
+					Host: "localhost:8086",
+				},
 			},
-			Cache: s.cache,
 		},
 		"docs": &workflow.DocstoreResource{
 			Docstore: &gen.Docstore{

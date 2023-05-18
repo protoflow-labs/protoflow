@@ -31,13 +31,30 @@ func TestRun(t *testing.T) {
 				{
 					Id:      nodeID,
 					BlockId: getProjectsBlockId,
+					Config: &gen.Node_Grpc{
+						Grpc: &gen.GRPC{
+							Service: "ProjectService",
+							Method:  "GetProjects",
+						},
+					},
 				},
 			},
 		},
 		Resources: []*gen.Resource{r},
 	}
 
-	w, err := FromProject(p)
+	resources := ResourceMap{
+		"js": &LanguageServiceResource{
+			LanguageService: &gen.LanguageService{
+				Runtime: gen.Runtime_NODE,
+				Grpc: &gen.GRPCService{
+					Host: "localhost:8086",
+				},
+			},
+		},
+	}
+
+	w, err := FromProject(p, resources)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -77,7 +94,6 @@ func TestBuildingGraph(t *testing.T) {
 							Fields: []*gen.FieldDefinition{
 								{
 									Name: "url",
-									Type: gen.FieldType_STRING,
 								},
 							},
 						},
@@ -117,7 +133,7 @@ func TestBuildingGraph(t *testing.T) {
 		},
 	}
 
-	w, err := FromProject(p)
+	w, err := FromProject(p, ResourceMap{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -127,7 +143,8 @@ func TestBuildingGraph(t *testing.T) {
 	logger := &MemoryLogger{}
 
 	entrypointNode := "input-node"
-	_, err = w.Run(logger, executor, entrypointNode)
+	input := `{"url": "https://example.com"}`
+	_, err = w.Run(logger, executor, entrypointNode, input)
 	if err != nil {
 		t.Fatal(err)
 	}

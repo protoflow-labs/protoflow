@@ -127,19 +127,14 @@ export class Resource extends Message<Resource> {
  */
 export class LanguageService extends Message<LanguageService> {
   /**
-   * @generated from field: string host = 1;
-   */
-  host = "";
-
-  /**
-   * @generated from field: resource.Runtime runtime = 2;
+   * @generated from field: resource.Runtime runtime = 1;
    */
   runtime = Runtime.NODE;
 
   /**
-   * @generated from field: bool close_on_cleanup = 3;
+   * @generated from field: resource.GRPCService grpc = 2;
    */
-  closeOnCleanup = false;
+  grpc?: GRPCService;
 
   constructor(data?: PartialMessage<LanguageService>) {
     super();
@@ -149,9 +144,8 @@ export class LanguageService extends Message<LanguageService> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "resource.LanguageService";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "host", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "runtime", kind: "enum", T: proto3.getEnumType(Runtime) },
-    { no: 3, name: "close_on_cleanup", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 1, name: "runtime", kind: "enum", T: proto3.getEnumType(Runtime) },
+    { no: 2, name: "grpc", kind: "message", T: GRPCService },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): LanguageService {

@@ -26,6 +26,7 @@ type ProjectContextType = {
   resetOutput: () => void;
   runWorkflow: (node: Node) => Promise<any>;
   loadResources: () => Promise<void>;
+  deleteResource: (resourceId: string) => Promise<void>;
 };
 
 type ProjectProviderProps = {
@@ -75,6 +76,24 @@ export default function ProjectProvider({ children }: ProjectProviderProps) {
     },
     [project]
   );
+
+const deleteResource = useCallback(
+    async (resourceId: string) => {
+        if (!project) return;
+
+        try {
+            const res = await projectService.deleteResource({
+                projectId: project.id,
+                resourceId,
+            });
+            toast.success('deleted resource');
+        } catch(e) {
+            // @ts-ignore
+            toast.error(e.toString());
+        }
+    },
+    [project]
+);
 
   const loadResources = useCallback(async () => {
     if (!project) return;
@@ -127,6 +146,7 @@ export default function ProjectProvider({ children }: ProjectProviderProps) {
         output,
         resetOutput,
         runWorkflow,
+        deleteResource,
         loadResources,
         loadingResources,
       }}

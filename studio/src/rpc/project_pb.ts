@@ -9,6 +9,79 @@ import { Graph } from "./graph_pb.js";
 import { Resource } from "./resource_pb.js";
 
 /**
+ * @generated from message project.WorkflowRun
+ */
+export class WorkflowRun extends Message<WorkflowRun> {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id = "";
+
+  /**
+   * @generated from field: string project_id = 2;
+   */
+  projectId = "";
+
+  /**
+   * @generated from field: string node_id = 3;
+   */
+  nodeId = "";
+
+  /**
+   * @generated from field: string input = 4;
+   */
+  input = "";
+
+  /**
+   * @generated from field: string output = 5;
+   */
+  output = "";
+
+  /**
+   * @generated from field: string created_at = 6;
+   */
+  createdAt = "";
+
+  /**
+   * @generated from field: string updated_at = 7;
+   */
+  updatedAt = "";
+
+  constructor(data?: PartialMessage<WorkflowRun>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "project.WorkflowRun";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "project_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "node_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "input", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 5, name: "output", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 6, name: "created_at", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 7, name: "updated_at", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): WorkflowRun {
+    return new WorkflowRun().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): WorkflowRun {
+    return new WorkflowRun().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): WorkflowRun {
+    return new WorkflowRun().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: WorkflowRun | PlainMessage<WorkflowRun> | undefined, b: WorkflowRun | PlainMessage<WorkflowRun> | undefined): boolean {
+    return proto3.util.equals(WorkflowRun, a, b);
+  }
+}
+
+/**
  * @generated from message project.DeleteResourceRequest
  */
 export class DeleteResourceRequest extends Message<DeleteResourceRequest> {

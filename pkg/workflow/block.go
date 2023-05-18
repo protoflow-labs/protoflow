@@ -18,7 +18,7 @@ type Input struct {
 	Params       interface{}
 	Resources    map[string]any
 	Dependencies []string
-	Stream       <-chan interface{}
+	Stream       bufcurl.OutputStream
 }
 
 type Result struct {
@@ -92,9 +92,6 @@ var _ Node = &FunctionNode{}
 var activity = &Activity{}
 
 func (s *GRPCNode) Execute(executor Executor, input Input) (*Result, error) {
-	// TODO breadchris check if the block that we are calling is going to stream its response.
-	// if it does, then we need to stream the response so that the next node can use it.
-	// s.GRPC.MethodDesc.GetServerStreaming()
 	return executor.Execute(activity.ExecuteGRPCNode, s, input)
 }
 
@@ -178,9 +175,6 @@ func (s *InputNode) Execute(executor Executor, input Input) (*Result, error) {
 	return &Result{
 		Data: input.Params,
 	}, nil
-	//return &Result{
-	//	Data: input.Params,
-	//}, nil
 }
 
 func (f *FunctionNode) Execute(executor Executor, input Input) (*Result, error) {

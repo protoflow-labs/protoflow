@@ -10,7 +10,7 @@ interface NodeBlock {
   name: string
 }
 export default function BlocksList() {
-  const { resources } = useProjectContext();
+  const { resources, deleteResource } = useProjectContext();
   const builtinBlocks: NodeBlock[] = [
     { type: "protoflow.input", name: "Input" },
     { type: "protoflow.collection", name: "Collection" },
@@ -40,6 +40,7 @@ export default function BlocksList() {
                 {resource.name}
               </AccordionHeader>
               <AccordionPanel>
+                <Button size="small" className="w-full" onClick={() => deleteResource(resource.id)}>Delete</Button>
                 {resource.blocks.length === 0 && (
                   <div className="text-gray-400">No blocks</div>
                 )}
