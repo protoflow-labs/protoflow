@@ -2,7 +2,6 @@ package workflow
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/gen"
@@ -120,55 +119,19 @@ func (a *Activity) ExecuteFunctionNode(ctx context.Context, node *FunctionNode, 
 		return Result{}, fmt.Errorf("error getting language service resource: %s.%s", node.Function.Runtime, node.Name)
 	}
 
-	ser, err := json.Marshal(input.Params)
-	if err != nil {
-		return Result{}, errors.Wrapf(err, "error marshalling params: %s", node.Name)
-	}
-
-	// TODO breadchris this type is hardcoded, but the type should be dynamically determined based on what code is being called
-	inputData := gen.Data{
-		Value: string(ser),
-	}
+	// provide the grpc resource to the grpc node call. Is this the best place for this? Should this be provided on injection? Probably.
+	input.Resources[GRPCResourceType] = g.GRPCResource
 
 	// TODO breadchris how is the method name formatted?
-	serviceName := fmt.Sprintf("protoflow.%sService", node.Function.Runtime)
+	serviceName := node.Function.Runtime + "Service"
 	methodName := util.ToTitleCase(node.Name)
 
-	host, err := formatHost(g.Grpc.Host)
-	if err != nil {
-		return Result{}, errors.Wrapf(err, "error formatting host: %s", g.Grpc.Host)
+	grpcNode := &GRPCNode{
+		GRPC: &gen.GRPC{
+			Package: "protoflow",
+			Service: serviceName,
+			Method:  methodName,
+		},
 	}
-
-	// TODO breadchris this is duplicated code from the GRPC node, does this need to be duplicated?
-	inputStream := bufcurl.NewMemoryInputStream()
-	outputStream := bufcurl.NewMemoryOutputStream()
-	go func() {
-		// TODO breadchris we are relying on this grpc call to close the output stream. How can the stream be closed by the caller?
-		defer outputStream.Close()
-		err := grpcanal.ExecuteCurl(ctx, getInvokeOptions(host, serviceName, methodName, outputStream), inputStream)
-		if err != nil {
-			outputStream.Error(err)
-		}
-	}()
-	go func() {
-		inputStream.Push(inputData)
-		inputStream.Close()
-	}()
-	var data any
-	for {
-		output, err := outputStream.Next()
-		if err != nil {
-			if err != io.EOF {
-				return Result{}, errors.Wrapf(err, "error reading output stream")
-			}
-			break
-		}
-
-		// TODO breadchris whatever the last output is, is the data. Streaming is not supported yet.
-		data = output
-	}
-
-	return Result{
-		Data: data,
-	}, nil
+	return a.ExecuteGRPCNode(ctx, grpcNode, input)
 }

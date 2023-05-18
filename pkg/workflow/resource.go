@@ -166,7 +166,7 @@ func (r *BlobstoreResource) WithPath(path string) (*blob.Bucket, func(), error) 
 
 type LanguageServiceResource struct {
 	*gen.LanguageService
-	GRPC *GRPCResource
+	*GRPCResource
 }
 
 func (r *LanguageServiceResource) Name() string {
@@ -174,10 +174,10 @@ func (r *LanguageServiceResource) Name() string {
 }
 
 func (r *LanguageServiceResource) Init() (func(), error) {
-	r.GRPC = &GRPCResource{
+	r.GRPCResource = &GRPCResource{
 		GRPCService: r.LanguageService.Grpc,
 	}
-	return r.GRPC.Init()
+	return r.GRPCResource.Init()
 }
 
 func ensureRunning(host string) error {
