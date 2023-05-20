@@ -12,7 +12,7 @@ func TestExecuteCurl(t *testing.T) {
 	outputStream := bufcurl.NewMemoryOutputStream()
 
 	go func() {
-		err := ExecuteCurl(context.Background(), InvokeOptions{
+		err := ExecuteCurl(context.Background(), RemoteMethod{
 			OutputStream:          outputStream,
 			TLSConfig:             bufcurl.TLSSettings{},
 			URL:                   "http://localhost:8086/protoflow.nodeService/CustomA",

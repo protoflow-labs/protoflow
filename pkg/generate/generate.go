@@ -2,6 +2,8 @@ package generate
 
 import (
 	"fmt"
+	"github.com/docker/cli/cli/compose/types"
+	"gopkg.in/yaml.v3"
 	"os"
 	"path"
 
@@ -34,6 +36,10 @@ func (g *Generate) Generate(project *gen.Project) error {
 	var err error
 
 	// TODO breadchris support multiple languages
+	codeRoot, err := g.codeBucket.WithDir("/")
+	if err != nil {
+		return errors.Wrapf(err, "error creating codeBucket for %s", "nodejs")
+	}
 	code, err := g.codeBucket.WithDir("nodejs")
 	if err != nil {
 		return errors.Wrapf(err, "error creating codeBucket for %s", "nodejs")
@@ -59,6 +65,10 @@ func (g *Generate) Generate(project *gen.Project) error {
 		return errors.Wrapf(err, "error generating services for %s", project.GetName())
 	}
 
+	err = g.generateDeployment(codeRoot, project)
+	if err != nil {
+		return errors.Wrapf(err, "error generating deployment for %s", project.GetName())
+	}
 	return nil
 }
 
@@ -137,7 +147,78 @@ func (g *Generate) generateServices(code cache.Cache, functionNodes []*gen.Node)
 }
 
 func (g *Generate) generateDeployment(code cache.Cache, project *gen.Project) error {
-	// TODO breadchris build a docker-compose file to bring up the project in one command
-	// https://github.com/compose-spec/compose-go/blob/32b078a49aebb9a4a67af1423ec508f70b8928f7/types/types.go#L29
-	return nil
+	var services types.Services
+
+	//for _, r := range project.Resources {
+	//	switch r.Type.(type) {
+	//	case *gen.Resource_LanguageService:
+	//	}
+	//}
+
+	dataVolume := types.ServiceVolumeConfig{
+		Source: "./data",
+		Target: "/data",
+	}
+
+	// Add protoflow service
+	services = append(services, types.ServiceConfig{
+		Name:    "protoflow",
+		Image:   "protoflow-labs/protoflow",
+		Command: []string{"protoflow", "run"},
+		Ports: []types.ServicePortConfig{
+			{
+				Target:    8080,
+				Published: 8080,
+			},
+		},
+		Volumes: []types.ServiceVolumeConfig{
+			dataVolume,
+		},
+	})
+
+	// Add postgres service
+	services = append(services, types.ServiceConfig{
+		Name:    "postgres",
+		Image:   "postgres",
+		Command: []string{"postgres"},
+		Ports: []types.ServicePortConfig{
+			{
+				Target:    5432,
+				Published: 5432,
+			},
+		},
+		Volumes: []types.ServiceVolumeConfig{
+			{
+				Source: "./data/postgres",
+				Target: "/var/lib/postgresql/data",
+			},
+		},
+	})
+
+	// Add javascript language service
+	services = append(services, types.ServiceConfig{
+		Name: "nodejs",
+		Build: types.BuildConfig{
+			Context: "./nodejs",
+		},
+		Command: []string{"node", "index.js"},
+		Ports: []types.ServicePortConfig{
+			{
+				Target:    8080,
+				Published: 8080,
+			},
+		},
+	})
+
+	out, err := yaml.Marshal(services)
+	if err != nil {
+		return errors.Wrapf(err, "error marshalling services")
+	}
+
+	dockerCompostPath, err := code.GetFile("docker-compose.yaml")
+	if err != nil {
+		return errors.Wrapf(err, "error getting docker-compose.yaml")
+	}
+
+	return os.WriteFile(dockerCompostPath, out, 0644)
 }

@@ -68,13 +68,6 @@ type OutputStream interface {
 	Close()
 }
 
-type MemoryOutputStream struct {
-	Out chan any
-	Err chan error
-}
-
-var _ OutputStream = &MemoryOutputStream{}
-
 type NopOutputStream struct{}
 
 func (n NopOutputStream) Push(a any) {}
@@ -88,6 +81,13 @@ func (n NopOutputStream) Next() (any, error) {
 func (n NopOutputStream) Close() {}
 
 var _ OutputStream = &NopOutputStream{}
+
+type MemoryOutputStream struct {
+	Out chan any
+	Err chan error
+}
+
+var _ OutputStream = &MemoryOutputStream{}
 
 func NewMemoryOutputStream() *MemoryOutputStream {
 	return &MemoryOutputStream{
@@ -144,7 +144,7 @@ func ResolveMethodDescriptor(res protoencoding.Resolver, service, method string)
 	}
 	serviceDescriptor, ok := descriptor.(protoreflect.ServiceDescriptor)
 	if !ok {
-		return nil, fmt.Errorf("URL indicates service name %q, but that name is a %s", service, descriptorKind(descriptor))
+		return nil, fmt.Errorf("URL indicates service name %q, but that name is a %s", service, DescriptorKind(descriptor))
 	}
 	methodDescriptor := serviceDescriptor.Methods().ByName(protoreflect.Name(method))
 	if methodDescriptor == nil {

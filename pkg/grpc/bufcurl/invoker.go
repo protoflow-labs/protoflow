@@ -25,6 +25,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"sync"
 
 	"github.com/bufbuild/connect-go"
@@ -82,7 +83,7 @@ type invoker struct {
 // in JSON format. The given resolver is used to resolve Any messages and
 // extensions that appear in the input or output. Other parameters are used
 // to create a Connect client, for issuing the RPC.
-func NewInvoker(container *Container, md protoreflect.MethodDescriptor, res protoencoding.Resolver, httpClient connect.HTTPClient, opts []connect.ClientOption, url string, out io.Writer) Invoker {
+func NewInvoker(md protoreflect.MethodDescriptor, res protoencoding.Resolver, httpClient connect.HTTPClient, opts []connect.ClientOption, url string, out io.Writer) Invoker {
 	opts = append(opts, connect.WithCodec(protoCodec{}))
 	// TODO: could also provide custom compressor implementations that could give us
 	//  optics into when request and response messages are compressed (which could be
@@ -91,8 +92,8 @@ func NewInvoker(container *Container, md protoreflect.MethodDescriptor, res prot
 		md:           md,
 		res:          res,
 		output:       out,
-		printer:      container.VerbosePrinter(),
-		errOutput:    container.Stderr(),
+		printer:      &ZeroLogPrinter{},
+		errOutput:    os.Stderr,
 		client:       connect.NewClient[dynamicpb.Message, deferredMessage](httpClient, url, opts...),
 		outputStream: NopOutputStream{},
 	}
@@ -123,31 +124,27 @@ func (inv *invoker) Invoke(ctx context.Context, input InputStream, headers http.
 func (inv *invoker) handleUnary(ctx context.Context, input InputStream, headers http.Header) error {
 	provider := newChanStreamMessageProvider(input, inv.res)
 	msg := dynamicpb.NewMessage(inv.md.Input())
-	if err := provider.next(msg); err != nil {
-		return err
-	}
-	// make sure input does not contain a second message
-	dummy := dynamicpb.NewMessage(inv.md.Input())
-	if err := provider.next(dummy); err != io.EOF {
-		return fmt.Errorf("method %s is a unary RPC, but input contained more than one request message", inv.md.Name())
-	}
 
-	req := connect.NewRequest(msg)
-	for k, v := range headers {
-		req.Header()[k] = v
-	}
-	resp, err := inv.client.CallUnary(ctx, req)
-	if err != nil {
-		var connErr *connect.Error
-		if !errors.As(err, &connErr) {
-			return err
+	for {
+		if err := provider.next(msg); err != nil {
+			if err == io.EOF {
+				break
+			}
+			return fmt.Errorf("failed to read input: %w", err)
 		}
-		err := inv.handleErrorResponse(connErr)
-		return err
-	}
-	err = inv.handleResponse(resp.Msg.data, msg)
-	if err != nil {
-		return err
+
+		req := connect.NewRequest(msg)
+		for k, v := range headers {
+			req.Header()[k] = v
+		}
+		resp, err := inv.client.CallUnary(ctx, req)
+		if err != nil {
+			return errors.Wrapf(err, "failed to invoke RPC %s", inv.md.FullName())
+		}
+		err = inv.handleResponse(resp.Msg.data, nil)
+		if err != nil {
+			return errors.Wrapf(err, "failed to handle RPC %s", inv.md.FullName())
+		}
 	}
 	return nil
 }
@@ -183,7 +180,7 @@ func (inv *invoker) handleClientStream(ctx context.Context, input InputStream, h
 		return err
 	}
 
-	err = inv.handleResponse(resp.Msg.data, msg)
+	err = inv.handleResponse(resp.Msg.data, nil)
 	if err != nil {
 		// TODO breadchris we want to capture all errors, not just the last one
 		return err
@@ -359,7 +356,6 @@ func (inv *invoker) handleStreamResponse(stream serverStream) (retErr error) {
 			retErr = err
 		}
 	}()
-	msg := dynamicpb.NewMessage(inv.md.Output())
 	for {
 		responseMsg, err := stream.Receive()
 		if errors.Is(err, io.EOF) {
@@ -367,7 +363,7 @@ func (inv *invoker) handleStreamResponse(stream serverStream) (retErr error) {
 		} else if err != nil {
 			return err
 		}
-		if err := inv.handleResponse(responseMsg.data, msg); err != nil {
+		if err := inv.handleResponse(responseMsg.data, nil); err != nil {
 			return err
 		}
 	}

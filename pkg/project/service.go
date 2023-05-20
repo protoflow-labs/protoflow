@@ -3,6 +3,7 @@ package project
 import (
 	"context"
 	"encoding/json"
+	"github.com/rs/zerolog/log"
 	"html/template"
 
 	"github.com/protoflow-labs/protoflow/pkg/cache"
@@ -153,14 +154,6 @@ func (s *Service) RunWorklow(ctx context.Context, c *connect.Request[gen.RunWork
 	// TODO breadchris this should not be hardcoded, this should be provided to the service when it is created?
 	// TODO breadchris also where are the project resources?
 	projectResources := workflow.ResourceMap{
-		"js": &workflow.LanguageServiceResource{
-			LanguageService: &gen.LanguageService{
-				Runtime: gen.Runtime_NODE,
-				Grpc: &gen.GRPCService{
-					Host: "localhost:8086",
-				},
-			},
-		},
 		"docs": &workflow.DocstoreResource{
 			Docstore: &gen.Docstore{
 				Url: "mem://",
@@ -190,10 +183,12 @@ func (s *Service) RunWorklow(ctx context.Context, c *connect.Request[gen.RunWork
 		return nil, errors.Wrapf(err, "failed to unmarshal workflow input")
 	}
 
+	log.Debug().Str("workflow", w.ID).Str("node", c.Msg.NodeId).Msg("workflow starting")
 	res, err := s.manager.ExecuteWorkflowSync(ctx, w, c.Msg.NodeId, workflowInput)
 	if err != nil {
 		return nil, err
 	}
+	log.Debug().Str("workflow", w.ID).Str("node", c.Msg.NodeId).Msg("workflow finished")
 
 	out, err := json.Marshal(res.Data)
 	if err != nil {
@@ -208,6 +203,24 @@ func (s *Service) RunWorklow(ctx context.Context, c *connect.Request[gen.RunWork
 func (s *Service) RunNode(ctx context.Context, c *connect.Request[gen.RunNodeRequest]) (*connect.Response[gen.RunOutput], error) {
 	//TODO implement me
 	panic("implement me")
+}
+
+func (s *Service) GetBlockInfo(ctx context.Context, c *connect.Request[gen.GetNodeInfoRequest]) (*connect.Response[gen.GetNodeInfoResponse], error) {
+	//b, err := builder.FromMethod(m)
+	//if err != nil {
+	//	return nil, errors.Wrapf(err, "unable to build method descriptor for %s.%s", serviceName, methodName)
+	//}
+	//d, err := b.BuildDescriptor()
+	//if err != nil {
+	//	return nil, errors.Wrapf(err, "unable to build method descriptor for %s.%s", serviceName, methodName)
+	//}
+	//
+	//p := protoprint.Printer{}
+	//s, err := p.PrintProtoToString(d)
+	//if err != nil {
+	//	return nil, errors.Wrapf(err, "unable to print method descriptor for %s.%s", serviceName, methodName)
+	//}
+	return nil, nil
 }
 
 func (s *Service) GetProject(context.Context, *connect.Request[gen.GetProjectRequest]) (*connect.Response[gen.GetProjectResponse], error) {
@@ -236,10 +249,22 @@ func (s *Service) CreateProject(ctx context.Context, req *connect.Request[gen.Cr
 		Resources: []*gen.Resource{
 			{
 				Id:   uuid.NewString(),
-				Name: "local",
+				Name: "protoflow",
 				Type: &gen.Resource_GrpcService{
 					GrpcService: &gen.GRPCService{
 						Host: "localhost:8080",
+					},
+				},
+			},
+			{
+				Id:   uuid.NewString(),
+				Name: "js",
+				Type: &gen.Resource_LanguageService{
+					LanguageService: &gen.LanguageService{
+						Runtime: gen.Runtime_NODE,
+						Grpc: &gen.GRPCService{
+							Host: "localhost:8086",
+						},
 					},
 				},
 			},

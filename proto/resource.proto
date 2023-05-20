@@ -20,8 +20,8 @@ message Resource {
 
 enum Runtime {
   NODE = 0;
-  GO = 1;
-  PYTHON = 2;
+  PYTHON = 1;
+  GO = 2;
 }
 
 message LanguageService {

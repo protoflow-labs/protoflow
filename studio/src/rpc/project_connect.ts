@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { CreateProjectRequest, CreateProjectResponse, CreateResourceRequest, CreateResourceResponse, DeleteProjectRequest, DeleteProjectResponse, DeleteResourceRequest, DeleteResourceResponse, GetProjectRequest, GetProjectResponse, GetProjectsRequest, GetProjectsResponse, GetResourcesRequest, GetResourcesResponse, RunNodeRequest, RunOutput, RunWorkflowRequest, SaveProjectRequest, SaveProjectResponse } from "./project_pb.js";
+import { CreateProjectRequest, CreateProjectResponse, CreateResourceRequest, CreateResourceResponse, DeleteProjectRequest, DeleteProjectResponse, DeleteResourceRequest, DeleteResourceResponse, GetNodeInfoRequest, GetNodeInfoResponse, GetProjectRequest, GetProjectResponse, GetProjectsRequest, GetProjectsResponse, GetResourcesRequest, GetResourcesResponse, RunNodeRequest, RunOutput, RunWorkflowRequest, SaveProjectRequest, SaveProjectResponse } from "./project_pb.js";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -64,6 +64,15 @@ export const ProjectService = {
       name: "DeleteResource",
       I: DeleteResourceRequest,
       O: DeleteResourceResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc project.ProjectService.GetBlockInfo
+     */
+    getBlockInfo: {
+      name: "GetBlockInfo",
+      I: GetNodeInfoRequest,
+      O: GetNodeInfoResponse,
       kind: MethodKind.Unary,
     },
     /**

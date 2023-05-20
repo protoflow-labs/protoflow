@@ -17,20 +17,20 @@ export enum Runtime {
   NODE = 0,
 
   /**
-   * @generated from enum value: GO = 1;
+   * @generated from enum value: PYTHON = 1;
    */
-  GO = 1,
+  PYTHON = 1,
 
   /**
-   * @generated from enum value: PYTHON = 2;
+   * @generated from enum value: GO = 2;
    */
-  PYTHON = 2,
+  GO = 2,
 }
 // Retrieve enum metadata with: proto3.getEnumType(Runtime)
 proto3.util.setEnumType(Runtime, "resource.Runtime", [
   { no: 0, name: "NODE" },
-  { no: 1, name: "GO" },
-  { no: 2, name: "PYTHON" },
+  { no: 1, name: "PYTHON" },
+  { no: 2, name: "GO" },
 ]);
 
 /**

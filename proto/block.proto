@@ -26,6 +26,11 @@ message Input {
   repeated FieldDefinition fields = 1;
 }
 
+message Config {
+  google.protobuf.DescriptorProto type = 1;
+  google.protobuf.Any value = 2;
+}
+
 message Collection {
   string name = 1;
 }
@@ -36,6 +41,7 @@ message Bucket {
 
 message Function {
   string runtime = 1;
+  GRPC grpc = 2;
 }
 
 message Query {

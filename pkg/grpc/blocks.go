@@ -14,13 +14,25 @@ import (
 
 func EnumerateResourceBlocks(resource *gen.Resource) ([]*gen.Block, error) {
 	var (
-		blocks []*gen.Block
-		err    error
+		g             *gen.GRPCService
+		blocks        []*gen.Block
+		err           error
+		isLangService bool
 	)
+
 	switch resource.Type.(type) {
+	case *gen.Resource_LanguageService:
+		l := resource.GetLanguageService()
+		g = l.Grpc
+		isLangService = true
 	case *gen.Resource_GrpcService:
-		g := resource.GetGrpcService()
-		blocks, err = blocksFromGRPC(g)
+		g = resource.GetGrpcService()
+	default:
+		log.Debug().Interface("type", resource.Type).Msg("resource cannot be enumerated")
+	}
+
+	if g != nil {
+		blocks, err = blocksFromGRPC(g, isLangService)
 		if err != nil {
 			log.Warn().Err(err).Msgf("unable to enumerate grpc service %s", g.Host)
 			blocks = []*gen.Block{}
@@ -79,7 +91,7 @@ func (m *MethodDescriptor) buildTypeLookup(msgDesc *desc.MessageDescriptor) {
 	}
 }
 
-func blocksFromGRPC(service *gen.GRPCService) ([]*gen.Block, error) {
+func blocksFromGRPC(service *gen.GRPCService, isLangService bool) ([]*gen.Block, error) {
 	if service.Host == "" {
 		return nil, errors.New("host is required")
 	}
@@ -89,7 +101,8 @@ func blocksFromGRPC(service *gen.GRPCService) ([]*gen.Block, error) {
 		return nil, errors.Wrapf(err, "unable to connect to python server at %s", service.Host)
 	}
 
-	methodDesc, err := AllMethodsViaReflection(context.Background(), conn)
+	// TODO breadchris there is some repeat code, the grpc package has some code from Buf that does reflection already
+	methodDesc, err := allMethodsViaReflection(context.Background(), conn)
 	if err != nil {
 		return nil, errors.Wrapf(err, "unable to get all methods via reflection")
 	}
@@ -103,22 +116,32 @@ func blocksFromGRPC(service *gen.GRPCService) ([]*gen.Block, error) {
 
 		md := NewMethodDescriptor(m.GetInputType())
 
-		blocks = append(blocks, &gen.Block{
+		grpcInfo := &gen.GRPC{
+			Package:    m.GetFile().GetPackage(),
+			Service:    serviceName,
+			Method:     methodName,
+			Input:      m.GetInputType().AsDescriptorProto(),
+			Output:     m.GetOutputType().AsDescriptorProto(),
+			DescLookup: md.descLookup,
+			EnumLookup: md.enumLookup,
+			MethodDesc: m.AsMethodDescriptorProto(),
+		}
+
+		block := &gen.Block{
 			Id:   uuid.New().String(),
 			Name: serviceName + "." + methodName,
 			Type: &gen.Block_Grpc{
-				Grpc: &gen.GRPC{
-					Package:    m.GetFile().GetPackage(),
-					Service:    serviceName,
-					Method:     methodName,
-					Input:      m.GetInputType().AsDescriptorProto(),
-					Output:     m.GetOutputType().AsDescriptorProto(),
-					DescLookup: md.descLookup,
-					EnumLookup: md.enumLookup,
-					MethodDesc: m.AsMethodDescriptorProto(),
-				},
+				Grpc: grpcInfo,
 			},
-		})
+		}
+		if isLangService {
+			block.Type = &gen.Block_Function{
+				Function: &gen.Function{
+					Grpc: grpcInfo,
+				},
+			}
+		}
+		blocks = append(blocks, block)
 	}
 	return blocks, nil
 }

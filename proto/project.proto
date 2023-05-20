@@ -16,6 +16,8 @@ service ProjectService {
     rpc GetResources(GetResourcesRequest) returns (GetResourcesResponse) {}
     rpc DeleteResource(DeleteResourceRequest) returns (DeleteResourceResponse) {}
 
+    rpc GetBlockInfo(GetNodeInfoRequest) returns (GetNodeInfoResponse) {}
+
     rpc SaveProject(SaveProjectRequest) returns (SaveProjectResponse) {}
 
     rpc CreateResource(CreateResourceRequest) returns (CreateResourceResponse) {}
@@ -32,6 +34,16 @@ message WorkflowRun {
     string output = 5;
     string created_at = 6;
     string updated_at = 7;
+}
+
+message GetNodeInfoRequest {
+    string project_id = 1;
+    string node_id = 2;
+}
+
+message GetNodeInfoResponse {
+    string input_type = 1;
+    string output_type = 2;
 }
 
 message DeleteResourceRequest {

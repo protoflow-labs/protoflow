@@ -120,6 +120,8 @@ func (s *CollectionNode) Execute(executor Executor, input Input) (*Result, error
 		for _, record := range input {
 			records = append(records, *record)
 		}
+	default:
+		return nil, fmt.Errorf("error unsupported input type: %T", input)
 	}
 
 	for _, record := range records {

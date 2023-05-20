@@ -82,6 +82,92 @@ export class WorkflowRun extends Message<WorkflowRun> {
 }
 
 /**
+ * @generated from message project.GetNodeInfoRequest
+ */
+export class GetNodeInfoRequest extends Message<GetNodeInfoRequest> {
+  /**
+   * @generated from field: string project_id = 1;
+   */
+  projectId = "";
+
+  /**
+   * @generated from field: string node_id = 2;
+   */
+  nodeId = "";
+
+  constructor(data?: PartialMessage<GetNodeInfoRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "project.GetNodeInfoRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "project_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "node_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetNodeInfoRequest {
+    return new GetNodeInfoRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetNodeInfoRequest {
+    return new GetNodeInfoRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetNodeInfoRequest {
+    return new GetNodeInfoRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetNodeInfoRequest | PlainMessage<GetNodeInfoRequest> | undefined, b: GetNodeInfoRequest | PlainMessage<GetNodeInfoRequest> | undefined): boolean {
+    return proto3.util.equals(GetNodeInfoRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message project.GetNodeInfoResponse
+ */
+export class GetNodeInfoResponse extends Message<GetNodeInfoResponse> {
+  /**
+   * @generated from field: string input_type = 1;
+   */
+  inputType = "";
+
+  /**
+   * @generated from field: string output_type = 2;
+   */
+  outputType = "";
+
+  constructor(data?: PartialMessage<GetNodeInfoResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "project.GetNodeInfoResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "input_type", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "output_type", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetNodeInfoResponse {
+    return new GetNodeInfoResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetNodeInfoResponse {
+    return new GetNodeInfoResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetNodeInfoResponse {
+    return new GetNodeInfoResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetNodeInfoResponse | PlainMessage<GetNodeInfoResponse> | undefined, b: GetNodeInfoResponse | PlainMessage<GetNodeInfoResponse> | undefined): boolean {
+    return proto3.util.equals(GetNodeInfoResponse, a, b);
+  }
+}
+
+/**
  * @generated from message project.DeleteResourceRequest
  */
 export class DeleteResourceRequest extends Message<DeleteResourceRequest> {

@@ -19,7 +19,9 @@ import (
 	"crypto/tls"
 	"fmt"
 	"github.com/protoflow-labs/protoflow/pkg/grpc/bufcurl"
+	"github.com/protoflow-labs/protoflow/pkg/grpc/protoencoding"
 	"github.com/protoflow-labs/protoflow/pkg/grpc/verbose"
+	"google.golang.org/protobuf/reflect/protoreflect"
 	"net"
 	"net/http"
 	"net/url"
@@ -56,7 +58,7 @@ func verifyEndpointURL(urlArg string) (endpointURL *url.URL, service, method, ba
 	return endpointURL, service, method, baseURL, nil
 }
 
-type InvokeOptions struct {
+type RemoteMethod struct {
 	OutputStream    bufcurl.OutputStream
 	TLSConfig       bufcurl.TLSSettings
 	URL             string
@@ -74,93 +76,108 @@ type InvokeOptions struct {
 	NoKeepAlive           bool
 	KeepAliveTimeSeconds  float64
 	ConnectTimeoutSeconds float64
+
+	// TODO breadchris values are stored here so we can get the method descriptor
+	MethodDescriptor protoreflect.MethodDescriptor
+	resolver         protoencoding.Resolver
+	closeResolver    func()
+	transport        connect.HTTPClient
+	clientOptions    []connect.ClientOption
+	requestHeaders   http.Header
 }
 
-func ExecuteCurl(ctx context.Context, f InvokeOptions, input bufcurl.InputStream) (err error) {
-	// TODO breadchris replace container with zerolog, we don't need to be passing this around rn
-	container := &bufcurl.Container{}
+// TODO breadchris we should passing options to this function instead of having a bunch of fields
+func NewRemoteMethod(g *RemoteMethod) (*RemoteMethod, error) {
+	err := g.init()
+	if err != nil {
+		return nil, err
+	}
+	return g, nil
+}
 
-	endpointURL, service, method, baseURL, err := verifyEndpointURL(f.URL)
+// TODO breadchris spend more than 2 brain cells organizing this code
+func (g *RemoteMethod) init() error {
+	printer := &bufcurl.ZeroLogPrinter{}
+
+	endpointURL, service, method, baseURL, err := verifyEndpointURL(g.URL)
 	if err != nil {
 		return err
 	}
 	isSecure := endpointURL.Scheme == "https"
 
-	var clientOptions []connect.ClientOption
-	switch f.Protocol {
+	switch g.Protocol {
 	case connect.ProtocolGRPC:
-		clientOptions = []connect.ClientOption{connect.WithGRPC()}
+		g.clientOptions = []connect.ClientOption{connect.WithGRPC()}
 	case connect.ProtocolGRPCWeb:
-		clientOptions = []connect.ClientOption{connect.WithGRPCWeb()}
+		g.clientOptions = []connect.ClientOption{connect.WithGRPCWeb()}
 	}
-	if f.Protocol != connect.ProtocolGRPC {
+	if g.Protocol != connect.ProtocolGRPC {
 		// The transport will log trailers to the verbose printer. But if
 		// we're not using standard grpc protocol, trailers are actually encoded
 		// in an end-of-stream message for streaming calls. So this interceptor
 		// will print the trailers for streaming calls when the response stream
 		// is drained.
-		clientOptions = append(clientOptions, connect.WithInterceptors(bufcurl.TraceTrailersInterceptor(container.VerbosePrinter())))
+		g.clientOptions = append(g.clientOptions, connect.WithInterceptors(bufcurl.TraceTrailersInterceptor(printer)))
 	}
 
-	requestHeaders, err := bufcurl.LoadHeaders(f.Headers)
+	g.requestHeaders, err = bufcurl.LoadHeaders(g.Headers)
 	if err != nil {
 		return err
 	}
-	if len(requestHeaders.Values("user-agent")) == 0 {
-		userAgent := f.UserAgent
+	if len(g.requestHeaders.Values("user-agent")) == 0 {
+		userAgent := g.UserAgent
 		if userAgent == "" {
-			userAgent = bufcurl.DefaultUserAgent(f.Protocol, "1.0.0")
+			userAgent = bufcurl.DefaultUserAgent(g.Protocol, "1.0.0")
 		}
-		requestHeaders.Set("user-agent", userAgent)
+		g.requestHeaders.Set("user-agent", userAgent)
 	}
 
-	transport, err := makeHTTPClient(f, isSecure, bufcurl.GetAuthority(endpointURL, requestHeaders), container.VerbosePrinter())
+	g.transport, err = g.makeHTTPClient(isSecure, bufcurl.GetAuthority(endpointURL, g.requestHeaders), printer)
 	if err != nil {
 		return err
 	}
 
-	reflectHeaders, err := bufcurl.LoadHeaders(f.ReflectHeaders)
+	reflectHeaders, err := bufcurl.LoadHeaders(g.ReflectHeaders)
 	if err != nil {
 		return err
 	}
-	reflectProtocol, err := bufcurl.ParseReflectProtocol(f.ReflectProtocol)
+	reflectProtocol, err := bufcurl.ParseReflectProtocol(g.ReflectProtocol)
 	if err != nil {
 		return err
 	}
-	var closeRes func()
-	res, closeRes := bufcurl.NewServerReflectionResolver(ctx, transport, clientOptions, baseURL, reflectProtocol, reflectHeaders, container.VerbosePrinter())
-	defer closeRes()
+	g.resolver, g.closeResolver = bufcurl.NewServerReflectionResolver(
+		context.Background(), g.transport, g.clientOptions, baseURL, reflectProtocol, reflectHeaders, printer)
 
-	methodDescriptor, err := bufcurl.ResolveMethodDescriptor(res, service, method)
+	g.MethodDescriptor, err = bufcurl.ResolveMethodDescriptor(g.resolver, service, method)
 	if err != nil {
 		return err
 	}
-
-	// Now we can finally issue the RPC
-	if f.OutputStream == nil {
-		invoker := bufcurl.NewInvoker(container, methodDescriptor, res, transport, clientOptions, f.URL, os.Stdout)
-		return invoker.Invoke(ctx, input, requestHeaders)
-	} else {
-		invoker := bufcurl.NewInvoker(container, methodDescriptor, res, transport, clientOptions, f.URL, os.Stdout)
-		return invoker.InvokeWithStream(ctx, input, f.OutputStream, requestHeaders)
-	}
+	return nil
 }
 
-func makeHTTPClient(f InvokeOptions, isSecure bool, authority string, printer verbose.Printer) (connect.HTTPClient, error) {
+func (g *RemoteMethod) Execute(ctx context.Context, input bufcurl.InputStream) (err error) {
+	defer g.closeResolver()
+
+	// TODO breadchris what is the difference between a method and an invoker?
+	invoker := bufcurl.NewInvoker(g.MethodDescriptor, g.resolver, g.transport, g.clientOptions, g.URL, os.Stdout)
+	return invoker.InvokeWithStream(ctx, input, g.OutputStream, g.requestHeaders)
+}
+
+func (g *RemoteMethod) makeHTTPClient(isSecure bool, authority string, printer verbose.Printer) (connect.HTTPClient, error) {
 	var dialer net.Dialer
-	if f.ConnectTimeoutSeconds != 0 {
-		dialer.Timeout = secondsToDuration(f.ConnectTimeoutSeconds)
+	if g.ConnectTimeoutSeconds != 0 {
+		dialer.Timeout = secondsToDuration(g.ConnectTimeoutSeconds)
 	}
-	if f.NoKeepAlive {
+	if g.NoKeepAlive {
 		dialer.KeepAlive = -1
 	} else {
-		dialer.KeepAlive = secondsToDuration(f.KeepAliveTimeSeconds)
+		dialer.KeepAlive = secondsToDuration(g.KeepAliveTimeSeconds)
 	}
 	var dialFunc func(ctx context.Context, network, address string) (net.Conn, error)
-	if f.UnixSocket != "" {
+	if g.UnixSocket != "" {
 		dialFunc = func(ctx context.Context, network, addr string) (net.Conn, error) {
-			printer.Printf("* Dialing unix socket %s...", f.UnixSocket)
-			return dialer.DialContext(ctx, "unix", f.UnixSocket)
+			printer.Printf("* Dialing unix socket %s...", g.UnixSocket)
+			return dialer.DialContext(ctx, "unix", g.UnixSocket)
 		}
 	} else {
 		dialFunc = func(ctx context.Context, network, address string) (net.Conn, error) {
@@ -175,7 +192,7 @@ func makeHTTPClient(f InvokeOptions, isSecure bool, authority string, printer ve
 	}
 
 	var transport http.RoundTripper
-	if !isSecure && f.HTTP2PriorKnowledge {
+	if !isSecure && g.HTTP2PriorKnowledge {
 		transport = &http2.Transport{
 			AllowHTTP: true,
 			DialTLSContext: func(ctx context.Context, network, addr string, _ *tls.Config) (net.Conn, error) {
@@ -186,7 +203,7 @@ func makeHTTPClient(f InvokeOptions, isSecure bool, authority string, printer ve
 		var tlsConfig *tls.Config
 		if isSecure {
 			var err error
-			tlsConfig, err = bufcurl.MakeVerboseTLSConfig(&f.TLSConfig, authority, printer)
+			tlsConfig, err = bufcurl.MakeVerboseTLSConfig(&g.TLSConfig, authority, printer)
 			if err != nil {
 				return nil, err
 			}
