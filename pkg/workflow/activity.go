@@ -25,25 +25,6 @@ func formatHost(host string) (string, error) {
 	return u.String(), nil
 }
 
-func getInvokeOptions(base, serviceName, methodName string, outputStream bufcurl.OutputStream) grpcanal.InvokeOptions {
-	grpcURL := fmt.Sprintf("%s/%s/%s", base, serviceName, methodName)
-	return grpcanal.InvokeOptions{
-		OutputStream:          outputStream,
-		TLSConfig:             bufcurl.TLSSettings{},
-		URL:                   grpcURL,
-		Protocol:              "grpc",
-		Headers:               nil,
-		UserAgent:             "",
-		ReflectProtocol:       "grpc-v1",
-		ReflectHeaders:        nil,
-		UnixSocket:            "",
-		HTTP2PriorKnowledge:   true,
-		NoKeepAlive:           false,
-		KeepAliveTimeSeconds:  0,
-		ConnectTimeoutSeconds: 0,
-	}
-}
-
 // TODO breadchris this should be workflow.Context, but for the memory executor it needs context.Context
 func (a *Activity) ExecuteGRPCNode(ctx context.Context, node *GRPCNode, input Input) (Result, error) {
 	log.Info().Msgf("executing node: %s", node.Service)
@@ -81,9 +62,7 @@ func (a *Activity) ExecuteGRPCNode(ctx context.Context, node *GRPCNode, input In
 	go func() {
 		// TODO breadchris we are relying on this grpc call to close the output stream. How can the stream be closed by the caller?
 		defer outputStream.Close()
-		//err = manager.ExecuteMethod(ctx, method, inputStream, outputStream)
-
-		err = grpcanal.Test(getInvokeOptions(host, serviceName, node.Method, outputStream), inputStream)
+		err = manager.ExecuteMethod(ctx, method, inputStream, outputStream)
 		if err != nil {
 			outputStream.Error(errors.Wrapf(err, "error calling grpc method: %s", host))
 		}

@@ -78,7 +78,7 @@ func (c Container) Logger() *zap.Logger {
 type ZeroLogPrinter struct{}
 
 func (z *ZeroLogPrinter) Printf(format string, args ...interface{}) {
-	log.Debug().Msgf(format, args...)
+	log.Trace().Msgf(format, args...)
 }
 
 func (c Container) VerbosePrinter() verbose.Printer {
