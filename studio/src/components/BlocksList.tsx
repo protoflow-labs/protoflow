@@ -1,6 +1,5 @@
 import { Accordion, AccordionHeader, AccordionItem, AccordionPanel, Button } from "@fluentui/react-components";
 import { ReactNode } from "react";
-import { useProjectResources } from "@/hooks/useProjectResources";
 import { useProjectContext } from "@/providers/ProjectProvider";
 import { ReactFlowProtoflowData, ReactFlowProtoflowKey } from "@/providers/EditorProvider";
 import { Block } from "@/rpc/block_pb";
@@ -14,6 +13,7 @@ export default function BlocksList() {
   const builtinBlocks: NodeBlock[] = [
     { type: "protoflow.input", name: "Input" },
     { type: "protoflow.collection", name: "Collection" },
+    { type: "protoflow.query", name: "Query" },
     { type: "protoflow.function", name: "Function" },
     { type: "protoflow.bucket", name: "Bucket" },
     { type: "protoflow.rest", name: "REST" },
@@ -40,7 +40,6 @@ export default function BlocksList() {
                 {resource.name}
               </AccordionHeader>
               <AccordionPanel>
-                <Button size="small" className="w-full" onClick={() => deleteResource(resource.id)}>Delete</Button>
                 {resource.blocks.length === 0 && (
                   <div className="text-gray-400">No blocks</div>
                 )}
@@ -49,7 +48,7 @@ export default function BlocksList() {
                   return (
                     <NodeButton
                       key={block.id}
-                      nodeType="protoflow.grpc"
+                      nodeType={block.type.case === 'grpc' ? 'protoflow.grpc' : 'protoflow.function'}
                       nodeName={block.name}
                       nodeConfig={block.type}
                       resourceIds={[resource.id]}
@@ -58,6 +57,7 @@ export default function BlocksList() {
                     </NodeButton>
                   );
                 })}
+                <Button size="small" className="w-full" appearance={"primary"} onClick={() => deleteResource(resource.id)}>Delete</Button>
               </AccordionPanel>
             </AccordionItem>
           );

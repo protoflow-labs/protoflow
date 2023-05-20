@@ -31,6 +31,10 @@ const (
 
 func ResourceFromProto(r *gen.Resource) (Resource, error) {
 	switch t := r.Type.(type) {
+	case *gen.Resource_LanguageService:
+		return &LanguageServiceResource{
+			LanguageService: r.GetLanguageService(),
+		}, nil
 	case *gen.Resource_GrpcService:
 		return &GRPCResource{
 			GRPCService: r.GetGrpcService(),

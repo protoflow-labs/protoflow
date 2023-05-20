@@ -39,14 +39,14 @@ func AllMethodsForServer(svr *grpc.Server) ([]*desc.MethodDescriptor, error) {
 	return AllMethodsForServices(descs), nil
 }
 
-// AllMethodsViaReflection returns a slice that contains the method descriptors
+// allMethodsViaReflection returns a slice that contains the method descriptors
 // for all methods exposed by the server on the other end of the given
 // connection. This returns an error if the server does not support service
 // reflection. (See "google.golang.org/grpc/reflection" for more on service
 // reflection.)
 // This automatically skips the reflection service, since it is assumed this is not
 // a desired inclusion.
-func AllMethodsViaReflection(ctx context.Context, cc grpc.ClientConnInterface) ([]*desc.MethodDescriptor, error) {
+func allMethodsViaReflection(ctx context.Context, cc grpc.ClientConnInterface) ([]*desc.MethodDescriptor, error) {
 	stub := rpb.NewServerReflectionClient(cc)
 	cli := grpcreflect.NewClientV1Alpha(ctx, stub)
 	svcNames, err := cli.ListServices()

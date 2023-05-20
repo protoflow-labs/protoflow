@@ -146,6 +146,9 @@ func (w *Workflow) traverseWorkflow(logger Logger, instances Instances, executor
 	nextResSet := false
 	for neighbor := range w.AdjMap[vert] {
 		logger.Info("traversing workflow", "nodeID", neighbor)
+
+		// TODO breadchris if there are multiple neighbors, and there is a stream, the stream should be split and passed to each neighbor
+
 		neighborRes, err := w.traverseWorkflow(logger, instances, executor, neighbor, nextBlockInput)
 		if err != nil {
 			return nil, errors.Wrapf(err, "error traversing workflow %s", neighbor)

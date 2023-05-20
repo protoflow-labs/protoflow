@@ -206,7 +206,7 @@ func (r *reflectionResolver) FindEnumByName(enum protoreflect.FullName) (protore
 	}
 	ed, ok := d.(protoreflect.EnumDescriptor)
 	if !ok {
-		return nil, fmt.Errorf("element %s is a %s, not an enum", enum, descriptorKind(d))
+		return nil, fmt.Errorf("element %s is a %s, not an enum", enum, DescriptorKind(d))
 	}
 	return dynamicpb.NewEnumType(ed), nil
 }
@@ -218,7 +218,7 @@ func (r *reflectionResolver) FindMessageByName(message protoreflect.FullName) (p
 	}
 	md, ok := d.(protoreflect.MessageDescriptor)
 	if !ok {
-		return nil, fmt.Errorf("element %s is a %s, not a message", message, descriptorKind(d))
+		return nil, fmt.Errorf("element %s is a %s, not a message", message, DescriptorKind(d))
 	}
 	return dynamicpb.NewMessageType(md), nil
 }
@@ -236,7 +236,7 @@ func (r *reflectionResolver) FindExtensionByName(field protoreflect.FullName) (p
 	}
 	fd, ok := d.(protoreflect.FieldDescriptor)
 	if !ok || !fd.IsExtension() {
-		return nil, fmt.Errorf("element %s is a %s, not an extension", field, descriptorKind(d))
+		return nil, fmt.Errorf("element %s is a %s, not an extension", field, DescriptorKind(d))
 	}
 	return dynamicpb.NewExtensionType(fd), nil
 }
@@ -493,8 +493,8 @@ func registerExtensions(reg *protoregistry.Types, descriptor extensionContainer)
 	}
 }
 
-// descriptorKind returns a succinct description of the type of the given descriptor.
-func descriptorKind(d protoreflect.Descriptor) string {
+// DescriptorKind returns a succinct description of the type of the given descriptor.
+func DescriptorKind(d protoreflect.Descriptor) string {
 	switch d := d.(type) {
 	case protoreflect.FileDescriptor:
 		return "file"

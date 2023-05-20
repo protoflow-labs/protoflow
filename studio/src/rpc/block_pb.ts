@@ -149,6 +149,43 @@ export class Input extends Message<Input> {
 }
 
 /**
+ * @generated from message block.Config
+ */
+export class Config extends Message<Config> {
+  /**
+   * @generated from field: google.protobuf.DescriptorProto type = 1;
+   */
+  type?: DescriptorProto;
+
+  constructor(data?: PartialMessage<Config>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "block.Config";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "type", kind: "message", T: DescriptorProto },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Config {
+    return new Config().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Config {
+    return new Config().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Config {
+    return new Config().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: Config | PlainMessage<Config> | undefined, b: Config | PlainMessage<Config> | undefined): boolean {
+    return proto3.util.equals(Config, a, b);
+  }
+}
+
+/**
  * @generated from message block.Collection
  */
 export class Collection extends Message<Collection> {
@@ -231,6 +268,11 @@ export class Function extends Message<Function> {
    */
   runtime = "";
 
+  /**
+   * @generated from field: block.GRPC grpc = 2;
+   */
+  grpc?: GRPC;
+
   constructor(data?: PartialMessage<Function>) {
     super();
     proto3.util.initPartial(data, this);
@@ -240,6 +282,7 @@ export class Function extends Message<Function> {
   static readonly typeName = "block.Function";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "runtime", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "grpc", kind: "message", T: GRPC },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Function {
