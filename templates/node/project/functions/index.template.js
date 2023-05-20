@@ -4,6 +4,6 @@ import {{.Name}} from './{{.Name}}/index.js';
 
 export default {
   {{- range index . "FunctionNodes"}}
-  {{lowercaseFirstLetter .Name}}: {{.Name}},
+  "{{lowercaseFirstLetter .Name}}": {{.Name}},
   {{- end}}
 }

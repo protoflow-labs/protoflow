@@ -141,8 +141,18 @@ func (g *Generate) generateServices(code cache.Cache, functionNodes []*gen.Node)
 	if err != nil {
 		return errors.Wrapf(err, "error getting project folder")
 	}
+	type FunctionNode struct {
+		Name string
+	}
+	var fNodes []FunctionNode
+	for _, node := range functionNodes {
+		g := node.GetFunction()
+		fNodes = append(fNodes, FunctionNode{
+			Name: g.Grpc.Method,
+		})
+	}
 	return templates.TemplateDir("node/project", projectPath, map[string]interface{}{
-		"FunctionNodes": functionNodes,
+		"FunctionNodes": fNodes,
 	})
 }
 
