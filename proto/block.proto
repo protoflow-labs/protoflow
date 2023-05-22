@@ -68,13 +68,18 @@ message REST {
   map<string, string> headers = 3;
 }
 
+message GRPCTypeInfo {
+  google.protobuf.DescriptorProto input = 1;
+  google.protobuf.DescriptorProto output = 2;
+  map<string, google.protobuf.DescriptorProto> desc_lookup = 3;
+  map<string, google.protobuf.EnumDescriptorProto> enum_lookup = 4;
+  google.protobuf.MethodDescriptorProto method_desc = 5;
+}
+
 message GRPC {
   string package = 1;
   string service = 2;
   string method = 3;
-  google.protobuf.DescriptorProto input = 4;
-  google.protobuf.DescriptorProto output = 5;
-  map<string, google.protobuf.DescriptorProto> desc_lookup = 6;
-  map<string, google.protobuf.EnumDescriptorProto> enum_lookup = 7;
-  google.protobuf.MethodDescriptorProto method_desc = 8;
+  // TODO breadchris move this out of the config
+  GRPCTypeInfo type_info = 4;
 }

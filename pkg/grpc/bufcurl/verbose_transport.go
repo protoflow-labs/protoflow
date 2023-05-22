@@ -19,7 +19,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/protoflow-labs/protoflow/pkg/grpc/verbose"
+	"github.com/protoflow-labs/protoflow/pkg/grpc/bufcurl/verbose"
 	"io"
 	"net/http"
 	"runtime"

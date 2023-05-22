@@ -129,14 +129,9 @@ export class GetNodeInfoRequest extends Message<GetNodeInfoRequest> {
  */
 export class GetNodeInfoResponse extends Message<GetNodeInfoResponse> {
   /**
-   * @generated from field: string input_type = 1;
+   * @generated from field: string method_proto = 1;
    */
-  inputType = "";
-
-  /**
-   * @generated from field: string output_type = 2;
-   */
-  outputType = "";
+  methodProto = "";
 
   constructor(data?: PartialMessage<GetNodeInfoResponse>) {
     super();
@@ -146,8 +141,7 @@ export class GetNodeInfoResponse extends Message<GetNodeInfoResponse> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "project.GetNodeInfoResponse";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "input_type", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "output_type", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 1, name: "method_proto", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetNodeInfoResponse {

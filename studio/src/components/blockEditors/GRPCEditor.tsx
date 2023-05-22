@@ -10,12 +10,14 @@ import {GRPC} from "@/rpc/block_pb";
 import {EditorActions, useUnselect} from "../EditorActions";
 import {GRPCData} from "@/components/blocks/GRPCBlock";
 import {getNodeDataKey, useProjectContext} from "@/providers/ProjectProvider";
-import {GRPCInputForm} from "@/components/grpcForm/GRPCInputForm";
+import React, {useEffect, useState} from "react";
+import {GetNodeInfoResponse} from "@/rpc/project_pb";
+import SyntaxHighlighter from 'react-syntax-highlighter';
 
 
 export function GRPCEditor({node}: { node: Node<GRPCData> }) {
   const onCancel = useUnselect();
-  const {resources} = useProjectContext();
+  const {resources, loadNodeInfo} = useProjectContext();
   const {watch, setValue, register, handleSubmit, control} = useForm({
     values: {
       name: node.data.name || "",
@@ -24,11 +26,20 @@ export function GRPCEditor({node}: { node: Node<GRPCData> }) {
         service: node.data.config.grpc?.service || "",
         method: node.data.config.grpc?.method || "",
       } as GRPC,
-      input: node.data.config.grpc?.input,
+      input: node.data.config.grpc?.typeInfo?.input,
       data: JSON.parse(localStorage.getItem(getNodeDataKey(node)) || '{}'),
     },
   });
   const values = watch();
+  const [nodeInfo, setNodeInfo] = useState<GetNodeInfoResponse | undefined>(undefined);
+
+  // TODO breadchris this should be more general and not just for grpc
+  useEffect(() => {
+    (async () => {
+      const res = await loadNodeInfo(node.id);
+      setNodeInfo(res);
+    })()
+  }, [node.id]);
 
   const onSubmit = (data: any) => {
     node.data.name = data.name;
@@ -56,7 +67,7 @@ export function GRPCEditor({node}: { node: Node<GRPCData> }) {
   const fieldPath = node.data.config.grpc.package;
   //@ts-ignore
   const inputFormProps: GRPCInputFormProps = {
-    grpcInfo: node.data.config.grpc,
+    grpcInfo: node.data.config.grpc.typeInfo,
     // some random key to separate data from the form
     baseFieldName: 'data',
     //@ts-ignore
@@ -86,7 +97,13 @@ export function GRPCEditor({node}: { node: Node<GRPCData> }) {
           <Badge key={r.id}>{r.name}</Badge>
         ))}
         <Divider/>
-        <GRPCInputForm {...inputFormProps} />
+        {nodeInfo && (
+            <div className={"max-w-sm"}>
+              <SyntaxHighlighter language="protobuf">
+                {nodeInfo.methodProto}
+              </SyntaxHighlighter>
+            </div>
+        )}
         <Divider/>
         <EditorActions/>
       </div>

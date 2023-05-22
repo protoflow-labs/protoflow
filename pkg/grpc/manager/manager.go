@@ -1,4 +1,4 @@
-package grpc
+package manager
 
 import (
 	"context"
@@ -6,8 +6,8 @@ import (
 	"github.com/bufbuild/connect-go"
 	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/pkg/grpc/bufcurl"
-	"github.com/protoflow-labs/protoflow/pkg/grpc/protoencoding"
-	"github.com/protoflow-labs/protoflow/pkg/grpc/reflect"
+	"github.com/protoflow-labs/protoflow/pkg/grpc/bufcurl/protoencoding"
+	"github.com/protoflow-labs/protoflow/pkg/grpc/bufcurl/reflect"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
 	"net/http"

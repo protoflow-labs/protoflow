@@ -21,7 +21,7 @@ package normalpath
 import (
 	"errors"
 	"fmt"
-	"github.com/protoflow-labs/protoflow/pkg/grpc/stringutil"
+	"github.com/protoflow-labs/protoflow/pkg/grpc/bufcurl/stringutil"
 	"net/url"
 	"os"
 	"path/filepath"

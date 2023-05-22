@@ -67,10 +67,10 @@ export const ProjectService = {
       kind: MethodKind.Unary,
     },
     /**
-     * @generated from rpc project.ProjectService.GetBlockInfo
+     * @generated from rpc project.ProjectService.GetNodeInfo
      */
-    getBlockInfo: {
-      name: "GetBlockInfo",
+    getNodeInfo: {
+      name: "GetNodeInfo",
       I: GetNodeInfoRequest,
       O: GetNodeInfoResponse,
       kind: MethodKind.Unary,

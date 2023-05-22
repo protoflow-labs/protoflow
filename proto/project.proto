@@ -16,7 +16,7 @@ service ProjectService {
     rpc GetResources(GetResourcesRequest) returns (GetResourcesResponse) {}
     rpc DeleteResource(DeleteResourceRequest) returns (DeleteResourceResponse) {}
 
-    rpc GetBlockInfo(GetNodeInfoRequest) returns (GetNodeInfoResponse) {}
+    rpc GetNodeInfo(GetNodeInfoRequest) returns (GetNodeInfoResponse) {}
 
     rpc SaveProject(SaveProjectRequest) returns (SaveProjectResponse) {}
 
@@ -42,8 +42,7 @@ message GetNodeInfoRequest {
 }
 
 message GetNodeInfoResponse {
-    string input_type = 1;
-    string output_type = 2;
+    string method_proto = 1;
 }
 
 message DeleteResourceRequest {

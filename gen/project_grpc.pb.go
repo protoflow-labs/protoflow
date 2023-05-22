@@ -28,7 +28,7 @@ type ProjectServiceClient interface {
 	DeleteProject(ctx context.Context, in *DeleteProjectRequest, opts ...grpc.CallOption) (*DeleteProjectResponse, error)
 	GetResources(ctx context.Context, in *GetResourcesRequest, opts ...grpc.CallOption) (*GetResourcesResponse, error)
 	DeleteResource(ctx context.Context, in *DeleteResourceRequest, opts ...grpc.CallOption) (*DeleteResourceResponse, error)
-	GetBlockInfo(ctx context.Context, in *GetNodeInfoRequest, opts ...grpc.CallOption) (*GetNodeInfoResponse, error)
+	GetNodeInfo(ctx context.Context, in *GetNodeInfoRequest, opts ...grpc.CallOption) (*GetNodeInfoResponse, error)
 	SaveProject(ctx context.Context, in *SaveProjectRequest, opts ...grpc.CallOption) (*SaveProjectResponse, error)
 	CreateResource(ctx context.Context, in *CreateResourceRequest, opts ...grpc.CallOption) (*CreateResourceResponse, error)
 	RunWorklow(ctx context.Context, in *RunWorkflowRequest, opts ...grpc.CallOption) (*RunOutput, error)
@@ -97,9 +97,9 @@ func (c *projectServiceClient) DeleteResource(ctx context.Context, in *DeleteRes
 	return out, nil
 }
 
-func (c *projectServiceClient) GetBlockInfo(ctx context.Context, in *GetNodeInfoRequest, opts ...grpc.CallOption) (*GetNodeInfoResponse, error) {
+func (c *projectServiceClient) GetNodeInfo(ctx context.Context, in *GetNodeInfoRequest, opts ...grpc.CallOption) (*GetNodeInfoResponse, error) {
 	out := new(GetNodeInfoResponse)
-	err := c.cc.Invoke(ctx, "/project.ProjectService/GetBlockInfo", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/project.ProjectService/GetNodeInfo", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -152,7 +152,7 @@ type ProjectServiceServer interface {
 	DeleteProject(context.Context, *DeleteProjectRequest) (*DeleteProjectResponse, error)
 	GetResources(context.Context, *GetResourcesRequest) (*GetResourcesResponse, error)
 	DeleteResource(context.Context, *DeleteResourceRequest) (*DeleteResourceResponse, error)
-	GetBlockInfo(context.Context, *GetNodeInfoRequest) (*GetNodeInfoResponse, error)
+	GetNodeInfo(context.Context, *GetNodeInfoRequest) (*GetNodeInfoResponse, error)
 	SaveProject(context.Context, *SaveProjectRequest) (*SaveProjectResponse, error)
 	CreateResource(context.Context, *CreateResourceRequest) (*CreateResourceResponse, error)
 	RunWorklow(context.Context, *RunWorkflowRequest) (*RunOutput, error)
@@ -181,8 +181,8 @@ func (UnimplementedProjectServiceServer) GetResources(context.Context, *GetResou
 func (UnimplementedProjectServiceServer) DeleteResource(context.Context, *DeleteResourceRequest) (*DeleteResourceResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteResource not implemented")
 }
-func (UnimplementedProjectServiceServer) GetBlockInfo(context.Context, *GetNodeInfoRequest) (*GetNodeInfoResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetBlockInfo not implemented")
+func (UnimplementedProjectServiceServer) GetNodeInfo(context.Context, *GetNodeInfoRequest) (*GetNodeInfoResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetNodeInfo not implemented")
 }
 func (UnimplementedProjectServiceServer) SaveProject(context.Context, *SaveProjectRequest) (*SaveProjectResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SaveProject not implemented")
@@ -316,20 +316,20 @@ func _ProjectService_DeleteResource_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ProjectService_GetBlockInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _ProjectService_GetNodeInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetNodeInfoRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ProjectServiceServer).GetBlockInfo(ctx, in)
+		return srv.(ProjectServiceServer).GetNodeInfo(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/project.ProjectService/GetBlockInfo",
+		FullMethod: "/project.ProjectService/GetNodeInfo",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ProjectServiceServer).GetBlockInfo(ctx, req.(*GetNodeInfoRequest))
+		return srv.(ProjectServiceServer).GetNodeInfo(ctx, req.(*GetNodeInfoRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -438,8 +438,8 @@ var ProjectService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _ProjectService_DeleteResource_Handler,
 		},
 		{
-			MethodName: "GetBlockInfo",
-			Handler:    _ProjectService_GetBlockInfo_Handler,
+			MethodName: "GetNodeInfo",
+			Handler:    _ProjectService_GetNodeInfo_Handler,
 		},
 		{
 			MethodName: "SaveProject",

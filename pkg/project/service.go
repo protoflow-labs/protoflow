@@ -3,6 +3,7 @@ package project
 import (
 	"context"
 	"encoding/json"
+	"github.com/protoflow-labs/protoflow/pkg/grpc/manager"
 	"github.com/rs/zerolog/log"
 	"html/template"
 
@@ -146,25 +147,7 @@ func (s *Service) RunWorklow(ctx context.Context, c *connect.Request[gen.RunWork
 		return nil, errors.Wrapf(err, "failed to get project %s", c.Msg.ProjectId)
 	}
 
-	bucketDir, err := s.cache.GetFolder(".protoflow")
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get bucket dir")
-	}
-
-	// TODO breadchris this should not be hardcoded, this should be provided to the service when it is created?
-	// TODO breadchris also where are the project resources?
-	projectResources := workflow.ResourceMap{
-		"docs": &workflow.DocstoreResource{
-			Docstore: &gen.Docstore{
-				Url: "mem://",
-			},
-		},
-		"bucket": &workflow.BlobstoreResource{
-			Blobstore: &gen.Blobstore{
-				Url: "file://" + bucketDir,
-			},
-		},
-	}
+	projectResources := workflow.ResourceMap{}
 
 	w, err := workflow.FromProject(project, projectResources)
 	if err != nil {
@@ -205,22 +188,87 @@ func (s *Service) RunNode(ctx context.Context, c *connect.Request[gen.RunNodeReq
 	panic("implement me")
 }
 
-func (s *Service) GetBlockInfo(ctx context.Context, c *connect.Request[gen.GetNodeInfoRequest]) (*connect.Response[gen.GetNodeInfoResponse], error) {
-	//b, err := builder.FromMethod(m)
-	//if err != nil {
-	//	return nil, errors.Wrapf(err, "unable to build method descriptor for %s.%s", serviceName, methodName)
-	//}
-	//d, err := b.BuildDescriptor()
-	//if err != nil {
-	//	return nil, errors.Wrapf(err, "unable to build method descriptor for %s.%s", serviceName, methodName)
-	//}
-	//
-	//p := protoprint.Printer{}
-	//s, err := p.PrintProtoToString(d)
-	//if err != nil {
-	//	return nil, errors.Wrapf(err, "unable to print method descriptor for %s.%s", serviceName, methodName)
-	//}
-	return nil, nil
+func (s *Service) GetNodeInfo(ctx context.Context, c *connect.Request[gen.GetNodeInfoRequest]) (*connect.Response[gen.GetNodeInfoResponse], error) {
+	project, err := s.store.GetProject(c.Msg.ProjectId)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get project %s", c.Msg.ProjectId)
+	}
+
+	var node *gen.Node
+	for _, n := range project.Graph.Nodes {
+		if n.Id == c.Msg.NodeId {
+			node = n
+			break
+		}
+	}
+	if node == nil {
+		return nil, errors.Errorf("node %s not found", c.Msg.NodeId)
+	}
+
+	var nodeResources []*gen.Resource
+	for _, r := range project.Resources {
+		for _, id := range node.ResourceIds {
+			if r.Id == id {
+				nodeResources = append(nodeResources, r)
+			}
+		}
+	}
+
+	getNodeGRPCInfo := func(node *gen.GRPC) (*gen.GetNodeInfoResponse, error) {
+		var grpcResource *gen.GRPCService
+		for _, r := range nodeResources {
+			switch r.Type.(type) {
+			case *gen.Resource_LanguageService:
+				grpcResource = r.GetLanguageService().Grpc
+			case *gen.Resource_GrpcService:
+				grpcResource = r.GetGrpcService()
+			}
+		}
+
+		if grpcResource == nil {
+			return nil, errors.Errorf("node %s does not have a grpc resource", c.Msg.NodeId)
+		}
+
+		// TODO breadchris I think a grpc resource should have a host that has a protocol
+		m := manager.NewReflectionManager("http://" + grpcResource.Host)
+		cleanup, err := m.Init()
+		if err != nil {
+			return nil, errors.Wrapf(err, "error initializing reflection manager")
+		}
+		defer cleanup()
+
+		serviceName := node.Package + "." + node.Service
+		method, err := m.ResolveMethod(serviceName, node.Method)
+		if err != nil {
+			return nil, errors.Wrapf(err, "error resolving method")
+		}
+
+		methodProto, err := manager.GetProtoForMethod(node.Package, node.Service, method)
+		if err != nil {
+			return nil, errors.Wrapf(err, "error getting proto for method")
+		}
+
+		return &gen.GetNodeInfoResponse{
+			MethodProto: methodProto,
+		}, nil
+	}
+
+	var resp *gen.GetNodeInfoResponse
+	// TODO breadchris we are probably going to want to reuse this logic, so there should probably be a NodeBuilder?
+	switch node.Config.(type) {
+	case *gen.Node_Function:
+		f := node.GetFunction()
+		resp, err = getNodeGRPCInfo(f.Grpc)
+		if err != nil {
+			return nil, err
+		}
+	case *gen.Node_Grpc:
+		resp, err = getNodeGRPCInfo(node.GetGrpc())
+		if err != nil {
+			return nil, err
+		}
+	}
+	return connect.NewResponse(resp), nil
 }
 
 func (s *Service) GetProject(context.Context, *connect.Request[gen.GetProjectRequest]) (*connect.Response[gen.GetProjectResponse], error) {
@@ -243,33 +291,12 @@ func (s *Service) GetProjects(ctx context.Context, req *connect.Request[gen.GetP
 }
 
 func (s *Service) CreateProject(ctx context.Context, req *connect.Request[gen.CreateProjectRequest]) (*connect.Response[gen.CreateProjectResponse], error) {
-	project := gen.Project{
-		Id:   uuid.NewString(),
-		Name: req.Msg.Name,
-		Resources: []*gen.Resource{
-			{
-				Id:   uuid.NewString(),
-				Name: "protoflow",
-				Type: &gen.Resource_GrpcService{
-					GrpcService: &gen.GRPCService{
-						Host: "localhost:8080",
-					},
-				},
-			},
-			{
-				Id:   uuid.NewString(),
-				Name: "js",
-				Type: &gen.Resource_LanguageService{
-					LanguageService: &gen.LanguageService{
-						Runtime: gen.Runtime_NODE,
-						Grpc: &gen.GRPCService{
-							Host: "localhost:8086",
-						},
-					},
-				},
-			},
-		},
+	bucketDir, err := s.cache.GetFolder(".protoflow")
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get bucket dir")
 	}
+
+	project := getDefaultProject(req.Msg.Name, bucketDir)
 
 	for _, resource := range project.Resources {
 		blocks, err := grpc.EnumerateResourceBlocks(resource)
@@ -279,7 +306,7 @@ func (s *Service) CreateProject(ctx context.Context, req *connect.Request[gen.Cr
 		resource.Blocks = blocks
 	}
 
-	_, err := s.store.CreateProject(&project)
+	_, err = s.store.CreateProject(&project)
 
 	if err != nil {
 		return connect.NewResponse(&gen.CreateProjectResponse{Project: nil}), nil

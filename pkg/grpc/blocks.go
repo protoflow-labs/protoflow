@@ -117,14 +117,16 @@ func blocksFromGRPC(service *gen.GRPCService, isLangService bool) ([]*gen.Block,
 		md := NewMethodDescriptor(m.GetInputType())
 
 		grpcInfo := &gen.GRPC{
-			Package:    m.GetFile().GetPackage(),
-			Service:    serviceName,
-			Method:     methodName,
-			Input:      m.GetInputType().AsDescriptorProto(),
-			Output:     m.GetOutputType().AsDescriptorProto(),
-			DescLookup: md.descLookup,
-			EnumLookup: md.enumLookup,
-			MethodDesc: m.AsMethodDescriptorProto(),
+			Package: m.GetFile().GetPackage(),
+			Service: serviceName,
+			Method:  methodName,
+			TypeInfo: &gen.GRPCTypeInfo{
+				Input:      m.GetInputType().AsDescriptorProto(),
+				Output:     m.GetOutputType().AsDescriptorProto(),
+				DescLookup: md.descLookup,
+				EnumLookup: md.enumLookup,
+				MethodDesc: m.AsMethodDescriptorProto(),
+			},
 		}
 
 		block := &gen.Block{

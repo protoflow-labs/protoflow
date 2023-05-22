@@ -6,6 +6,7 @@ import (
 	"gopkg.in/yaml.v3"
 	"os"
 	"path"
+	"strings"
 
 	"github.com/protoflow-labs/protoflow/pkg/cache"
 	"github.com/protoflow-labs/protoflow/pkg/util"
@@ -48,6 +49,9 @@ func (g *Generate) Generate(project *gen.Project) error {
 	// normalize all node names
 	for _, node := range project.GetGraph().GetNodes() {
 		node.Name = util.ToTitleCase(node.Name)
+		if strings.Contains(node.Name, ".") {
+			node.Name = strings.Split(node.Name, ".")[1]
+		}
 	}
 
 	functionNodes, err := g.scaffoldFunctions(code, project)
@@ -89,7 +93,7 @@ func (g *Generate) scaffoldFunctions(code cache.Cache, project *gen.Project) ([]
 			return nil, errors.Wrapf(err, "error creating function directory %s", funcDir)
 		}
 
-		if node.GetFunction().Runtime == "node" {
+		if node.GetFunction().Runtime == "nodejs" {
 			err := templates.TemplateFile("node/function.index.template.js", funcDirPath+"/index.js", map[string]interface{}{
 				"Node": node,
 			})
@@ -118,12 +122,12 @@ func (g *Generate) generateServiceProtos(code cache.Cache, functionNodes []*gen.
 		protoPath := fmt.Sprintf("%s/%s.service.proto", protosPath, runtime)
 
 		// check if file exists with os
-		if _, err := os.Stat(protoPath); err == nil {
-			// TODO breadchris we want to be more intelligent here. If the proto file exists, we should check if the methods are the same
-			// and compile a new protofile with changes
-			// proto file exists, skip
-			continue
-		}
+		//if _, err := os.Stat(protoPath); err == nil {
+		//	// TODO breadchris we want to be more intelligent here. If the proto file exists, we should check if the methods are the same
+		//	// and compile a new protofile with changes
+		//	// proto file exists, skip
+		//	continue
+		//}
 
 		err = templates.TemplateFile("service.template.proto", protoPath, map[string]interface{}{
 			"Runtime": runtime,
@@ -141,18 +145,8 @@ func (g *Generate) generateServices(code cache.Cache, functionNodes []*gen.Node)
 	if err != nil {
 		return errors.Wrapf(err, "error getting project folder")
 	}
-	type FunctionNode struct {
-		Name string
-	}
-	var fNodes []FunctionNode
-	for _, node := range functionNodes {
-		g := node.GetFunction()
-		fNodes = append(fNodes, FunctionNode{
-			Name: g.Grpc.Method,
-		})
-	}
 	return templates.TemplateDir("node/project", projectPath, map[string]interface{}{
-		"FunctionNodes": fNodes,
+		"FunctionNodes": functionNodes,
 	})
 }
 

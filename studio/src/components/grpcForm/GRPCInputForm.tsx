@@ -11,7 +11,7 @@ import {
     Input,
     Select
 } from "@fluentui/react-components";
-import {GRPC} from "@/rpc/block_pb";
+import {GRPC, GRPCTypeInfo} from "@/rpc/block_pb";
 
 type GrpcFormField = {
     type: 'field'
@@ -118,7 +118,7 @@ const InputFormContents: FC<InputFormContentsProps> = (props) => {
 }
 
 export interface GRPCInputFormProps {
-    grpcInfo: GRPC
+    grpcInfo: GRPCTypeInfo
     register: UseFormRegister<any>
     control: Control
     fieldPath: string
@@ -175,7 +175,7 @@ export const GRPCInputForm: FC<GRPCInputFormProps> = (props) => {
     }
 
     const formattedFields: GrpcFormFieldType[] = [];
-    desc.field.forEach((field) => {
+    desc.field.forEach((field: FieldDescriptorProto) => {
         if (field.oneofIndex !== undefined) {
             const oneofType = desc.oneofDecl[field.oneofIndex]
             const existingOneof = formattedFields.find((f) => f.type === 'oneof' && f.name === oneofType.name);

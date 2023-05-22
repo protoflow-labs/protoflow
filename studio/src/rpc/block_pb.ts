@@ -4,7 +4,7 @@
 // @ts-nocheck
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
-import { DescriptorProto, EnumDescriptorProto, Message, MethodDescriptorProto, proto3 } from "@bufbuild/protobuf";
+import { Any, DescriptorProto, EnumDescriptorProto, Message, MethodDescriptorProto, proto3 } from "@bufbuild/protobuf";
 
 /**
  * TODO breadchris think through this more
@@ -157,6 +157,11 @@ export class Config extends Message<Config> {
    */
   type?: DescriptorProto;
 
+  /**
+   * @generated from field: google.protobuf.Any value = 2;
+   */
+  value?: Any;
+
   constructor(data?: PartialMessage<Config>) {
     super();
     proto3.util.initPartial(data, this);
@@ -166,6 +171,7 @@ export class Config extends Message<Config> {
   static readonly typeName = "block.Config";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "type", kind: "message", T: DescriptorProto },
+    { no: 2, name: "value", kind: "message", T: Any },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Config {
@@ -495,6 +501,67 @@ export class REST extends Message<REST> {
 }
 
 /**
+ * @generated from message block.GRPCTypeInfo
+ */
+export class GRPCTypeInfo extends Message<GRPCTypeInfo> {
+  /**
+   * @generated from field: google.protobuf.DescriptorProto input = 1;
+   */
+  input?: DescriptorProto;
+
+  /**
+   * @generated from field: google.protobuf.DescriptorProto output = 2;
+   */
+  output?: DescriptorProto;
+
+  /**
+   * @generated from field: map<string, google.protobuf.DescriptorProto> desc_lookup = 3;
+   */
+  descLookup: { [key: string]: DescriptorProto } = {};
+
+  /**
+   * @generated from field: map<string, google.protobuf.EnumDescriptorProto> enum_lookup = 4;
+   */
+  enumLookup: { [key: string]: EnumDescriptorProto } = {};
+
+  /**
+   * @generated from field: google.protobuf.MethodDescriptorProto method_desc = 5;
+   */
+  methodDesc?: MethodDescriptorProto;
+
+  constructor(data?: PartialMessage<GRPCTypeInfo>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "block.GRPCTypeInfo";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "input", kind: "message", T: DescriptorProto },
+    { no: 2, name: "output", kind: "message", T: DescriptorProto },
+    { no: 3, name: "desc_lookup", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "message", T: DescriptorProto} },
+    { no: 4, name: "enum_lookup", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "message", T: EnumDescriptorProto} },
+    { no: 5, name: "method_desc", kind: "message", T: MethodDescriptorProto },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GRPCTypeInfo {
+    return new GRPCTypeInfo().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GRPCTypeInfo {
+    return new GRPCTypeInfo().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GRPCTypeInfo {
+    return new GRPCTypeInfo().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GRPCTypeInfo | PlainMessage<GRPCTypeInfo> | undefined, b: GRPCTypeInfo | PlainMessage<GRPCTypeInfo> | undefined): boolean {
+    return proto3.util.equals(GRPCTypeInfo, a, b);
+  }
+}
+
+/**
  * @generated from message block.GRPC
  */
 export class GRPC extends Message<GRPC> {
@@ -514,29 +581,11 @@ export class GRPC extends Message<GRPC> {
   method = "";
 
   /**
-   * @generated from field: google.protobuf.DescriptorProto input = 4;
+   * TODO breadchris move this out of the config
+   *
+   * @generated from field: block.GRPCTypeInfo type_info = 4;
    */
-  input?: DescriptorProto;
-
-  /**
-   * @generated from field: google.protobuf.DescriptorProto output = 5;
-   */
-  output?: DescriptorProto;
-
-  /**
-   * @generated from field: map<string, google.protobuf.DescriptorProto> desc_lookup = 6;
-   */
-  descLookup: { [key: string]: DescriptorProto } = {};
-
-  /**
-   * @generated from field: map<string, google.protobuf.EnumDescriptorProto> enum_lookup = 7;
-   */
-  enumLookup: { [key: string]: EnumDescriptorProto } = {};
-
-  /**
-   * @generated from field: google.protobuf.MethodDescriptorProto method_desc = 8;
-   */
-  methodDesc?: MethodDescriptorProto;
+  typeInfo?: GRPCTypeInfo;
 
   constructor(data?: PartialMessage<GRPC>) {
     super();
@@ -549,11 +598,7 @@ export class GRPC extends Message<GRPC> {
     { no: 1, name: "package", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "service", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 3, name: "method", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 4, name: "input", kind: "message", T: DescriptorProto },
-    { no: 5, name: "output", kind: "message", T: DescriptorProto },
-    { no: 6, name: "desc_lookup", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "message", T: DescriptorProto} },
-    { no: 7, name: "enum_lookup", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "message", T: EnumDescriptorProto} },
-    { no: 8, name: "method_desc", kind: "message", T: MethodDescriptorProto },
+    { no: 4, name: "type_info", kind: "message", T: GRPCTypeInfo },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GRPC {
