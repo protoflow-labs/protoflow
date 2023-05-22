@@ -20,10 +20,10 @@ export default function BlocksList() {
   const defaultFunctionConfig: Block['type'] = {
     case: 'function',
     value: new Function({
-      runtime: "nodejs",
+      runtime: "node",
       grpc: new GRPC({
         package: "protoflow",
-        service: "nodejsService",
+        service: "nodeService",
         method: "Method",
       }),
     }),

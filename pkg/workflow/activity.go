@@ -151,6 +151,8 @@ func (a *Activity) ExecuteFunctionNode(ctx context.Context, node *FunctionNode, 
 		}
 	}
 
+	grpcInfo.Method = node.Name
+
 	grpcNode := &GRPCNode{
 		GRPC: grpcInfo,
 	}

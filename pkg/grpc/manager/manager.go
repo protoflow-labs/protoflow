@@ -102,20 +102,23 @@ func (s *ReflectionManager) ExecuteMethod(
 	return invoker.InvokeWithStream(ctx, input, output, s.requestHeaders)
 }
 
-func (s *ReflectionManager) ResolveMethod(service, method string) (protoreflect.MethodDescriptor, error) {
+func (s *ReflectionManager) ResolveMethod(service, methodName string) (protoreflect.MethodDescriptor, error) {
+
 	descriptor, err := s.resolver.FindDescriptorByName(protoreflect.FullName(service))
 	if err == protoregistry.NotFound {
 		return nil, errors.Wrapf(err, "failed to find service in schema")
 	} else if err != nil {
-		return nil, errors.Wrapf(err, "connection error when resolving method")
+		return nil, errors.Wrapf(err, "connection error when resolving methodName")
 	}
 	serviceDescriptor, ok := descriptor.(protoreflect.ServiceDescriptor)
 	if !ok {
-		return nil, errors.Wrapf(err, "failed to find method")
+		return nil, errors.Wrapf(err, "failed to find methodName")
 	}
-	methodDescriptor := serviceDescriptor.Methods().ByName(protoreflect.Name(method))
+
+	methodDescriptor := serviceDescriptor.Methods().ByName(protoreflect.Name(methodName))
 	if methodDescriptor == nil {
-		return nil, errors.Wrapf(err, "failed to find method in service descriptor")
+
+		return nil, errors.New("failed to find methodName in service descriptor")
 	}
 	return methodDescriptor, nil
 }

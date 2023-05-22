@@ -93,7 +93,7 @@ func (g *Generate) scaffoldFunctions(code cache.Cache, project *gen.Project) ([]
 			return nil, errors.Wrapf(err, "error creating function directory %s", funcDir)
 		}
 
-		if node.GetFunction().Runtime == "nodejs" {
+		if node.GetFunction().Runtime == "node" {
 			err := templates.TemplateFile("node/function.index.template.js", funcDirPath+"/index.js", map[string]interface{}{
 				"Node": node,
 			})
