@@ -14,6 +14,7 @@ import (
 	"github.com/protoflow-labs/protoflow/pkg/generate"
 	"github.com/protoflow-labs/protoflow/pkg/log"
 	"github.com/protoflow-labs/protoflow/pkg/project"
+	"github.com/protoflow-labs/protoflow/pkg/store"
 	"github.com/protoflow-labs/protoflow/pkg/workflow"
 	"github.com/urfave/cli/v2"
 )
@@ -45,7 +46,7 @@ func Wire(cacheConfig cache.Config) (*cli.App, error) {
 	if err != nil {
 		return nil, err
 	}
-	dbStore, err := project.NewDBStore(gormDB)
+	projectStore, err := store.NewDBStore(gormDB)
 	if err != nil {
 		return nil, err
 	}
@@ -53,11 +54,11 @@ func Wire(cacheConfig cache.Config) (*cli.App, error) {
 	if err != nil {
 		return nil, err
 	}
-	manager, err := workflow.NewManager(workflowConfig, provider)
+	manager, err := workflow.NewManager(workflowConfig, provider, projectStore)
 	if err != nil {
 		return nil, err
 	}
-	service, err := project.NewService(dbStore, manager, localCache)
+	service, err := project.NewService(projectStore, manager, localCache)
 	if err != nil {
 		return nil, err
 	}
@@ -65,7 +66,7 @@ func Wire(cacheConfig cache.Config) (*cli.App, error) {
 	if err != nil {
 		return nil, err
 	}
-	generateService, err := generate.NewService(generateConfig, dbStore)
+	generateService, err := generate.NewService(generateConfig, projectStore)
 	if err != nil {
 		return nil, err
 	}

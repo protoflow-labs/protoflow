@@ -3,6 +3,8 @@ import { Divider, Field, Input, Select } from "@fluentui/react-components";
 import { useForm } from "react-hook-form";
 import { Node } from "reactflow";
 import { EditorActions, useUnselect } from "../EditorActions";
+import {ProtoViewer} from "@/components/blockEditors/common/ProtoViewer";
+import React from "react";
 
 export function FunctionEditor({ node }: { node: Node<FunctionData> }) {
   const onCancel = useUnselect();
@@ -45,6 +47,8 @@ export function FunctionEditor({ node }: { node: Node<FunctionData> }) {
             </Select>
           </Field>
         </div>
+        <Divider />
+        <ProtoViewer />
         <Divider />
         <EditorActions />
       </div>

@@ -8,13 +8,13 @@ import (
 	"github.com/protoflow-labs/protoflow/gen"
 	"github.com/protoflow-labs/protoflow/gen/genconnect"
 	"github.com/protoflow-labs/protoflow/pkg/cache"
-	"github.com/protoflow-labs/protoflow/pkg/project"
+	"github.com/protoflow-labs/protoflow/pkg/store"
 	"path"
 )
 
 type Service struct {
 	config Config
-	store  project.Store
+	store  store.Project
 }
 
 var _ genconnect.GenerateServiceHandler = (*Service)(nil)
@@ -25,7 +25,7 @@ var ProviderSet = wire.NewSet(
 	wire.Bind(new(genconnect.GenerateServiceHandler), new(*Service)),
 )
 
-func NewService(config Config, store project.Store) (*Service, error) {
+func NewService(config Config, store store.Project) (*Service, error) {
 	return &Service{
 		config: config,
 		store:  store,

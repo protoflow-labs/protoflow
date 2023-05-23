@@ -36,7 +36,7 @@ export default function BlocksList() {
           <AccordionPanel>
             {builtinBlocks.map((block) => {
               return (
-                <NodeButton key={block.type} nodeType={block.type}>
+                <NodeButton key={block.type} nodeType={block.type} nodeName={block.type}>
                   {block.name}
                 </NodeButton>
               );

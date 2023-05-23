@@ -44,14 +44,14 @@ func EnumerateResourceBlocks(resource *gen.Resource) ([]*gen.Block, error) {
 }
 
 type MethodDescriptor struct {
-	descLookup map[string]*descriptorpb.DescriptorProto
-	enumLookup map[string]*descriptorpb.EnumDescriptorProto
+	DescLookup map[string]*descriptorpb.DescriptorProto
+	EnumLookup map[string]*descriptorpb.EnumDescriptorProto
 }
 
 func NewMethodDescriptor(msg *desc.MessageDescriptor) *MethodDescriptor {
 	m := &MethodDescriptor{
-		descLookup: make(map[string]*descriptorpb.DescriptorProto),
-		enumLookup: make(map[string]*descriptorpb.EnumDescriptorProto),
+		DescLookup: make(map[string]*descriptorpb.DescriptorProto),
+		EnumLookup: make(map[string]*descriptorpb.EnumDescriptorProto),
 	}
 	m.buildTypeLookup(msg)
 	return m
@@ -62,7 +62,7 @@ func (m *MethodDescriptor) buildTypeLookup(msgDesc *desc.MessageDescriptor) {
 	for len(msgs) > 0 {
 		msg := msgs[0]
 		msgs = msgs[1:]
-		m.descLookup[msg.GetFullyQualifiedName()] = msg.AsDescriptorProto()
+		m.DescLookup[msg.GetFullyQualifiedName()] = msg.AsDescriptorProto()
 		for _, f := range msg.GetFields() {
 			lookupName := f.GetFullyQualifiedName()
 
@@ -70,7 +70,7 @@ func (m *MethodDescriptor) buildTypeLookup(msgDesc *desc.MessageDescriptor) {
 			if oneOf != nil {
 				choices := oneOf.GetChoices()
 				for _, c := range choices {
-					if _, ok := m.descLookup[lookupName]; ok {
+					if _, ok := m.DescLookup[lookupName]; ok {
 						continue
 					}
 					msgs = append(msgs, c.GetMessageType())
@@ -78,13 +78,13 @@ func (m *MethodDescriptor) buildTypeLookup(msgDesc *desc.MessageDescriptor) {
 			} else {
 				switch f.GetType() {
 				case descriptorpb.FieldDescriptorProto_TYPE_MESSAGE:
-					if _, ok := m.descLookup[lookupName]; ok {
+					if _, ok := m.DescLookup[lookupName]; ok {
 						continue
 					}
-					m.descLookup[lookupName] = f.GetMessageType().AsDescriptorProto()
+					m.DescLookup[lookupName] = f.GetMessageType().AsDescriptorProto()
 					msgs = append(msgs, f.GetMessageType())
 				case descriptorpb.FieldDescriptorProto_TYPE_ENUM:
-					m.enumLookup[lookupName] = f.GetEnumType().AsEnumDescriptorProto()
+					m.EnumLookup[lookupName] = f.GetEnumType().AsEnumDescriptorProto()
 				}
 			}
 		}
@@ -114,19 +114,10 @@ func blocksFromGRPC(service *gen.GRPCService, isLangService bool) ([]*gen.Block,
 		serviceName := m.GetService().GetName()
 		methodName := m.GetName()
 
-		md := NewMethodDescriptor(m.GetInputType())
-
 		grpcInfo := &gen.GRPC{
 			Package: m.GetFile().GetPackage(),
 			Service: serviceName,
 			Method:  methodName,
-			TypeInfo: &gen.GRPCTypeInfo{
-				Input:      m.GetInputType().AsDescriptorProto(),
-				Output:     m.GetOutputType().AsDescriptorProto(),
-				DescLookup: md.descLookup,
-				EnumLookup: md.enumLookup,
-				MethodDesc: m.AsMethodDescriptorProto(),
-			},
 		}
 
 		block := &gen.Block{

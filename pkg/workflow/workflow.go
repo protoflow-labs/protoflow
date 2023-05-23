@@ -1,8 +1,10 @@
 package workflow
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/dominikbraun/graph"
+	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/gen"
 	"github.com/rs/zerolog/log"
@@ -12,15 +14,17 @@ type AdjMap map[string]map[string]graph.Edge[string]
 
 type Workflow struct {
 	ID         string
+	ProjectID  string
 	Graph      graph.Graph[string, string]
 	NodeLookup map[string]Node
 	AdjMap
 	Resources map[string]Resource
 }
 
-func FromProject(project *gen.Project, resources ResourceMap) (*Workflow, error) {
+func FromProject(project *gen.Project) (*Workflow, error) {
 	g := graph.New(graph.StringHash, graph.Directed(), graph.PreventCycles())
 
+	resources := ResourceMap{}
 	// TODO breadchris blocks will be used in the future to associate with nodes, but for now they are not used
 	blockLookup := map[string]*gen.Block{}
 	for _, resource := range project.Resources {
@@ -63,7 +67,9 @@ func FromProject(project *gen.Project, resources ResourceMap) (*Workflow, error)
 	}
 
 	return &Workflow{
-		ID:         project.Id,
+		// TODO breadchris this should be a deterministic value based on the workflow node slice
+		ID:         uuid.NewString(),
+		ProjectID:  project.Id,
 		Graph:      g,
 		NodeLookup: nodeLookup,
 		AdjMap:     adjMap,
@@ -137,6 +143,8 @@ func (w *Workflow) traverseWorkflow(logger Logger, instances Instances, executor
 			Stream: res.Stream,
 		}
 	} else {
+		// TODO breadchris have this work for streams as well
+		traceNodeExec(executor, vert, input, res.Data)
 		// otherwise pass the singular result data to the next block
 		nextBlockInput = Input{
 			Params: res.Data,
@@ -179,4 +187,24 @@ func injectDepsForNode(logger Logger, instances Instances, input *Input, node No
 		input.Resources[resource.Name()] = resource
 	}
 	return nil
+}
+
+func traceNodeExec(executor Executor, nodeID string, input any, output any) {
+	// TODO breadchris clean this up
+	inputSer, inputErr := json.Marshal(input)
+	outputSer, outputErr := json.Marshal(output)
+	if inputErr != nil || outputErr != nil {
+		log.Error().
+			Err(inputErr).
+			Err(outputErr).
+			Msg("error serializing node execution")
+	}
+	err := executor.Trace(&gen.NodeExecution{
+		NodeId: nodeID,
+		Input:  string(inputSer),
+		Output: string(outputSer),
+	})
+	if err != nil {
+		log.Error().Err(err).Msg("error tracing node execution")
+	}
 }

@@ -10,12 +10,14 @@ import {
 } from "@fluentui/react-components";
 import {createContext, useCallback, useContext, useEffect, useState} from "react";
 import {HiExclamationCircle, HiPlus} from "react-icons/hi2";
-import {Node} from "reactflow";
+import {Edge, Node} from "reactflow";
 import {GetNodeInfoResponse, Project} from "@/rpc/project_pb";
 import {useProjectResources} from "@/hooks/useProjectResources";
 import {Resource} from "@/rpc/resource_pb";
 import {toast} from "react-hot-toast";
 import {useErrorBoundary} from "react-error-boundary";
+import {getUpdatedProject} from "@/lib/project";
+import {useEditorContext} from "@/providers/EditorProvider";
 
 type ProjectContextType = {
     project: Project | undefined;
@@ -23,6 +25,7 @@ type ProjectContextType = {
     output: any;
     loadingResources: boolean;
 
+    saveProject: (nodes: Node[], edges: Edge[]) => Promise<void>;
     resetOutput: () => void;
     runWorkflow: (node: Node) => Promise<any>;
     loadResources: () => Promise<void>;
@@ -56,6 +59,25 @@ export default function ProjectProvider({children}: ProjectProviderProps) {
     const resetOutput = useCallback(() => {
         setOutput(null);
     }, []);
+
+    const saveProject = useCallback(async (nodes: Node[], edges: Edge[]) => {
+        if (!project) return;
+
+        const updatedProject = getUpdatedProject({
+            project,
+            nodes: nodes,
+            edges: edges,
+        });
+
+        for (const node of updatedProject.graph?.nodes || []) {
+            if (!node.name) {
+                toast.error("Please name all nodes before exporting");
+                return;
+            }
+        }
+
+        await projectService.saveProject(updatedProject);
+    }, [project]);
 
     const runWorkflow = useCallback(
         async (node: Node) => {
@@ -111,8 +133,7 @@ export default function ProjectProvider({children}: ProjectProviderProps) {
                 projectId: project.id,
             });
         } catch (e) {
-            // @ts-ignore
-            toast.error(e.toString());
+            // this is ok if we error, the node might not exist yet
         }
         return undefined;
     }, [project]);
@@ -162,6 +183,7 @@ export default function ProjectProvider({children}: ProjectProviderProps) {
                 output,
                 resetOutput,
                 runWorkflow,
+                saveProject,
                 deleteResource,
                 loadResources,
                 loadingResources,

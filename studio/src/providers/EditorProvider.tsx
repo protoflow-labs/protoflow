@@ -68,7 +68,7 @@ export function EditorProvider({ children }: { children: ReactNode }) {
 }
 
 const useEditorProps = (reactFlowInstance?: ReactFlowInstance) => {
-  const { project } = useProjectContext();
+  const { project, saveProject } = useProjectContext();
 
   const [nodes, setNodes] = useState<Node[]>(
     project?.graph?.nodes.map((n) => {
@@ -142,6 +142,7 @@ const useEditorProps = (reactFlowInstance?: ReactFlowInstance) => {
       };
 
       setNodes((nds) => [...nds, newNode]);
+      void saveProject([...nodes, newNode], edges);
     },
     [reactFlowInstance]
   );

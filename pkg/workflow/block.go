@@ -216,17 +216,17 @@ type ResourceMap map[string]Resource
 func NewNode(resources ResourceMap, node *gen.Node) (Node, error) {
 	switch node.Config.(type) {
 	case *gen.Node_Grpc:
-		return NewGRPCNode(resources, node), nil
+		return NewGRPCNode(node), nil
 	case *gen.Node_Collection:
 		return NewCollectionNode(resources, node), nil
 	case *gen.Node_Bucket:
 		return NewBucketNode(resources, node), nil
 	case *gen.Node_Rest:
-		return NewRestNode(resources, node), nil
+		return NewRestNode(node), nil
 	case *gen.Node_Input:
 		return NewInputNode(node), nil
 	case *gen.Node_Function:
-		return NewFunctionNode(resources, node), nil
+		return NewFunctionNode(node), nil
 	case *gen.Node_Query:
 		return NewQueryNode(resources, node), nil
 	default:
@@ -243,14 +243,14 @@ func NewBaseNode(node *gen.Node) BaseNode {
 }
 
 // TODO breadchris we are ignoring blocks that are not set on the node, nodes should have blocks
-func NewGRPCNode(resources ResourceMap, node *gen.Node) *GRPCNode {
+func NewGRPCNode(node *gen.Node) *GRPCNode {
 	return &GRPCNode{
 		BaseNode: NewBaseNode(node),
 		GRPC:     node.GetGrpc(),
 	}
 }
 
-func NewRestNode(resources ResourceMap, node *gen.Node) *RESTNode {
+func NewRestNode(node *gen.Node) *RESTNode {
 	return &RESTNode{
 		BaseNode: NewBaseNode(node),
 		REST:     node.GetRest(),
@@ -290,7 +290,7 @@ func NewInputNode(node *gen.Node) *InputNode {
 	}
 }
 
-func NewFunctionNode(resources ResourceMap, node *gen.Node) *FunctionNode {
+func NewFunctionNode(node *gen.Node) *FunctionNode {
 	return &FunctionNode{
 		BaseNode: NewBaseNode(node),
 		Function: node.GetFunction(),
