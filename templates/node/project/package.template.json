@@ -6,7 +6,7 @@
   "scripts": {
     "generate": "npx buf generate protos && npx buf build -o gen/image.bin --as-file-descriptor-set",
     "setup": "npm install && npm run generate",
-    "dev": "nodemon server.js"
+    "dev": "nodemon --ignore 'gen/' --exec 'npm run generate && node server.js'"
   },
   "keywords": [],
   "author": "",

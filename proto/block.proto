@@ -72,9 +72,4 @@ message GRPC {
   string package = 1;
   string service = 2;
   string method = 3;
-  google.protobuf.DescriptorProto input = 4;
-  google.protobuf.DescriptorProto output = 5;
-  map<string, google.protobuf.DescriptorProto> desc_lookup = 6;
-  map<string, google.protobuf.EnumDescriptorProto> enum_lookup = 7;
-  google.protobuf.MethodDescriptorProto method_desc = 8;
 }

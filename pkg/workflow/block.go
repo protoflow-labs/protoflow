@@ -4,14 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/protoflow-labs/protoflow/pkg/grpc/bufcurl"
-	"io"
-	"strings"
-
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/gen"
+	"github.com/protoflow-labs/protoflow/pkg/grpc/bufcurl"
 	"github.com/protoflow-labs/protoflow/pkg/util"
+	"io"
 )
 
 type Input struct {
@@ -218,17 +216,17 @@ type ResourceMap map[string]Resource
 func NewNode(resources ResourceMap, node *gen.Node) (Node, error) {
 	switch node.Config.(type) {
 	case *gen.Node_Grpc:
-		return NewGRPCNode(resources, node), nil
+		return NewGRPCNode(node), nil
 	case *gen.Node_Collection:
 		return NewCollectionNode(resources, node), nil
 	case *gen.Node_Bucket:
 		return NewBucketNode(resources, node), nil
 	case *gen.Node_Rest:
-		return NewRestNode(resources, node), nil
+		return NewRestNode(node), nil
 	case *gen.Node_Input:
 		return NewInputNode(node), nil
 	case *gen.Node_Function:
-		return NewFunctionNode(resources, node), nil
+		return NewFunctionNode(node), nil
 	case *gen.Node_Query:
 		return NewQueryNode(resources, node), nil
 	default:
@@ -245,19 +243,14 @@ func NewBaseNode(node *gen.Node) BaseNode {
 }
 
 // TODO breadchris we are ignoring blocks that are not set on the node, nodes should have blocks
-func NewGRPCNode(resources ResourceMap, node *gen.Node) *GRPCNode {
-	for id, r := range resources {
-		if r.Name() == GRPCResourceType {
-			node.ResourceIds = append(node.ResourceIds, id)
-		}
-	}
+func NewGRPCNode(node *gen.Node) *GRPCNode {
 	return &GRPCNode{
 		BaseNode: NewBaseNode(node),
 		GRPC:     node.GetGrpc(),
 	}
 }
 
-func NewRestNode(resources ResourceMap, node *gen.Node) *RESTNode {
+func NewRestNode(node *gen.Node) *RESTNode {
 	return &RESTNode{
 		BaseNode: NewBaseNode(node),
 		REST:     node.GetRest(),
@@ -265,6 +258,7 @@ func NewRestNode(resources ResourceMap, node *gen.Node) *RESTNode {
 }
 
 func NewCollectionNode(resources ResourceMap, node *gen.Node) *CollectionNode {
+	// TODO breadchris a node should already have this resource configured
 	for id, r := range resources {
 		if r.Name() == DocstoreResourceType {
 			node.ResourceIds = append(node.ResourceIds, id)
@@ -277,6 +271,7 @@ func NewCollectionNode(resources ResourceMap, node *gen.Node) *CollectionNode {
 }
 
 func NewBucketNode(resources ResourceMap, node *gen.Node) *BucketNode {
+	// TODO breadchris a node should already have this resource configured
 	for id, r := range resources {
 		if r.Name() == BlobstoreResourceType {
 			node.ResourceIds = append(node.ResourceIds, id)
@@ -295,18 +290,7 @@ func NewInputNode(node *gen.Node) *InputNode {
 	}
 }
 
-func NewFunctionNode(resources ResourceMap, node *gen.Node) *FunctionNode {
-	for id, r := range resources {
-		if r.Name() == LanguageServiceType {
-			service, ok := r.(*LanguageServiceResource)
-
-			// TODO breadchris this seems ok for now, should do better
-			if !ok || strings.ToLower(service.Runtime.String()) != strings.ToLower(node.GetFunction().Runtime) {
-				continue
-			}
-			node.ResourceIds = append(node.ResourceIds, id)
-		}
-	}
+func NewFunctionNode(node *gen.Node) *FunctionNode {
 	return &FunctionNode{
 		BaseNode: NewBaseNode(node),
 		Function: node.GetFunction(),
@@ -314,6 +298,7 @@ func NewFunctionNode(resources ResourceMap, node *gen.Node) *FunctionNode {
 }
 
 func NewQueryNode(resources ResourceMap, node *gen.Node) *QueryNode {
+	// TODO breadchris a node should already have this resource configured
 	for id, r := range resources {
 		if r.Name() == DocstoreResourceType {
 			node.ResourceIds = append(node.ResourceIds, id)

@@ -8,6 +8,7 @@ import { InputEditor } from "./blockEditors/InputEditor";
 import { QueryEditor } from "./blockEditors/QueryEditor";
 import { RESTEditor } from "./blockEditors/RESTEditor";
 import {GRPCEditor} from "@/components/blockEditors/GRPCEditor";
+import NodeProvider from "@/providers/NodeProvider";
 
 export function EditorPanel() {
   const [activeNode, setActiveNode] = useState<Node | null>(null);
@@ -27,11 +28,13 @@ export function EditorPanel() {
   if (!activeNode) return null;
 
   return (
-    <div className="absolute top-0 right-0 m-4 z-10">
-      <Card>
-        <NodeEditor node={activeNode} />
-      </Card>
-    </div>
+    <NodeProvider nodeId={activeNode.id}>
+      <div className="absolute top-0 right-0 m-4 z-10 overflow-auto">
+        <Card>
+          <NodeEditor node={activeNode} />
+        </Card>
+      </div>
+    </NodeProvider>
   );
 }
 

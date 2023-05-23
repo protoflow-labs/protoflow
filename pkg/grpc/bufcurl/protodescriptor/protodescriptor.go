@@ -17,7 +17,7 @@ package protodescriptor
 import (
 	"errors"
 	"fmt"
-	"github.com/protoflow-labs/protoflow/pkg/grpc/normalpath"
+	normalpath2 "github.com/protoflow-labs/protoflow/pkg/grpc/bufcurl/normalpath"
 	"strconv"
 
 	"google.golang.org/protobuf/proto"
@@ -202,14 +202,14 @@ func ValidateProtoPath(name string, path string) error {
 	if path == "" {
 		return fmt.Errorf("%s is empty", name)
 	}
-	normalized, err := normalpath.NormalizeAndValidate(path)
+	normalized, err := normalpath2.NormalizeAndValidate(path)
 	if err != nil {
 		return fmt.Errorf("%s had normalization error: %w", name, err)
 	}
 	if path != normalized {
 		return fmt.Errorf("%s %s was not normalized to %s", name, path, normalized)
 	}
-	if normalpath.Ext(path) != ".proto" {
+	if normalpath2.Ext(path) != ".proto" {
 		return fmt.Errorf("%s %s does not have a .proto extension", name, path)
 	}
 	return nil

@@ -4,8 +4,9 @@ import (
 	"context"
 	"fmt"
 	"github.com/pkg/errors"
-	grpcanal "github.com/protoflow-labs/protoflow/pkg/grpc"
+	"github.com/protoflow-labs/protoflow/gen"
 	"github.com/protoflow-labs/protoflow/pkg/grpc/bufcurl"
+	grpcanal "github.com/protoflow-labs/protoflow/pkg/grpc/manager"
 	"github.com/protoflow-labs/protoflow/pkg/util"
 	"github.com/rs/zerolog/log"
 	"io"
@@ -140,8 +141,20 @@ func (a *Activity) ExecuteFunctionNode(ctx context.Context, node *FunctionNode, 
 	// provide the grpc resource to the grpc node call. Is this the best place for this? Should this be provided on injection? Probably.
 	input.Resources[GRPCResourceType] = g.GRPCResource
 
+	// TODO breadchris building the config this way is brittle
+	grpcInfo := node.Function.Grpc
+	if grpcInfo == nil {
+		grpcInfo = &gen.GRPC{
+			Package: "protoflow",
+			Service: node.Function.Runtime + "Service",
+			Method:  node.Name,
+		}
+	}
+
+	grpcInfo.Method = node.Name
+
 	grpcNode := &GRPCNode{
-		GRPC: node.Function.Grpc,
+		GRPC: grpcInfo,
 	}
 	return a.ExecuteGRPCNode(ctx, grpcNode, input)
 }

@@ -17,19 +17,18 @@ import (
 	"gorm.io/gorm/schema"
 )
 
-// ProjectJSON give a generic data type for json encoded data.
-type ProjectJSON struct {
+type WorkflowRunJSON struct {
 	// TODO breadchris couldn't figure out how to make this generic, there is a problem with protojson.Unmarshal/Marshal
-	Data *gen.Project
+	Data *gen.WorkflowRun
 }
 
 // Value return json value, implement driver.Valuer interface
-func (j *ProjectJSON) Value() (driver.Value, error) {
+func (j *WorkflowRunJSON) Value() (driver.Value, error) {
 	return j.MarshalJSON()
 }
 
-// Scan scan value into ProjectJSON[T], implements sql.Scanner interface
-func (j *ProjectJSON) Scan(value interface{}) error {
+// Scan scan value into WorkflowRunJSON[T], implements sql.Scanner interface
+func (j *WorkflowRunJSON) Scan(value interface{}) error {
 	var bytes []byte
 	switch v := value.(type) {
 	case []byte:
@@ -43,7 +42,7 @@ func (j *ProjectJSON) Scan(value interface{}) error {
 	return j.UnmarshalJSON(bytes)
 }
 
-func (j *ProjectJSON) MarshalJSON() ([]byte, error) {
+func (j *WorkflowRunJSON) MarshalJSON() ([]byte, error) {
 	marshaler := &protojson.MarshalOptions{}
 	b, err := marshaler.Marshal(j.Data)
 	if err != nil {
@@ -52,11 +51,11 @@ func (j *ProjectJSON) MarshalJSON() ([]byte, error) {
 	return b, nil
 }
 
-func (j *ProjectJSON) UnmarshalJSON(data []byte) error {
+func (j *WorkflowRunJSON) UnmarshalJSON(data []byte) error {
 	unmarshaler := protojson.UnmarshalOptions{DiscardUnknown: true}
 
 	if j.Data == nil {
-		j.Data = &gen.Project{}
+		j.Data = &gen.WorkflowRun{}
 	}
 
 	if err := unmarshaler.Unmarshal(data, j.Data); err != nil {
@@ -66,12 +65,12 @@ func (j *ProjectJSON) UnmarshalJSON(data []byte) error {
 }
 
 // GormDataType gorm common data type
-func (*ProjectJSON) GormDataType() string {
+func (*WorkflowRunJSON) GormDataType() string {
 	return "json"
 }
 
 // GormDBDataType gorm db data type
-func (*ProjectJSON) GormDBDataType(db *gorm.DB, field *schema.Field) string {
+func (*WorkflowRunJSON) GormDBDataType(db *gorm.DB, field *schema.Field) string {
 	switch db.Dialector.Name() {
 	case "sqlite":
 		return "JSON"
@@ -83,7 +82,7 @@ func (*ProjectJSON) GormDBDataType(db *gorm.DB, field *schema.Field) string {
 	return ""
 }
 
-func (j *ProjectJSON) GormValue(ctx context.Context, db *gorm.DB) clause.Expr {
+func (j *WorkflowRunJSON) GormValue(ctx context.Context, db *gorm.DB) clause.Expr {
 	data, _ := j.MarshalJSON()
 
 	switch db.Dialector.Name() {

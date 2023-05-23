@@ -3,6 +3,7 @@ package project
 import (
 	"context"
 	"encoding/json"
+	store "github.com/protoflow-labs/protoflow/pkg/store"
 	"github.com/rs/zerolog/log"
 	"html/template"
 
@@ -22,14 +23,14 @@ import (
 )
 
 type Service struct {
-	store              Store
+	store              store.Project
 	manager            workflow.Manager
 	blockProtoTemplate *template.Template
 	cache              cache.Cache
 }
 
 var ProviderSet = wire.NewSet(
-	StoreProviderSet,
+	store.ProviderSet,
 	workflow.ProviderSet,
 	NewService,
 	wire.Bind(new(genconnect.ProjectServiceHandler), new(*Service)),
@@ -38,7 +39,7 @@ var ProviderSet = wire.NewSet(
 var _ genconnect.ProjectServiceHandler = (*Service)(nil)
 
 func NewService(
-	store Store,
+	store store.Project,
 	manager workflow.Manager,
 	cache cache.Cache,
 ) (*Service, error) {
@@ -146,27 +147,7 @@ func (s *Service) RunWorklow(ctx context.Context, c *connect.Request[gen.RunWork
 		return nil, errors.Wrapf(err, "failed to get project %s", c.Msg.ProjectId)
 	}
 
-	bucketDir, err := s.cache.GetFolder(".protoflow")
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get bucket dir")
-	}
-
-	// TODO breadchris this should not be hardcoded, this should be provided to the service when it is created?
-	// TODO breadchris also where are the project resources?
-	projectResources := workflow.ResourceMap{
-		"docs": &workflow.DocstoreResource{
-			Docstore: &gen.Docstore{
-				Url: "mem://",
-			},
-		},
-		"bucket": &workflow.BlobstoreResource{
-			Blobstore: &gen.Blobstore{
-				Url: "file://" + bucketDir,
-			},
-		},
-	}
-
-	w, err := workflow.FromProject(project, projectResources)
+	w, err := workflow.FromProject(project)
 	if err != nil {
 		return nil, err
 	}
@@ -205,22 +186,19 @@ func (s *Service) RunNode(ctx context.Context, c *connect.Request[gen.RunNodeReq
 	panic("implement me")
 }
 
-func (s *Service) GetBlockInfo(ctx context.Context, c *connect.Request[gen.GetNodeInfoRequest]) (*connect.Response[gen.GetNodeInfoResponse], error) {
-	//b, err := builder.FromMethod(m)
-	//if err != nil {
-	//	return nil, errors.Wrapf(err, "unable to build method descriptor for %s.%s", serviceName, methodName)
-	//}
-	//d, err := b.BuildDescriptor()
-	//if err != nil {
-	//	return nil, errors.Wrapf(err, "unable to build method descriptor for %s.%s", serviceName, methodName)
-	//}
-	//
-	//p := protoprint.Printer{}
-	//s, err := p.PrintProtoToString(d)
-	//if err != nil {
-	//	return nil, errors.Wrapf(err, "unable to print method descriptor for %s.%s", serviceName, methodName)
-	//}
-	return nil, nil
+func (s *Service) GetNodeInfo(ctx context.Context, c *connect.Request[gen.GetNodeInfoRequest]) (*connect.Response[gen.GetNodeInfoResponse], error) {
+	project, err := s.store.GetProject(c.Msg.ProjectId)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get project %s", c.Msg.ProjectId)
+	}
+	nodeInfo, err := workflow.GetNodeInfo(project, c.Msg.NodeId)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get node info for node %s", c.Msg.NodeId)
+	}
+	return connect.NewResponse(&gen.GetNodeInfoResponse{
+		MethodProto: nodeInfo.MethodProto,
+		TypeInfo:    nodeInfo.TypeInfo,
+	}), nil
 }
 
 func (s *Service) GetProject(context.Context, *connect.Request[gen.GetProjectRequest]) (*connect.Response[gen.GetProjectResponse], error) {
@@ -243,43 +221,15 @@ func (s *Service) GetProjects(ctx context.Context, req *connect.Request[gen.GetP
 }
 
 func (s *Service) CreateProject(ctx context.Context, req *connect.Request[gen.CreateProjectRequest]) (*connect.Response[gen.CreateProjectResponse], error) {
-	project := gen.Project{
-		Id:   uuid.NewString(),
-		Name: req.Msg.Name,
-		Resources: []*gen.Resource{
-			{
-				Id:   uuid.NewString(),
-				Name: "protoflow",
-				Type: &gen.Resource_GrpcService{
-					GrpcService: &gen.GRPCService{
-						Host: "localhost:8080",
-					},
-				},
-			},
-			{
-				Id:   uuid.NewString(),
-				Name: "js",
-				Type: &gen.Resource_LanguageService{
-					LanguageService: &gen.LanguageService{
-						Runtime: gen.Runtime_NODE,
-						Grpc: &gen.GRPCService{
-							Host: "localhost:8086",
-						},
-					},
-				},
-			},
-		},
+	// TODO breadchris this folder should be configurable
+	bucketDir, err := s.cache.GetFolder(".protoflow")
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get bucket dir")
 	}
 
-	for _, resource := range project.Resources {
-		blocks, err := grpc.EnumerateResourceBlocks(resource)
-		if err != nil {
-			return nil, errors.Wrapf(err, "failed to create resource: %s", resource.Name)
-		}
-		resource.Blocks = blocks
-	}
+	project := getDefaultProject(req.Msg.Name, bucketDir)
 
-	_, err := s.store.CreateProject(&project)
+	_, err = s.store.CreateProject(&project)
 
 	if err != nil {
 		return connect.NewResponse(&gen.CreateProjectResponse{Project: nil}), nil
@@ -310,4 +260,12 @@ func (s *Service) SaveProject(ctx context.Context, req *connect.Request[gen.Save
 	}
 
 	return connect.NewResponse(&gen.SaveProjectResponse{Project: project}), nil
+}
+
+func (s *Service) GetWorkflowRuns(ctx context.Context, c *connect.Request[gen.GetWorkflowRunsRequest]) (*connect.Response[gen.GetWorkflowRunsResponse], error) {
+	runs, err := s.store.GetWorkflowRunsForProject(c.Msg.ProjectId)
+	if err != nil {
+		return nil, err
+	}
+	return connect.NewResponse(&gen.GetWorkflowRunsResponse{Runs: runs}), nil
 }

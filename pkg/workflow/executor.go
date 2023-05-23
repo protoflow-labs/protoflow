@@ -3,6 +3,7 @@ package workflow
 import (
 	"fmt"
 	"github.com/pkg/errors"
+	"github.com/protoflow-labs/protoflow/gen"
 	"go.temporal.io/sdk/workflow"
 	"reflect"
 	"runtime"
@@ -11,6 +12,7 @@ import (
 
 type Executor interface {
 	Execute(activity interface{}, block interface{}, input Input) (*Result, error)
+	Trace(nodeExecution *gen.NodeExecution) error
 }
 
 var _ Executor = &TemporalExecutor{}
@@ -34,11 +36,24 @@ func (e *TemporalExecutor) Execute(activity interface{}, block interface{}, inpu
 	return &result, nil
 }
 
+func (e *TemporalExecutor) Trace(nodeExecution *gen.NodeExecution) error {
+	//TODO implement me
+	panic("implement me")
+}
+
 type MemoryExecutor struct {
-	ctx *MemoryContext
+	ctx   *MemoryContext
+	trace chan<- *gen.NodeExecution
 }
 
 var _ Executor = &MemoryExecutor{}
+
+func NewMemoryExecutor(ctx *MemoryContext, trace chan<- *gen.NodeExecution) *MemoryExecutor {
+	return &MemoryExecutor{
+		ctx:   ctx,
+		trace: trace,
+	}
+}
 
 func (e *MemoryExecutor) Execute(activity interface{}, block interface{}, input Input) (*Result, error) {
 	activityArgs := []interface{}{
@@ -58,10 +73,14 @@ func (e *MemoryExecutor) Execute(activity interface{}, block interface{}, input 
 	return &result, nil
 }
 
-func NewMemoryExecutor(ctx *MemoryContext) *MemoryExecutor {
-	return &MemoryExecutor{
-		ctx: ctx,
+func (e *MemoryExecutor) Trace(nodeExecution *gen.NodeExecution) error {
+	if e.trace != nil {
+		// Do not block on writing to this channel
+		go func() {
+			e.trace <- nodeExecution
+		}()
 	}
+	return nil
 }
 
 func getFunctionName(i interface{}) (name string, isMethod bool) {

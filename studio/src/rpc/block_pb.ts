@@ -4,7 +4,7 @@
 // @ts-nocheck
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
-import { DescriptorProto, EnumDescriptorProto, Message, MethodDescriptorProto, proto3 } from "@bufbuild/protobuf";
+import { Any, DescriptorProto, Message, proto3 } from "@bufbuild/protobuf";
 
 /**
  * TODO breadchris think through this more
@@ -157,6 +157,11 @@ export class Config extends Message<Config> {
    */
   type?: DescriptorProto;
 
+  /**
+   * @generated from field: google.protobuf.Any value = 2;
+   */
+  value?: Any;
+
   constructor(data?: PartialMessage<Config>) {
     super();
     proto3.util.initPartial(data, this);
@@ -166,6 +171,7 @@ export class Config extends Message<Config> {
   static readonly typeName = "block.Config";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "type", kind: "message", T: DescriptorProto },
+    { no: 2, name: "value", kind: "message", T: Any },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Config {
@@ -513,31 +519,6 @@ export class GRPC extends Message<GRPC> {
    */
   method = "";
 
-  /**
-   * @generated from field: google.protobuf.DescriptorProto input = 4;
-   */
-  input?: DescriptorProto;
-
-  /**
-   * @generated from field: google.protobuf.DescriptorProto output = 5;
-   */
-  output?: DescriptorProto;
-
-  /**
-   * @generated from field: map<string, google.protobuf.DescriptorProto> desc_lookup = 6;
-   */
-  descLookup: { [key: string]: DescriptorProto } = {};
-
-  /**
-   * @generated from field: map<string, google.protobuf.EnumDescriptorProto> enum_lookup = 7;
-   */
-  enumLookup: { [key: string]: EnumDescriptorProto } = {};
-
-  /**
-   * @generated from field: google.protobuf.MethodDescriptorProto method_desc = 8;
-   */
-  methodDesc?: MethodDescriptorProto;
-
   constructor(data?: PartialMessage<GRPC>) {
     super();
     proto3.util.initPartial(data, this);
@@ -549,11 +530,6 @@ export class GRPC extends Message<GRPC> {
     { no: 1, name: "package", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "service", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 3, name: "method", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 4, name: "input", kind: "message", T: DescriptorProto },
-    { no: 5, name: "output", kind: "message", T: DescriptorProto },
-    { no: 6, name: "desc_lookup", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "message", T: DescriptorProto} },
-    { no: 7, name: "enum_lookup", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "message", T: EnumDescriptorProto} },
-    { no: 8, name: "method_desc", kind: "message", T: MethodDescriptorProto },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GRPC {

@@ -4,9 +4,83 @@
 // @ts-nocheck
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
-import { Message, proto3 } from "@bufbuild/protobuf";
+import { DescriptorProto, EnumDescriptorProto, Message, MethodDescriptorProto, proto3 } from "@bufbuild/protobuf";
 import { Graph } from "./graph_pb.js";
 import { Resource } from "./resource_pb.js";
+
+/**
+ * @generated from message project.GetWorkflowRunsRequest
+ */
+export class GetWorkflowRunsRequest extends Message<GetWorkflowRunsRequest> {
+  /**
+   * @generated from field: string project_id = 1;
+   */
+  projectId = "";
+
+  constructor(data?: PartialMessage<GetWorkflowRunsRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "project.GetWorkflowRunsRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "project_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetWorkflowRunsRequest {
+    return new GetWorkflowRunsRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetWorkflowRunsRequest {
+    return new GetWorkflowRunsRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetWorkflowRunsRequest {
+    return new GetWorkflowRunsRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetWorkflowRunsRequest | PlainMessage<GetWorkflowRunsRequest> | undefined, b: GetWorkflowRunsRequest | PlainMessage<GetWorkflowRunsRequest> | undefined): boolean {
+    return proto3.util.equals(GetWorkflowRunsRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message project.GetWorkflowRunsResponse
+ */
+export class GetWorkflowRunsResponse extends Message<GetWorkflowRunsResponse> {
+  /**
+   * @generated from field: repeated project.WorkflowRun runs = 1;
+   */
+  runs: WorkflowRun[] = [];
+
+  constructor(data?: PartialMessage<GetWorkflowRunsResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "project.GetWorkflowRunsResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "runs", kind: "message", T: WorkflowRun, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetWorkflowRunsResponse {
+    return new GetWorkflowRunsResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetWorkflowRunsResponse {
+    return new GetWorkflowRunsResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetWorkflowRunsResponse {
+    return new GetWorkflowRunsResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetWorkflowRunsResponse | PlainMessage<GetWorkflowRunsResponse> | undefined, b: GetWorkflowRunsResponse | PlainMessage<GetWorkflowRunsResponse> | undefined): boolean {
+    return proto3.util.equals(GetWorkflowRunsResponse, a, b);
+  }
+}
 
 /**
  * @generated from message project.WorkflowRun
@@ -18,34 +92,14 @@ export class WorkflowRun extends Message<WorkflowRun> {
   id = "";
 
   /**
-   * @generated from field: string project_id = 2;
+   * @generated from field: project.RunWorkflowRequest request = 2;
    */
-  projectId = "";
+  request?: RunWorkflowRequest;
 
   /**
-   * @generated from field: string node_id = 3;
+   * @generated from field: repeated project.NodeExecution node_execs = 3;
    */
-  nodeId = "";
-
-  /**
-   * @generated from field: string input = 4;
-   */
-  input = "";
-
-  /**
-   * @generated from field: string output = 5;
-   */
-  output = "";
-
-  /**
-   * @generated from field: string created_at = 6;
-   */
-  createdAt = "";
-
-  /**
-   * @generated from field: string updated_at = 7;
-   */
-  updatedAt = "";
+  nodeExecs: NodeExecution[] = [];
 
   constructor(data?: PartialMessage<WorkflowRun>) {
     super();
@@ -56,12 +110,8 @@ export class WorkflowRun extends Message<WorkflowRun> {
   static readonly typeName = "project.WorkflowRun";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "project_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 3, name: "node_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 4, name: "input", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 5, name: "output", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 6, name: "created_at", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 7, name: "updated_at", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "request", kind: "message", T: RunWorkflowRequest },
+    { no: 3, name: "node_execs", kind: "message", T: NodeExecution, repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): WorkflowRun {
@@ -78,6 +128,55 @@ export class WorkflowRun extends Message<WorkflowRun> {
 
   static equals(a: WorkflowRun | PlainMessage<WorkflowRun> | undefined, b: WorkflowRun | PlainMessage<WorkflowRun> | undefined): boolean {
     return proto3.util.equals(WorkflowRun, a, b);
+  }
+}
+
+/**
+ * @generated from message project.NodeExecution
+ */
+export class NodeExecution extends Message<NodeExecution> {
+  /**
+   * @generated from field: string node_id = 1;
+   */
+  nodeId = "";
+
+  /**
+   * @generated from field: string input = 2;
+   */
+  input = "";
+
+  /**
+   * @generated from field: string output = 3;
+   */
+  output = "";
+
+  constructor(data?: PartialMessage<NodeExecution>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "project.NodeExecution";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "node_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "input", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "output", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): NodeExecution {
+    return new NodeExecution().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): NodeExecution {
+    return new NodeExecution().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): NodeExecution {
+    return new NodeExecution().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: NodeExecution | PlainMessage<NodeExecution> | undefined, b: NodeExecution | PlainMessage<NodeExecution> | undefined): boolean {
+    return proto3.util.equals(NodeExecution, a, b);
   }
 }
 
@@ -125,18 +224,89 @@ export class GetNodeInfoRequest extends Message<GetNodeInfoRequest> {
 }
 
 /**
+ * @generated from message project.GRPCTypeInfo
+ */
+export class GRPCTypeInfo extends Message<GRPCTypeInfo> {
+  /**
+   * @generated from field: google.protobuf.DescriptorProto input = 1;
+   */
+  input?: DescriptorProto;
+
+  /**
+   * @generated from field: google.protobuf.DescriptorProto output = 2;
+   */
+  output?: DescriptorProto;
+
+  /**
+   * @generated from field: map<string, google.protobuf.DescriptorProto> desc_lookup = 3;
+   */
+  descLookup: { [key: string]: DescriptorProto } = {};
+
+  /**
+   * @generated from field: map<string, google.protobuf.EnumDescriptorProto> enum_lookup = 4;
+   */
+  enumLookup: { [key: string]: EnumDescriptorProto } = {};
+
+  /**
+   * @generated from field: google.protobuf.MethodDescriptorProto method_desc = 5;
+   */
+  methodDesc?: MethodDescriptorProto;
+
+  /**
+   * @generated from field: string package_name = 6;
+   */
+  packageName = "";
+
+  constructor(data?: PartialMessage<GRPCTypeInfo>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "project.GRPCTypeInfo";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "input", kind: "message", T: DescriptorProto },
+    { no: 2, name: "output", kind: "message", T: DescriptorProto },
+    { no: 3, name: "desc_lookup", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "message", T: DescriptorProto} },
+    { no: 4, name: "enum_lookup", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "message", T: EnumDescriptorProto} },
+    { no: 5, name: "method_desc", kind: "message", T: MethodDescriptorProto },
+    { no: 6, name: "package_name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GRPCTypeInfo {
+    return new GRPCTypeInfo().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GRPCTypeInfo {
+    return new GRPCTypeInfo().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GRPCTypeInfo {
+    return new GRPCTypeInfo().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GRPCTypeInfo | PlainMessage<GRPCTypeInfo> | undefined, b: GRPCTypeInfo | PlainMessage<GRPCTypeInfo> | undefined): boolean {
+    return proto3.util.equals(GRPCTypeInfo, a, b);
+  }
+}
+
+/**
  * @generated from message project.GetNodeInfoResponse
  */
 export class GetNodeInfoResponse extends Message<GetNodeInfoResponse> {
   /**
-   * @generated from field: string input_type = 1;
+   * A compiled view of the method
+   *
+   * @generated from field: string method_proto = 1;
    */
-  inputType = "";
+  methodProto = "";
 
   /**
-   * @generated from field: string output_type = 2;
+   * Type information for the input and output
+   *
+   * @generated from field: project.GRPCTypeInfo type_info = 2;
    */
-  outputType = "";
+  typeInfo?: GRPCTypeInfo;
 
   constructor(data?: PartialMessage<GetNodeInfoResponse>) {
     super();
@@ -146,8 +316,8 @@ export class GetNodeInfoResponse extends Message<GetNodeInfoResponse> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "project.GetNodeInfoResponse";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "input_type", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "output_type", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 1, name: "method_proto", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "type_info", kind: "message", T: GRPCTypeInfo },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetNodeInfoResponse {

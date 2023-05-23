@@ -1,9 +1,10 @@
-import { Caption1, CardHeader, Text } from "@fluentui/react-components";
+import {Badge, Caption1, CardFooter, CardHeader, Text} from "@fluentui/react-components";
 import {MdCode, MdHttp, MdOutbound} from "react-icons/md";
 import { Handle, NodeProps, Position } from "reactflow";
 import { BlockCard } from "./BlockCard";
-import {DescriptorProto} from "@bufbuild/protobuf";
 import {GRPC} from "@/rpc/block_pb";
+import {useProjectContext} from "@/providers/ProjectProvider";
+import React from "react";
 
 export type GRPCBlockProps = NodeProps<GRPCData>;
 
@@ -12,12 +13,12 @@ export type GRPCData = {
   config: {
     grpc: GRPC
   };
-  input: GRPC['input']
   resourceIds: string[];
 };
 
 export function GRPCBlock(props: GRPCBlockProps) {
   const { data, selected } = props;
+  const {resources} = useProjectContext();
 
   return (
     <>

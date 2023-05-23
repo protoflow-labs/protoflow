@@ -42,7 +42,7 @@ const options = {
                 const transformed = await postcss([
                     tailwindcss({
                         content: [
-                            './src/**/*.{ts,tsx}',
+                            './src/**/*.{js,jsx,ts,tsx}',
                         ],
                         theme: {
                             extend: {},

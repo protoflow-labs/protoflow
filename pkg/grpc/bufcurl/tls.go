@@ -17,7 +17,7 @@ package bufcurl
 import (
 	"crypto/tls"
 	"crypto/x509"
-	"github.com/protoflow-labs/protoflow/pkg/grpc/verbose"
+	"github.com/protoflow-labs/protoflow/pkg/grpc/bufcurl/verbose"
 	"net"
 	"os"
 	"strings"

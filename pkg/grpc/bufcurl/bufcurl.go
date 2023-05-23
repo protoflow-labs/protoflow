@@ -17,7 +17,7 @@ package bufcurl
 import (
 	"context"
 	"fmt"
-	"github.com/protoflow-labs/protoflow/pkg/grpc/protoencoding"
+	"github.com/protoflow-labs/protoflow/pkg/grpc/bufcurl/protoencoding"
 	"io"
 	"net/http"
 

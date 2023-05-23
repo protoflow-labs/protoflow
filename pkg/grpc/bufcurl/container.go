@@ -1,7 +1,7 @@
 package bufcurl
 
 import (
-	"github.com/protoflow-labs/protoflow/pkg/grpc/verbose"
+	"github.com/protoflow-labs/protoflow/pkg/grpc/bufcurl/verbose"
 	"github.com/rs/zerolog/log"
 	"go.uber.org/zap"
 	"io"

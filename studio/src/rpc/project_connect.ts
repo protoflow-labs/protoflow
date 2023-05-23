@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { CreateProjectRequest, CreateProjectResponse, CreateResourceRequest, CreateResourceResponse, DeleteProjectRequest, DeleteProjectResponse, DeleteResourceRequest, DeleteResourceResponse, GetNodeInfoRequest, GetNodeInfoResponse, GetProjectRequest, GetProjectResponse, GetProjectsRequest, GetProjectsResponse, GetResourcesRequest, GetResourcesResponse, RunNodeRequest, RunOutput, RunWorkflowRequest, SaveProjectRequest, SaveProjectResponse } from "./project_pb.js";
+import { CreateProjectRequest, CreateProjectResponse, CreateResourceRequest, CreateResourceResponse, DeleteProjectRequest, DeleteProjectResponse, DeleteResourceRequest, DeleteResourceResponse, GetNodeInfoRequest, GetNodeInfoResponse, GetProjectRequest, GetProjectResponse, GetProjectsRequest, GetProjectsResponse, GetResourcesRequest, GetResourcesResponse, GetWorkflowRunsRequest, GetWorkflowRunsResponse, RunNodeRequest, RunOutput, RunWorkflowRequest, SaveProjectRequest, SaveProjectResponse } from "./project_pb.js";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -67,10 +67,10 @@ export const ProjectService = {
       kind: MethodKind.Unary,
     },
     /**
-     * @generated from rpc project.ProjectService.GetBlockInfo
+     * @generated from rpc project.ProjectService.GetNodeInfo
      */
-    getBlockInfo: {
-      name: "GetBlockInfo",
+    getNodeInfo: {
+      name: "GetNodeInfo",
       I: GetNodeInfoRequest,
       O: GetNodeInfoResponse,
       kind: MethodKind.Unary,
@@ -109,6 +109,15 @@ export const ProjectService = {
       name: "RunNode",
       I: RunNodeRequest,
       O: RunOutput,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc project.ProjectService.GetWorkflowRuns
+     */
+    getWorkflowRuns: {
+      name: "GetWorkflowRuns",
+      I: GetWorkflowRunsRequest,
+      O: GetWorkflowRunsResponse,
       kind: MethodKind.Unary,
     },
   }

@@ -15,7 +15,7 @@
 package protoencoding
 
 import (
-	"github.com/protoflow-labs/protoflow/pkg/grpc/protodescriptor"
+	"github.com/protoflow-labs/protoflow/pkg/grpc/bufcurl/protodescriptor"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protodesc"
 	"google.golang.org/protobuf/reflect/protoreflect"
