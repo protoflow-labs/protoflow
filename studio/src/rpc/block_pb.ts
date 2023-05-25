@@ -7,6 +7,32 @@ import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialM
 import { Any, DescriptorProto, Message, proto3 } from "@bufbuild/protobuf";
 
 /**
+ * @generated from enum block.Runtime
+ */
+export enum Runtime {
+  /**
+   * @generated from enum value: NODE = 0;
+   */
+  NODE = 0,
+
+  /**
+   * @generated from enum value: PYTHON = 1;
+   */
+  PYTHON = 1,
+
+  /**
+   * @generated from enum value: GO = 2;
+   */
+  GO = 2,
+}
+// Retrieve enum metadata with: proto3.getEnumType(Runtime)
+proto3.util.setEnumType(Runtime, "block.Runtime", [
+  { no: 0, name: "NODE" },
+  { no: 1, name: "PYTHON" },
+  { no: 2, name: "GO" },
+]);
+
+/**
  * TODO breadchris think through this more
  *
  * @generated from message block.Block
@@ -270,9 +296,9 @@ export class Bucket extends Message<Bucket> {
  */
 export class Function extends Message<Function> {
   /**
-   * @generated from field: string runtime = 1;
+   * @generated from field: block.Runtime runtime = 1;
    */
-  runtime = "";
+  runtime = Runtime.NODE;
 
   /**
    * @generated from field: block.GRPC grpc = 2;
@@ -287,7 +313,7 @@ export class Function extends Message<Function> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "block.Function";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "runtime", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 1, name: "runtime", kind: "enum", T: proto3.getEnumType(Runtime) },
     { no: 2, name: "grpc", kind: "message", T: GRPC },
   ]);
 

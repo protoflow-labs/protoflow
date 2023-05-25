@@ -1,11 +1,11 @@
-package cache
+package bucket
 
 import (
 	"github.com/rs/zerolog/log"
 	"go.uber.org/config"
 )
 
-const ConfigurationKey = "cache"
+const ConfigurationKey = "bucket"
 
 type Config struct {
 	Name string `yaml:"name"`

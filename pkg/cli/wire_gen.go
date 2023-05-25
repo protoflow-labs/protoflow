@@ -8,7 +8,7 @@ package cli
 
 import (
 	"github.com/protoflow-labs/protoflow/pkg/api"
-	"github.com/protoflow-labs/protoflow/pkg/cache"
+	"github.com/protoflow-labs/protoflow/pkg/bucket"
 	"github.com/protoflow-labs/protoflow/pkg/config"
 	"github.com/protoflow-labs/protoflow/pkg/db"
 	"github.com/protoflow-labs/protoflow/pkg/generate"
@@ -21,8 +21,8 @@ import (
 
 // Injectors from wire.go:
 
-func Wire(cacheConfig cache.Config) (*cli.App, error) {
-	localCache, err := cache.NewUserCache(cacheConfig)
+func Wire(cacheConfig bucket.Config) (*cli.App, error) {
+	localCache, err := bucket.NewUserCache(cacheConfig)
 	if err != nil {
 		return nil, err
 	}

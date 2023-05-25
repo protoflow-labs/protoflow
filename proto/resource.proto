@@ -18,14 +18,8 @@ message Resource {
   repeated block.Block blocks = 8;
 }
 
-enum Runtime {
-  NODE = 0;
-  PYTHON = 1;
-  GO = 2;
-}
-
 message LanguageService {
-  Runtime runtime = 1;
+  block.Runtime runtime = 1;
   GRPCService grpc = 2;
 }
 

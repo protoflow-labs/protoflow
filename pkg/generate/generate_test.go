@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/protoflow-labs/protoflow/gen"
-	"github.com/protoflow-labs/protoflow/pkg/cache"
+	"github.com/protoflow-labs/protoflow/pkg/bucket"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -26,7 +26,7 @@ func TestGenerate(t *testing.T) {
 		},
 	}
 
-	cache, err := cache.NewUserCache(cache.Config{
+	cache, err := bucket.NewUserCache(bucket.Config{
 		Name: ".protoflow_test",
 	})
 	assert.NoError(t, err)

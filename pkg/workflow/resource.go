@@ -30,22 +30,28 @@ const (
 )
 
 func ResourceFromProto(r *gen.Resource) (Resource, error) {
+	base := &BaseResource{}
 	switch t := r.Type.(type) {
 	case *gen.Resource_LanguageService:
 		return &LanguageServiceResource{
-			LanguageService: r.GetLanguageService(),
+			GRPCResource: &GRPCResource{
+				BaseResource: base,
+				GRPCService:  t.LanguageService.Grpc,
+			},
+			LanguageService: t.LanguageService,
 		}, nil
 	case *gen.Resource_GrpcService:
 		return &GRPCResource{
-			GRPCService: r.GetGrpcService(),
+			BaseResource: base,
+			GRPCService:  t.GrpcService,
 		}, nil
 	case *gen.Resource_Docstore:
 		return &DocstoreResource{
-			Docstore: r.GetDocstore(),
+			Docstore: t.Docstore,
 		}, nil
 	case *gen.Resource_Blobstore:
 		return &BlobstoreResource{
-			Blobstore: r.GetBlobstore(),
+			Blobstore: t.Blobstore,
 		}, nil
 	default:
 		return nil, fmt.Errorf("no resource found with type: %s", t)
@@ -55,9 +61,24 @@ func ResourceFromProto(r *gen.Resource) (Resource, error) {
 type Resource interface {
 	Init() (func(), error)
 	Name() string
+	RegisterNode(node Node)
+	GetNodes() []Node
+}
+
+type BaseResource struct {
+	Nodes []Node
+}
+
+func (r *BaseResource) RegisterNode(node Node) {
+	r.Nodes = append(r.Nodes, node)
+}
+
+func (r *BaseResource) GetNodes() []Node {
+	return r.Nodes
 }
 
 type GRPCResource struct {
+	*BaseResource
 	*gen.GRPCService
 }
 
@@ -79,6 +100,7 @@ func (r *GRPCResource) Init() (func(), error) {
 }
 
 type DocstoreResource struct {
+	*BaseResource
 	*gen.Docstore
 }
 
@@ -97,7 +119,7 @@ func (r *DocstoreResource) WithCollection(name string) (*docstore.Collection, fu
 		protoDir string
 	)
 	if strings.HasPrefix(r.Url, "mem://") {
-		// TODO breadchris replace this with cache.Cache.GetFolder
+		// TODO breadchris replace this with bucket.Cache.GetFolder
 		protoDir, err = util.ProtoflowHomeDir()
 		if err != nil {
 			return nil, nil, errors.Wrap(err, "could not get protoflow home dir")
@@ -139,6 +161,7 @@ func (r *DocstoreResource) WithCollection(name string) (*docstore.Collection, fu
 }
 
 type BlobstoreResource struct {
+	*BaseResource
 	*gen.Blobstore
 }
 
@@ -178,9 +201,6 @@ func (r *LanguageServiceResource) Name() string {
 }
 
 func (r *LanguageServiceResource) Init() (func(), error) {
-	r.GRPCResource = &GRPCResource{
-		GRPCService: r.LanguageService.Grpc,
-	}
 	return r.GRPCResource.Init()
 }
 

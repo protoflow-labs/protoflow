@@ -1,4 +1,4 @@
-package cache
+package bucket
 
 import (
 	"os"
@@ -9,35 +9,35 @@ import (
 	"github.com/pkg/errors"
 )
 
-type Cache interface {
+type Bucket interface {
 	GetFile(name string) (string, error)
 	GetFolder(name string) (string, error)
-	WithDir(dir string) (Cache, error)
+	WithDir(dir string) (Bucket, error)
 }
 
-type LocalCache struct {
+type LocalBucket struct {
 	dir    string
 	config Config
 }
 
-var _ Cache = &LocalCache{}
+var _ Bucket = &LocalBucket{}
 
 var ProviderSet = wire.NewSet(
 	NewConfig,
 	NewUserCache,
-	wire.Bind(new(Cache), new(*LocalCache)),
+	wire.Bind(new(Bucket), new(*LocalBucket)),
 )
 
-func (c *LocalCache) GetFile(name string) (string, error) {
+func (c *LocalBucket) GetFile(name string) (string, error) {
 	return path.Join(c.dir, name), nil
 }
 
-func (c *LocalCache) GetFolder(name string) (string, error) {
+func (c *LocalBucket) GetFolder(name string) (string, error) {
 	p := path.Join(c.dir, name)
 	return p, ensureDirExists(p)
 }
 
-func (c *LocalCache) WithDir(dir string) (Cache, error) {
+func (c *LocalBucket) WithDir(dir string) (Bucket, error) {
 	p := path.Join(c.dir, dir)
 	err := ensureDirExists(p)
 	if err != nil {
@@ -46,24 +46,24 @@ func (c *LocalCache) WithDir(dir string) (Cache, error) {
 	return FromDir(p)
 }
 
-func NewUserCache(c Config) (*LocalCache, error) {
+func NewUserCache(c Config) (*LocalBucket, error) {
 	folder, err := createLocalDir(c.Name)
 	if err != nil {
 		return nil, err
 	}
 
-	return &LocalCache{
+	return &LocalBucket{
 		dir:    folder,
 		config: c,
 	}, nil
 }
 
-func FromDir(dir string) (*LocalCache, error) {
+func FromDir(dir string) (*LocalBucket, error) {
 	err := ensureDirExists(dir)
 	if err != nil {
 		return nil, err
 	}
-	return &LocalCache{
+	return &LocalBucket{
 		dir: dir,
 	}, nil
 }

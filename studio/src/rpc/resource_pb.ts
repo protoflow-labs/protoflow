@@ -5,33 +5,7 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3 } from "@bufbuild/protobuf";
-import { Block } from "./block_pb.js";
-
-/**
- * @generated from enum resource.Runtime
- */
-export enum Runtime {
-  /**
-   * @generated from enum value: NODE = 0;
-   */
-  NODE = 0,
-
-  /**
-   * @generated from enum value: PYTHON = 1;
-   */
-  PYTHON = 1,
-
-  /**
-   * @generated from enum value: GO = 2;
-   */
-  GO = 2,
-}
-// Retrieve enum metadata with: proto3.getEnumType(Runtime)
-proto3.util.setEnumType(Runtime, "resource.Runtime", [
-  { no: 0, name: "NODE" },
-  { no: 1, name: "PYTHON" },
-  { no: 2, name: "GO" },
-]);
+import { Block, Runtime } from "./block_pb.js";
 
 /**
  * @generated from message resource.Resource
@@ -127,7 +101,7 @@ export class Resource extends Message<Resource> {
  */
 export class LanguageService extends Message<LanguageService> {
   /**
-   * @generated from field: resource.Runtime runtime = 1;
+   * @generated from field: block.Runtime runtime = 1;
    */
   runtime = Runtime.NODE;
 

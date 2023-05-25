@@ -1,9 +1,9 @@
-{{- range index . "FunctionNodes"}}
+{{- range .Methods}}
 import {{.Name}} from './{{.Name}}/index.js';
 {{- end}}
 
 export default {
-  {{- range index . "FunctionNodes"}}
+  {{- range .Methods}}
   "{{lowercaseFirstLetter .Name}}": {{.Name}},
   {{- end}}
 }

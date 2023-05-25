@@ -9,7 +9,7 @@ import (
 	"github.com/protoflow-labs/protoflow/pkg/temporal"
 	"github.com/protoflow-labs/protoflow/pkg/workflow"
 
-	"github.com/protoflow-labs/protoflow/pkg/cache"
+	"github.com/protoflow-labs/protoflow/pkg/bucket"
 	"github.com/protoflow-labs/protoflow/pkg/db"
 	"github.com/protoflow-labs/protoflow/pkg/log"
 	"go.uber.org/config"
@@ -40,7 +40,7 @@ func NewDefaultConfig() BaseConfig {
 	}
 }
 
-func NewProvider(cache cache.Cache) (config.Provider, error) {
+func NewProvider(cache bucket.Bucket) (config.Provider, error) {
 	opts := []config.YAMLOption{
 		config.Permissive(),
 		config.Expand(os.LookupEnv),

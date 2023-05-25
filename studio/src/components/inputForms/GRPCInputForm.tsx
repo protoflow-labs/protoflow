@@ -1,5 +1,5 @@
 import {FieldDescriptorProto} from "@bufbuild/protobuf";
-import {FC, useState} from "react";
+import React, {FC, useState} from "react";
 import {Control, useFieldArray, UseFormRegister, useWatch} from "react-hook-form";
 import {
     Accordion,
@@ -8,10 +8,10 @@ import {
     AccordionPanel,
     Button,
     Field,
-    Input,
-    Select
+    Select,
+    Textarea,
 } from "@fluentui/react-components";
-import {GRPC, GRPCTypeInfo} from "@/rpc/block_pb";
+import {GRPCTypeInfo} from "@/rpc/project_pb";
 
 type GrpcFormField = {
     type: 'field'
@@ -112,7 +112,7 @@ const InputFormContents: FC<InputFormContentsProps> = (props) => {
     }
     return (
         <Field key={field.number} label={field.name} required>
-            <Input value={fieldValue} {...register(fieldFormName)} />
+            <Textarea value={fieldValue} {...register(fieldFormName)} resize={'vertical'} />
         </Field>
     )
 }

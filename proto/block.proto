@@ -5,6 +5,12 @@ option go_package = "block";
 import "google/protobuf/any.proto";
 import "google/protobuf/descriptor.proto";
 
+enum Runtime {
+  NODE = 0;
+  PYTHON = 1;
+  GO = 2;
+}
+
 // TODO breadchris think through this more
 message Block {
   string id = 1;
@@ -40,7 +46,9 @@ message Bucket {
 }
 
 message Function {
-  string runtime = 1;
+  // TODO breadchris since a function will always belong to a resource, runtime doesn't need to be specified here
+  Runtime runtime = 1;
+  // TODO breadchris we actually don't need their either since we can infer it from the resource
   GRPC grpc = 2;
 }
 

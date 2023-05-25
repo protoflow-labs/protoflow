@@ -10,6 +10,7 @@ import (
 	"github.com/protoflow-labs/protoflow/pkg/grpc/bufcurl"
 	"github.com/protoflow-labs/protoflow/pkg/util"
 	"io"
+	"strings"
 )
 
 type Input struct {
@@ -27,6 +28,7 @@ type Result struct {
 type Node interface {
 	Execute(executor Executor, input Input) (*Result, error)
 	Dependencies() []string
+	NormalizedName() string
 }
 
 type BaseNode struct {
@@ -36,6 +38,14 @@ type BaseNode struct {
 
 func (n *BaseNode) Dependencies() []string {
 	return n.ResourceIDs
+}
+
+func (n *BaseNode) NormalizedName() string {
+	name := util.ToTitleCase(n.Name)
+	if strings.Contains(name, ".") {
+		name = strings.Split(name, ".")[1]
+	}
+	return name
 }
 
 type GRPCNode struct {

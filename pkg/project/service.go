@@ -3,17 +3,14 @@ package project
 import (
 	"context"
 	"encoding/json"
+	"github.com/protoflow-labs/protoflow/pkg/bucket"
+	"github.com/protoflow-labs/protoflow/pkg/grpc"
 	store "github.com/protoflow-labs/protoflow/pkg/store"
 	"github.com/rs/zerolog/log"
-	"html/template"
-
-	"github.com/protoflow-labs/protoflow/pkg/cache"
-	"github.com/protoflow-labs/protoflow/pkg/grpc"
 
 	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/gen/genconnect"
 	"github.com/protoflow-labs/protoflow/pkg/workflow"
-	"github.com/protoflow-labs/protoflow/templates"
 	"google.golang.org/protobuf/types/known/anypb"
 
 	"github.com/bufbuild/connect-go"
@@ -23,10 +20,9 @@ import (
 )
 
 type Service struct {
-	store              store.Project
-	manager            workflow.Manager
-	blockProtoTemplate *template.Template
-	cache              cache.Cache
+	store   store.Project
+	manager workflow.Manager
+	cache   bucket.Bucket
 }
 
 var ProviderSet = wire.NewSet(
@@ -41,18 +37,12 @@ var _ genconnect.ProjectServiceHandler = (*Service)(nil)
 func NewService(
 	store store.Project,
 	manager workflow.Manager,
-	cache cache.Cache,
+	cache bucket.Bucket,
 ) (*Service, error) {
-	blockProtoTemplate, err := template.New("block").ParseFS(templates.Templates, "*.template.proto")
-	if err != nil {
-		return nil, err
-	}
-
 	return &Service{
-		store:              store,
-		manager:            manager,
-		blockProtoTemplate: blockProtoTemplate,
-		cache:              cache,
+		store:   store,
+		manager: manager,
+		cache:   cache,
 	}, nil
 }
 

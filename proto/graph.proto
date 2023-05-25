@@ -20,6 +20,7 @@ message Node {
   float x = 4;
   float y = 5;
 
+  // TODO breadchris a node should only ever have one resource it is associated with
   // resource dependencies
   repeated string resource_ids = 6;
 

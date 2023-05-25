@@ -52,6 +52,14 @@ func FromProject(project *gen.Project) (*Workflow, error) {
 			return nil, errors.Wrapf(err, "error creating block for node %s", node.Id)
 		}
 		nodeLookup[node.Id] = builtNode
+
+		for _, r := range node.ResourceIds {
+			resource, ok := resources[r]
+			if !ok {
+				return nil, fmt.Errorf("resource %s not found", r)
+			}
+			resource.RegisterNode(builtNode)
+		}
 	}
 
 	for _, edge := range project.Graph.Edges {

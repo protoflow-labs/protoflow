@@ -146,7 +146,7 @@ func (a *Activity) ExecuteFunctionNode(ctx context.Context, node *FunctionNode, 
 	if grpcInfo == nil {
 		grpcInfo = &gen.GRPC{
 			Package: "protoflow",
-			Service: node.Function.Runtime + "Service",
+			Service: "Service",
 			Method:  node.Name,
 		}
 	}
