@@ -1,21 +1,20 @@
-import {InputData} from "@/components/blocks/InputBlock";
 import {Divider, Field, Input} from "@fluentui/react-components";
 import React, {useEffect, useState} from "react";
-import {Node} from "reactflow";
 import {EditorActions, useUnselect} from "../EditorActions";
-import {ProtoViewer} from "@/components/blockEditors/common/ProtoViewer";
+import {ProtoViewer} from "@/components/blockEditors/ProtoViewer";
 import {useNodeContext} from "@/providers/NodeProvider";
 import {GRPCInputForm, GRPCInputFormProps} from "@/components/inputForms/GRPCInputForm";
 import {useForm} from "react-hook-form";
 import {getNodeDataKey} from "@/providers/ProjectProvider";
+import {Node} from '@/rpc/graph_pb'
 
 
-export function InputEditor({node}: { node: Node<InputData> }) {
+export function InputEditor({node}: { node: Node }) {
     const onCancel = useUnselect();
     const {nodeInfo} = useNodeContext();
     const {watch, setValue, register, handleSubmit, control} = useForm({
         values: {
-            name: node.data.name || "",
+            name: node.name || "",
             input: nodeInfo?.typeInfo?.input,
             data: JSON.parse(localStorage.getItem(getNodeDataKey(node)) || '{}'),
         },

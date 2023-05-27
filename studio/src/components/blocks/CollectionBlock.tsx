@@ -2,16 +2,12 @@ import { Caption1, CardHeader, Text } from "@fluentui/react-components";
 import { HiCircleStack } from "react-icons/hi2";
 import { Handle, NodeProps, Position } from "reactflow";
 import { BlockCard } from "./BlockCard";
+import {useProjectContext} from "@/providers/ProjectProvider";
 
-export type EntityBlockProps = NodeProps<EntityData>;
-
-export type EntityData = {
-  name: string;
-  config: { entity?: { collection: string } };
-};
-
-export function CollectionBlock(props: EntityBlockProps) {
-  const { data, selected } = props;
+export function CollectionBlock(props: NodeProps) {
+  const { id, selected } = props;
+  const {nodeLookup} = useProjectContext();
+  const node = nodeLookup[id];
 
   return (
     <>
@@ -19,7 +15,7 @@ export function CollectionBlock(props: EntityBlockProps) {
         <CardHeader
           image={<HiCircleStack className="h-5 w-5 bg-gray-800" />}
           header={
-            <Text weight="semibold">{data.name || "Untitled Collection"}</Text>
+            <Text weight="semibold">{node.name || "Untitled Collection"}</Text>
           }
           description={<Caption1>Collection</Caption1>}
         />

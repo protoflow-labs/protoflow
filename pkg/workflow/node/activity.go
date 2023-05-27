@@ -1,13 +1,14 @@
-package workflow
+package node
 
 import (
 	"context"
 	"fmt"
 	"github.com/pkg/errors"
-	"github.com/protoflow-labs/protoflow/gen"
 	"github.com/protoflow-labs/protoflow/pkg/grpc/bufcurl"
 	grpcanal "github.com/protoflow-labs/protoflow/pkg/grpc/manager"
 	"github.com/protoflow-labs/protoflow/pkg/util"
+	"github.com/protoflow-labs/protoflow/pkg/workflow/execute"
+	"github.com/protoflow-labs/protoflow/pkg/workflow/resource"
 	"github.com/rs/zerolog/log"
 	"io"
 	"net/url"
@@ -27,12 +28,12 @@ func formatHost(host string) (string, error) {
 }
 
 // TODO breadchris this should be workflow.Context, but for the memory executor it needs context.Context
-func (a *Activity) ExecuteGRPCNode(ctx context.Context, node *GRPCNode, input Input) (Result, error) {
+func (a *Activity) ExecuteGRPCNode(ctx context.Context, node *GRPCNode, input execute.Input) (execute.Result, error) {
 	log.Info().Msgf("executing node: %s", node.Service)
 
-	g, ok := input.Resources[GRPCResourceType].(*GRPCResource)
+	g, ok := input.Resource.(*resource.GRPCResource)
 	if !ok {
-		return Result{}, fmt.Errorf("error getting GRPC resource: %s.%s", node.Service, node.Method)
+		return execute.Result{}, fmt.Errorf("error getting GRPC resource: %s.%s", node.Service, node.Method)
 	}
 
 	serviceName := node.Service
@@ -42,7 +43,7 @@ func (a *Activity) ExecuteGRPCNode(ctx context.Context, node *GRPCNode, input In
 
 	host, err := formatHost(g.Host)
 	if err != nil {
-		return Result{}, errors.Wrapf(err, "error formatting host: %s", g.Host)
+		return execute.Result{}, errors.Wrapf(err, "error formatting host: %s", g.Host)
 	}
 
 	inputStream := bufcurl.NewMemoryInputStream()
@@ -51,13 +52,13 @@ func (a *Activity) ExecuteGRPCNode(ctx context.Context, node *GRPCNode, input In
 	manager := grpcanal.NewReflectionManager(host)
 	cleanup, err := manager.Init()
 	if err != nil {
-		return Result{}, errors.Wrapf(err, "error initializing reflection manager")
+		return execute.Result{}, errors.Wrapf(err, "error initializing reflection manager")
 	}
 	defer cleanup()
 
 	method, err := manager.ResolveMethod(serviceName, node.Method)
 	if err != nil {
-		return Result{}, errors.Wrapf(err, "error resolving method: %s.%s", serviceName, node.Method)
+		return execute.Result{}, errors.Wrapf(err, "error resolving method: %s.%s", serviceName, node.Method)
 	}
 
 	go func() {
@@ -87,7 +88,7 @@ func (a *Activity) ExecuteGRPCNode(ctx context.Context, node *GRPCNode, input In
 		}
 	}()
 
-	var res Result
+	var res execute.Result
 	switch {
 	case method.IsStreamingServer() && method.IsStreamingClient():
 		// bidirectional stream: multiple requests, multiple responses
@@ -104,7 +105,7 @@ func (a *Activity) ExecuteGRPCNode(ctx context.Context, node *GRPCNode, input In
 			output, err := outputStream.Next()
 			if err != nil {
 				if err != io.EOF {
-					return Result{}, errors.Wrapf(err, "error reading output stream")
+					return execute.Result{}, errors.Wrapf(err, "error reading output stream")
 				}
 				break
 			}
@@ -116,7 +117,7 @@ func (a *Activity) ExecuteGRPCNode(ctx context.Context, node *GRPCNode, input In
 	return res, nil
 }
 
-func (a *Activity) ExecuteRestNode(ctx context.Context, node *RESTNode, input Input) (Result, error) {
+func (a *Activity) ExecuteRestNode(ctx context.Context, node *RESTNode, input execute.Input) (execute.Result, error) {
 	log.Debug().
 		Interface("headers", node.Headers).
 		Str("method", node.Method).
@@ -124,37 +125,23 @@ func (a *Activity) ExecuteRestNode(ctx context.Context, node *RESTNode, input In
 		Msgf("executing rest")
 	res, err := util.InvokeMethodOnUrl(node.Method, node.Path, node.Headers, input.Params)
 	if err != nil {
-		return Result{}, errors.Wrapf(err, "error invoking method: %s", node.Method)
+		return execute.Result{}, errors.Wrapf(err, "error invoking method: %s", node.Method)
 	}
-	return Result{
+	return execute.Result{
 		Data: res,
 	}, nil
 }
 
-func (a *Activity) ExecuteFunctionNode(ctx context.Context, node *FunctionNode, input Input) (Result, error) {
-	log.Debug().Msgf("executing function node: %s.%s", node.Function.Runtime, node.Name)
-	g, ok := input.Resources[LanguageServiceType].(*LanguageServiceResource)
+func (a *Activity) ExecuteFunctionNode(ctx context.Context, node *FunctionNode, input execute.Input) (execute.Result, error) {
+	log.Debug().Msgf("executing function node: %s", node.Name)
+	g, ok := input.Resource.(*resource.LanguageServiceResource)
 	if !ok {
-		return Result{}, fmt.Errorf("error getting language service resource: %s.%s", node.Function.Runtime, node.Name)
+		return execute.Result{}, fmt.Errorf("error getting language service resource: %s", node.Name)
 	}
 
 	// provide the grpc resource to the grpc node call. Is this the best place for this? Should this be provided on injection? Probably.
-	input.Resources[GRPCResourceType] = g.GRPCResource
+	input.Resource = g.GRPCResource
 
-	// TODO breadchris building the config this way is brittle
-	grpcInfo := node.Function.Grpc
-	if grpcInfo == nil {
-		grpcInfo = &gen.GRPC{
-			Package: "protoflow",
-			Service: "Service",
-			Method:  node.Name,
-		}
-	}
-
-	grpcInfo.Method = node.Name
-
-	grpcNode := &GRPCNode{
-		GRPC: grpcInfo,
-	}
+	grpcNode := node.ToGRPC(g)
 	return a.ExecuteGRPCNode(ctx, grpcNode, input)
 }

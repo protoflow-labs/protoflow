@@ -5,7 +5,7 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { DescriptorProto, EnumDescriptorProto, Message, MethodDescriptorProto, proto3 } from "@bufbuild/protobuf";
-import { Graph } from "./graph_pb.js";
+import { Graph, Node } from "./graph_pb.js";
 import { Resource } from "./resource_pb.js";
 
 /**
@@ -1168,13 +1168,56 @@ export class GetResourcesRequest extends Message<GetResourcesRequest> {
 }
 
 /**
+ * @generated from message project.EnumeratedResource
+ */
+export class EnumeratedResource extends Message<EnumeratedResource> {
+  /**
+   * @generated from field: resource.Resource resource = 1;
+   */
+  resource?: Resource;
+
+  /**
+   * @generated from field: repeated graph.Node nodes = 2;
+   */
+  nodes: Node[] = [];
+
+  constructor(data?: PartialMessage<EnumeratedResource>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "project.EnumeratedResource";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "resource", kind: "message", T: Resource },
+    { no: 2, name: "nodes", kind: "message", T: Node, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): EnumeratedResource {
+    return new EnumeratedResource().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): EnumeratedResource {
+    return new EnumeratedResource().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): EnumeratedResource {
+    return new EnumeratedResource().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: EnumeratedResource | PlainMessage<EnumeratedResource> | undefined, b: EnumeratedResource | PlainMessage<EnumeratedResource> | undefined): boolean {
+    return proto3.util.equals(EnumeratedResource, a, b);
+  }
+}
+
+/**
  * @generated from message project.GetResourcesResponse
  */
 export class GetResourcesResponse extends Message<GetResourcesResponse> {
   /**
-   * @generated from field: repeated resource.Resource resources = 1;
+   * @generated from field: repeated project.EnumeratedResource resources = 1;
    */
-  resources: Resource[] = [];
+  resources: EnumeratedResource[] = [];
 
   constructor(data?: PartialMessage<GetResourcesResponse>) {
     super();
@@ -1184,7 +1227,7 @@ export class GetResourcesResponse extends Message<GetResourcesResponse> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "project.GetResourcesResponse";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "resources", kind: "message", T: Resource, repeated: true },
+    { no: 1, name: "resources", kind: "message", T: EnumeratedResource, repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetResourcesResponse {

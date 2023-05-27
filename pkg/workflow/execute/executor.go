@@ -1,14 +1,27 @@
-package workflow
+package execute
 
 import (
 	"fmt"
 	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/gen"
+	"github.com/protoflow-labs/protoflow/pkg/grpc/bufcurl"
+	"github.com/protoflow-labs/protoflow/pkg/workflow/resource"
 	"go.temporal.io/sdk/workflow"
 	"reflect"
 	"runtime"
 	"strings"
 )
+
+type Input struct {
+	Params   interface{}
+	Stream   bufcurl.OutputStream
+	Resource resource.Resource
+}
+
+type Result struct {
+	Data   interface{}
+	Stream bufcurl.OutputStream
+}
 
 type Executor interface {
 	Execute(activity interface{}, block interface{}, input Input) (*Result, error)
@@ -48,11 +61,22 @@ type MemoryExecutor struct {
 
 var _ Executor = &MemoryExecutor{}
 
-func NewMemoryExecutor(ctx *MemoryContext, trace chan<- *gen.NodeExecution) *MemoryExecutor {
-	return &MemoryExecutor{
-		ctx:   ctx,
-		trace: trace,
+type MemoryExecutorOption func(*MemoryExecutor)
+
+func WithTrace(trace chan<- *gen.NodeExecution) MemoryExecutorOption {
+	return func(executor *MemoryExecutor) {
+		executor.trace = trace
 	}
+}
+
+func NewMemoryExecutor(ctx *MemoryContext, opts ...MemoryExecutorOption) *MemoryExecutor {
+	e := &MemoryExecutor{
+		ctx: ctx,
+	}
+	for _, opt := range opts {
+		opt(e)
+	}
+	return e
 }
 
 func (e *MemoryExecutor) Execute(activity interface{}, block interface{}, input Input) (*Result, error) {

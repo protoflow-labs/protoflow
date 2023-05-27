@@ -6,26 +6,17 @@ import {GRPC} from "@/rpc/block_pb";
 import {useProjectContext} from "@/providers/ProjectProvider";
 import React from "react";
 
-export type GRPCBlockProps = NodeProps<GRPCData>;
-
-export type GRPCData = {
-  name: string;
-  config: {
-    grpc: GRPC
-  };
-  resourceIds: string[];
-};
-
-export function GRPCBlock(props: GRPCBlockProps) {
-  const { data, selected } = props;
-  const {resources} = useProjectContext();
+export function GRPCBlock(props: NodeProps) {
+  const { id, selected } = props;
+  const {nodeLookup} = useProjectContext();
+  const node = nodeLookup[id];
 
   return (
     <>
       <BlockCard selected={selected}>
         <CardHeader
           image={<MdOutbound className="h-5 w-5 bg-gray-800" />}
-          header={<Text weight="semibold">{data.name || "Untitled GRPC"}</Text>}
+          header={<Text weight="semibold">{node.name || "Untitled GRPC"}</Text>}
           description={<Caption1>GRPC</Caption1>}
         />
       </BlockCard>

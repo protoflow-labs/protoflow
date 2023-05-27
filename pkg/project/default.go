@@ -24,7 +24,7 @@ func getDefaultProject(name string, bucketDir string) gen.Project {
 				Name: "js",
 				Type: &gen.Resource_LanguageService{
 					LanguageService: &gen.LanguageService{
-						Runtime: gen.Runtime_NODE,
+						Runtime: gen.Runtime_NODEJS,
 						Grpc: &gen.GRPCService{
 							Host: "localhost:8086",
 						},

@@ -2,20 +2,12 @@ import { Caption1, CardHeader, Text } from "@fluentui/react-components";
 import { HiCodeBracket } from "react-icons/hi2";
 import { Handle, NodeProps, Position } from "reactflow";
 import { BlockCard } from "./BlockCard";
+import {useProjectContext} from "@/providers/ProjectProvider";
 
-type FunctionBlockProps = NodeProps<FunctionData>;
-
-export type FunctionData = {
-  name: string;
-  config: {
-    function?: {
-      runtime: string;
-    };
-  };
-};
-
-export function FunctionBlock(props: FunctionBlockProps) {
-  const { data, selected } = props;
+export function FunctionBlock(props: NodeProps) {
+  const { id, selected } = props;
+  const {nodeLookup} = useProjectContext();
+  const node = nodeLookup[id];
 
   return (
     <>
@@ -23,7 +15,7 @@ export function FunctionBlock(props: FunctionBlockProps) {
         <CardHeader
           image={<HiCodeBracket className="h-5 w-5 bg-gray-800" />}
           header={
-            <Text weight="semibold">{data.name || "Untitled Function"}</Text>
+            <Text weight="semibold">{node.name || "Untitled Function"}</Text>
           }
           description={<Caption1>Function</Caption1>}
         />

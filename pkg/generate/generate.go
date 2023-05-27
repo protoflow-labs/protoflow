@@ -5,7 +5,8 @@ import (
 	"github.com/protoflow-labs/protoflow/gen"
 	"github.com/protoflow-labs/protoflow/pkg/bucket"
 	"github.com/protoflow-labs/protoflow/pkg/project"
-	"github.com/protoflow-labs/protoflow/pkg/workflow"
+	"github.com/protoflow-labs/protoflow/pkg/workflow/node"
+	"github.com/protoflow-labs/protoflow/pkg/workflow/resource"
 	"os"
 	"path"
 )
@@ -43,14 +44,20 @@ func NewGenerate(config Config) (*Generate, error) {
 
 func (s *Generate) Generate(project *project.Project) error {
 	for _, r := range project.Workflow.Resources {
+		var nodes []node.Node
+		for _, n := range project.Workflow.NodeLookup {
+			if n.ResourceID() == r.ID() {
+				nodes = append(nodes, n)
+			}
+		}
 		switch r := r.(type) {
-		case *workflow.LanguageServiceResource:
-			if r.Runtime == gen.Runtime_NODE {
+		case *resource.LanguageServiceResource:
+			if r.Runtime == gen.Runtime_NODEJS {
 				jsManager, err := NewNodeJSManager(s.bucket)
 				if err != nil {
 					return errors.Wrap(err, "error creating nodejs manager")
 				}
-				if err := jsManager.Generate(r); err != nil {
+				if err := jsManager.Generate(r, nodes); err != nil {
 					return errors.Wrap(err, "error generating nodejs")
 				}
 			}

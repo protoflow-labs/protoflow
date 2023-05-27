@@ -7,137 +7,6 @@ import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialM
 import { Any, DescriptorProto, Message, proto3 } from "@bufbuild/protobuf";
 
 /**
- * @generated from enum block.Runtime
- */
-export enum Runtime {
-  /**
-   * @generated from enum value: NODE = 0;
-   */
-  NODE = 0,
-
-  /**
-   * @generated from enum value: PYTHON = 1;
-   */
-  PYTHON = 1,
-
-  /**
-   * @generated from enum value: GO = 2;
-   */
-  GO = 2,
-}
-// Retrieve enum metadata with: proto3.getEnumType(Runtime)
-proto3.util.setEnumType(Runtime, "block.Runtime", [
-  { no: 0, name: "NODE" },
-  { no: 1, name: "PYTHON" },
-  { no: 2, name: "GO" },
-]);
-
-/**
- * TODO breadchris think through this more
- *
- * @generated from message block.Block
- */
-export class Block extends Message<Block> {
-  /**
-   * @generated from field: string id = 1;
-   */
-  id = "";
-
-  /**
-   * @generated from field: string name = 2;
-   */
-  name = "";
-
-  /**
-   * @generated from field: string version = 3;
-   */
-  version = "";
-
-  /**
-   * @generated from oneof block.Block.type
-   */
-  type: {
-    /**
-     * @generated from field: block.REST rest = 4;
-     */
-    value: REST;
-    case: "rest";
-  } | {
-    /**
-     * @generated from field: block.GRPC grpc = 5;
-     */
-    value: GRPC;
-    case: "grpc";
-  } | {
-    /**
-     * @generated from field: block.Collection collection = 6;
-     */
-    value: Collection;
-    case: "collection";
-  } | {
-    /**
-     * @generated from field: block.Input input = 7;
-     */
-    value: Input;
-    case: "input";
-  } | {
-    /**
-     * @generated from field: block.Bucket bucket = 8;
-     */
-    value: Bucket;
-    case: "bucket";
-  } | {
-    /**
-     * @generated from field: block.Function function = 9;
-     */
-    value: Function;
-    case: "function";
-  } | {
-    /**
-     * @generated from field: block.Query query = 10;
-     */
-    value: Query;
-    case: "query";
-  } | { case: undefined; value?: undefined } = { case: undefined };
-
-  constructor(data?: PartialMessage<Block>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "block.Block";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 3, name: "version", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 4, name: "rest", kind: "message", T: REST, oneof: "type" },
-    { no: 5, name: "grpc", kind: "message", T: GRPC, oneof: "type" },
-    { no: 6, name: "collection", kind: "message", T: Collection, oneof: "type" },
-    { no: 7, name: "input", kind: "message", T: Input, oneof: "type" },
-    { no: 8, name: "bucket", kind: "message", T: Bucket, oneof: "type" },
-    { no: 9, name: "function", kind: "message", T: Function, oneof: "type" },
-    { no: 10, name: "query", kind: "message", T: Query, oneof: "type" },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Block {
-    return new Block().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Block {
-    return new Block().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Block {
-    return new Block().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: Block | PlainMessage<Block> | undefined, b: Block | PlainMessage<Block> | undefined): boolean {
-    return proto3.util.equals(Block, a, b);
-  }
-}
-
-/**
  * @generated from message block.Input
  */
 export class Input extends Message<Input> {
@@ -295,16 +164,6 @@ export class Bucket extends Message<Bucket> {
  * @generated from message block.Function
  */
 export class Function extends Message<Function> {
-  /**
-   * @generated from field: block.Runtime runtime = 1;
-   */
-  runtime = Runtime.NODE;
-
-  /**
-   * @generated from field: block.GRPC grpc = 2;
-   */
-  grpc?: GRPC;
-
   constructor(data?: PartialMessage<Function>) {
     super();
     proto3.util.initPartial(data, this);
@@ -313,8 +172,6 @@ export class Function extends Message<Function> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "block.Function";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "runtime", kind: "enum", T: proto3.getEnumType(Runtime) },
-    { no: 2, name: "grpc", kind: "message", T: GRPC },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Function {

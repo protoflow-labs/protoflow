@@ -12,10 +12,10 @@ import (
 	"google.golang.org/protobuf/types/descriptorpb"
 )
 
-func EnumerateResourceBlocks(resource *gen.Resource) ([]*gen.Block, error) {
+func EnumerateResourceBlocks(resource *gen.Resource) ([]*gen.Node, error) {
 	var (
 		g             *gen.GRPCService
-		blocks        []*gen.Block
+		nodes         []*gen.Node
 		err           error
 		isLangService bool
 	)
@@ -32,15 +32,13 @@ func EnumerateResourceBlocks(resource *gen.Resource) ([]*gen.Block, error) {
 	}
 
 	if g != nil {
-		blocks, err = blocksFromGRPC(g, isLangService)
+		nodes, err = nodesFromGRPC(resource.Id, g, isLangService)
 		if err != nil {
 			log.Warn().Err(err).Msgf("unable to enumerate grpc service %s", g.Host)
-			blocks = []*gen.Block{}
+			nodes = []*gen.Node{}
 		}
 	}
-
-	resource.Blocks = blocks
-	return blocks, nil
+	return nodes, nil
 }
 
 type MethodDescriptor struct {
@@ -91,7 +89,7 @@ func (m *MethodDescriptor) buildTypeLookup(msgDesc *desc.MessageDescriptor) {
 	}
 }
 
-func blocksFromGRPC(service *gen.GRPCService, isLangService bool) ([]*gen.Block, error) {
+func nodesFromGRPC(resourceID string, service *gen.GRPCService, isLangService bool) ([]*gen.Node, error) {
 	if service.Host == "" {
 		return nil, errors.New("host is required")
 	}
@@ -109,7 +107,7 @@ func blocksFromGRPC(service *gen.GRPCService, isLangService bool) ([]*gen.Block,
 
 	log.Debug().Str("service", service.Host).Msgf("found %d methods", len(methodDesc))
 
-	var blocks []*gen.Block
+	var blocks []*gen.Node
 	for _, m := range methodDesc {
 		serviceName := m.GetService().GetName()
 		methodName := m.GetName()
@@ -120,18 +118,17 @@ func blocksFromGRPC(service *gen.GRPCService, isLangService bool) ([]*gen.Block,
 			Method:  methodName,
 		}
 
-		block := &gen.Block{
-			Id:   uuid.New().String(),
-			Name: serviceName + "." + methodName,
-			Type: &gen.Block_Grpc{
+		block := &gen.Node{
+			Id:         uuid.New().String(),
+			Name:       methodName,
+			ResourceId: resourceID,
+			Config: &gen.Node_Grpc{
 				Grpc: grpcInfo,
 			},
 		}
 		if isLangService {
-			block.Type = &gen.Block_Function{
-				Function: &gen.Function{
-					Grpc: grpcInfo,
-				},
+			block.Config = &gen.Node_Function{
+				Function: &gen.Function{},
 			}
 		}
 		blocks = append(blocks, block)

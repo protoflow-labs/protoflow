@@ -1,7 +1,7 @@
 import esbuild from "esbuild";
 import {postcssModules, sassPlugin} from "esbuild-sass-plugin";
 import { swcPlugin } from "esbuild-plugin-swc";
-import polyfill from "esbuild-plugin-node-polyfills";
+import { NodeModulesPolyfillPlugin } from "@esbuild-plugins/node-modules-polyfill";
 import tailwindcss from 'tailwindcss';
 import autoprefixer from 'autoprefixer';
 import postcss from "postcss";
@@ -34,7 +34,7 @@ const options = {
     plugins: [
         // TODO breadchris use swc over tsc
         // swcPlugin(),
-        polyfill,
+        NodeModulesPolyfillPlugin(),
         sassPlugin({
             filter: /\.css$/,
             type: "style",

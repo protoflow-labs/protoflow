@@ -4,13 +4,15 @@ import (
 	"fmt"
 	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/pkg/bucket"
-	"github.com/protoflow-labs/protoflow/pkg/workflow"
+	"github.com/protoflow-labs/protoflow/pkg/workflow/node"
+	"github.com/protoflow-labs/protoflow/pkg/workflow/resource"
 	"github.com/protoflow-labs/protoflow/templates"
 	"path"
+	"strings"
 )
 
 type LanguageManager interface {
-	Generate(r *workflow.LanguageServiceResource) error
+	Generate(r *resource.LanguageServiceResource, nodes []node.Node) error
 }
 
 type NodeJSManager struct {
@@ -34,7 +36,7 @@ type Method struct {
 }
 
 type FunctionTemplate struct {
-	Node *workflow.FunctionNode
+	Node *node.FunctionNode
 }
 
 type ServiceTemplate struct {
@@ -42,16 +44,16 @@ type ServiceTemplate struct {
 	Methods []Method
 }
 
-func (s *NodeJSManager) Generate(r *workflow.LanguageServiceResource) error {
+func (s *NodeJSManager) Generate(r *resource.LanguageServiceResource, nodes []node.Node) error {
 	var err error
 
-	methods, err := s.scaffoldFunctions(r)
+	methods, err := s.scaffoldFunctions(r, nodes)
 	if err != nil {
 		return errors.Wrapf(err, "error scaffolding functions")
 	}
 
 	tmpl := ServiceTemplate{
-		Runtime: "nodejs",
+		Runtime: strings.ToLower(r.Runtime.String()),
 		Methods: methods,
 	}
 
@@ -67,11 +69,11 @@ func (s *NodeJSManager) Generate(r *workflow.LanguageServiceResource) error {
 	return nil
 }
 
-func (s *NodeJSManager) scaffoldFunctions(r *workflow.LanguageServiceResource) ([]Method, error) {
+func (s *NodeJSManager) scaffoldFunctions(r *resource.LanguageServiceResource, nodes []node.Node) ([]Method, error) {
 	var methods []Method
-	for _, resNode := range r.Nodes {
+	for _, resNode := range nodes {
 		switch node := resNode.(type) {
-		case *workflow.FunctionNode:
+		case *node.FunctionNode:
 			// create function directory
 			funcDir := path.Join("functions", node.NormalizedName())
 			funcDirPath, err := s.codeRoot.GetFolder(funcDir)

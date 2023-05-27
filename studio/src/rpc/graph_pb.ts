@@ -92,11 +92,9 @@ export class Node extends Message<Node> {
   y = 0;
 
   /**
-   * resource dependencies
-   *
-   * @generated from field: repeated string resource_ids = 6;
+   * @generated from field: string resource_id = 6;
    */
-  resourceIds: string[] = [];
+  resourceId = "";
 
   /**
    * @generated from oneof graph.Node.config
@@ -158,7 +156,7 @@ export class Node extends Message<Node> {
     { no: 3, name: "block_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 4, name: "x", kind: "scalar", T: 2 /* ScalarType.FLOAT */ },
     { no: 5, name: "y", kind: "scalar", T: 2 /* ScalarType.FLOAT */ },
-    { no: 6, name: "resource_ids", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
+    { no: 6, name: "resource_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 7, name: "rest", kind: "message", T: REST, oneof: "config" },
     { no: 8, name: "grpc", kind: "message", T: GRPC, oneof: "config" },
     { no: 9, name: "collection", kind: "message", T: Collection, oneof: "config" },

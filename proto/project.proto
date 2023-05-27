@@ -164,8 +164,13 @@ message GetResourcesRequest {
     string project_id = 1;
 }
 
+message EnumeratedResource {
+    resource.Resource resource = 1;
+    repeated graph.Node nodes = 2;
+}
+
 message GetResourcesResponse {
-    repeated resource.Resource resources = 1;
+    repeated EnumeratedResource resources = 1;
 }
 
 message SaveProjectRequest {

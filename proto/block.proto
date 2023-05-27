@@ -5,29 +5,6 @@ option go_package = "block";
 import "google/protobuf/any.proto";
 import "google/protobuf/descriptor.proto";
 
-enum Runtime {
-  NODE = 0;
-  PYTHON = 1;
-  GO = 2;
-}
-
-// TODO breadchris think through this more
-message Block {
-  string id = 1;
-  string name = 2;
-  string version = 3;
-  oneof type {
-    REST rest = 4;
-    GRPC grpc = 5;
-    Collection collection = 6;
-    Input input = 7;
-    Bucket bucket = 8;
-    Function function = 9;
-    Query query = 10;
-  }
-  // TODO breadchris a block is a blueprint and should declare what dependency types it needs
-}
-
 message Input {
   repeated FieldDefinition fields = 1;
 }
@@ -46,10 +23,6 @@ message Bucket {
 }
 
 message Function {
-  // TODO breadchris since a function will always belong to a resource, runtime doesn't need to be specified here
-  Runtime runtime = 1;
-  // TODO breadchris we actually don't need their either since we can infer it from the resource
-  GRPC grpc = 2;
 }
 
 message Query {

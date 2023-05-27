@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/protoflow-labs/protoflow/gen"
 	"github.com/protoflow-labs/protoflow/pkg/store"
+	"github.com/protoflow-labs/protoflow/pkg/workflow/execute"
 	"github.com/rs/zerolog/log"
 	"sync"
 
@@ -60,14 +61,14 @@ func (m *MemoryManager) ExecuteWorkflow(ctx context.Context, w *Workflow, nodeID
 	trace := make(chan *gen.NodeExecution)
 	go m.saveNodeExecutions(w.ProjectID, nodeID, input, trace)
 
-	memoryCtx := &MemoryContext{Context: ctx}
-	executor := NewMemoryExecutor(memoryCtx, trace)
+	memoryCtx := &execute.MemoryContext{Context: ctx}
+	executor := execute.NewMemoryExecutor(memoryCtx, execute.WithTrace(trace))
 
 	_, err := w.Run(logger, executor, nodeID, input)
 	return uuid.New().String(), err
 }
 
-func (m *MemoryManager) ExecuteWorkflowSync(ctx context.Context, w *Workflow, nodeID string, input interface{}) (*Result, error) {
+func (m *MemoryManager) ExecuteWorkflowSync(ctx context.Context, w *Workflow, nodeID string, input interface{}) (*execute.Result, error) {
 	if w.NodeLookup == nil || w.Graph == nil {
 		return nil, fmt.Errorf("workflow is not initialized")
 	}
@@ -77,8 +78,8 @@ func (m *MemoryManager) ExecuteWorkflowSync(ctx context.Context, w *Workflow, no
 	trace := make(chan *gen.NodeExecution)
 	go m.saveNodeExecutions(w.ProjectID, nodeID, input, trace)
 
-	memoryCtx := &MemoryContext{Context: ctx}
-	executor := NewMemoryExecutor(memoryCtx, trace)
+	memoryCtx := &execute.MemoryContext{Context: ctx}
+	executor := execute.NewMemoryExecutor(memoryCtx, execute.WithTrace(trace))
 
 	return w.Run(logger, executor, nodeID, input)
 }

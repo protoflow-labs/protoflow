@@ -7,6 +7,9 @@ import (
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/gen"
+	"github.com/protoflow-labs/protoflow/pkg/workflow/execute"
+	worknode "github.com/protoflow-labs/protoflow/pkg/workflow/node"
+	"github.com/protoflow-labs/protoflow/pkg/workflow/resource"
 	"github.com/rs/zerolog/log"
 )
 
@@ -16,50 +19,91 @@ type Workflow struct {
 	ID         string
 	ProjectID  string
 	Graph      graph.Graph[string, string]
-	NodeLookup map[string]Node
+	NodeLookup map[string]worknode.Node
 	AdjMap
-	Resources map[string]Resource
+	Resources map[string]resource.Resource
+}
+
+func (w *Workflow) GetNode(id string) (worknode.Node, error) {
+	node, ok := w.NodeLookup[id]
+	if !ok {
+		return nil, fmt.Errorf("node with id %s not found", id)
+	}
+	return node, nil
+}
+
+func (w *Workflow) GetNodeResource(id string) (resource.Resource, error) {
+	node, err := w.GetNode(id)
+	if err != nil {
+		return nil, err
+	}
+	r, ok := w.Resources[node.ResourceID()]
+	if !ok {
+		return nil, fmt.Errorf("resource %s not found", node.ResourceID())
+	}
+	return r, nil
+}
+
+func (w *Workflow) GetNodeInfo(n worknode.Node) (*worknode.Info, error) {
+	var resp *worknode.Info
+	switch n.(type) {
+	case *worknode.InputNode:
+		children := w.AdjMap[n.ID()]
+		if len(children) != 1 {
+			// TODO breadchris support multiple children
+			return nil, errors.Errorf("input node should have 1 child, got %d", len(children))
+		}
+		// TODO breadchris optimized for specific case
+		for child := range children {
+			n, err := w.GetNode(child)
+			if err != nil {
+				return nil, errors.Errorf("node %s not found", child)
+			}
+			return w.GetNodeInfo(n)
+		}
+	default:
+		res, err := w.GetNodeResource(n.ID())
+		if err != nil {
+			return nil, err
+		}
+		return n.Info(res)
+	}
+	return resp, nil
 }
 
 func FromProject(project *gen.Project) (*Workflow, error) {
 	g := graph.New(graph.StringHash, graph.Directed(), graph.PreventCycles())
 
-	resources := ResourceMap{}
-	// TODO breadchris blocks will be used in the future to associate with nodes, but for now they are not used
-	blockLookup := map[string]*gen.Block{}
-	for _, resource := range project.Resources {
-		for _, block := range resource.Blocks {
-			blockLookup[block.Id] = block
-		}
-
-		r, err := ResourceFromProto(resource)
-		if err != nil {
-			return nil, errors.Wrapf(err, "error creating resource for node %s", resource.Id)
-		}
-		resources[resource.Id] = r
+	if project.Graph == nil {
+		return nil, errors.New("project graph is nil")
 	}
 
-	nodeLookup := map[string]Node{}
+	resources := worknode.ResourceMap{}
+	for _, protoRes := range project.Resources {
+		r, err := resource.FromProto(protoRes)
+		if err != nil {
+			return nil, errors.Wrapf(err, "error creating resource for node %s", protoRes.Id)
+		}
+		resources[protoRes.Id] = r
+	}
+
+	nodeLookup := map[string]worknode.Node{}
 	for _, node := range project.Graph.Nodes {
+		if node.Id == "" {
+			return nil, errors.New("node id cannot be empty")
+		}
+		log.Debug().Str("node", node.Id).Msg("adding node to graph")
 		err := g.AddVertex(node.Id)
 		if err != nil {
 			return nil, err
 		}
 
 		// add block to lookup to be used for execution
-		builtNode, err := NewNode(resources, node)
+		builtNode, err := worknode.NewNode(node)
 		if err != nil {
 			return nil, errors.Wrapf(err, "error creating block for node %s", node.Id)
 		}
 		nodeLookup[node.Id] = builtNode
-
-		for _, r := range node.ResourceIds {
-			resource, ok := resources[r]
-			if !ok {
-				return nil, fmt.Errorf("resource %s not found", r)
-			}
-			resource.RegisterNode(builtNode)
-		}
 	}
 
 	for _, edge := range project.Graph.Edges {
@@ -86,10 +130,10 @@ func FromProject(project *gen.Project) (*Workflow, error) {
 }
 
 // TODO breadchris can this be a map[string]Resource?
-type Instances map[string]Resource
+type Instances map[string]resource.Resource
 
 // TODO breadchris nodeID should not be needed, the workflow should already be a slice of the graph that is configured to run
-func (w *Workflow) Run(logger Logger, executor Executor, nodeID string, input interface{}) (*Result, error) {
+func (w *Workflow) Run(logger Logger, executor execute.Executor, nodeID string, input interface{}) (*execute.Result, error) {
 	var cleanupFuncs []func()
 	defer func() {
 		for _, cleanup := range cleanupFuncs {
@@ -116,7 +160,7 @@ func (w *Workflow) Run(logger Logger, executor Executor, nodeID string, input in
 		return nil, errors.Wrapf(err, "error getting vertex %s", nodeID)
 	}
 
-	res, err := w.traverseWorkflow(logger, instances, executor, vert, Input{
+	res, err := w.traverseWorkflow(logger, instances, executor, vert, execute.Input{
 		Params: input,
 	})
 	if err != nil {
@@ -126,35 +170,35 @@ func (w *Workflow) Run(logger Logger, executor Executor, nodeID string, input in
 	return res, nil
 }
 
-func (w *Workflow) traverseWorkflow(logger Logger, instances Instances, executor Executor, vert string, input Input) (*Result, error) {
+func (w *Workflow) traverseWorkflow(logger Logger, instances Instances, executor execute.Executor, vert string, input execute.Input) (*execute.Result, error) {
 	node, ok := w.NodeLookup[vert]
 	if !ok {
 		return nil, fmt.Errorf("vertex not found: %s", vert)
 	}
 
 	log.Debug().Str("vert", vert).Msg("injecting dependencies for node")
-	err := injectDepsForNode(logger, instances, &input, node)
+	err := injectDepsForNode(instances, &input, node)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrapf(err, "error injecting dependencies for node %s", vert)
 	}
 
-	log.Debug().Str("vert", vert).Interface("resources", input.Resources).Msg("executing node")
+	log.Debug().Str("vert", vert).Interface("resource", input.Resource).Msg("executing node")
 	res, err := node.Execute(executor, input)
 	if err != nil {
 		return nil, errors.Wrapf(err, "error executing node: %s", vert)
 	}
 
-	var nextBlockInput Input
+	var nextBlockInput execute.Input
 	if res.Stream != nil {
 		// if the result is a stream, pass the stream to the next block
-		nextBlockInput = Input{
+		nextBlockInput = execute.Input{
 			Stream: res.Stream,
 		}
 	} else {
 		// TODO breadchris have this work for streams as well
 		traceNodeExec(executor, vert, input, res.Data)
 		// otherwise pass the singular result data to the next block
-		nextBlockInput = Input{
+		nextBlockInput = execute.Input{
 			Params: res.Data,
 		}
 	}
@@ -176,28 +220,24 @@ func (w *Workflow) traverseWorkflow(logger Logger, instances Instances, executor
 			nextResSet = true
 		}
 	}
-	return &Result{
+	return &execute.Result{
 		Data: res.Data,
 	}, nil
 }
 
-func injectDepsForNode(logger Logger, instances Instances, input *Input, node Node) error {
-	input.Resources = map[string]any{}
-	for _, resourceID := range node.Dependencies() {
-		resource, ok := instances[resourceID]
-		if !ok {
-			return fmt.Errorf("resource not found: %s", resourceID)
-		}
-		if _, ok := input.Resources[resource.Name()]; ok {
-			logger.Warn("resource type already exists in input", "resource", resource.Name())
-			continue
-		}
-		input.Resources[resource.Name()] = resource
+func injectDepsForNode(instances Instances, input *execute.Input, node worknode.Node) error {
+	if node.ResourceID() == "" {
+		return nil
 	}
+	r, ok := instances[node.ResourceID()]
+	if !ok {
+		return fmt.Errorf("resource not found: %s", node.ResourceID())
+	}
+	input.Resource = r
 	return nil
 }
 
-func traceNodeExec(executor Executor, nodeID string, input any, output any) {
+func traceNodeExec(executor execute.Executor, nodeID string, input any, output any) {
 	// TODO breadchris clean this up
 	inputSer, inputErr := json.Marshal(input)
 	outputSer, outputErr := json.Marshal(output)

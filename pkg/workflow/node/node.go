@@ -1,4 +1,4 @@
-package workflow
+package node
 
 import (
 	"context"
@@ -7,37 +7,30 @@ import (
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/gen"
-	"github.com/protoflow-labs/protoflow/pkg/grpc/bufcurl"
 	"github.com/protoflow-labs/protoflow/pkg/util"
+	"github.com/protoflow-labs/protoflow/pkg/workflow/execute"
+	"github.com/protoflow-labs/protoflow/pkg/workflow/resource"
 	"io"
 	"strings"
 )
 
-type Input struct {
-	Params       interface{}
-	Resources    map[string]any
-	Dependencies []string
-	Stream       bufcurl.OutputStream
-}
-
-type Result struct {
-	Data   interface{}
-	Stream bufcurl.OutputStream
-}
-
 type Node interface {
-	Execute(executor Executor, input Input) (*Result, error)
-	Dependencies() []string
+	Execute(executor execute.Executor, input execute.Input) (*execute.Result, error)
 	NormalizedName() string
+	ID() string
+	ResourceID() string
+	Info(r resource.Resource) (*Info, error)
+}
+
+type Info struct {
+	MethodProto string
+	TypeInfo    *gen.GRPCTypeInfo
 }
 
 type BaseNode struct {
-	Name        string
-	ResourceIDs []string
-}
-
-func (n *BaseNode) Dependencies() []string {
-	return n.ResourceIDs
+	Name       string
+	id         string
+	resourceID string
 }
 
 func (n *BaseNode) NormalizedName() string {
@@ -48,12 +41,17 @@ func (n *BaseNode) NormalizedName() string {
 	return name
 }
 
-type GRPCNode struct {
-	BaseNode
-	*gen.GRPC
+func (n *BaseNode) ID() string {
+	return n.id
 }
 
-var _ Node = &GRPCNode{}
+func (n *BaseNode) ResourceID() string {
+	return n.resourceID
+}
+
+func (n *BaseNode) Info(r resource.Resource) (*Info, error) {
+	return &Info{}, nil
+}
 
 type RESTNode struct {
 	BaseNode
@@ -76,39 +74,19 @@ type BucketNode struct {
 
 var _ Node = &BucketNode{}
 
-type InputNode struct {
-	BaseNode
-	*gen.Input
-}
-
-var _ Node = &InputNode{}
-
-type FunctionNode struct {
-	BaseNode
-	Function *gen.Function
-}
-
-var _ Node = &FunctionNode{}
-
 type QueryNode struct {
 	BaseNode
 	Query *gen.Query
 }
 
-var _ Node = &FunctionNode{}
-
 var activity = &Activity{}
 
-func (s *GRPCNode) Execute(executor Executor, input Input) (*Result, error) {
-	return executor.Execute(activity.ExecuteGRPCNode, s, input)
-}
-
-func (s *RESTNode) Execute(executor Executor, input Input) (*Result, error) {
+func (s *RESTNode) Execute(executor execute.Executor, input execute.Input) (*execute.Result, error) {
 	return executor.Execute(activity.ExecuteRestNode, s, input)
 }
 
-func (s *CollectionNode) Execute(executor Executor, input Input) (*Result, error) {
-	docs, ok := input.Resources[DocstoreResourceType].(*DocstoreResource)
+func (s *CollectionNode) Execute(executor execute.Executor, input execute.Input) (*execute.Result, error) {
+	docs, ok := input.Resource.(*resource.DocstoreResource)
 	if !ok {
 		return nil, fmt.Errorf("error getting docstore resource: %s", s.Collection.Name)
 	}
@@ -142,13 +120,13 @@ func (s *CollectionNode) Execute(executor Executor, input Input) (*Result, error
 		}
 	}
 
-	return &Result{
+	return &execute.Result{
 		Data: input.Params,
 	}, nil
 }
 
-func (s *BucketNode) Execute(executor Executor, input Input) (*Result, error) {
-	bucket, ok := input.Resources[BlobstoreResourceType].(*BlobstoreResource)
+func (s *BucketNode) Execute(executor execute.Executor, input execute.Input) (*execute.Result, error) {
+	bucket, ok := input.Resource.(*resource.BlobstoreResource)
 	if !ok {
 		return nil, fmt.Errorf("error getting blobstore resource: %s", s.Bucket.Path)
 	}
@@ -176,23 +154,13 @@ func (s *BucketNode) Execute(executor Executor, input Input) (*Result, error) {
 	defer cleanup()
 
 	err = b.WriteAll(context.Background(), s.Path, bucketData, nil)
-	return &Result{
+	return &execute.Result{
 		Data: input.Params,
 	}, nil
 }
 
-func (s *InputNode) Execute(executor Executor, input Input) (*Result, error) {
-	return &Result{
-		Data: input.Params,
-	}, nil
-}
-
-func (f *FunctionNode) Execute(executor Executor, input Input) (*Result, error) {
-	return executor.Execute(activity.ExecuteFunctionNode, f, input)
-}
-
-func (s *QueryNode) Execute(executor Executor, input Input) (*Result, error) {
-	docResource, ok := input.Resources[DocstoreResourceType].(*DocstoreResource)
+func (s *QueryNode) Execute(executor execute.Executor, input execute.Input) (*execute.Result, error) {
+	docResource, ok := input.Resource.(*resource.DocstoreResource)
 	if !ok {
 		return nil, fmt.Errorf("error getting docstore resource: %s", s.Query.Collection)
 	}
@@ -216,21 +184,21 @@ func (s *QueryNode) Execute(executor Executor, input Input) (*Result, error) {
 		}
 		docs = append(docs, &doc)
 	}
-	return &Result{
+	return &execute.Result{
 		Data: docs,
 	}, nil
 }
 
-type ResourceMap map[string]Resource
+type ResourceMap map[string]resource.Resource
 
-func NewNode(resources ResourceMap, node *gen.Node) (Node, error) {
+func NewNode(node *gen.Node) (Node, error) {
 	switch node.Config.(type) {
 	case *gen.Node_Grpc:
 		return NewGRPCNode(node), nil
 	case *gen.Node_Collection:
-		return NewCollectionNode(resources, node), nil
+		return NewCollectionNode(node), nil
 	case *gen.Node_Bucket:
-		return NewBucketNode(resources, node), nil
+		return NewBucketNode(node), nil
 	case *gen.Node_Rest:
 		return NewRestNode(node), nil
 	case *gen.Node_Input:
@@ -238,7 +206,7 @@ func NewNode(resources ResourceMap, node *gen.Node) (Node, error) {
 	case *gen.Node_Function:
 		return NewFunctionNode(node), nil
 	case *gen.Node_Query:
-		return NewQueryNode(resources, node), nil
+		return NewQueryNode(node), nil
 	default:
 		return nil, errors.New("no node found")
 	}
@@ -247,16 +215,9 @@ func NewNode(resources ResourceMap, node *gen.Node) (Node, error) {
 // NewBaseNode creates a new BaseNode from a gen.Node, gen.Node cannot be embedded into BaseNode because proto deserialization will fail on the type
 func NewBaseNode(node *gen.Node) BaseNode {
 	return BaseNode{
-		Name:        util.ToTitleCase(node.Name),
-		ResourceIDs: node.ResourceIds,
-	}
-}
-
-// TODO breadchris we are ignoring blocks that are not set on the node, nodes should have blocks
-func NewGRPCNode(node *gen.Node) *GRPCNode {
-	return &GRPCNode{
-		BaseNode: NewBaseNode(node),
-		GRPC:     node.GetGrpc(),
+		Name:       util.ToTitleCase(node.Name),
+		id:         node.Id,
+		resourceID: node.ResourceId,
 	}
 }
 
@@ -267,53 +228,21 @@ func NewRestNode(node *gen.Node) *RESTNode {
 	}
 }
 
-func NewCollectionNode(resources ResourceMap, node *gen.Node) *CollectionNode {
-	// TODO breadchris a node should already have this resource configured
-	for id, r := range resources {
-		if r.Name() == DocstoreResourceType {
-			node.ResourceIds = append(node.ResourceIds, id)
-		}
-	}
+func NewCollectionNode(node *gen.Node) *CollectionNode {
 	return &CollectionNode{
 		BaseNode:   NewBaseNode(node),
 		Collection: node.GetCollection(),
 	}
 }
 
-func NewBucketNode(resources ResourceMap, node *gen.Node) *BucketNode {
-	// TODO breadchris a node should already have this resource configured
-	for id, r := range resources {
-		if r.Name() == BlobstoreResourceType {
-			node.ResourceIds = append(node.ResourceIds, id)
-		}
-	}
+func NewBucketNode(node *gen.Node) *BucketNode {
 	return &BucketNode{
 		BaseNode: NewBaseNode(node),
 		Bucket:   node.GetBucket(),
 	}
 }
 
-func NewInputNode(node *gen.Node) *InputNode {
-	return &InputNode{
-		BaseNode: NewBaseNode(node),
-		Input:    node.GetInput(),
-	}
-}
-
-func NewFunctionNode(node *gen.Node) *FunctionNode {
-	return &FunctionNode{
-		BaseNode: NewBaseNode(node),
-		Function: node.GetFunction(),
-	}
-}
-
-func NewQueryNode(resources ResourceMap, node *gen.Node) *QueryNode {
-	// TODO breadchris a node should already have this resource configured
-	for id, r := range resources {
-		if r.Name() == DocstoreResourceType {
-			node.ResourceIds = append(node.ResourceIds, id)
-		}
-	}
+func NewQueryNode(node *gen.Node) *QueryNode {
 	return &QueryNode{
 		BaseNode: NewBaseNode(node),
 		Query:    node.GetQuery(),

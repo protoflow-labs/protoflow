@@ -2,25 +2,19 @@ import { Caption1, CardHeader, Text } from "@fluentui/react-components";
 import { AiOutlineMail } from "react-icons/ai";
 import { Handle, NodeProps, Position } from "reactflow";
 import { BlockCard } from "./BlockCard";
+import {useProjectContext} from "@/providers/ProjectProvider";
 
-export type QueueBlockProps = NodeProps<QueueData>;
-
-export type QueueData = {
-  name: string;
-  database: string;
-  variables: Record<string, string>;
-  sql: string;
-};
-
-export function QueueBlock(props: QueueBlockProps) {
-  const { data, selected } = props;
+export function QueueBlock(props: NodeProps) {
+  const { id, selected } = props;
+  const {nodeLookup} = useProjectContext();
+  const node = nodeLookup[id];
   return (
     <>
       <BlockCard selected={selected}>
         <CardHeader
           image={<AiOutlineMail className="h-5 w-5 bg-gray-800" />}
           header={
-            <Text weight="semibold">{data.name || "Untitled Queue"}</Text>
+            <Text weight="semibold">{node.name || "Untitled Queue"}</Text>
           }
           description={<Caption1>Queue</Caption1>}
         />

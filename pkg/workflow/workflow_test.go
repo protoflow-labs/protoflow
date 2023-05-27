@@ -2,6 +2,8 @@ package workflow
 
 import (
 	"context"
+	"github.com/protoflow-labs/protoflow/pkg/workflow/execute"
+	"github.com/protoflow-labs/protoflow/pkg/workflow/node"
 	"testing"
 
 	"github.com/protoflow-labs/protoflow/gen"
@@ -11,6 +13,17 @@ import (
 func TestRun(t *testing.T) {
 	// TODO breadchris start server to listen for localhost:8080?
 	nodeID := "1"
+	lr := &gen.Resource{
+		Id: "2",
+		Type: &gen.Resource_LanguageService{
+			LanguageService: &gen.LanguageService{
+				Runtime: gen.Runtime_NODEJS,
+				Grpc: &gen.GRPCService{
+					Host: "localhost:8086",
+				},
+			},
+		},
+	}
 	r := &gen.Resource{
 		Id: nodeID,
 		Type: &gen.Resource_GrpcService{
@@ -24,7 +37,6 @@ func TestRun(t *testing.T) {
 		t.Fatal(err)
 	}
 	getProjectsBlockId := blocks[1].Id
-	r.Blocks = blocks
 	p := &gen.Project{
 		Graph: &gen.Graph{
 			Nodes: []*gen.Node{
@@ -40,27 +52,16 @@ func TestRun(t *testing.T) {
 				},
 			},
 		},
-		Resources: []*gen.Resource{r},
+		Resources: []*gen.Resource{lr, r},
 	}
 
-	resources := ResourceMap{
-		"js": &LanguageServiceResource{
-			LanguageService: &gen.LanguageService{
-				Runtime: gen.Runtime_NODE,
-				Grpc: &gen.GRPCService{
-					Host: "localhost:8086",
-				},
-			},
-		},
-	}
-
-	w, err := FromProject(p, resources)
+	w, err := FromProject(p)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	ctx := MemoryContext{context.Background()}
-	executor := NewMemoryExecutor(&ctx)
+	ctx := execute.MemoryContext{context.Background()}
+	executor := execute.NewMemoryExecutor(&ctx, nil)
 	logger := &MemoryLogger{}
 	_, err = w.Run(logger, executor, nodeID, "")
 	if err != nil {
@@ -133,13 +134,13 @@ func TestBuildingGraph(t *testing.T) {
 		},
 	}
 
-	w, err := FromProject(p, ResourceMap{})
+	w, err := FromProject(p, node.ResourceMap{})
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	ctx := MemoryContext{context.Background()}
-	executor := NewMemoryExecutor(&ctx)
+	ctx := execute.MemoryContext{context.Background()}
+	executor := execute.NewMemoryExecutor(&ctx)
 	logger := &MemoryLogger{}
 
 	entrypointNode := "input-node"

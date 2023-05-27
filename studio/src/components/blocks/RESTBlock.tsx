@@ -2,25 +2,18 @@ import { Caption1, CardHeader, Text } from "@fluentui/react-components";
 import { MdHttp } from "react-icons/md";
 import { Handle, NodeProps, Position } from "reactflow";
 import { BlockCard } from "./BlockCard";
+import {useProjectContext} from "@/providers/ProjectProvider";
 
-export type RESTBlockProps = NodeProps<RESTData>;
-
-export type RESTData = {
-  name: string;
-  config: {
-    rest: { method: string; path: string; headers: Record<string, string> };
-  };
-};
-
-export function RESTBlock(props: RESTBlockProps) {
-  const { data, selected } = props;
-
+export function RESTBlock(props: NodeProps) {
+  const { id, selected } = props;
+  const {nodeLookup} = useProjectContext();
+  const node = nodeLookup[id];
   return (
     <>
       <BlockCard selected={selected}>
         <CardHeader
           image={<MdHttp className="h-5 w-5 bg-gray-800" />}
-          header={<Text weight="semibold">{data.name || "Untitled REST"}</Text>}
+          header={<Text weight="semibold">{node.name || "Untitled REST"}</Text>}
           description={<Caption1>REST</Caption1>}
         />
       </BlockCard>

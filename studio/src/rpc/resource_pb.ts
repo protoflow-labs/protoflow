@@ -5,7 +5,32 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3 } from "@bufbuild/protobuf";
-import { Block, Runtime } from "./block_pb.js";
+
+/**
+ * @generated from enum resource.Runtime
+ */
+export enum Runtime {
+  /**
+   * @generated from enum value: NODEJS = 0;
+   */
+  NODEJS = 0,
+
+  /**
+   * @generated from enum value: PYTHON = 1;
+   */
+  PYTHON = 1,
+
+  /**
+   * @generated from enum value: GO = 2;
+   */
+  GO = 2,
+}
+// Retrieve enum metadata with: proto3.getEnumType(Runtime)
+proto3.util.setEnumType(Runtime, "resource.Runtime", [
+  { no: 0, name: "NODEJS" },
+  { no: 1, name: "PYTHON" },
+  { no: 2, name: "GO" },
+]);
 
 /**
  * @generated from message resource.Resource
@@ -56,11 +81,6 @@ export class Resource extends Message<Resource> {
     case: "languageService";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
-  /**
-   * @generated from field: repeated block.Block blocks = 8;
-   */
-  blocks: Block[] = [];
-
   constructor(data?: PartialMessage<Resource>) {
     super();
     proto3.util.initPartial(data, this);
@@ -76,7 +96,6 @@ export class Resource extends Message<Resource> {
     { no: 5, name: "docstore", kind: "message", T: Docstore, oneof: "type" },
     { no: 6, name: "blobstore", kind: "message", T: Blobstore, oneof: "type" },
     { no: 7, name: "language_service", kind: "message", T: LanguageService, oneof: "type" },
-    { no: 8, name: "blocks", kind: "message", T: Block, repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Resource {
@@ -101,9 +120,9 @@ export class Resource extends Message<Resource> {
  */
 export class LanguageService extends Message<LanguageService> {
   /**
-   * @generated from field: block.Runtime runtime = 1;
+   * @generated from field: resource.Runtime runtime = 1;
    */
-  runtime = Runtime.NODE;
+  runtime = Runtime.NODEJS;
 
   /**
    * @generated from field: resource.GRPCService grpc = 2;

@@ -8,15 +8,13 @@ import (
 	store "github.com/protoflow-labs/protoflow/pkg/store"
 	"github.com/rs/zerolog/log"
 
-	"github.com/pkg/errors"
-	"github.com/protoflow-labs/protoflow/gen/genconnect"
-	"github.com/protoflow-labs/protoflow/pkg/workflow"
-	"google.golang.org/protobuf/types/known/anypb"
-
 	"github.com/bufbuild/connect-go"
 	"github.com/google/uuid"
 	"github.com/google/wire"
+	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/gen"
+	"github.com/protoflow-labs/protoflow/gen/genconnect"
+	"github.com/protoflow-labs/protoflow/pkg/workflow"
 )
 
 type Service struct {
@@ -46,15 +44,17 @@ func NewService(
 	}, nil
 }
 
-func hydrateBlocksForResources(projectResources []*gen.Resource) ([]*gen.Resource, error) {
-	var resources []*gen.Resource
+func hydrateBlocksForResources(projectResources []*gen.Resource) ([]*gen.EnumeratedResource, error) {
+	var resources []*gen.EnumeratedResource
 	for _, resource := range projectResources {
-		blocks, err := grpc.EnumerateResourceBlocks(resource)
+		nodes, err := grpc.EnumerateResourceBlocks(resource)
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to get blocks for resource: %s", resource.Name)
 		}
-		resource.Blocks = blocks
-		resources = append(resources, resource)
+		resources = append(resources, &gen.EnumeratedResource{
+			Resource: resource,
+			Nodes:    nodes,
+		})
 	}
 	return resources, nil
 }
@@ -102,33 +102,18 @@ func (s *Service) CreateResource(ctx context.Context, c *connect.Request[gen.Cre
 		return nil, errors.Wrapf(err, "failed to get project %s", c.Msg.ProjectId)
 	}
 
-	resource := c.Msg.Resource
-	resource.Id = uuid.New().String()
+	r := c.Msg.Resource
+	r.Id = uuid.New().String()
 
-	project.Resources = append(project.Resources, resource)
+	project.Resources = append(project.Resources, r)
 	_, err = s.store.SaveProject(project)
 	if err != nil {
 		return nil, err
 	}
 
 	return connect.NewResponse(&gen.CreateResourceResponse{
-		ResourceId: resource.Id,
+		ResourceId: r.Id,
 	}), nil
-}
-
-func resultToAny(res *workflow.Result) (*anypb.Any, error) {
-	data, err := json.Marshal(res)
-	if err != nil {
-		return nil, err
-	}
-
-	output, err := anypb.New(&gen.Result{
-		Data: data,
-	})
-	if err != nil {
-		return nil, err
-	}
-	return output, nil
 }
 
 func (s *Service) RunWorklow(ctx context.Context, c *connect.Request[gen.RunWorkflowRequest]) (*connect.Response[gen.RunOutput], error) {
@@ -181,7 +166,15 @@ func (s *Service) GetNodeInfo(ctx context.Context, c *connect.Request[gen.GetNod
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get project %s", c.Msg.ProjectId)
 	}
-	nodeInfo, err := workflow.GetNodeInfo(project, c.Msg.NodeId)
+	w, err := workflow.FromProject(project)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get workflow from project")
+	}
+	n, err := w.GetNode(c.Msg.NodeId)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get node %s", c.Msg.NodeId)
+	}
+	nodeInfo, err := w.GetNodeInfo(n)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get node info for node %s", c.Msg.NodeId)
 	}
@@ -235,7 +228,7 @@ func (s *Service) DeleteProject(context.Context, *connect.Request[gen.DeleteProj
 func (s *Service) SaveProject(ctx context.Context, req *connect.Request[gen.SaveProjectRequest]) (*connect.Response[gen.SaveProjectResponse], error) {
 	project, err := s.store.GetProject(req.Msg.ProjectId)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrapf(err, "failed to get project %s", req.Msg.ProjectId)
 	}
 
 	project.Graph = req.Msg.Graph

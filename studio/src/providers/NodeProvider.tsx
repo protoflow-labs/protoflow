@@ -15,10 +15,9 @@ export default function NodeProvider({children, nodeId}: { children: React.React
     const {loadNodeInfo} = useProjectContext();
     const [nodeInfo, setNodeInfo] = useState<GetNodeInfoResponse | undefined>(undefined);
     useEffect(() => {
-        (async () => {
-            const res = await loadNodeInfo(nodeId);
+        loadNodeInfo(nodeId).then(res => {
             setNodeInfo(res);
-        })()
+        });
     }, [nodeId]);
 
     return (
