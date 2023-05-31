@@ -14,6 +14,8 @@ import (
 	"strings"
 )
 
+const BackpackKey = "backpack"
+
 type Node interface {
 	Execute(executor execute.Executor, input execute.Input) (*execute.Result, error)
 	NormalizedName() string

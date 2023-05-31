@@ -1,4 +1,9 @@
-import {FieldDescriptorProto} from "@bufbuild/protobuf";
+import {
+    DescriptorProto,
+    FieldDescriptorProto,
+    FieldDescriptorProto_Label,
+    FieldDescriptorProto_Type
+} from "@bufbuild/protobuf";
 import React, {FC, useState} from "react";
 import {Control, useFieldArray, UseFormRegister, useWatch} from "react-hook-form";
 import {
@@ -74,6 +79,10 @@ const InputFormContents: FC<InputFormContentsProps> = (props) => {
                         <>
                             <GRPCInputForm
                                 {...props}
+                                grpcInfo={new GRPCTypeInfo({
+                                    ...grpcInfo,
+                                    input: fieldType,
+                                })}
                                 baseFieldName={fieldFormName}
                                 fieldPath={`${fieldPath}.${field.name}`}
                             />
@@ -90,7 +99,7 @@ const InputFormContents: FC<InputFormContentsProps> = (props) => {
     }
     // TODO breadchris this should be checking for an actual type, not a string, field.type is a string, not a number
     // @ts-ignore
-    if (field.type === "TYPE_ENUM") {
+    if (field.type === "TYPE_ENUM" || field.type === FieldDescriptorProto_Type.ENUM) {
         if (!field.typeName) {
             throw new Error("Enum field has no type name");
         }
@@ -125,31 +134,26 @@ export interface GRPCInputFormProps {
     baseFieldName?: string
 }
 
-export const GRPCInputForm: FC<GRPCInputFormProps> = (props) => {
+interface GRPCInputFormContentsProps extends GRPCInputFormProps {
+    field: GrpcFormFieldType
+    desc: DescriptorProto
+}
+
+const AccordionField: FC<GRPCInputFormContentsProps> = (props) => {
     const {
-        grpcInfo,
         control,
         baseFieldName,
-        fieldPath
+        field,
+        fieldPath,
+        desc,
     } = props;
 
-    const { input: desc } = grpcInfo;
-
-    if (!desc) {
-        return null;
-    }
+    const {fields: formFields, append, prepend, remove, swap, move, insert} = useFieldArray({
+        control,
+        name: baseFieldName || 'input',
+    });
 
     const formatField = (field: FieldDescriptorProto) => {
-        if (!field.name) {
-            console.error('Field has no name', field)
-            return null;
-        }
-
-        const {fields: formFields, append, prepend, remove, swap, move, insert} = useFieldArray({
-            control,
-            name: baseFieldName || 'input',
-        });
-
         const inputProps: InputFormContentsProps = {
             ...props,
             field,
@@ -158,7 +162,7 @@ export const GRPCInputForm: FC<GRPCInputFormProps> = (props) => {
 
         // TODO breadchris for some reason FieldDescriptorProto_Label.REPEATED is a number and field.label is a string
         // @ts-ignore
-        if (field.label === 'LABEL_REPEATED') {
+        if (field.label === 'LABEL_REPEATED' || field.label === FieldDescriptorProto_Label.REPEATED) {
             return (
                 <div>
                     {formFields.map((f, index) => (
@@ -172,6 +176,43 @@ export const GRPCInputForm: FC<GRPCInputFormProps> = (props) => {
             )
         }
         return <InputFormContents {...inputProps} />
+    }
+
+    const panelContents = () => {
+        if (field.type === 'field') {
+            return formatField(field.field)
+        } else {
+            if (!field.fields) {
+                return null;
+            }
+            return (
+                <Accordion>
+                    {field.fields.map((f) => (
+                        <AccordionItem key={f.name} value={f.number}>
+                            <AccordionHeader>{f.name}</AccordionHeader>
+                            <AccordionPanel>{formatField(f)}</AccordionPanel>
+                        </AccordionItem>
+                    ))}
+                </Accordion>
+            )
+        }
+    }
+    return (
+        <AccordionItem key={field.name} value={field.name}>
+            <AccordionHeader>{field.name}</AccordionHeader>
+            <AccordionPanel>{panelContents()}</AccordionPanel>
+        </AccordionItem>
+    )
+}
+
+export const GRPCInputForm: FC<GRPCInputFormProps> = (props) => {
+    const {
+        grpcInfo,
+    } = props;
+
+    const { input: desc } = grpcInfo;
+    if (!desc) {
+        return null;
     }
 
     const formattedFields: GrpcFormFieldType[] = [];
@@ -201,28 +242,7 @@ export const GRPCInputForm: FC<GRPCInputFormProps> = (props) => {
     return (
         <Accordion>
             {formattedFields.map((field) => {
-                const panelContents = () => {
-                    if (field.type === 'field') {
-                        return formatField(field.field)
-                    } else {
-                        return (
-                            <Accordion>
-                                {field.fields.map((f) => (
-                                    <AccordionItem key={f.number} value={f.number}>
-                                        <AccordionHeader>{f.name}</AccordionHeader>
-                                        <AccordionPanel>{formatField(f)}</AccordionPanel>
-                                    </AccordionItem>
-                                ))}
-                            </Accordion>
-                        )
-                    }
-                }
-                return (
-                    <AccordionItem key={field.name} value={field.name}>
-                        <AccordionHeader>{field.name}</AccordionHeader>
-                        <AccordionPanel>{panelContents()}</AccordionPanel>
-                    </AccordionItem>
-                )
+                return <AccordionField key={field.name} field={field} desc={desc} {...props} />
             })}
         </Accordion>
     )

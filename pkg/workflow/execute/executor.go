@@ -14,13 +14,15 @@ import (
 
 type Input struct {
 	Params   interface{}
+	Backpack interface{}
 	Stream   bufcurl.OutputStream
 	Resource resource.Resource
 }
 
 type Result struct {
-	Data   interface{}
-	Stream bufcurl.OutputStream
+	Data     interface{}
+	Backpack interface{}
+	Stream   bufcurl.OutputStream
 }
 
 type Executor interface {

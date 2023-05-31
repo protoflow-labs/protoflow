@@ -14,6 +14,7 @@ interface NodeBlock {
 
 function resourceToNode(res: Resource, name: string) {
   const baseNode = new Node({
+    id: generateUUID(),
     name: name,
     resourceId: res.id,
   });
@@ -31,7 +32,8 @@ function resourceToNode(res: Resource, name: string) {
     case 'docstore':
       config = {
           case: 'collection',
-          value: new Collection({})
+          value: new Collection({
+          })
       }
       break;
     case 'blobstore':

@@ -75,7 +75,7 @@ export function GenericNodeEditor<T>({node, nodeConfig, nodeConfigType}: { node:
                     return (
                         <Field label={field.name} key={field.name}>
                             {/* @ts-ignore */}
-                            <Input value={values.config[field.name]} {...register(`config.${field.name}`)} />
+                            <Input value={values.config[field.name] || ''} {...register(`config.${field.name}`)} />
                         </Field>
                     )
                 })}

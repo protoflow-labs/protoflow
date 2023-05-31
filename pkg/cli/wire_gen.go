@@ -22,11 +22,11 @@ import (
 // Injectors from wire.go:
 
 func Wire(cacheConfig bucket.Config) (*cli.App, error) {
-	localCache, err := bucket.NewUserCache(cacheConfig)
+	localBucket, err := bucket.NewUserCache(cacheConfig)
 	if err != nil {
 		return nil, err
 	}
-	provider, err := config.NewProvider(localCache)
+	provider, err := config.NewProvider(localBucket)
 	if err != nil {
 		return nil, err
 	}
@@ -42,7 +42,7 @@ func Wire(cacheConfig bucket.Config) (*cli.App, error) {
 	if err != nil {
 		return nil, err
 	}
-	gormDB, err := db.NewGormDB(dbConfig, localCache)
+	gormDB, err := db.NewGormDB(dbConfig, localBucket)
 	if err != nil {
 		return nil, err
 	}
@@ -58,7 +58,7 @@ func Wire(cacheConfig bucket.Config) (*cli.App, error) {
 	if err != nil {
 		return nil, err
 	}
-	service, err := project.NewService(projectStore, manager, localCache)
+	service, err := project.NewService(projectStore, manager, localBucket)
 	if err != nil {
 		return nil, err
 	}
