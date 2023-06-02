@@ -17,6 +17,7 @@ import {Resource} from "@/rpc/resource_pb";
 import {toast} from "react-hot-toast";
 import {useErrorBoundary} from "react-error-boundary";
 
+
 type ProjectContextType = {
     project: Project | undefined;
     resources: Resource[];
@@ -47,6 +48,7 @@ const ProjectContext = createContext<ProjectContextType>({} as any);
 export const useProjectContext = () => useContext(ProjectContext);
 export const useResetOutput = () => useProjectContext().resetOutput;
 
+// project provider holds things that are closer to the database, like information fetched from the database
 export default function ProjectProvider({children}: ProjectProviderProps) {
     const {project, loading, createDefault} = useDefaultProject();
     const {resources, loading: loadingResources, loadProjectResources} = useProjectResources();

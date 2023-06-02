@@ -1,7 +1,7 @@
 import { useSelectedNodes } from "@/hooks/useSelectedNodes";
 import { generateService, projectService } from "@/lib/api";
 import { checkIsApple } from "@/lib/checkIsApple";
-import { getUpdatedProject } from "@/lib/project";
+import { saveProject } from "@/lib/project";
 import { useEditorContext } from "@/providers/EditorProvider";
 import { useProjectContext } from "@/providers/ProjectProvider";
 import {
@@ -54,13 +54,13 @@ export function Toolbar() {
   const onSave = useCallback(async () => {
     if (!project) return;
 
-    const updatedProject = getUpdatedProject({
+    const updatedProject = saveProject({
       project,
       nodes: props.nodes,
       edges: props.edges,
     });
 
-    for (const node of updatedProject.graph?.nodes || []) {
+    for (const node of updatedProject.graph?.flowNodes || []) {
       if (!node.name) {
         toast.error("Please name all nodes before exporting");
         return;
@@ -69,7 +69,7 @@ export function Toolbar() {
 
     await projectService.saveProject(updatedProject);
     toast.success("Project saved");
-  }, [project, props.nodes, props.edges]);
+  }, [project, props.flowNodes, props.edges]);
 
   const onBuild = async () => {
     await  onSave();

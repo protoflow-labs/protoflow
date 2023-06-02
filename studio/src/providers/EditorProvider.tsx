@@ -147,11 +147,14 @@ const useEditorProps = (reactFlowInstance?: ReactFlowInstance) => {
   );
 
   const onEdgesChange: OnEdgesChange = useCallback((changes) => {
+    console.log('edge change called')
     setEdges((eds) => applyEdgeChanges(changes, eds));
   }, []);
 
   const onNodesChange: OnNodesChange = useCallback((changes) => {
+    console.log('node change called', changes)
     setNodes((nds) => applyNodeChanges(changes, nds));
+    console.log('nodes are now ', nodes)
   }, []);
 
   return {

@@ -18,6 +18,8 @@
     "esbuild-plugin-swc": "^1.0.1",
     "esbuild-style-plugin": "^1.6.1",
     "eslint": "8.39.0",
+    "flowbite": "^1.6.5",
+    "flowbite-react": "^0.4.4",
     "framer-motion": "^10.12.4",
     "react": "18.2.0",
     "react-dom": "18.2.0",

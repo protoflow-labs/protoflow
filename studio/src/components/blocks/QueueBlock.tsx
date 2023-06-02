@@ -1,7 +1,7 @@
 import { Caption1, CardHeader, Text } from "@fluentui/react-components";
 import { AiOutlineMail } from "react-icons/ai";
 import { Handle, NodeProps, Position } from "reactflow";
-import { BlockCard } from "./BlockCard";
+import { BaseBlockCard } from "./BaseBlockCard";
 
 export type QueueBlockProps = NodeProps<QueueData>;
 
@@ -16,7 +16,7 @@ export function QueueBlock(props: QueueBlockProps) {
   const { data, selected } = props;
   return (
     <>
-      <BlockCard selected={selected}>
+      <BaseBlockCard selected={selected}>
         <CardHeader
           image={<AiOutlineMail className="h-5 w-5 bg-gray-800" />}
           header={
@@ -24,7 +24,7 @@ export function QueueBlock(props: QueueBlockProps) {
           }
           description={<Caption1>Queue</Caption1>}
         />
-      </BlockCard>
+      </BaseBlockCard>
       <Handle type="source" position={Position.Bottom} className="z-10" />
       <Handle type="target" position={Position.Top} className="z-10" />
     </>

@@ -2,7 +2,7 @@ import { Edge, Node } from "reactflow";
 import {Project, SaveProjectRequest} from "@/rpc/project_pb";
 import {Node as ProtoNode, Edge as ProtoEdge, Graph} from "@/rpc/graph_pb";
 
-export function getUpdatedProject({
+export function saveProject({
   project,
   nodes,
   edges,
@@ -11,6 +11,7 @@ export function getUpdatedProject({
   nodes: Node[];
   edges: Edge[];
 }): SaveProjectRequest {
+  console.log('flownodes are ', nodes)
   return new SaveProjectRequest({
     projectId: project.id,
     graph: new Graph({
@@ -21,7 +22,8 @@ export function getUpdatedProject({
         from: edge.source,
         to: edge.target,
       }))),
-      nodes: nodes.map((node) => {
+      flowNodes: nodes.map((node) => {
+        // Todo: gosh we should really just have our own names and built the react-flow names dynamically if they need the namespacing, this is silly
         const blockType: any = node.type?.split(".").pop();
 
         return new ProtoNode({
