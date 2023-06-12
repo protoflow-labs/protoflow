@@ -12,6 +12,8 @@ import { Bucket, Collection, Function, GRPC, Input, Query, REST } from "./block_
  */
 export class Graph extends Message<Graph> {
   /**
+   * TODO breadchris get rid of id and name, they are not needed
+   *
    * @generated from field: string id = 1;
    */
   id = "";
@@ -75,11 +77,6 @@ export class Node extends Message<Node> {
    * @generated from field: string name = 2;
    */
   name = "";
-
-  /**
-   * @generated from field: string block_id = 3;
-   */
-  blockId = "";
 
   /**
    * @generated from field: float x = 4;
@@ -153,7 +150,6 @@ export class Node extends Message<Node> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 3, name: "block_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 4, name: "x", kind: "scalar", T: 2 /* ScalarType.FLOAT */ },
     { no: 5, name: "y", kind: "scalar", T: 2 /* ScalarType.FLOAT */ },
     { no: 6, name: "resource_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },

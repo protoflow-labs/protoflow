@@ -24,6 +24,7 @@ import {getDataFromNode, getNodeDataKey, useProjectContext} from "./ProjectProvi
 import {Node as ProtoNode} from "@/rpc/graph_pb";
 import {Simulate} from "react-dom/test-utils";
 import drag = Simulate.drag;
+import {generateUUID} from "@/util/uuid";
 
 type EditorContextType = {
   mode: Mode;
@@ -93,6 +94,9 @@ const nodeToType = (node: ProtoNode) => {
   return `protoflow.${node.config.case}`;
 }
 
+// todo: we want to make sure the incoming node has a distinction from the sidebar node vs the server type node
+// export type SidebarNode = Exclude<ProtoNode, { id: string }>
+
 const useEditorProps = (draggedNode: ProtoNode | undefined, setDraggedNode: (node: ProtoNode) => void, reactFlowInstance?: ReactFlowInstance) => {
   const { project, saveProject, setNodeLookup } = useProjectContext();
 
@@ -134,24 +138,28 @@ const useEditorProps = (draggedNode: ProtoNode | undefined, setDraggedNode: (nod
     e.dataTransfer.dropEffect = "move";
   }, []);
 
+  // todo: figure out if this happens when we just move nodes
   const onDrop: DragEventHandler<HTMLDivElement>  = useCallback(
     (e) => {
-      console.log(draggedNode)
+      console.log('NODE DROPPED', draggedNode)
       if (!draggedNode) {
         return;
       }
       const position = reactFlowInstance!.project({x: e.clientX, y: e.clientY});
 
+
       const newNode = {
-        id: draggedNode.id,
+        id: generateUUID(),
         type: nodeToType(draggedNode),
         position,
         data: {}
       };
+      draggedNode.id = newNode.id;
+
       setNodeLookup((lookup) => {
         return {
           ...lookup,
-          [draggedNode.id]: draggedNode
+          [newNode.id]: draggedNode
         }
       })
       setNodes((nds) => [...nds, newNode]);
@@ -160,11 +168,14 @@ const useEditorProps = (draggedNode: ProtoNode | undefined, setDraggedNode: (nod
   );
 
   const onEdgesChange: OnEdgesChange = useCallback((changes) => {
+    console.log('edge change called')
     setEdges((eds) => applyEdgeChanges(changes, eds));
   }, []);
 
   const onNodesChange: OnNodesChange = useCallback((changes) => {
+    console.log('node change called', changes)
     setNodes((nds) => applyNodeChanges(changes, nds));
+    console.log('nodes are now ', nodes)
   }, []);
 
   return {

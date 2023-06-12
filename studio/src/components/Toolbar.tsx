@@ -1,6 +1,8 @@
 import { useSelectedNodes } from "@/hooks/useSelectedNodes";
 import { generateService, projectService } from "@/lib/api";
 import { checkIsApple } from "@/lib/checkIsApple";
+import { saveProject } from "@/lib/project";
+
 import { useEditorContext } from "@/providers/EditorProvider";
 import { useProjectContext } from "@/providers/ProjectProvider";
 import {
@@ -49,6 +51,7 @@ export function Toolbar() {
     e.stopPropagation();
     onAddResource();
   });
+
 
   const onSave = async () => {
     await save();
