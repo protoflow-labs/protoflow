@@ -62,7 +62,7 @@ export default function BlocksList() {
 
   return (
       <div className="absolute flex flex-col gap-1 m-3 z-10 top-8" style={{marginTop: "40px"}}>
-        <Accordion defaultOpenItems={"Built-in"}>
+        <Accordion defaultOpenItems={"Built-in"} collapsible={true}>
           <AccordionItem value="Built-in">
             <AccordionHeader>Built-in</AccordionHeader>
             <AccordionPanel>
