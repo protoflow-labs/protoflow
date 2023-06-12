@@ -43,7 +43,7 @@ func (j *ProjectJSON) Scan(value interface{}) error {
 	return j.UnmarshalJSON(bytes)
 }
 
-func (j ProjectJSON) MarshalJSON() ([]byte, error) {
+func (j *ProjectJSON) MarshalJSON() ([]byte, error) {
 	marshaler := &protojson.MarshalOptions{}
 	b, err := marshaler.Marshal(j.Data)
 	if err != nil {

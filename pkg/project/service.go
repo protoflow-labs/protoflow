@@ -3,34 +3,28 @@ package project
 import (
 	"context"
 	"encoding/json"
-	"github.com/protoflow-labs/protoflow/pkg/grpc/manager"
-	"github.com/rs/zerolog/log"
-	"html/template"
-
-	"github.com/protoflow-labs/protoflow/pkg/cache"
+	"github.com/protoflow-labs/protoflow/pkg/bucket"
 	"github.com/protoflow-labs/protoflow/pkg/grpc"
-
-	"github.com/pkg/errors"
-	"github.com/protoflow-labs/protoflow/gen/genconnect"
-	"github.com/protoflow-labs/protoflow/pkg/workflow"
-	"github.com/protoflow-labs/protoflow/templates"
-	"google.golang.org/protobuf/types/known/anypb"
+	store "github.com/protoflow-labs/protoflow/pkg/store"
+	"github.com/rs/zerolog/log"
 
 	"github.com/bufbuild/connect-go"
 	"github.com/google/uuid"
 	"github.com/google/wire"
+	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/gen"
+	"github.com/protoflow-labs/protoflow/gen/genconnect"
+	"github.com/protoflow-labs/protoflow/pkg/workflow"
 )
 
 type Service struct {
-	store              Store
-	manager            workflow.Manager
-	blockProtoTemplate *template.Template
-	cache              cache.Cache
+	store   store.Project
+	manager workflow.Manager
+	cache   bucket.Bucket
 }
 
 var ProviderSet = wire.NewSet(
-	StoreProviderSet,
+	store.ProviderSet,
 	workflow.ProviderSet,
 	NewService,
 	wire.Bind(new(genconnect.ProjectServiceHandler), new(*Service)),
@@ -39,32 +33,28 @@ var ProviderSet = wire.NewSet(
 var _ genconnect.ProjectServiceHandler = (*Service)(nil)
 
 func NewService(
-	store Store,
+	store store.Project,
 	manager workflow.Manager,
-	cache cache.Cache,
+	cache bucket.Bucket,
 ) (*Service, error) {
-	blockProtoTemplate, err := template.New("block").ParseFS(templates.Templates, "*.template.proto")
-	if err != nil {
-		return nil, err
-	}
-
 	return &Service{
-		store:              store,
-		manager:            manager,
-		blockProtoTemplate: blockProtoTemplate,
-		cache:              cache,
+		store:   store,
+		manager: manager,
+		cache:   cache,
 	}, nil
 }
 
-func hydrateBlocksForResources(projectResources []*gen.Resource) ([]*gen.Resource, error) {
-	var resources []*gen.Resource
+func hydrateBlocksForResources(projectResources []*gen.Resource) ([]*gen.EnumeratedResource, error) {
+	var resources []*gen.EnumeratedResource
 	for _, resource := range projectResources {
-		blocks, err := grpc.EnumerateResourceBlocks(resource)
+		nodes, err := grpc.EnumerateResourceBlocks(resource)
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to get blocks for resource: %s", resource.Name)
 		}
-		resource.Blocks = blocks
-		resources = append(resources, resource)
+		resources = append(resources, &gen.EnumeratedResource{
+			Resource: resource,
+			Nodes:    nodes,
+		})
 	}
 	return resources, nil
 }
@@ -112,33 +102,18 @@ func (s *Service) CreateResource(ctx context.Context, c *connect.Request[gen.Cre
 		return nil, errors.Wrapf(err, "failed to get project %s", c.Msg.ProjectId)
 	}
 
-	resource := c.Msg.Resource
-	resource.Id = uuid.New().String()
+	r := c.Msg.Resource
+	r.Id = uuid.New().String()
 
-	project.Resources = append(project.Resources, resource)
+	project.Resources = append(project.Resources, r)
 	_, err = s.store.SaveProject(project)
 	if err != nil {
 		return nil, err
 	}
 
 	return connect.NewResponse(&gen.CreateResourceResponse{
-		ResourceId: resource.Id,
+		ResourceId: r.Id,
 	}), nil
-}
-
-func resultToAny(res *workflow.Result) (*anypb.Any, error) {
-	data, err := json.Marshal(res)
-	if err != nil {
-		return nil, err
-	}
-
-	output, err := anypb.New(&gen.Result{
-		Data: data,
-	})
-	if err != nil {
-		return nil, err
-	}
-	return output, nil
 }
 
 func (s *Service) RunWorklow(ctx context.Context, c *connect.Request[gen.RunWorkflowRequest]) (*connect.Response[gen.RunOutput], error) {
@@ -147,9 +122,7 @@ func (s *Service) RunWorklow(ctx context.Context, c *connect.Request[gen.RunWork
 		return nil, errors.Wrapf(err, "failed to get project %s", c.Msg.ProjectId)
 	}
 
-	projectResources := workflow.ResourceMap{}
-
-	w, err := workflow.FromProject(project, projectResources)
+	w, err := workflow.FromProject(project)
 	if err != nil {
 		return nil, err
 	}
@@ -193,82 +166,22 @@ func (s *Service) GetNodeInfo(ctx context.Context, c *connect.Request[gen.GetNod
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get project %s", c.Msg.ProjectId)
 	}
-
-	var node *gen.Node
-	for _, n := range project.Graph.Nodes {
-		if n.Id == c.Msg.NodeId {
-			node = n
-			break
-		}
+	w, err := workflow.FromProject(project)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get workflow from project")
 	}
-	if node == nil {
-		return nil, errors.Errorf("node %s not found", c.Msg.NodeId)
+	n, err := w.GetNode(c.Msg.NodeId)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get node %s", c.Msg.NodeId)
 	}
-
-	var nodeResources []*gen.Resource
-	for _, r := range project.Resources {
-		for _, id := range node.ResourceIds {
-			if r.Id == id {
-				nodeResources = append(nodeResources, r)
-			}
-		}
+	nodeInfo, err := w.GetNodeInfo(n)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get node info for node %s", c.Msg.NodeId)
 	}
-
-	getNodeGRPCInfo := func(node *gen.GRPC) (*gen.GetNodeInfoResponse, error) {
-		var grpcResource *gen.GRPCService
-		for _, r := range nodeResources {
-			switch r.Type.(type) {
-			case *gen.Resource_LanguageService:
-				grpcResource = r.GetLanguageService().Grpc
-			case *gen.Resource_GrpcService:
-				grpcResource = r.GetGrpcService()
-			}
-		}
-
-		if grpcResource == nil {
-			return nil, errors.Errorf("node %s does not have a grpc resource", c.Msg.NodeId)
-		}
-
-		// TODO breadchris I think a grpc resource should have a host that has a protocol
-		m := manager.NewReflectionManager("http://" + grpcResource.Host)
-		cleanup, err := m.Init()
-		if err != nil {
-			return nil, errors.Wrapf(err, "error initializing reflection manager")
-		}
-		defer cleanup()
-
-		serviceName := node.Package + "." + node.Service
-		method, err := m.ResolveMethod(serviceName, node.Method)
-		if err != nil {
-			return nil, errors.Wrapf(err, "error resolving method")
-		}
-
-		methodProto, err := manager.GetProtoForMethod(node.Package, node.Service, method)
-		if err != nil {
-			return nil, errors.Wrapf(err, "error getting proto for method")
-		}
-
-		return &gen.GetNodeInfoResponse{
-			MethodProto: methodProto,
-		}, nil
-	}
-
-	var resp *gen.GetNodeInfoResponse
-	// TODO breadchris we are probably going to want to reuse this logic, so there should probably be a NodeBuilder?
-	switch node.Config.(type) {
-	case *gen.Node_Function:
-		f := node.GetFunction()
-		resp, err = getNodeGRPCInfo(f.Grpc)
-		if err != nil {
-			return nil, err
-		}
-	case *gen.Node_Grpc:
-		resp, err = getNodeGRPCInfo(node.GetGrpc())
-		if err != nil {
-			return nil, err
-		}
-	}
-	return connect.NewResponse(resp), nil
+	return connect.NewResponse(&gen.GetNodeInfoResponse{
+		MethodProto: nodeInfo.MethodProto,
+		TypeInfo:    nodeInfo.TypeInfo,
+	}), nil
 }
 
 func (s *Service) GetProject(context.Context, *connect.Request[gen.GetProjectRequest]) (*connect.Response[gen.GetProjectResponse], error) {
@@ -291,20 +204,13 @@ func (s *Service) GetProjects(ctx context.Context, req *connect.Request[gen.GetP
 }
 
 func (s *Service) CreateProject(ctx context.Context, req *connect.Request[gen.CreateProjectRequest]) (*connect.Response[gen.CreateProjectResponse], error) {
+	// TODO breadchris this folder should be configurable
 	bucketDir, err := s.cache.GetFolder(".protoflow")
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get bucket dir")
 	}
 
 	project := getDefaultProject(req.Msg.Name, bucketDir)
-
-	for _, resource := range project.Resources {
-		blocks, err := grpc.EnumerateResourceBlocks(resource)
-		if err != nil {
-			return nil, errors.Wrapf(err, "failed to create resource: %s", resource.Name)
-		}
-		resource.Blocks = blocks
-	}
 
 	_, err = s.store.CreateProject(&project)
 
@@ -322,7 +228,7 @@ func (s *Service) DeleteProject(context.Context, *connect.Request[gen.DeleteProj
 func (s *Service) SaveProject(ctx context.Context, req *connect.Request[gen.SaveProjectRequest]) (*connect.Response[gen.SaveProjectResponse], error) {
 	project, err := s.store.GetProject(req.Msg.ProjectId)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrapf(err, "failed to get project %s", req.Msg.ProjectId)
 	}
 
 	project.Graph = req.Msg.Graph
@@ -337,4 +243,12 @@ func (s *Service) SaveProject(ctx context.Context, req *connect.Request[gen.Save
 	}
 
 	return connect.NewResponse(&gen.SaveProjectResponse{Project: project}), nil
+}
+
+func (s *Service) GetWorkflowRuns(ctx context.Context, c *connect.Request[gen.GetWorkflowRunsRequest]) (*connect.Response[gen.GetWorkflowRunsResponse], error) {
+	runs, err := s.store.GetWorkflowRunsForProject(c.Msg.ProjectId)
+	if err != nil {
+		return nil, err
+	}
+	return connect.NewResponse(&gen.GetWorkflowRunsResponse{Runs: runs}), nil
 }

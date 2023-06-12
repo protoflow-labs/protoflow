@@ -12,6 +12,8 @@ import { Bucket, Collection, Function, GRPC, Input, Query, REST } from "./block_
  */
 export class Graph extends Message<Graph> {
   /**
+   * TODO breadchris get rid of id and name, they are not needed
+   *
    * @generated from field: string id = 1;
    */
   id = "";
@@ -77,11 +79,6 @@ export class Node extends Message<Node> {
   name = "";
 
   /**
-   * @generated from field: string block_id = 3;
-   */
-  blockId = "";
-
-  /**
    * @generated from field: float x = 4;
    */
   x = 0;
@@ -92,11 +89,9 @@ export class Node extends Message<Node> {
   y = 0;
 
   /**
-   * resource dependencies
-   *
-   * @generated from field: repeated string resource_ids = 6;
+   * @generated from field: string resource_id = 6;
    */
-  resourceIds: string[] = [];
+  resourceId = "";
 
   /**
    * @generated from oneof graph.Node.config
@@ -155,10 +150,9 @@ export class Node extends Message<Node> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 3, name: "block_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 4, name: "x", kind: "scalar", T: 2 /* ScalarType.FLOAT */ },
     { no: 5, name: "y", kind: "scalar", T: 2 /* ScalarType.FLOAT */ },
-    { no: 6, name: "resource_ids", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
+    { no: 6, name: "resource_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 7, name: "rest", kind: "message", T: REST, oneof: "config" },
     { no: 8, name: "grpc", kind: "message", T: GRPC, oneof: "config" },
     { no: 9, name: "collection", kind: "message", T: Collection, oneof: "config" },

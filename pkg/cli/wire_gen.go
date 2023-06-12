@@ -8,24 +8,25 @@ package cli
 
 import (
 	"github.com/protoflow-labs/protoflow/pkg/api"
-	"github.com/protoflow-labs/protoflow/pkg/cache"
+	"github.com/protoflow-labs/protoflow/pkg/bucket"
 	"github.com/protoflow-labs/protoflow/pkg/config"
 	"github.com/protoflow-labs/protoflow/pkg/db"
 	"github.com/protoflow-labs/protoflow/pkg/generate"
 	"github.com/protoflow-labs/protoflow/pkg/log"
 	"github.com/protoflow-labs/protoflow/pkg/project"
+	"github.com/protoflow-labs/protoflow/pkg/store"
 	"github.com/protoflow-labs/protoflow/pkg/workflow"
 	"github.com/urfave/cli/v2"
 )
 
 // Injectors from wire.go:
 
-func Wire(cacheConfig cache.Config) (*cli.App, error) {
-	localCache, err := cache.NewUserCache(cacheConfig)
+func Wire(cacheConfig bucket.Config) (*cli.App, error) {
+	localBucket, err := bucket.NewUserCache(cacheConfig)
 	if err != nil {
 		return nil, err
 	}
-	provider, err := config.NewProvider(localCache)
+	provider, err := config.NewProvider(localBucket)
 	if err != nil {
 		return nil, err
 	}
@@ -41,11 +42,11 @@ func Wire(cacheConfig cache.Config) (*cli.App, error) {
 	if err != nil {
 		return nil, err
 	}
-	gormDB, err := db.NewGormDB(dbConfig, localCache)
+	gormDB, err := db.NewGormDB(dbConfig, localBucket)
 	if err != nil {
 		return nil, err
 	}
-	dbStore, err := project.NewDBStore(gormDB)
+	projectStore, err := store.NewDBStore(gormDB)
 	if err != nil {
 		return nil, err
 	}
@@ -53,11 +54,11 @@ func Wire(cacheConfig cache.Config) (*cli.App, error) {
 	if err != nil {
 		return nil, err
 	}
-	manager, err := workflow.NewManager(workflowConfig, provider)
+	manager, err := workflow.NewManager(workflowConfig, provider, projectStore)
 	if err != nil {
 		return nil, err
 	}
-	service, err := project.NewService(dbStore, manager, localCache)
+	service, err := project.NewService(projectStore, manager, localBucket)
 	if err != nil {
 		return nil, err
 	}
@@ -65,7 +66,7 @@ func Wire(cacheConfig cache.Config) (*cli.App, error) {
 	if err != nil {
 		return nil, err
 	}
-	generateService, err := generate.NewService(generateConfig, dbStore)
+	generateService, err := generate.NewService(generateConfig, projectStore)
 	if err != nil {
 		return nil, err
 	}

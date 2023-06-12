@@ -2,6 +2,7 @@ import { useSelectedNodes } from "@/hooks/useSelectedNodes";
 import { generateService, projectService } from "@/lib/api";
 import { checkIsApple } from "@/lib/checkIsApple";
 import { saveProject } from "@/lib/project";
+
 import { useEditorContext } from "@/providers/EditorProvider";
 import { useProjectContext } from "@/providers/ProjectProvider";
 import {
@@ -22,7 +23,7 @@ import { useErrorBoundary } from "react-error-boundary";
 export function Toolbar() {
   const isApple = checkIsApple();
   const { project, runWorkflow } = useProjectContext();
-  const { props } = useEditorContext();
+  const { save, props } = useEditorContext();
   const { selectedNodes } = useSelectedNodes();
   const prevNodeLength = useRef(0);
   const [addResourceOpen, setAddResourceOpen] = useState(false);
@@ -51,28 +52,13 @@ export function Toolbar() {
     onAddResource();
   });
 
-  const onSave = useCallback(async () => {
-    if (!project) return;
 
-    const updatedProject = saveProject({
-      project,
-      nodes: props.nodes,
-      edges: props.edges,
-    });
-
-    for (const node of updatedProject.graph?.flowNodes || []) {
-      if (!node.name) {
-        toast.error("Please name all nodes before exporting");
-        return;
-      }
-    }
-
-    await projectService.saveProject(updatedProject);
-    toast.success("Project saved");
-  }, [project, props.flowNodes, props.edges]);
+  const onSave = async () => {
+    await save();
+  }
 
   const onBuild = async () => {
-    await  onSave();
+    await onSave();
 
     generateService.generate({ projectId: project?.id });
     toast.success("Project built");
@@ -83,9 +69,7 @@ export function Toolbar() {
       toast.error("Please select a node to run");
       return;
     }
-
-    const selectedNode = selectedNodes[0];
-    await runWorkflow(selectedNode);
+    await runWorkflow(selectedNodes[0]);
   };
 
   const onAddResource = async () => {

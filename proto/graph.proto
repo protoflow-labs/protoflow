@@ -7,6 +7,7 @@ package graph;
 option go_package = "graph";
 
 message Graph {
+  // TODO breadchris get rid of id and name, they are not needed
   string id = 1;
   string name = 2;
   repeated Node nodes = 3;
@@ -16,12 +17,10 @@ message Graph {
 message Node {
   string id = 1;
   string name = 2;
-  string block_id = 3;
   float x = 4;
   float y = 5;
 
-  // resource dependencies
-  repeated string resource_ids = 6;
+  string resource_id = 6;
 
   oneof config {
     block.REST rest = 7;

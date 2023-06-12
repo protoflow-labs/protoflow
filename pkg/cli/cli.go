@@ -62,6 +62,8 @@ func New(
 						httpPort = 8080
 					}
 
+					// TODO breadchris for local dev, add live reload into command https://github.com/makiuchi-d/arelo/blob/master/arelo.go
+
 					log.Info().Int("port", httpPort).Msg("starting http server")
 					return httpHandler.Serve(httpPort)
 				},

@@ -2,7 +2,6 @@ package templates
 
 import (
 	"embed"
-	"fmt"
 	"github.com/protoflow-labs/protoflow/pkg/util"
 	"html/template"
 	"io/fs"
@@ -41,7 +40,7 @@ func TemplateDir(templateDir string, destDir string, data any) error {
 	return fs.WalkDir(Templates, templateDir, func(templateFile string, entry fs.DirEntry, _ error) error {
 		if !entry.IsDir() {
 			relativePath := strings.ReplaceAll(templateFile, templateDir, "")
-			destFile := fmt.Sprintf("%s/%s", destDir, strings.ReplaceAll(relativePath, "template.", ""))
+			destFile := path.Join(destDir, strings.ReplaceAll(relativePath, "tmpl.", ""))
 
 			err := TemplateFile(templateFile, destFile, data)
 			if err != nil {

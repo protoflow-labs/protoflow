@@ -1,64 +1,64 @@
 import { Card } from "@fluentui/react-components";
-import { useState } from "react";
-import {Edge, EdgeChange, Node, useEdgesState, useOnSelectionChange} from "reactflow";
-import { BucketEditor } from "./blockEditors/BucketEditor";
-import { CollectionEditor } from "./blockEditors/CollectionEditor";
-import { FunctionEditor } from "./blockEditors/FunctionEditor";
+import {useOnSelectionChange} from "reactflow";
 import { InputEditor } from "./blockEditors/InputEditor";
-import { QueryEditor } from "./blockEditors/QueryEditor";
-import { RESTEditor } from "./blockEditors/RESTEditor";
-import {GRPCEditor} from "@/components/blockEditors/GRPCEditor";
+import NodeProvider from "@/providers/NodeProvider";
+import {useProjectContext} from "@/providers/ProjectProvider";
+import {Node as ProtoNode} from "@/rpc/graph_pb";
+import {Bucket, Collection, Function, GRPC, Query, REST} from "@/rpc/block_pb";
+import {GenericNodeEditor} from "@/components/blockEditors/GenericNodeEditor";
 
 export function EditorPanel() {
-  const [activeNode, setActiveNode] = useState<Node | null>(null);
+  const { activeNode, setActiveNodeId } = useProjectContext();
 
   useOnSelectionChange({
     onChange: ({ nodes }) => {
       if (nodes.length !== 1) {
-        setActiveNode(null);
+        setActiveNodeId(null);
         return;
       }
-
-      const [node] = nodes;
-      setActiveNode(node);
+      setActiveNodeId(nodes[0].id);
     },
   });
 
-  if (!activeNode) return null;
+  if (!activeNode) {
+    return null;
+  }
 
   return (
-    <div className="absolute top-0 right-0 m-4 z-10 overflow-auto">
-      <Card>
-        <NodeEditor node={activeNode} />
-      </Card>
-    </div>
+    <NodeProvider nodeId={activeNode.id}>
+      <div className="absolute top-0 right-0 m-4 z-10 overflow-auto">
+        <Card>
+          <NodeEditor node={activeNode} />
+        </Card>
+      </div>
+    </NodeProvider>
   );
 }
 
 type NodeEditorProps = {
-  node: Node | null;
+  node: ProtoNode | null;
 };
 
 function NodeEditor(props: NodeEditorProps) {
-  if (!props.node || !props.node.type) {
+  if (!props.node) {
     return null;
   }
 
-  switch (props.node.type) {
-    case "protoflow.input":
+  switch (props.node.config.case) {
+    case "input":
       return <InputEditor node={props.node} />;
-    case "protoflow.collection":
-      return <CollectionEditor node={props.node} />;
-    case "protoflow.query":
-      return <QueryEditor node={props.node} />;
-    case "protoflow.function":
-      return <FunctionEditor node={props.node} />;
-    case "protoflow.bucket":
-      return <BucketEditor node={props.node} />;
-    case "protoflow.rest":
-      return <RESTEditor node={props.node} />;
-    case "protoflow.grpc":
-      return <GRPCEditor node={props.node} />;
+    case "collection":
+      return <GenericNodeEditor node={props.node} nodeConfig={'collection'} nodeConfigType={Collection} />
+    case "query":
+      return <GenericNodeEditor node={props.node} nodeConfig={'query'} nodeConfigType={Query} />
+    case "function":
+      return <GenericNodeEditor node={props.node} nodeConfig={"function"} nodeConfigType={Function} />;
+    case "bucket":
+      return <GenericNodeEditor node={props.node} nodeConfig={"bucket"} nodeConfigType={Bucket} />;
+    case "rest":
+      return <GenericNodeEditor node={props.node} nodeConfig={"rest"} nodeConfigType={REST} />;
+    case "grpc":
+      return <GenericNodeEditor node={props.node} nodeConfig={"grpc"} nodeConfigType={GRPC} />;
     default:
       return null;
   }

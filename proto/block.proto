@@ -5,23 +5,6 @@ option go_package = "block";
 import "google/protobuf/any.proto";
 import "google/protobuf/descriptor.proto";
 
-// TODO breadchris think through this more
-message Block {
-  string id = 1;
-  string name = 2;
-  string version = 3;
-  oneof type {
-    REST rest = 4;
-    GRPC grpc = 5;
-    Collection collection = 6;
-    Input input = 7;
-    Bucket bucket = 8;
-    Function function = 9;
-    Query query = 10;
-  }
-  // TODO breadchris a block is a blueprint and should declare what dependency types it needs
-}
-
 message Input {
   repeated FieldDefinition fields = 1;
 }
@@ -40,8 +23,6 @@ message Bucket {
 }
 
 message Function {
-  string runtime = 1;
-  GRPC grpc = 2;
 }
 
 message Query {
@@ -68,18 +49,8 @@ message REST {
   map<string, string> headers = 3;
 }
 
-message GRPCTypeInfo {
-  google.protobuf.DescriptorProto input = 1;
-  google.protobuf.DescriptorProto output = 2;
-  map<string, google.protobuf.DescriptorProto> desc_lookup = 3;
-  map<string, google.protobuf.EnumDescriptorProto> enum_lookup = 4;
-  google.protobuf.MethodDescriptorProto method_desc = 5;
-}
-
 message GRPC {
   string package = 1;
   string service = 2;
   string method = 3;
-  // TODO breadchris move this out of the config
-  GRPCTypeInfo type_info = 4;
 }

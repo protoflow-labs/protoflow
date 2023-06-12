@@ -380,7 +380,7 @@ func (r *reflectionResolver) cacheFileLocked(name string, seen []string) error {
 		}
 	}
 
-	// now we can create and cache this file
+	// now we can create and bucket this file
 	fileDescriptor, err := protodesc.NewFile(file, &r.cachedFiles)
 	if err != nil {
 		return err

@@ -33,11 +33,11 @@ export default function App() {
           <HotkeysProvider initiallyActiveScopes={["editor"]}>
             <ProjectProvider>
               <EditorProvider>
-                <Toolbar/>
-                <BrowserRouter>
-                  <AppRoutes/>
-                </BrowserRouter>
-                <Toaster/>
+                  <Toolbar/>
+                  <BrowserRouter>
+                    <AppRoutes/>
+                  </BrowserRouter>
+                  <Toaster/>
               </EditorProvider>
             </ProjectProvider>
           </HotkeysProvider>

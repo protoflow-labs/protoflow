@@ -10,36 +10,46 @@ import {
 } from "@fluentui/react-components";
 import {createContext, useCallback, useContext, useEffect, useState} from "react";
 import {HiExclamationCircle, HiPlus} from "react-icons/hi2";
-import {Node} from "reactflow";
-import {GetNodeInfoResponse, Project} from "@/rpc/project_pb";
+import {Edge, Node} from "reactflow";
+import {EnumeratedResource, GetNodeInfoResponse, Project} from "@/rpc/project_pb";
 import {useProjectResources} from "@/hooks/useProjectResources";
-import {Resource} from "@/rpc/resource_pb";
 import {toast} from "react-hot-toast";
 import {useErrorBoundary} from "react-error-boundary";
+import {getUpdatedProject} from "@/lib/project";
+import {Node as ProtoNode} from "@/rpc/graph_pb";
+import {notEmpty} from "@/util/predicates";
+
+type GetLookup = (lookup: Record<string, ProtoNode>) => Record<string, ProtoNode>;
 
 
 type ProjectContextType = {
     project: Project | undefined;
-    resources: Resource[];
+    resources: EnumeratedResource[];
     output: any;
     loadingResources: boolean;
 
+    saveProject: (nodes: Node[], edges: Edge[]) => Promise<void>;
     resetOutput: () => void;
     runWorkflow: (node: Node) => Promise<any>;
     loadResources: () => Promise<void>;
     deleteResource: (resourceId: string) => Promise<void>;
     loadNodeInfo: (nodeId: string) => Promise<GetNodeInfoResponse | undefined>;
+    activeNode: ProtoNode | null;
+    setActiveNodeId: (nodeId: string | null) => void;
+
+    setNodeLookup: (getLookup: GetLookup) => void;
+    nodeLookup: Record<string, ProtoNode>;
 };
 
 type ProjectProviderProps = {
     children: React.ReactNode;
 };
 
-export function getNodeDataKey(node: Node) {
+export function getNodeDataKey(node: ProtoNode) {
     return `${node.id}-sampleData`;
 }
 
-export function getDataFromNode(node: Node) {
+export function getDataFromNode(node: ProtoNode) {
     return localStorage.getItem(getNodeDataKey(node));
 }
 
@@ -54,21 +64,53 @@ export default function ProjectProvider({children}: ProjectProviderProps) {
     const {resources, loading: loadingResources, loadProjectResources} = useProjectResources();
     const [output, setOutput] = useState<any>(null);
     const {showBoundary} = useErrorBoundary();
+    const [nodeLookup, setNodeLookup] = useState<Record<string, ProtoNode>>({});
+    const [activeNode, setActiveNode] = useState<ProtoNode | null>(null);
+
+    const setActiveNodeId = (nodeId: string | null) => {
+        if (!nodeId) return;
+
+        // TODO breadchris catch error
+        setActiveNode(nodeLookup[nodeId]);
+    }
 
     const resetOutput = useCallback(() => {
         setOutput(null);
     }, []);
 
+    const saveProject = useCallback(async (nodes: Node[], edges: Edge[]) => {
+        if (!project) return;
+
+        const updatedProject = getUpdatedProject(project, nodes, edges, nodeLookup);
+        for (const node of updatedProject.graph?.nodes || []) {
+            if (!node.name) {
+                toast.error("Please name all nodes before exporting");
+                return;
+            }
+        }
+
+        await projectService.saveProject({
+            projectId: project.id,
+            graph: updatedProject.graph,
+            resources: resources.map(r => r.resource).filter(notEmpty),
+        });
+    }, [nodeLookup, resources]);
+
     const runWorkflow = useCallback(
         async (node: Node) => {
             if (!project) return;
 
+            const graphNode = nodeLookup[node.id];
+            if (!graphNode) {
+                toast.error(`Could not find node: ${node.id}`);
+                return;
+            }
             try {
                 const res = await projectService.runWorklow({
                     nodeId: node.id,
                     projectId: project.id,
                     // TODO breadchris this is garbo, we need a better data structure to represent data input
-                    input: getDataFromNode(node) || ''
+                    input: getDataFromNode(graphNode) || ''
                 });
 
                 setOutput(res.output);
@@ -113,16 +155,23 @@ export default function ProjectProvider({children}: ProjectProviderProps) {
                 projectId: project.id,
             });
         } catch (e) {
-            // @ts-ignore
-            toast.error(e.toString());
+            // this is ok if we error, the node might not exist yet
         }
         return undefined;
     }, [project]);
 
     // TODO breadchris should this happen every time the project is changed?
     useEffect(() => {
-        if (project) {
-            void loadResources();
+        void loadResources();
+        if (project && project.graph) {
+            const lookup = project.graph.nodes.reduce((acc, node) => {
+                acc[node.id] = node;
+                return acc;
+            }, {} as Record<string, ProtoNode>);
+
+            setNodeLookup((prev) => {
+                return lookup;
+            })
         }
     }, [project]);
 
@@ -164,10 +213,15 @@ export default function ProjectProvider({children}: ProjectProviderProps) {
                 output,
                 resetOutput,
                 runWorkflow,
+                saveProject,
                 deleteResource,
                 loadResources,
                 loadingResources,
                 loadNodeInfo,
+                setActiveNodeId,
+                activeNode,
+                setNodeLookup,
+                nodeLookup,
             }}
         >
             {children}

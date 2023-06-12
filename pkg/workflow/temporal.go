@@ -3,6 +3,7 @@ package workflow
 import (
 	"context"
 	"fmt"
+	"github.com/protoflow-labs/protoflow/pkg/workflow/execute"
 	"time"
 
 	"github.com/google/wire"
@@ -48,13 +49,13 @@ func (m *TemporalManager) ExecuteWorkflow(ctx context.Context, w *Workflow, node
 	return we.GetRunID(), nil
 }
 
-func (m *TemporalManager) ExecuteWorkflowSync(ctx context.Context, w *Workflow, nodeID string, input interface{}) (*Result, error) {
+func (m *TemporalManager) ExecuteWorkflowSync(ctx context.Context, w *Workflow, nodeID string, input interface{}) (*execute.Result, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
 // TemporalRun is the entrypoint for a Temporal workflow that will run on a worker
-func TemporalRun(ctx workflow.Context, w *Workflow, nodeID string, input string) (*Result, error) {
+func TemporalRun(ctx workflow.Context, w *Workflow, nodeID string, input string) (*execute.Result, error) {
 	if w.NodeLookup == nil || w.Graph == nil {
 		return nil, fmt.Errorf("workflow is not initialized")
 	}
@@ -67,7 +68,7 @@ func TemporalRun(ctx workflow.Context, w *Workflow, nodeID string, input string)
 	ctx = workflow.WithActivityOptions(ctx, ao)
 	logger := workflow.GetLogger(ctx)
 
-	executor := NewTemporalExecutor(ctx)
+	executor := execute.NewTemporalExecutor(ctx)
 
 	// Adding context to a workflow
 	// ctx = workflow.WithValue(ctx, AccountIDContextKey, dslWorkflow.AccountID)

@@ -3,9 +3,10 @@ package workflow
 import (
 	"context"
 	"fmt"
-
 	"github.com/google/wire"
+	"github.com/protoflow-labs/protoflow/pkg/store"
 	"github.com/protoflow-labs/protoflow/pkg/temporal"
+	"github.com/protoflow-labs/protoflow/pkg/workflow/execute"
 	"go.uber.org/config"
 )
 
@@ -13,7 +14,7 @@ const TaskQueue = "protoflow"
 
 type Manager interface {
 	ExecuteWorkflow(ctx context.Context, w *Workflow, nodeID string, input interface{}) (string, error)
-	ExecuteWorkflowSync(ctx context.Context, w *Workflow, nodeID string, input interface{}) (*Result, error)
+	ExecuteWorkflowSync(ctx context.Context, w *Workflow, nodeID string, input interface{}) (*execute.Result, error)
 	CleanupResources() error
 }
 
@@ -22,10 +23,10 @@ var ProviderSet = wire.NewSet(
 	NewManager,
 )
 
-func NewManager(config Config, provider config.Provider) (Manager, error) {
+func NewManager(config Config, provider config.Provider, store store.Project) (Manager, error) {
 	switch config.ManagerType {
 	case MemoryManagerType:
-		return NewMemoryManager(), nil
+		return NewMemoryManager(store), nil
 	case TemporalManagerType:
 		// TODO breadchris we do this because we don't want a temporal client to try to connect on startup
 		// Is there a way to run this more intelligently? maybe with sync.Once?

@@ -65,6 +65,9 @@ const (
 	ProjectServiceRunWorklowProcedure = "/project.ProjectService/RunWorklow"
 	// ProjectServiceRunNodeProcedure is the fully-qualified name of the ProjectService's RunNode RPC.
 	ProjectServiceRunNodeProcedure = "/project.ProjectService/RunNode"
+	// ProjectServiceGetWorkflowRunsProcedure is the fully-qualified name of the ProjectService's
+	// GetWorkflowRuns RPC.
+	ProjectServiceGetWorkflowRunsProcedure = "/project.ProjectService/GetWorkflowRuns"
 )
 
 // ProjectServiceClient is a client for the project.ProjectService service.
@@ -80,6 +83,7 @@ type ProjectServiceClient interface {
 	CreateResource(context.Context, *connect_go.Request[gen.CreateResourceRequest]) (*connect_go.Response[gen.CreateResourceResponse], error)
 	RunWorklow(context.Context, *connect_go.Request[gen.RunWorkflowRequest]) (*connect_go.Response[gen.RunOutput], error)
 	RunNode(context.Context, *connect_go.Request[gen.RunNodeRequest]) (*connect_go.Response[gen.RunOutput], error)
+	GetWorkflowRuns(context.Context, *connect_go.Request[gen.GetWorkflowRunsRequest]) (*connect_go.Response[gen.GetWorkflowRunsResponse], error)
 }
 
 // NewProjectServiceClient constructs a client for the project.ProjectService service. By default,
@@ -147,22 +151,28 @@ func NewProjectServiceClient(httpClient connect_go.HTTPClient, baseURL string, o
 			baseURL+ProjectServiceRunNodeProcedure,
 			opts...,
 		),
+		getWorkflowRuns: connect_go.NewClient[gen.GetWorkflowRunsRequest, gen.GetWorkflowRunsResponse](
+			httpClient,
+			baseURL+ProjectServiceGetWorkflowRunsProcedure,
+			opts...,
+		),
 	}
 }
 
 // projectServiceClient implements ProjectServiceClient.
 type projectServiceClient struct {
-	getProject     *connect_go.Client[gen.GetProjectRequest, gen.GetProjectResponse]
-	getProjects    *connect_go.Client[gen.GetProjectsRequest, gen.GetProjectsResponse]
-	createProject  *connect_go.Client[gen.CreateProjectRequest, gen.CreateProjectResponse]
-	deleteProject  *connect_go.Client[gen.DeleteProjectRequest, gen.DeleteProjectResponse]
-	getResources   *connect_go.Client[gen.GetResourcesRequest, gen.GetResourcesResponse]
-	deleteResource *connect_go.Client[gen.DeleteResourceRequest, gen.DeleteResourceResponse]
-	getNodeInfo    *connect_go.Client[gen.GetNodeInfoRequest, gen.GetNodeInfoResponse]
-	saveProject    *connect_go.Client[gen.SaveProjectRequest, gen.SaveProjectResponse]
-	createResource *connect_go.Client[gen.CreateResourceRequest, gen.CreateResourceResponse]
-	runWorklow     *connect_go.Client[gen.RunWorkflowRequest, gen.RunOutput]
-	runNode        *connect_go.Client[gen.RunNodeRequest, gen.RunOutput]
+	getProject      *connect_go.Client[gen.GetProjectRequest, gen.GetProjectResponse]
+	getProjects     *connect_go.Client[gen.GetProjectsRequest, gen.GetProjectsResponse]
+	createProject   *connect_go.Client[gen.CreateProjectRequest, gen.CreateProjectResponse]
+	deleteProject   *connect_go.Client[gen.DeleteProjectRequest, gen.DeleteProjectResponse]
+	getResources    *connect_go.Client[gen.GetResourcesRequest, gen.GetResourcesResponse]
+	deleteResource  *connect_go.Client[gen.DeleteResourceRequest, gen.DeleteResourceResponse]
+	getNodeInfo     *connect_go.Client[gen.GetNodeInfoRequest, gen.GetNodeInfoResponse]
+	saveProject     *connect_go.Client[gen.SaveProjectRequest, gen.SaveProjectResponse]
+	createResource  *connect_go.Client[gen.CreateResourceRequest, gen.CreateResourceResponse]
+	runWorklow      *connect_go.Client[gen.RunWorkflowRequest, gen.RunOutput]
+	runNode         *connect_go.Client[gen.RunNodeRequest, gen.RunOutput]
+	getWorkflowRuns *connect_go.Client[gen.GetWorkflowRunsRequest, gen.GetWorkflowRunsResponse]
 }
 
 // GetProject calls project.ProjectService.GetProject.
@@ -220,6 +230,11 @@ func (c *projectServiceClient) RunNode(ctx context.Context, req *connect_go.Requ
 	return c.runNode.CallUnary(ctx, req)
 }
 
+// GetWorkflowRuns calls project.ProjectService.GetWorkflowRuns.
+func (c *projectServiceClient) GetWorkflowRuns(ctx context.Context, req *connect_go.Request[gen.GetWorkflowRunsRequest]) (*connect_go.Response[gen.GetWorkflowRunsResponse], error) {
+	return c.getWorkflowRuns.CallUnary(ctx, req)
+}
+
 // ProjectServiceHandler is an implementation of the project.ProjectService service.
 type ProjectServiceHandler interface {
 	GetProject(context.Context, *connect_go.Request[gen.GetProjectRequest]) (*connect_go.Response[gen.GetProjectResponse], error)
@@ -233,6 +248,7 @@ type ProjectServiceHandler interface {
 	CreateResource(context.Context, *connect_go.Request[gen.CreateResourceRequest]) (*connect_go.Response[gen.CreateResourceResponse], error)
 	RunWorklow(context.Context, *connect_go.Request[gen.RunWorkflowRequest]) (*connect_go.Response[gen.RunOutput], error)
 	RunNode(context.Context, *connect_go.Request[gen.RunNodeRequest]) (*connect_go.Response[gen.RunOutput], error)
+	GetWorkflowRuns(context.Context, *connect_go.Request[gen.GetWorkflowRunsRequest]) (*connect_go.Response[gen.GetWorkflowRunsResponse], error)
 }
 
 // NewProjectServiceHandler builds an HTTP handler from the service implementation. It returns the
@@ -297,6 +313,11 @@ func NewProjectServiceHandler(svc ProjectServiceHandler, opts ...connect_go.Hand
 		svc.RunNode,
 		opts...,
 	))
+	mux.Handle(ProjectServiceGetWorkflowRunsProcedure, connect_go.NewUnaryHandler(
+		ProjectServiceGetWorkflowRunsProcedure,
+		svc.GetWorkflowRuns,
+		opts...,
+	))
 	return "/project.ProjectService/", mux
 }
 
@@ -345,4 +366,8 @@ func (UnimplementedProjectServiceHandler) RunWorklow(context.Context, *connect_g
 
 func (UnimplementedProjectServiceHandler) RunNode(context.Context, *connect_go.Request[gen.RunNodeRequest]) (*connect_go.Response[gen.RunOutput], error) {
 	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("project.ProjectService.RunNode is not implemented"))
+}
+
+func (UnimplementedProjectServiceHandler) GetWorkflowRuns(context.Context, *connect_go.Request[gen.GetWorkflowRunsRequest]) (*connect_go.Response[gen.GetWorkflowRunsResponse], error) {
+	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("project.ProjectService.GetWorkflowRuns is not implemented"))
 }

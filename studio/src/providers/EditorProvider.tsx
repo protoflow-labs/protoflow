@@ -5,7 +5,7 @@ import {
   DragEventHandler,
   ReactNode,
   useCallback,
-  useContext,
+  useContext, useEffect,
   useState,
 } from "react";
 import {
@@ -21,10 +21,14 @@ import {
 } from "reactflow";
 import { v4 as uuid } from "uuid";
 import {getDataFromNode, getNodeDataKey, useProjectContext} from "./ProjectProvider";
-import {Block} from "@/rpc/block_pb";
+import {Node as ProtoNode} from "@/rpc/graph_pb";
+import {Simulate} from "react-dom/test-utils";
+import drag = Simulate.drag;
+import {generateUUID} from "@/util/uuid";
 
 type EditorContextType = {
   mode: Mode;
+  save: () => Promise<void>;
   props: {
     edges: Edge[];
     nodes: Node[];
@@ -35,6 +39,7 @@ type EditorContextType = {
     onEdgesChange: OnEdgesChange;
     onNodesChange: OnNodesChange;
   };
+  setDraggedNode: (node: ProtoNode) => void;
   setInstance: (instance: ReactFlowInstance) => void;
   setMode: (mode: Mode) => void;
 };
@@ -42,10 +47,7 @@ type EditorContextType = {
 export const ReactFlowProtoflowKey = "application/reactflow";
 
 export type ReactFlowProtoflowData = {
-  type: string;
-  name: string | undefined;
-  config: Block['type'] | undefined;
-  resourceIds: string[];
+  node: ProtoNode
 }
 
 type Mode = "editor" | "run";
@@ -56,19 +58,47 @@ export const useEditorContext = () => useContext(EditorContext);
 export const useEditorMode = () => useEditorContext().mode;
 
 export function EditorProvider({ children }: { children: ReactNode }) {
+  const { saveProject, nodeLookup } = useProjectContext();
+  const [draggedNode, setDraggedNode] = useState<ProtoNode | undefined>(undefined);
   const [instance, setInstance] = useState<ReactFlowInstance>();
   const [mode, setMode] = useState<Mode>("editor");
-  const props = useEditorProps(instance);
+  const props = useEditorProps(
+    draggedNode,
+    setDraggedNode,
+    instance,
+  );
+
+  const save = useCallback(async () => {
+    return await saveProject(props.nodes, props.edges);
+  }, [props]);
+
+  useEffect(() => {
+    void save();
+  }, [nodeLookup]);
 
   return (
-    <EditorContext.Provider value={{ props, mode, setMode, setInstance }}>
+    <EditorContext.Provider value={{
+      props,
+      mode,
+      setMode,
+      setInstance,
+      save,
+      setDraggedNode,
+    }}>
       {children}
     </EditorContext.Provider>
   );
 }
 
-const useEditorProps = (reactFlowInstance?: ReactFlowInstance) => {
-  const { project } = useProjectContext();
+const nodeToType = (node: ProtoNode) => {
+  return `protoflow.${node.config.case}`;
+}
+
+// todo: we want to make sure the incoming node has a distinction from the sidebar node vs the server type node
+// export type SidebarNode = Exclude<ProtoNode, { id: string }>
+
+const useEditorProps = (draggedNode: ProtoNode | undefined, setDraggedNode: (node: ProtoNode) => void, reactFlowInstance?: ReactFlowInstance) => {
+  const { project, saveProject, setNodeLookup } = useProjectContext();
 
   const [nodes, setNodes] = useState<Node[]>(
     project?.graph?.nodes.map((n) => {
@@ -77,15 +107,10 @@ const useEditorProps = (reactFlowInstance?: ReactFlowInstance) => {
       return {
         id: n.id,
         data: {
-          name: n.name,
-          config: {
-            [config!.name]:
-              n.config?.value?.toJson() || n.config?.value || n.config || {},
-          },
-          resourceIds: n.resourceIds,
+          node: n,
         },
         position: { x: n.x, y: n.y },
-        type: `protoflow.${config?.name}`,
+        type: nodeToType(n),
       };
     }) || []
   );
@@ -113,37 +138,33 @@ const useEditorProps = (reactFlowInstance?: ReactFlowInstance) => {
     e.dataTransfer.dropEffect = "move";
   }, []);
 
-  const onDrop: DragEventHandler<HTMLDivElement> = useCallback(
+  // todo: figure out if this happens when we just move nodes
+  const onDrop: DragEventHandler<HTMLDivElement>  = useCallback(
     (e) => {
-      e.preventDefault();
+      console.log('NODE DROPPED', draggedNode)
+      if (!draggedNode) {
+        return;
+      }
+      const position = reactFlowInstance!.project({x: e.clientX, y: e.clientY});
 
-      const data = e.dataTransfer.getData(ReactFlowProtoflowKey);
-      const { type, name, config, resourceIds } = JSON.parse(data) as ReactFlowProtoflowData;
-
-      const position = reactFlowInstance!.project({
-        x: e.clientX,
-        y: e.clientY,
-      });
-
-      // TODO breadchris protobuf type expects object in the form { grpc: { ... } }
-      const configType = config && config.case ? {
-        [config.case]: config.value
-      } : {};
 
       const newNode = {
-        id: uuid(),
-        type,
+        id: generateUUID(),
+        type: nodeToType(draggedNode),
         position,
-        data: {
-          name: name || "",
-          config: configType,
-          resourceIds,
-        },
+        data: {}
       };
+      draggedNode.id = newNode.id;
 
+      setNodeLookup((lookup) => {
+        return {
+          ...lookup,
+          [newNode.id]: draggedNode
+        }
+      })
       setNodes((nds) => [...nds, newNode]);
     },
-    [reactFlowInstance]
+    [reactFlowInstance, draggedNode]
   );
 
   const onEdgesChange: OnEdgesChange = useCallback((changes) => {

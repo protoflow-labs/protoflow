@@ -1,54 +1,39 @@
-import {ReactNode} from "react";
 import {Block} from "@/rpc/block_pb";
-import {ReactFlowProtoflowData, ReactFlowProtoflowKey} from "@/providers/EditorProvider";
+import {ReactFlowProtoflowData, ReactFlowProtoflowKey, useEditorContext} from "@/providers/EditorProvider";
 import { Button } from 'flowbite-react';
 import {Caption1, CardHeader, Text} from "@fluentui/react-components";
 import {HiPencilSquare} from "react-icons/hi2";
 import {BaseBlockCard} from "@/components/blocks/BaseBlockCard";
+import {blockTypes} from "@/components/blocks/blockTypes";
+import {Node as ProtoNode} from "@/rpc/graph_pb";
 
 export function NodeButton(props: {
-    label: string,
-    typeName: string,
-    image: ReactNode,
+
     // The below optional params are used when dragging in blocks from existing services, such as protoflow itself, or an externally reflected GRPC service
-    nodeName?: string,
-    nodeConfig?: Block['type'],
-    resourceIds?: string[],
-    newBlock?: boolean,
+    node: ProtoNode
 }) {
+    console.log('nodeButton rendered with props ', props);
+    const { setDraggedNode } = useEditorContext();
+    const blockStaticInfo = blockTypes.find((block) => block.typeName === props.node.config.case);
+    console.log("static info about block is ", blockStaticInfo)
     return (
         <div
             className="m-2"
             style={{marginBottom: "10px"}}
             draggable
             onDragStart={(e) => {
-                const data: ReactFlowProtoflowData = {
-                    type: 'protoflow.' + props.typeName,
-                    config: props.nodeConfig,
-                    name: props.nodeName,
-                    resourceIds: props.resourceIds || [],
-                }
-                e.dataTransfer.setData(ReactFlowProtoflowKey, JSON.stringify(data));
-                e.dataTransfer.effectAllowed = "move";
+                console.log("drag start", props.node);
+                setDraggedNode(props.node);
             }}
         >
 
             <BaseBlockCard selected={false} style={{ cursor: "grab" }}>
                 <CardHeader
-                    image={props.image}
-                    header={<Text weight="semibold">{props.label}</Text>}
+                    image={blockStaticInfo.image}
+                    header={<Text weight="semibold">{blockStaticInfo.label}</Text>}
                 />
+                {props.node.name && <p>{props.node.name}</p>}
             </BaseBlockCard>
-
-
-            {/*<Button*/}
-            {/*    size="medium"*/}
-            {/*    className="w-full"*/}
-            {/*    appearance={props.newBlock ? "primary" : "secondary"}*/}
-            {/*    style={{ cursor: "grab" }}*/}
-            {/*>*/}
-            {/*    {props.children}*/}
-            {/*</Button>*/}
         </div>
     );
 }

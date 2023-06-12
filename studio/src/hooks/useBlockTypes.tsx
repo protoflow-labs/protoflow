@@ -22,7 +22,7 @@ export interface StandardBlockProps {
  */
 
 const nodeElementMap: Record<string, ReactNode> = {}
- blockTypes.forEach((blockType) => {
+blockTypes.forEach((blockType) => {
 
     nodeElementMap['protoflow.' + blockType.typeName] = (props:StandardBlockProps) => {
         return (

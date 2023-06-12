@@ -5,6 +5,12 @@ option go_package = "resource";
 
 import "block.proto";
 
+enum Runtime {
+  NODEJS = 0;
+  PYTHON = 1;
+  GO = 2;
+}
+
 message Resource {
   string id = 1;
   string name = 2;
@@ -15,13 +21,6 @@ message Resource {
     Blobstore blobstore = 6;
     LanguageService language_service = 7;
   }
-  repeated block.Block blocks = 8;
-}
-
-enum Runtime {
-  NODE = 0;
-  PYTHON = 1;
-  GO = 2;
 }
 
 message LanguageService {

@@ -41,7 +41,7 @@ export const blockTypes: BlockType[] = [
         image:<MdOutbound className="h-5 w-5 bg-gray-800" />
     },
     {
-        label: "Human Input",
+        label: "Manual Input",
         typeName:'input',
         image: <HiPencilSquare className="h-5 w-5 bg-gray-800" />
     },

@@ -4,17 +4,15 @@ import (
 	"context"
 	"github.com/bufbuild/connect-go"
 	"github.com/google/wire"
-	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/gen"
 	"github.com/protoflow-labs/protoflow/gen/genconnect"
-	"github.com/protoflow-labs/protoflow/pkg/cache"
-	"github.com/protoflow-labs/protoflow/pkg/project"
-	"path"
+	project "github.com/protoflow-labs/protoflow/pkg/project"
+	"github.com/protoflow-labs/protoflow/pkg/store"
 )
 
 type Service struct {
 	config Config
-	store  project.Store
+	store  store.Project
 }
 
 var _ genconnect.GenerateServiceHandler = (*Service)(nil)
@@ -25,7 +23,7 @@ var ProviderSet = wire.NewSet(
 	wire.Bind(new(genconnect.GenerateServiceHandler), new(*Service)),
 )
 
-func NewService(config Config, store project.Store) (*Service, error) {
+func NewService(config Config, store store.Project) (*Service, error) {
 	return &Service{
 		config: config,
 		store:  store,
@@ -33,31 +31,27 @@ func NewService(config Config, store project.Store) (*Service, error) {
 }
 
 func (s *Service) Generate(ctx context.Context, req *connect.Request[gen.GenerateRequest]) (*connect.Response[gen.GenerateResponse], error) {
-	p, err := s.store.GetProject(req.Msg.ProjectId)
+	projProto, err := s.store.GetProject(req.Msg.ProjectId)
 	if err != nil {
 		return nil, err
 	}
 
-	var projectDir string
-	// if there is a project path defined, use this for where the codeBucket goes
-	if s.config.ProjectPath != "" {
-		projectDir = s.config.ProjectPath
-	} else {
-		projectDir = path.Join("projects", p.Name)
-	}
-	c, err := cache.FromDir(projectDir)
+	p, err := project.FromProto(projProto)
 	if err != nil {
-		return nil, errors.Wrapf(err, "error creating codeBucket from %s", projectDir)
+		return nil, err
 	}
 
-	generator := NewGenerate(c)
+	generator, err := NewGenerate(s.config)
+	if err != nil {
+		return nil, err
+	}
 	if err := generator.Generate(p); err != nil {
 		return nil, err
 	}
 
 	return &connect.Response[gen.GenerateResponse]{
 		Msg: &gen.GenerateResponse{
-			ProjectId: p.Id,
+			ProjectId: p.Base.Id,
 		},
 	}, nil
 }

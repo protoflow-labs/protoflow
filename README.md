@@ -35,7 +35,7 @@ Backend will proxy to the frontend, so you can just open http://localhost:8080 t
 ### Studio
 ```shell
 cd studio
-pnpm install
+npm i
 npm run dev
 ```
 

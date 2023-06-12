@@ -1,5 +1,6 @@
 syntax = "proto3";
 
+import "google/protobuf/descriptor.proto";
 import "graph.proto";
 import "block.proto";
 import "resource.proto";
@@ -24,16 +25,28 @@ service ProjectService {
 
     rpc RunWorklow(RunWorkflowRequest) returns (RunOutput) {}
     rpc RunNode(RunNodeRequest) returns (RunOutput) {}
+
+    rpc GetWorkflowRuns(GetWorkflowRunsRequest) returns (GetWorkflowRunsResponse) {}
+}
+
+message GetWorkflowRunsRequest {
+    string project_id = 1;
+}
+
+message GetWorkflowRunsResponse {
+    repeated WorkflowRun runs = 1;
 }
 
 message WorkflowRun {
     string id = 1;
-    string project_id = 2;
-    string node_id = 3;
-    string input = 4;
-    string output = 5;
-    string created_at = 6;
-    string updated_at = 7;
+    RunWorkflowRequest request = 2;
+    repeated NodeExecution node_execs = 3;
+}
+
+message NodeExecution {
+    string node_id = 1;
+    string input = 2;
+    string output = 3;
 }
 
 message GetNodeInfoRequest {
@@ -41,8 +54,20 @@ message GetNodeInfoRequest {
     string node_id = 2;
 }
 
+message GRPCTypeInfo {
+    google.protobuf.DescriptorProto input = 1;
+    google.protobuf.DescriptorProto output = 2;
+    map<string, google.protobuf.DescriptorProto> desc_lookup = 3;
+    map<string, google.protobuf.EnumDescriptorProto> enum_lookup = 4;
+    google.protobuf.MethodDescriptorProto method_desc = 5;
+    string package_name = 6;
+}
+
 message GetNodeInfoResponse {
+    // A compiled view of the method
     string method_proto = 1;
+    // Type information for the input and output
+    GRPCTypeInfo type_info = 2;
 }
 
 message DeleteResourceRequest {
@@ -139,8 +164,13 @@ message GetResourcesRequest {
     string project_id = 1;
 }
 
+message EnumeratedResource {
+    resource.Resource resource = 1;
+    repeated graph.Node nodes = 2;
+}
+
 message GetResourcesResponse {
-    repeated resource.Resource resources = 1;
+    repeated EnumeratedResource resources = 1;
 }
 
 message SaveProjectRequest {
