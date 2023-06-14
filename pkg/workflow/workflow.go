@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/gen"
+	"github.com/protoflow-labs/protoflow/pkg/util"
 	"github.com/protoflow-labs/protoflow/pkg/workflow/execute"
 	worknode "github.com/protoflow-labs/protoflow/pkg/workflow/node"
 	"github.com/protoflow-labs/protoflow/pkg/workflow/resource"
@@ -92,7 +93,6 @@ func FromProject(project *gen.Project) (*Workflow, error) {
 		if node.Id == "" {
 			return nil, errors.New("node id cannot be empty")
 		}
-		log.Debug().Str("node", node.Id).Msg("adding node to graph")
 		err := g.AddVertex(node.Id)
 		if err != nil {
 			return nil, err
@@ -188,7 +188,9 @@ func (w *Workflow) traverseWorkflow(logger Logger, instances Instances, executor
 		return nil, errors.Wrapf(err, "error executing node: %s", vert)
 	}
 
-	var nextBlockInput execute.Input
+	var (
+		nextBlockInput execute.Input
+	)
 	if res.Stream != nil {
 		// if the result is a stream, pass the stream to the next block
 		nextBlockInput = execute.Input{
@@ -197,9 +199,32 @@ func (w *Workflow) traverseWorkflow(logger Logger, instances Instances, executor
 	} else {
 		// TODO breadchris have this work for streams as well
 		traceNodeExec(executor, vert, input, res.Data)
+
+		// if the backpack has been set by the execution, use it, otherwise pass the previous backpack
+		// TODO breadchris figure out how backpacks work
+		backpack := util.GetFieldValue(res.Data, worknode.BackpackKey)
+		//if backpack != nil {
+		//	type Backpack struct {
+		//		ShortCircuit bool `json:"shortCircuit"`
+		//	}
+		//	var b Backpack
+		//	err = json.Unmarshal(backpack.([]byte), &b)
+		//	if err != nil {
+		//		log.Warn().Err(err).Msg("failed to unmarshal backpack")
+		//	} else {
+		//		if b.ShortCircuit {
+		//			return res, nil
+		//		}
+		//	}
+		//}
+		if backpack == nil {
+			backpack = input.Backpack
+		}
+
 		// otherwise pass the singular result data to the next block
 		nextBlockInput = execute.Input{
-			Params: res.Data,
+			Params:   res.Data,
+			Backpack: backpack,
 		}
 	}
 
@@ -211,6 +236,7 @@ func (w *Workflow) traverseWorkflow(logger Logger, instances Instances, executor
 
 		neighborRes, err := w.traverseWorkflow(logger, instances, executor, neighbor, nextBlockInput)
 		if err != nil {
+			// TODO breadchris if we are inside of a stream, the error should bubble up to the stream entrypoint
 			return nil, errors.Wrapf(err, "error traversing workflow %s", neighbor)
 		}
 
@@ -220,6 +246,13 @@ func (w *Workflow) traverseWorkflow(logger Logger, instances Instances, executor
 			nextResSet = true
 		}
 	}
+	// TODO breadchris need to implement pubsub to handle lifecycle of streams
+	//if input.Stream != nil {
+	//	for {
+	//		time.Sleep(10 * time.Second)
+	//		log.Info().Msg("waiting for stream to finish")
+	//	}
+	//}
 	return &execute.Result{
 		Data: res.Data,
 	}, nil

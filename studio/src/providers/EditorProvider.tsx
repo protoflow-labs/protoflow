@@ -141,7 +141,6 @@ const useEditorProps = (draggedNode: ProtoNode | undefined, setDraggedNode: (nod
   // todo: figure out if this happens when we just move nodes
   const onDrop: DragEventHandler<HTMLDivElement>  = useCallback(
     (e) => {
-      console.log('NODE DROPPED', draggedNode)
       if (!draggedNode) {
         return;
       }

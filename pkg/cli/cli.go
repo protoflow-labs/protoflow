@@ -2,11 +2,14 @@ package cli
 
 import (
 	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/protoflow-labs/protoflow/pkg/temporal"
 	"github.com/protoflow-labs/protoflow/pkg/workflow"
 	"go.uber.org/config"
 
+	"github.com/breadchris/air/runner"
 	"github.com/protoflow-labs/protoflow/pkg/api"
 	logcfg "github.com/protoflow-labs/protoflow/pkg/log"
 	"github.com/protoflow-labs/protoflow/pkg/project"
@@ -22,6 +25,35 @@ func setupLogging(level string) {
 		logLevel = zerolog.DebugLevel
 	}
 	log.Logger = log.With().Caller().Logger().Output(zerolog.ConsoleWriter{Out: os.Stderr}).Level(logLevel)
+}
+
+func liveReload() error {
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+
+	var err error
+	cfg, err := runner.InitConfig(cfgPath)
+	if err != nil {
+		return err
+	}
+	cfg.WithArgs(cmdArgs)
+	r, err := runner.NewEngineWithConfig(cfg, debugMode)
+	if err != nil {
+		return err
+	}
+	go func() {
+		<-sigs
+		r.Stop()
+	}()
+
+	defer func() {
+		if e := recover(); e != nil {
+			log.Fatalf("PANIC: %+v", e)
+		}
+	}()
+
+	r.Run()
+	return nil
 }
 
 func New(
@@ -55,8 +87,17 @@ func New(
 						Name:  "http",
 						Usage: "Port for the studio",
 					},
+					&cli.BoolFlag{
+						Name:  "dev",
+						Usage: "Start server in dev mode",
+					},
 				},
 				Action: func(ctx *cli.Context) error {
+					dev := ctx.Bool("dev")
+					if dev {
+						return liveReload()
+					}
+
 					httpPort := ctx.Int("http")
 					if httpPort == 0 {
 						httpPort = 8080

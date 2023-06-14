@@ -84,6 +84,12 @@ func (a *Activity) ExecuteGRPCNode(ctx context.Context, node *GRPCNode, input ex
 				inputStream.Push(d)
 			}
 		} else {
+			// TODO breadchris figure out how backpacks work
+			err = util.SetInterfaceField(input.Params, BackpackKey, input.Backpack)
+			if err != nil {
+				outputStream.Error(errors.Wrapf(err, "error setting backpack field"))
+				return
+			}
 			inputStream.Push(input.Params)
 		}
 	}()
@@ -98,21 +104,28 @@ func (a *Activity) ExecuteGRPCNode(ctx context.Context, node *GRPCNode, input ex
 		res.Stream = outputStream
 	case method.IsStreamingClient():
 		// client stream: multiple requests, one response
-		fallthrough
+		go func() {
+			for {
+				output, err := outputStream.Next()
+				if err != nil {
+					if err != io.EOF {
+						outputStream.Error(errors.Wrapf(err, "error reading output stream"))
+					}
+					break
+				}
+				res.Stream.Push(output)
+			}
+		}()
 	default:
 		// unary
-		for {
-			output, err := outputStream.Next()
-			if err != nil {
-				if err != io.EOF {
-					return execute.Result{}, errors.Wrapf(err, "error reading output stream")
-				}
-				break
+		output, err := outputStream.Next()
+		if err != nil {
+			if err != io.EOF {
+				return execute.Result{}, errors.Wrapf(err, "error reading output stream")
 			}
-
-			// TODO breadchris whatever the last output is, is the data. Streaming is not supported yet.
-			res.Data = output
+			return execute.Result{}, errors.Wrapf(err, "did not receive any output for unary call")
 		}
+		res.Data = output
 	}
 	return res, nil
 }

@@ -69,6 +69,12 @@ func (s *NodeJSManager) Generate(r *resource.LanguageServiceResource, nodes []no
 	return nil
 }
 
+func (s *NodeJSManager) GenerateFunctionImpl(r *resource.LanguageServiceResource, nodes []node.Node) ([]Method, error) {
+	// TODO breadchris generate the function implementation
+	// default impl is just a console.log and return
+	return nil, nil
+}
+
 func (s *NodeJSManager) scaffoldFunctions(r *resource.LanguageServiceResource, nodes []node.Node) ([]Method, error) {
 	var methods []Method
 	for _, resNode := range nodes {

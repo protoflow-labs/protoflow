@@ -24,26 +24,34 @@ type ReflectionManager struct {
 	resolver       protoencoding.Resolver
 	requestHeaders http.Header
 	httpClient     connect.HTTPClient
-}
-
-func NewReflectionManager(url string) *ReflectionManager {
-	return &ReflectionManager{
-		URL:      url,
-		Protocol: connect.ProtocolGRPC,
-	}
+	reflectOps     ReflectionOptions
 }
 
 type ReflectionOptions struct {
-	Protocol string
+	Protocol bufcurl.ReflectProtocol
 	Headers  []string
 }
 
-func (s *ReflectionManager) Init() (func(), error) {
-	reflectOpts := &ReflectionOptions{
-		Protocol: "grpc-v1",
-	}
-	// TODO breadchris options
+type Options func(*ReflectionManager)
 
+func WithProtocol(protocol bufcurl.ReflectProtocol) Options {
+	return func(m *ReflectionManager) {
+		m.reflectOps.Protocol = protocol
+	}
+}
+
+func NewReflectionManager(url string, ops ...Options) *ReflectionManager {
+	m := &ReflectionManager{
+		URL:      url,
+		Protocol: connect.ProtocolGRPC,
+	}
+	for _, op := range ops {
+		op(m)
+	}
+	return m
+}
+
+func (s *ReflectionManager) Init() (func(), error) {
 	printer := &bufcurl.ZeroLogPrinter{}
 
 	endpointURL, err := verifyServerEndpointURL(s.URL)
@@ -65,12 +73,7 @@ func (s *ReflectionManager) Init() (func(), error) {
 	if err != nil {
 		return nil, err
 	}
-
-	reflectHeaders, err := bufcurl.LoadHeaders(reflectOpts.Headers)
-	if err != nil {
-		return nil, err
-	}
-	reflectProtocol, err := bufcurl.ParseReflectProtocol(reflectOpts.Protocol)
+	reflectHeaders, err := bufcurl.LoadHeaders(s.reflectOps.Headers)
 	if err != nil {
 		return nil, err
 	}
@@ -82,7 +85,7 @@ func (s *ReflectionManager) Init() (func(), error) {
 		s.httpClient,
 		clientOptions,
 		endpointURL.String(),
-		reflectProtocol,
+		s.reflectOps.Protocol,
 		reflectHeaders,
 		printer,
 	)
@@ -103,7 +106,6 @@ func (s *ReflectionManager) ExecuteMethod(
 }
 
 func (s *ReflectionManager) ResolveMethod(service, methodName string) (protoreflect.MethodDescriptor, error) {
-
 	descriptor, err := s.resolver.FindDescriptorByName(protoreflect.FullName(service))
 	if err == protoregistry.NotFound {
 		return nil, errors.Wrapf(err, "failed to find service in schema")

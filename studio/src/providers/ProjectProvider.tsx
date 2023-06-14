@@ -68,7 +68,10 @@ export default function ProjectProvider({children}: ProjectProviderProps) {
     const [activeNode, setActiveNode] = useState<ProtoNode | null>(null);
 
     const setActiveNodeId = (nodeId: string | null) => {
-        if (!nodeId) return;
+        if (!nodeId) {
+            setActiveNode(null);
+            return;
+        }
 
         // TODO breadchris catch error
         setActiveNode(nodeLookup[nodeId]);
