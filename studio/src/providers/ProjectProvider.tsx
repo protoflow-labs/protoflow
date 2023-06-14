@@ -21,6 +21,7 @@ import {notEmpty} from "@/util/predicates";
 
 type GetLookup = (lookup: Record<string, ProtoNode>) => Record<string, ProtoNode>;
 
+
 type ProjectContextType = {
     project: Project | undefined;
     resources: EnumeratedResource[];
@@ -57,6 +58,7 @@ const ProjectContext = createContext<ProjectContextType>({} as any);
 export const useProjectContext = () => useContext(ProjectContext);
 export const useResetOutput = () => useProjectContext().resetOutput;
 
+// project provider holds things that are closer to the database, like information fetched from the database
 export default function ProjectProvider({children}: ProjectProviderProps) {
     const {project, loading, createDefault} = useDefaultProject();
     const {resources, loading: loadingResources, loadProjectResources} = useProjectResources();

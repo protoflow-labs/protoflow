@@ -7,10 +7,12 @@ import {
 } from "@fluentui/react-components";
 import { ReactNode } from "react";
 
-type BlockCardProps = {
+export interface BaseBlockCardProps {
   children: ReactNode;
   selected: boolean;
 };
+
+
 
 const useOverrides = makeStyles({
   card: {
@@ -24,7 +26,7 @@ const useOverrides = makeStyles({
     ),
   },
 });
-export function BlockCard({ selected, ...props }: BlockCardProps) {
+export function BaseBlockCard({ selected, ...props }: BaseBlockCardProps) {
   const overrides = useOverrides();
   const classes = mergeClasses(overrides.card, selected && overrides.selected);
 

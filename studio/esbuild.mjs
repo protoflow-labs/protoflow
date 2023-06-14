@@ -5,7 +5,7 @@ import { NodeModulesPolyfillPlugin } from "@esbuild-plugins/node-modules-polyfil
 import tailwindcss from 'tailwindcss';
 import autoprefixer from 'autoprefixer';
 import postcss from "postcss";
-
+import tailwindOptions from './tailwind.config.mjs';
 const prodBuild = process.env.BUILD === 'true'
 
 const watch = !prodBuild ? {
@@ -21,7 +21,7 @@ const nodeEnv = prodBuild ? "'production'" : "'development'";
 const options = {
     entryPoints: [
         "./src/index.tsx",
-        "./src/styles/globals.css"
+        "./src/styles/globals.css",
     ],
     outdir: "public/build/",
     bundle: true,
@@ -38,17 +38,10 @@ const options = {
         sassPlugin({
             filter: /\.css$/,
             type: "style",
+            // todo: get postcss to live reload properly
             async transform(source, resolveDir, filePath) {
                 const transformed = await postcss([
-                    tailwindcss({
-                        content: [
-                            './src/**/*.{js,jsx,ts,tsx}',
-                        ],
-                        theme: {
-                            extend: {},
-                        },
-                        plugins: [],
-                    }),
+                    tailwindcss(tailwindOptions),
                     autoprefixer,
                 ]).process(source, {from: filePath});
                 return transformed.css;

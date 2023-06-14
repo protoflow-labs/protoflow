@@ -18,37 +18,18 @@ import {Toaster} from "react-hot-toast";
 import {AppRoutes} from "@/routes";
 import {BrowserRouter} from "react-router-dom";
 import {ErrorBoundary} from "react-error-boundary";
-import {ErrorInfo, useState} from "react";
+import {FallbackError} from "@/components/FallbackError";
 
-const Fallback: React.FC<{ error: Error, resetErrorBoundary: () => void }> = ({error, resetErrorBoundary}) => {
-  const [open, setOpen] = useState(true);
-  return (
-    <Dialog open={open}>
-      <DialogSurface>
-        <DialogBody>
-          <DialogTitle>Unhandled Error</DialogTitle>
-          <DialogContent>
-            <h4>{error.message.toString()}</h4>
-            <pre>{error.stack}</pre>
-          </DialogContent>
-          <DialogActions>
-            <DialogTrigger disableButtonEnhancement>
-              <Button appearance="secondary" onClick={() => resetErrorBoundary()}>Close</Button>
-            </DialogTrigger>
-          </DialogActions>
-        </DialogBody>
-      </DialogSurface>
-    </Dialog>
-  );
-}
+// pulls in the entire tailwind binary which we committed locally instead of using postcss plugin
+// require('./styles/tailwind.css')
 
 export default function App() {
   return (
       <FluentProvider theme={webDarkTheme}>
         <ErrorBoundary
-          FallbackComponent={Fallback}
+          FallbackComponent={FallbackError}
         >
-        <ReactFlowProvider>
+          <ReactFlowProvider>
           <HotkeysProvider initiallyActiveScopes={["editor"]}>
             <ProjectProvider>
               <EditorProvider>
