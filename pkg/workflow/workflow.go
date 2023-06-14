@@ -12,7 +12,6 @@ import (
 	worknode "github.com/protoflow-labs/protoflow/pkg/workflow/node"
 	"github.com/protoflow-labs/protoflow/pkg/workflow/resource"
 	"github.com/rs/zerolog/log"
-	"time"
 )
 
 type AdjMap map[string]map[string]graph.Edge[string]
@@ -248,12 +247,12 @@ func (w *Workflow) traverseWorkflow(logger Logger, instances Instances, executor
 		}
 	}
 	// TODO breadchris need to implement pubsub to handle lifecycle of streams
-	if input.Stream != nil {
-		for {
-			time.Sleep(10 * time.Second)
-			log.Info().Msg("waiting for stream to finish")
-		}
-	}
+	//if input.Stream != nil {
+	//	for {
+	//		time.Sleep(10 * time.Second)
+	//		log.Info().Msg("waiting for stream to finish")
+	//	}
+	//}
 	return &execute.Result{
 		Data: res.Data,
 	}, nil
