@@ -49,11 +49,13 @@ func FromProto(r *gen.Resource) (Resource, error) {
 		}, nil
 	case *gen.Resource_Docstore:
 		return &DocstoreResource{
-			Docstore: t.Docstore,
+			BaseResource: base,
+			Docstore:     t.Docstore,
 		}, nil
 	case *gen.Resource_Blobstore:
 		return &BlobstoreResource{
-			Blobstore: t.Blobstore,
+			BaseResource: base,
+			Blobstore:    t.Blobstore,
 		}, nil
 	default:
 		return nil, fmt.Errorf("no resource found with type: %s", t)

@@ -122,7 +122,7 @@ export default function ProjectProvider({children}: ProjectProviderProps) {
                 toast.error(e.toString());
             }
         },
-        [project]
+        [project, nodeLookup]
     );
 
     const deleteResource = useCallback(
@@ -159,6 +159,7 @@ export default function ProjectProvider({children}: ProjectProviderProps) {
             });
         } catch (e) {
             // this is ok if we error, the node might not exist yet
+            console.warn(e);
         }
         return undefined;
     }, [project]);

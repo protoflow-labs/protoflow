@@ -20,16 +20,16 @@ func GetProtoForMethod(packageName, serviceName string, method protoreflect.Meth
 		return "", errors.Wrapf(err, "error building method descriptor")
 	}
 
-	methodType, err := printBuilder(b)
+	methodType, err := PrintBuilder(b)
 	if err != nil {
 		return "", err
 	}
 
-	inputType, err := printMessage(method.Input())
+	inputType, err := PrintMessage(method.Input())
 	if err != nil {
 		return "", errors.Wrapf(err, "error printing input message")
 	}
-	outputType, err := printMessage(method.Output())
+	outputType, err := PrintMessage(method.Output())
 	if err != nil {
 		return "", errors.Wrapf(err, "error printing output message")
 	}
@@ -43,13 +43,15 @@ func GetProtoForMethod(packageName, serviceName string, method protoreflect.Meth
 	return methodStr, nil
 }
 
-func printBuilder(b builder.Builder) (string, error) {
+func PrintBuilder(b builder.Builder) (string, error) {
 	d, err := b.BuildDescriptor()
 	if err != nil {
 		return "", errors.Wrapf(err, "error building method descriptor")
 	}
 
-	p := protoprint.Printer{}
+	p := protoprint.Printer{
+		Compact: true,
+	}
 	s, err := p.PrintProtoToString(d)
 	if err != nil {
 		return "", errors.Wrapf(err, "error printing proto")
@@ -57,7 +59,7 @@ func printBuilder(b builder.Builder) (string, error) {
 	return s, nil
 }
 
-func printMessage(msgType protoreflect.MessageDescriptor) (string, error) {
+func PrintMessage(msgType protoreflect.MessageDescriptor) (string, error) {
 	msg, err := desc.WrapMessage(msgType)
 	if err != nil {
 		return "", errors.Wrapf(err, "error wrapping message")
@@ -67,5 +69,18 @@ func printMessage(msgType protoreflect.MessageDescriptor) (string, error) {
 	if err != nil {
 		return "", errors.Wrapf(err, "error building message descriptor")
 	}
-	return printBuilder(m)
+	return PrintBuilder(m)
+}
+
+func PrintEnum(enumType protoreflect.EnumDescriptor) (string, error) {
+	msg, err := desc.WrapEnum(enumType)
+	if err != nil {
+		return "", errors.Wrapf(err, "error wrapping enum")
+	}
+
+	m, err := builder.FromEnum(msg)
+	if err != nil {
+		return "", errors.Wrapf(err, "error building enum descriptor")
+	}
+	return PrintBuilder(m)
 }

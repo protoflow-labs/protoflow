@@ -1,7 +1,6 @@
 package node
 
 import (
-	"github.com/jhump/protoreflect/desc"
 	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/gen"
 	"github.com/protoflow-labs/protoflow/pkg/grpc"
@@ -53,6 +52,8 @@ func (s *GRPCNode) Info(res resource.Resource) (*Info, error) {
 		return nil, errors.Errorf("resource is not a grpc resource")
 	}
 
+	// TODO breadchris what if we want to get the proto from a proto file?
+
 	var (
 		method protoreflect.MethodDescriptor
 		err    error
@@ -66,23 +67,15 @@ func (s *GRPCNode) Info(res resource.Resource) (*Info, error) {
 		}
 	}
 
+	// TODO breadchris move into method descriptor?
 	methodProto, err := manager.GetProtoForMethod(s.Package, s.Service, method)
 	if err != nil {
 		return nil, errors.Wrapf(err, "error getting proto for method")
 	}
 
-	descMethod, err := desc.WrapMethod(method)
-	md := grpc.NewMethodDescriptor(descMethod.GetInputType())
-	typeInfo := &gen.GRPCTypeInfo{
-		Input:      descMethod.GetInputType().AsDescriptorProto(),
-		Output:     descMethod.GetOutputType().AsDescriptorProto(),
-		DescLookup: md.DescLookup,
-		EnumLookup: md.EnumLookup,
-		MethodDesc: descMethod.AsMethodDescriptorProto(),
-	}
-
+	md := grpc.NewMethodDescriptor(method)
 	return &Info{
+		Method:      md,
 		MethodProto: methodProto,
-		TypeInfo:    typeInfo,
 	}, nil
 }

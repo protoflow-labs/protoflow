@@ -178,9 +178,13 @@ func (s *Service) GetNodeInfo(ctx context.Context, c *connect.Request[gen.GetNod
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get node info for node %s", c.Msg.NodeId)
 	}
+	typeInfo, err := nodeInfo.Method.Proto()
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get proto for node %s", c.Msg.NodeId)
+	}
 	return connect.NewResponse(&gen.GetNodeInfoResponse{
 		MethodProto: nodeInfo.MethodProto,
-		TypeInfo:    nodeInfo.TypeInfo,
+		TypeInfo:    typeInfo,
 	}), nil
 }
 

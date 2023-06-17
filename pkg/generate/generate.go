@@ -7,6 +7,7 @@ import (
 	"github.com/protoflow-labs/protoflow/pkg/project"
 	"github.com/protoflow-labs/protoflow/pkg/workflow/node"
 	"github.com/protoflow-labs/protoflow/pkg/workflow/resource"
+	"github.com/rs/zerolog/log"
 	"os"
 	"path"
 )
@@ -43,7 +44,19 @@ func NewGenerate(config Config) (*Generate, error) {
 }
 
 func (s *Generate) Generate(project *project.Project) error {
+	nodeInfoLookup := map[string]*node.Info{}
+	for _, n := range project.Workflow.NodeLookup {
+		info, err := project.Workflow.GetNodeInfo(n)
+		if err != nil {
+			return errors.Wrapf(err, "error getting node info")
+		}
+		nodeInfoLookup[n.ID()] = info
+	}
 	for _, r := range project.Workflow.Resources {
+		if r == nil {
+			log.Error().Msg("resource is nil")
+			continue
+		}
 		var nodes []node.Node
 		for _, n := range project.Workflow.NodeLookup {
 			if n.ResourceID() == r.ID() {
@@ -57,13 +70,12 @@ func (s *Generate) Generate(project *project.Project) error {
 				if err != nil {
 					return errors.Wrap(err, "error creating nodejs manager")
 				}
-				if err := jsManager.Generate(r, nodes); err != nil {
+				if err := jsManager.Generate(r, nodes, nodeInfoLookup); err != nil {
 					return errors.Wrap(err, "error generating nodejs")
 				}
 			}
 		}
 	}
-
 	d := NewDockerComposeGenerate(s.bucket)
 	if err := d.Generate(project); err != nil {
 		return errors.Wrap(err, "error generating docker-compose")

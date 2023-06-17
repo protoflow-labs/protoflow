@@ -8,7 +8,7 @@ export const ArrayType = (props: { value: any; }) => {
     <ul>
       {value.map((v: any, i: any) => (
         <li key={i}>
-          <Type value={v} />
+          {i}: <Type value={v} />
         </li>
       ))}
     </ul>

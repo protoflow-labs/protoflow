@@ -1,15 +1,13 @@
 package cli
 
 import (
+	"github.com/protoflow-labs/protoflow/pkg/util/reload"
 	"os"
-	"os/signal"
-	"syscall"
 
 	"github.com/protoflow-labs/protoflow/pkg/temporal"
 	"github.com/protoflow-labs/protoflow/pkg/workflow"
 	"go.uber.org/config"
 
-	"github.com/breadchris/air/runner"
 	"github.com/protoflow-labs/protoflow/pkg/api"
 	logcfg "github.com/protoflow-labs/protoflow/pkg/log"
 	"github.com/protoflow-labs/protoflow/pkg/project"
@@ -28,32 +26,13 @@ func setupLogging(level string) {
 }
 
 func liveReload() error {
-	sigs := make(chan os.Signal, 1)
-	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
-
-	var err error
-	cfg, err := runner.InitConfig(cfgPath)
-	if err != nil {
-		return err
+	// TODO breadchris makes this a config that can be set
+	c := reload.Config{
+		Cmd:      []string{"go", "run", "main.go", "studio"},
+		Patterns: []string{"pkg/**/*.go", "templates/**"},
+		Ignores:  []string{"studio/**"},
 	}
-	cfg.WithArgs(cmdArgs)
-	r, err := runner.NewEngineWithConfig(cfg, debugMode)
-	if err != nil {
-		return err
-	}
-	go func() {
-		<-sigs
-		r.Stop()
-	}()
-
-	defer func() {
-		if e := recover(); e != nil {
-			log.Fatalf("PANIC: %+v", e)
-		}
-	}()
-
-	r.Run()
-	return nil
+	return reload.Reload(c)
 }
 
 func New(
@@ -63,7 +42,6 @@ func New(
 	provider config.Provider,
 ) *cli.App {
 	setupLogging(logConfig.Level)
-
 	return &cli.App{
 		Name:        "protoflow",
 		Description: "Coding as easy as playing with legos.",
@@ -103,7 +81,7 @@ func New(
 						httpPort = 8080
 					}
 
-					// TODO breadchris for local dev, add live reload into command https://github.com/makiuchi-d/arelo/blob/master/arelo.go
+					// TODO breadchris for local dev, add live reload into command https://github.com/makiuchi-d/RELOAD/blob/master/RELOAD.go
 
 					log.Info().Int("port", httpPort).Msg("starting http server")
 					return httpHandler.Serve(httpPort)

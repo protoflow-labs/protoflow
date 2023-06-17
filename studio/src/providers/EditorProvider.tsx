@@ -20,10 +20,8 @@ import {
   ReactFlowInstance,
 } from "reactflow";
 import { v4 as uuid } from "uuid";
-import {getDataFromNode, getNodeDataKey, useProjectContext} from "./ProjectProvider";
+import {useProjectContext} from "./ProjectProvider";
 import {Node as ProtoNode} from "@/rpc/graph_pb";
-import {Simulate} from "react-dom/test-utils";
-import drag = Simulate.drag;
 import {generateUUID} from "@/util/uuid";
 
 type EditorContextType = {
@@ -146,7 +144,6 @@ const useEditorProps = (draggedNode: ProtoNode | undefined, setDraggedNode: (nod
       }
       const position = reactFlowInstance!.project({x: e.clientX, y: e.clientY});
 
-
       const newNode = {
         id: generateUUID(),
         type: nodeToType(draggedNode),
@@ -167,14 +164,11 @@ const useEditorProps = (draggedNode: ProtoNode | undefined, setDraggedNode: (nod
   );
 
   const onEdgesChange: OnEdgesChange = useCallback((changes) => {
-    console.log('edge change called')
     setEdges((eds) => applyEdgeChanges(changes, eds));
   }, []);
 
   const onNodesChange: OnNodesChange = useCallback((changes) => {
-    console.log('node change called', changes)
     setNodes((nds) => applyNodeChanges(changes, nds));
-    console.log('nodes are now ', nodes)
   }, []);
 
   return {

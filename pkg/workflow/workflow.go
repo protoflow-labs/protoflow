@@ -7,11 +7,13 @@ import (
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/gen"
+	"github.com/protoflow-labs/protoflow/pkg/grpc"
 	"github.com/protoflow-labs/protoflow/pkg/util"
 	"github.com/protoflow-labs/protoflow/pkg/workflow/execute"
 	worknode "github.com/protoflow-labs/protoflow/pkg/workflow/node"
 	"github.com/protoflow-labs/protoflow/pkg/workflow/resource"
 	"github.com/rs/zerolog/log"
+	"github.com/samber/lo"
 )
 
 type AdjMap map[string]map[string]graph.Edge[string]
@@ -21,8 +23,9 @@ type Workflow struct {
 	ProjectID  string
 	Graph      graph.Graph[string, string]
 	NodeLookup map[string]worknode.Node
-	AdjMap
-	Resources map[string]resource.Resource
+	AdjMap     AdjMap
+	PreMap     AdjMap
+	Resources  map[string]resource.Resource
 }
 
 func (w *Workflow) GetNode(id string) (worknode.Node, error) {
@@ -45,6 +48,7 @@ func (w *Workflow) GetNodeResource(id string) (resource.Resource, error) {
 	return r, nil
 }
 
+// TODO breadchris separate "infer" and "collect" type information
 func (w *Workflow) GetNodeInfo(n worknode.Node) (*worknode.Info, error) {
 	var resp *worknode.Info
 	switch n.(type) {
@@ -54,7 +58,7 @@ func (w *Workflow) GetNodeInfo(n worknode.Node) (*worknode.Info, error) {
 			// TODO breadchris support multiple children
 			return nil, errors.Errorf("input node should have 1 child, got %d", len(children))
 		}
-		// TODO breadchris optimized for specific case
+		// TODO breadchris only designed for 1 child
 		for child := range children {
 			n, err := w.GetNode(child)
 			if err != nil {
@@ -62,6 +66,58 @@ func (w *Workflow) GetNodeInfo(n worknode.Node) (*worknode.Info, error) {
 			}
 			return w.GetNodeInfo(n)
 		}
+	case *worknode.FunctionNode:
+		children := w.AdjMap[n.ID()]
+		parents := w.PreMap[n.ID()]
+
+		var (
+			childType  *worknode.Info
+			parentType *worknode.Info
+		)
+
+		// TODO breadchris only designed for 1 child and 1 parent, will need to figure out how to support multiple
+		// I think what will need to happen is that we will need to merge the types of all children and all parents.
+		for child := range children {
+			n, err := w.GetNode(child)
+			if err != nil {
+				return nil, errors.Errorf("node %s not found", child)
+			}
+			childType, err = w.GetNodeInfo(n)
+			if err != nil {
+				return nil, err
+			}
+			break
+		}
+		for parent := range parents {
+			n, err := w.GetNode(parent)
+			if err != nil {
+				return nil, errors.Errorf("node %s not found", parent)
+			}
+			parentType, err = w.GetNodeInfo(n)
+			if err != nil {
+				return nil, err
+			}
+			break
+		}
+		if childType == nil || parentType == nil {
+			return nil, errors.New("could not find child or parent type")
+		}
+
+		// TODO breadchris this logic should be in the node?
+		// merge desc lookup and enum lookup
+		enumLookup := lo.Assign(childType.Method.EnumLookup, parentType.Method.EnumLookup)
+		descLookup := lo.Assign(childType.Method.DescLookup, parentType.Method.DescLookup)
+
+		return &worknode.Info{
+			Method: &grpc.MethodDescriptor{
+				// TODO breadchris how do we build the method? Do we need to keep track of all relevant info ourselves or can we use an existing type?
+				// MethodDesc: ?
+				Input:      parentType.Method.Output,
+				Output:     childType.Method.Input,
+				DescLookup: descLookup,
+				EnumLookup: enumLookup,
+			},
+		}, nil
 	default:
 		res, err := w.GetNodeResource(n.ID())
 		if err != nil {
@@ -118,6 +174,11 @@ func FromProject(project *gen.Project) (*Workflow, error) {
 		return nil, errors.Wrapf(err, "error getting adjacency map")
 	}
 
+	preMap, err := g.PredecessorMap()
+	if err != nil {
+		return nil, errors.Wrapf(err, "error getting predecessor map")
+	}
+
 	return &Workflow{
 		// TODO breadchris this should be a deterministic value based on the workflow node slice
 		ID:         uuid.NewString(),
@@ -125,6 +186,7 @@ func FromProject(project *gen.Project) (*Workflow, error) {
 		Graph:      g,
 		NodeLookup: nodeLookup,
 		AdjMap:     adjMap,
+		PreMap:     preMap,
 		Resources:  resources,
 	}, nil
 }

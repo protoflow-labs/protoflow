@@ -1,11 +1,4 @@
 import {
-  Button,
-  Dialog, DialogActions,
-  DialogBody,
-  DialogContent,
-  DialogSurface,
-  DialogTitle,
-  DialogTrigger,
   FluentProvider,
   webDarkTheme
 } from "@fluentui/react-components";
@@ -19,9 +12,8 @@ import {AppRoutes} from "@/routes";
 import {BrowserRouter} from "react-router-dom";
 import {ErrorBoundary} from "react-error-boundary";
 import {FallbackError} from "@/components/FallbackError";
-
-// pulls in the entire tailwind binary which we committed locally instead of using postcss plugin
-// require('./styles/tailwind.css')
+import "bootstrap";
+import "bootstrap/dist/css/bootstrap.min.css";
 
 export default function App() {
   return (

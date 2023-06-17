@@ -27,15 +27,14 @@ protoflow studio
 ## Hack
 ### Backend
 ```shell
-go run main.go studio
+go run main.go studio --dev
 ```
 
 Backend will proxy to the frontend, so you can just open http://localhost:8080 to see the frontend.
 
 ### Studio
 ```shell
-cd studio
-npm i
+npm install
 npm run dev
 ```
 

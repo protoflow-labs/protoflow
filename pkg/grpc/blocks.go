@@ -9,6 +9,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/descriptorpb"
 )
 
@@ -39,54 +40,6 @@ func EnumerateResourceBlocks(resource *gen.Resource) ([]*gen.Node, error) {
 		}
 	}
 	return nodes, nil
-}
-
-type MethodDescriptor struct {
-	DescLookup map[string]*descriptorpb.DescriptorProto
-	EnumLookup map[string]*descriptorpb.EnumDescriptorProto
-}
-
-func NewMethodDescriptor(msg *desc.MessageDescriptor) *MethodDescriptor {
-	m := &MethodDescriptor{
-		DescLookup: make(map[string]*descriptorpb.DescriptorProto),
-		EnumLookup: make(map[string]*descriptorpb.EnumDescriptorProto),
-	}
-	m.buildTypeLookup(msg)
-	return m
-}
-
-func (m *MethodDescriptor) buildTypeLookup(msgDesc *desc.MessageDescriptor) {
-	msgs := []*desc.MessageDescriptor{msgDesc}
-	for len(msgs) > 0 {
-		msg := msgs[0]
-		msgs = msgs[1:]
-		m.DescLookup[msg.GetFullyQualifiedName()] = msg.AsDescriptorProto()
-		for _, f := range msg.GetFields() {
-			lookupName := f.GetFullyQualifiedName()
-
-			oneOf := f.GetOneOf()
-			if oneOf != nil {
-				choices := oneOf.GetChoices()
-				for _, c := range choices {
-					if _, ok := m.DescLookup[lookupName]; ok {
-						continue
-					}
-					msgs = append(msgs, c.GetMessageType())
-				}
-			} else {
-				switch f.GetType() {
-				case descriptorpb.FieldDescriptorProto_TYPE_MESSAGE:
-					if _, ok := m.DescLookup[lookupName]; ok {
-						continue
-					}
-					m.DescLookup[lookupName] = f.GetMessageType().AsDescriptorProto()
-					msgs = append(msgs, f.GetMessageType())
-				case descriptorpb.FieldDescriptorProto_TYPE_ENUM:
-					m.EnumLookup[lookupName] = f.GetEnumType().AsEnumDescriptorProto()
-				}
-			}
-		}
-	}
 }
 
 func nodesFromGRPC(resourceID string, service *gen.GRPCService, isLangService bool) ([]*gen.Node, error) {
@@ -134,4 +87,110 @@ func nodesFromGRPC(resourceID string, service *gen.GRPCService, isLangService bo
 		blocks = append(blocks, block)
 	}
 	return blocks, nil
+}
+
+type MethodDescriptor struct {
+	MethodDesc protoreflect.MethodDescriptor
+	Input      protoreflect.MessageDescriptor
+	Output     protoreflect.MessageDescriptor
+	DescLookup map[string]protoreflect.MessageDescriptor
+	EnumLookup map[string]protoreflect.EnumDescriptor
+}
+
+type MethodDescriptorProto struct {
+	DescLookup map[string]*descriptorpb.DescriptorProto
+	EnumLookup map[string]*descriptorpb.EnumDescriptorProto
+}
+
+func NewMethodDescriptor(md protoreflect.MethodDescriptor) *MethodDescriptor {
+	m := &MethodDescriptor{
+		MethodDesc: md,
+		DescLookup: map[string]protoreflect.MessageDescriptor{},
+		EnumLookup: map[string]protoreflect.EnumDescriptor{},
+		Input:      md.Input(),
+		Output:     md.Output(),
+	}
+	m.buildTypeLookup(md.Input())
+	m.buildTypeLookup(md.Output())
+	return m
+}
+
+func (m *MethodDescriptor) buildTypeLookup(msgDesc protoreflect.MessageDescriptor) {
+	msgs := []protoreflect.MessageDescriptor{msgDesc}
+	for len(msgs) > 0 {
+		msg := msgs[0]
+		msgs = msgs[1:]
+		m.DescLookup[string(msg.FullName())] = msg
+		fields := msg.Fields()
+		for i := 0; i < fields.Len(); i++ {
+			f := fields.Get(i)
+			lookupName := string(f.FullName())
+
+			oneOf := f.ContainingOneof()
+			if oneOf != nil {
+				oneOfFields := oneOf.Fields()
+				for j := 0; j < oneOfFields.Len(); j++ {
+					c := oneOfFields.Get(j)
+					if _, ok := m.DescLookup[lookupName]; ok {
+						continue
+					}
+					msgs = append(msgs, c.Message())
+				}
+			} else {
+				switch f.Kind() {
+				case protoreflect.MessageKind:
+					if _, ok := m.DescLookup[lookupName]; ok {
+						continue
+					}
+					m.DescLookup[lookupName] = f.Message()
+					msgs = append(msgs, f.Message())
+				case protoreflect.EnumKind:
+					m.EnumLookup[lookupName] = f.Enum()
+				}
+			}
+		}
+	}
+}
+
+// Proto returns a proto representation of the MethodDescriptor
+func (m *MethodDescriptor) Proto() (*gen.GRPCTypeInfo, error) {
+	d := &MethodDescriptorProto{
+		DescLookup: map[string]*descriptorpb.DescriptorProto{},
+		EnumLookup: map[string]*descriptorpb.EnumDescriptorProto{},
+	}
+	for k, v := range m.DescLookup {
+		m, err := desc.WrapMessage(v)
+		if err != nil {
+			log.Warn().Err(err).Msgf("unable to wrap message %s", k)
+			continue
+		}
+		d.DescLookup[k] = m.AsDescriptorProto()
+	}
+	for k, v := range m.EnumLookup {
+		e, err := desc.WrapEnum(v)
+		if err != nil {
+			log.Warn().Err(err).Msgf("unable to wrap enum %s", k)
+			continue
+		}
+		d.EnumLookup[k] = e.AsEnumDescriptorProto()
+	}
+
+	// TODO breadchris does protoreflect have a way to get the proto?
+	descMethod, err := desc.WrapMethod(m.MethodDesc)
+	if err != nil {
+		return nil, errors.Wrapf(err, "error wrapping method")
+	}
+
+	return &gen.GRPCTypeInfo{
+		Input:      descMethod.GetInputType().AsDescriptorProto(),
+		Output:     descMethod.GetOutputType().AsDescriptorProto(),
+		DescLookup: d.DescLookup,
+		EnumLookup: d.EnumLookup,
+		MethodDesc: descMethod.AsMethodDescriptorProto(),
+	}, nil
+}
+
+func (m *MethodDescriptor) Print() (string, error) {
+	// TODO breadchris implement
+	return "", nil
 }

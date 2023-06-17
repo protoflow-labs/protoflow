@@ -3,11 +3,10 @@ syntax = "proto3";
 package protoflow;
 
 service {{.Runtime}}Service {
-    {{range .Methods}}
-    rpc {{.Name}}(Data) returns (Data);
+    {{range .Methods -}}
+    rpc {{.Name}}({{.InputType}}) returns ({{.OutputType}});
     {{end}}
 }
-
-message Data {
-    string value = 1;
-}
+{{range .Descs}}
+{{.}}
+{{end}}

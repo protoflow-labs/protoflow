@@ -5,14 +5,12 @@ import {
   shorthands,
   tokens,
 } from "@fluentui/react-components";
-import { ReactNode } from "react";
+import React, { ReactNode } from "react";
 
 export interface BaseBlockCardProps {
   children: ReactNode;
   selected: boolean;
-};
-
-
+}
 
 const useOverrides = makeStyles({
   card: {
@@ -26,7 +24,8 @@ const useOverrides = makeStyles({
     ),
   },
 });
-export function BaseBlockCard({ selected, ...props }: BaseBlockCardProps) {
+
+export const BaseBlockCard: React.FC<BaseBlockCardProps> = ({ selected, ...props }) => {
   const overrides = useOverrides();
   const classes = mergeClasses(overrides.card, selected && overrides.selected);
 

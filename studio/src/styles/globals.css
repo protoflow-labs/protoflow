@@ -25,5 +25,14 @@ span.rsjv-expander:hover {
 
 span.rsjv-value {
   color: #3d94bf;
-  overflowWrap: anywhere;
+  overflow-wrap: anywhere;
+}
+
+.json-viewer {
+  max-height: 50em;
+  overflow-y: auto;
+}
+
+.json-viewer ul {
+  padding-left: 1em;
 }

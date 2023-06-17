@@ -1,11 +1,8 @@
 import { Accordion, AccordionHeader, AccordionItem, AccordionPanel, Button } from "@fluentui/react-components";
-import { ReactNode } from "react";
 import { useProjectContext } from "@/providers/ProjectProvider";
-import {ReactFlowProtoflowData, ReactFlowProtoflowKey, useEditorContext} from "@/providers/EditorProvider";
 import {GRPC, Function, Input, Collection, Bucket} from "@/rpc/block_pb";
 import {Node} from "@/rpc/graph_pb";
 import {Resource} from "@/rpc/resource_pb";
-import {generateUUID} from "@/util/uuid";
 import {NodeButton} from "@/components/newBlockSidebar/NodeButton";
 
 interface NodeBlock {
@@ -86,7 +83,7 @@ export default function BlocksList() {
                   <AccordionHeader>
                     {res.name}
                   </AccordionHeader>
-                  <AccordionPanel>
+                  <AccordionPanel className={"overflow-y-auto"} style={{maxHeight: "40em"}}>
                     {r.nodes.length === 0 && (
                         <div className="text-gray-400">No nodes</div>
                     )}

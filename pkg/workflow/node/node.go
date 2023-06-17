@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/gen"
+	"github.com/protoflow-labs/protoflow/pkg/grpc"
 	"github.com/protoflow-labs/protoflow/pkg/util"
 	"github.com/protoflow-labs/protoflow/pkg/workflow/execute"
 	"github.com/protoflow-labs/protoflow/pkg/workflow/resource"
@@ -26,7 +27,7 @@ type Node interface {
 
 type Info struct {
 	MethodProto string
-	TypeInfo    *gen.GRPCTypeInfo
+	Method      *grpc.MethodDescriptor
 }
 
 type BaseNode struct {
