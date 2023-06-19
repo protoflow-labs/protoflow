@@ -142,7 +142,6 @@ func (m *MethodDescriptor) buildTypeLookup(msgDesc protoreflect.MessageDescripto
 					if _, ok := m.DescLookup[lookupName]; ok {
 						continue
 					}
-					m.DescLookup[lookupName] = f.Message()
 					msgs = append(msgs, f.Message())
 				case protoreflect.EnumKind:
 					m.EnumLookup[lookupName] = f.Enum()

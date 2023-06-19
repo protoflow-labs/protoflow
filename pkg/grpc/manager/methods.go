@@ -50,7 +50,8 @@ func PrintBuilder(b builder.Builder) (string, error) {
 	}
 
 	p := protoprint.Printer{
-		Compact: true,
+		Compact:      true,
+		SortElements: true,
 	}
 	s, err := p.PrintProtoToString(d)
 	if err != nil {

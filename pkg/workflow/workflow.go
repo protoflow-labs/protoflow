@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"github.com/dominikbraun/graph"
 	"github.com/google/uuid"
+	"github.com/jhump/protoreflect/desc"
+	"github.com/jhump/protoreflect/desc/builder"
 	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/gen"
 	"github.com/protoflow-labs/protoflow/pkg/grpc"
@@ -13,7 +15,6 @@ import (
 	worknode "github.com/protoflow-labs/protoflow/pkg/workflow/node"
 	"github.com/protoflow-labs/protoflow/pkg/workflow/resource"
 	"github.com/rs/zerolog/log"
-	"github.com/samber/lo"
 )
 
 type AdjMap map[string]map[string]graph.Edge[string]
@@ -103,20 +104,32 @@ func (w *Workflow) GetNodeInfo(n worknode.Node) (*worknode.Info, error) {
 			return nil, errors.New("could not find child or parent type")
 		}
 
-		// TODO breadchris this logic should be in the node?
-		// merge desc lookup and enum lookup
-		enumLookup := lo.Assign(childType.Method.EnumLookup, parentType.Method.EnumLookup)
-		descLookup := lo.Assign(childType.Method.DescLookup, parentType.Method.DescLookup)
+		inputType, err := desc.WrapMessage(parentType.Method.Output)
+		if err != nil {
+			return nil, errors.Wrapf(err, "error wrapping message %s", parentType.Method.Output.Name())
+		}
+
+		outputType, err := desc.WrapMessage(childType.Method.Input)
+		if err != nil {
+			return nil, errors.Wrapf(err, "error wrapping message %s", childType.Method.Input.Name())
+		}
+
+		// TODO breadchris check what stream fields we need to access
+		req := builder.RpcTypeImportedMessage(inputType, false)
+		res := builder.RpcTypeImportedMessage(outputType, false)
+
+		// TODO breadchris this is a hack to get the name of the function
+		s := builder.NewService("Service")
+		b := builder.NewMethod(n.NormalizedName(), req, res)
+		s.AddMethod(b)
+
+		m, err := b.Build()
+		if err != nil {
+			return nil, err
+		}
 
 		return &worknode.Info{
-			Method: &grpc.MethodDescriptor{
-				// TODO breadchris how do we build the method? Do we need to keep track of all relevant info ourselves or can we use an existing type?
-				// MethodDesc: ?
-				Input:      parentType.Method.Output,
-				Output:     childType.Method.Input,
-				DescLookup: descLookup,
-				EnumLookup: enumLookup,
-			},
+			Method: grpc.NewMethodDescriptor(m.UnwrapMethod()),
 		}, nil
 	default:
 		res, err := w.GetNodeResource(n.ID())

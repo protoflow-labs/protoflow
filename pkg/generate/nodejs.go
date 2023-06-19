@@ -119,6 +119,8 @@ func (s *NodeJSManager) generateServiceTemplate(r *resource.LanguageServiceResou
 		}
 	}
 
+	// TODO breadchris refactor so that we build an actual proto file and add the types to print all at once
+
 	// format proto descs that are needed for the input and output of the nodes
 	var msgStrs []string
 	for _, d := range tmpl.DescLookup {
