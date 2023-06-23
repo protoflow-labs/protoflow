@@ -3,9 +3,11 @@ package resource
 import (
 	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/gen"
+	"github.com/protoflow-labs/protoflow/pkg/workflow/node"
 	"github.com/rs/zerolog/log"
 	"net"
 	"net/url"
+	"strings"
 	"time"
 )
 
@@ -20,6 +22,27 @@ func (r *LanguageServiceResource) Name() string {
 
 func (r *LanguageServiceResource) Init() (func(), error) {
 	return r.GRPCResource.Init()
+}
+
+func (r *LanguageServiceResource) Info(n node.Node) (*node.Info, error) {
+	f, ok := n.(*node.FunctionNode)
+	if !ok {
+		return nil, errors.New("node is not a function node")
+	}
+	grpcNode := r.ToGRPC(f)
+	// TODO breadchris we should know where the function node is located and should read/write from the proto
+	return r.GRPCResource.Info(grpcNode)
+}
+
+func (r *LanguageServiceResource) ToGRPC(n *node.FunctionNode) *node.GRPCNode {
+	serviceName := strings.ToLower(r.Runtime.String()) + "Service"
+	return &node.GRPCNode{
+		GRPC: &gen.GRPC{
+			Package: "protoflow",
+			Service: serviceName,
+			Method:  n.Name,
+		},
+	}
 }
 
 func ensureRunning(host string) error {

@@ -60,6 +60,14 @@ func PrintBuilder(b builder.Builder) (string, error) {
 	return s, nil
 }
 
+func PrintFile(msgType *desc.FileDescriptor) (string, error) {
+	m, err := builder.FromFile(msgType)
+	if err != nil {
+		return "", errors.Wrapf(err, "error building file descriptor")
+	}
+	return PrintBuilder(m)
+}
+
 func PrintMessage(msgType protoreflect.MessageDescriptor) (string, error) {
 	msg, err := desc.WrapMessage(msgType)
 	if err != nil {

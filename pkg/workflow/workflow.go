@@ -78,6 +78,7 @@ func (w *Workflow) GetNodeInfo(n worknode.Node) (*worknode.Info, error) {
 
 		// TODO breadchris only designed for 1 child and 1 parent, will need to figure out how to support multiple
 		// I think what will need to happen is that we will need to merge the types of all children and all parents.
+		// TODO breadchris use protoreflect builder to build a new message with the merged typesd
 		for child := range children {
 			n, err := w.GetNode(child)
 			if err != nil {
@@ -136,10 +137,12 @@ func (w *Workflow) GetNodeInfo(n worknode.Node) (*worknode.Info, error) {
 		if err != nil {
 			return nil, err
 		}
-		return n.Info(res)
+		return res.Info(n)
 	}
 	return resp, nil
 }
+
+type ResourceMap map[string]resource.Resource
 
 func FromProject(project *gen.Project) (*Workflow, error) {
 	g := graph.New(graph.StringHash, graph.Directed(), graph.PreventCycles())
@@ -148,7 +151,7 @@ func FromProject(project *gen.Project) (*Workflow, error) {
 		return nil, errors.New("project graph is nil")
 	}
 
-	resources := worknode.ResourceMap{}
+	resources := ResourceMap{}
 	for _, protoRes := range project.Resources {
 		r, err := resource.FromProto(protoRes)
 		if err != nil {
@@ -159,6 +162,7 @@ func FromProject(project *gen.Project) (*Workflow, error) {
 
 	nodeLookup := map[string]worknode.Node{}
 	for _, node := range project.Graph.Nodes {
+		r := resources[node.ResourceId]
 		if node.Id == "" {
 			return nil, errors.New("node id cannot be empty")
 		}
@@ -173,6 +177,7 @@ func FromProject(project *gen.Project) (*Workflow, error) {
 			return nil, errors.Wrapf(err, "error creating block for node %s", node.Id)
 		}
 		nodeLookup[node.Id] = builtNode
+		r.AddNode(builtNode)
 	}
 
 	for _, edge := range project.Graph.Edges {
@@ -258,7 +263,7 @@ func (w *Workflow) traverseWorkflow(logger Logger, instances Instances, executor
 	}
 
 	log.Debug().Str("vert", vert).Interface("resource", input.Resource).Msg("executing node")
-	res, err := node.Execute(executor, input)
+	res, err := executor.Execute(node, input)
 	if err != nil {
 		return nil, errors.Wrapf(err, "error executing node: %s", vert)
 	}
@@ -277,7 +282,7 @@ func (w *Workflow) traverseWorkflow(logger Logger, instances Instances, executor
 
 		// if the backpack has been set by the execution, use it, otherwise pass the previous backpack
 		// TODO breadchris figure out how backpacks work
-		backpack := util.GetFieldValue(res.Data, worknode.BackpackKey)
+		backpack := util.GetFieldValue(res.Data, execute.BackpackKey)
 		//if backpack != nil {
 		//	type Backpack struct {
 		//		ShortCircuit bool `json:"shortCircuit"`

@@ -41,8 +41,7 @@ func TestRun(t *testing.T) {
 		Graph: &gen.Graph{
 			Nodes: []*gen.Node{
 				{
-					Id:      nodeID,
-					BlockId: getProjectsBlockId,
+					Id: nodeID,
 					Config: &gen.Node_Grpc{
 						Grpc: &gen.GRPC{
 							Service: "ProjectService",
@@ -104,31 +103,22 @@ func TestBuildingGraph(t *testing.T) {
 					Id:   "crawl-node",
 					Name: "Crawl Website",
 					Config: &gen.Node_Function{
-						Function: &gen.Function{
-							Runtime: "go",
-						},
+						Function: &gen.Function{},
 					},
-					BlockId: "crawl-block",
 				},
 				{
 					Id:   "normalize-html-node",
 					Name: "Crawl Website",
 					Config: &gen.Node_Function{
-						Function: &gen.Function{
-							Runtime: "go",
-						},
+						Function: &gen.Function{},
 					},
-					BlockId: "normalize-html-block",
 				},
 				{
 					Id:   "create-embeddings-node",
 					Name: "Create Embeddings for HTML",
 					Config: &gen.Node_Function{
-						Function: &gen.Function{
-							Runtime: "go",
-						},
+						Function: &gen.Function{},
 					},
-					BlockId: "create-embeddings-block",
 				},
 			},
 		},

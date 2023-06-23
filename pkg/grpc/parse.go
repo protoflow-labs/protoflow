@@ -21,15 +21,43 @@ func FileContentsFromMap(files map[string]string) protoparse.FileAccessor {
 	}
 }
 
-func ParseProto(file string) ([]*desc.FileDescriptor, error) {
-	content, err := os.ReadFile(file)
+func ParseProtoDir(dir string) ([]*desc.FileDescriptor, error) {
+	protoFiles, err := os.ReadDir(dir)
 	if err != nil {
-		return nil, errors.Wrapf(err, "error reading file %s", file)
+		return nil, errors.Wrapf(err, "error reading proto directory")
 	}
-	// split filename from path
-	_, filename := path.Split(file)
+	protoMap, err := protoflowProtoMap()
+	if err != nil {
+		return nil, errors.Wrapf(err, "error reading proto directory")
+	}
 
-	protoMap := map[string]string{filename: string(content)}
+	for _, protoFile := range protoFiles {
+		if strings.HasSuffix(protoFile.Name(), ".proto") {
+			content, err := os.ReadFile(path.Join(dir, protoFile.Name()))
+			if err != nil {
+				return nil, errors.Wrapf(err, "error reading file %s", protoFile.Name())
+			}
+			protoMap[protoFile.Name()] = string(content)
+		}
+	}
+	parser := protoparse.Parser{
+		ImportPaths:       nil,
+		InferImportPaths:  false,
+		LookupImport:      nil,
+		LookupImportProto: nil,
+		// TODO breadchris the accessor should be able to read files, not just returning static file contents
+		Accessor:                        FileContentsFromMap(protoMap),
+		IncludeSourceCodeInfo:           false,
+		ValidateUnlinkedFiles:           false,
+		InterpretOptionsInUnlinkedFiles: false,
+		ErrorReporter:                   nil,
+		WarningReporter:                 nil,
+	}
+	return parser.ParseFiles("nodejs.proto")
+}
+
+func protoflowProtoMap() (map[string]string, error) {
+	protoMap := map[string]string{}
 
 	protoFiles, err := proto.Proto.ReadDir(".")
 	if err != nil {
@@ -44,6 +72,22 @@ func ParseProto(file string) ([]*desc.FileDescriptor, error) {
 			protoMap[protoFile.Name()] = string(content)
 		}
 	}
+	return protoMap, nil
+}
+
+func ParseProto(file string) ([]*desc.FileDescriptor, error) {
+	content, err := os.ReadFile(file)
+	if err != nil {
+		return nil, errors.Wrapf(err, "error reading file %s", file)
+	}
+	// split filename from path
+	_, filename := path.Split(file)
+
+	protoMap, err := protoflowProtoMap()
+	if err != nil {
+		return nil, errors.Wrapf(err, "error reading proto directory")
+	}
+	protoMap[filename] = string(content)
 
 	parser := protoparse.Parser{
 		ImportPaths:                     nil,

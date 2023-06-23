@@ -2,7 +2,6 @@ package node
 
 import (
 	"github.com/protoflow-labs/protoflow/gen"
-	"github.com/protoflow-labs/protoflow/pkg/workflow/execute"
 )
 
 type InputNode struct {
@@ -17,10 +16,4 @@ func NewInputNode(node *gen.Node) *InputNode {
 		BaseNode: NewBaseNode(node),
 		Input:    node.GetInput(),
 	}
-}
-
-func (s *InputNode) Execute(executor execute.Executor, input execute.Input) (*execute.Result, error) {
-	return &execute.Result{
-		Data: input.Params,
-	}, nil
 }

@@ -28,9 +28,11 @@ func setupLogging(level string) {
 func liveReload() error {
 	// TODO breadchris makes this a config that can be set
 	c := reload.Config{
-		Cmd:      []string{"go", "run", "main.go", "studio"},
+		Cmd: []string{"go", "run", "main.go", "studio"},
+		// TODO breadchris the patterns and ignores are not quite working
+		// ideally we use tilt here
 		Patterns: []string{"pkg/**/*.go", "templates/**"},
-		Ignores:  []string{"studio/**"},
+		Ignores:  []string{"studio/**", "node_modules/**", ".git/**"},
 	}
 	return reload.Reload(c)
 }

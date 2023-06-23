@@ -195,7 +195,6 @@ func (s *Service) GetProject(context.Context, *connect.Request[gen.GetProjectReq
 	}
 
 	return connect.NewResponse(&gen.GetProjectResponse{Project: proj}), nil
-
 }
 
 func (s *Service) GetProjects(ctx context.Context, req *connect.Request[gen.GetProjectsRequest]) (*connect.Response[gen.GetProjectsResponse], error) {

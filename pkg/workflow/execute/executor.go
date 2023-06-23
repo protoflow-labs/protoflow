@@ -5,6 +5,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/gen"
 	"github.com/protoflow-labs/protoflow/pkg/grpc/bufcurl"
+	"github.com/protoflow-labs/protoflow/pkg/workflow/node"
 	"github.com/protoflow-labs/protoflow/pkg/workflow/resource"
 	"go.temporal.io/sdk/workflow"
 	"reflect"
@@ -26,11 +27,33 @@ type Result struct {
 }
 
 type Executor interface {
-	Execute(activity interface{}, block interface{}, input Input) (*Result, error)
+	Execute(n node.Node, input Input) (*Result, error)
 	Trace(nodeExecution *gen.NodeExecution) error
 }
 
 var _ Executor = &TemporalExecutor{}
+
+var activity = &Activity{}
+
+func nodeToActivityName(n node.Node) ActivityFunc {
+	switch n.(type) {
+	case *node.RESTNode:
+		return activity.ExecuteRestNode
+	case *node.GRPCNode:
+		return activity.ExecuteGRPCNode
+	case *node.FunctionNode:
+		return activity.ExecuteFunctionNode
+	case *node.CollectionNode:
+		return activity.ExecuteCollectionNode
+	case *node.BucketNode:
+		return activity.ExecuteBucketNode
+	case *node.InputNode:
+		return activity.ExecuteInputNode
+	case *node.QueryNode:
+		return activity.ExecuteQueryNode
+	}
+	return nil
+}
 
 type TemporalExecutor struct {
 	ctx workflow.Context
@@ -42,9 +65,13 @@ func NewTemporalExecutor(ctx workflow.Context) *TemporalExecutor {
 	}
 }
 
-func (e *TemporalExecutor) Execute(activity interface{}, block interface{}, input Input) (*Result, error) {
+func (e *TemporalExecutor) Execute(n node.Node, input Input) (*Result, error) {
 	var result Result
-	err := workflow.ExecuteActivity(e.ctx, activity, block, input).Get(e.ctx, &result)
+	act := nodeToActivityName(n)
+	if act == nil {
+		return nil, fmt.Errorf("error getting activity for node: %s", n.NormalizedName())
+	}
+	err := workflow.ExecuteActivity(e.ctx, act, n, input).Get(e.ctx, &result)
 	if err != nil {
 		return nil, errors.Wrap(err, "error executing activity")
 	}
@@ -81,11 +108,16 @@ func NewMemoryExecutor(ctx *MemoryContext, opts ...MemoryExecutorOption) *Memory
 	return e
 }
 
-func (e *MemoryExecutor) Execute(activity interface{}, block interface{}, input Input) (*Result, error) {
-	activityArgs := []interface{}{
-		e.ctx.Context, block, input,
+func (e *MemoryExecutor) Execute(n node.Node, input Input) (*Result, error) {
+	act := nodeToActivityName(n)
+	if act == nil {
+		return nil, fmt.Errorf("error getting activity for node: %s", n.NormalizedName())
 	}
-	res, err := executeFunction(activity, activityArgs)
+
+	activityArgs := []interface{}{
+		e.ctx.Context, n, input,
+	}
+	res, err := executeFunction(act, activityArgs)
 	if err != nil {
 		return nil, err
 	}
