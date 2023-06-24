@@ -13,15 +13,13 @@ import (
 	"github.com/protoflow-labs/protoflow/pkg/workflow/resource"
 	"github.com/protoflow-labs/protoflow/templates"
 	"github.com/rs/zerolog/log"
-	"github.com/samber/lo"
-	"google.golang.org/protobuf/reflect/protoreflect"
 	"os"
 	"path"
 	"strings"
 )
 
 type LanguageManager interface {
-	Generate(r *resource.LanguageServiceResource, nodes []node.Node, nodeInfoLookup map[string]*node.Info) error
+	GenerateGRPCService(r *resource.LanguageServiceResource) error
 }
 
 type NodeJSManager struct {
@@ -41,9 +39,7 @@ func NewNodeJSManager(c bucket.Bucket) (*NodeJSManager, error) {
 }
 
 type Method struct {
-	Name       string
-	InputType  string
-	OutputType string
+	Name string
 }
 
 type FunctionTemplate struct {
@@ -51,25 +47,23 @@ type FunctionTemplate struct {
 }
 
 type ServiceTemplate struct {
-	Runtime    string
-	Methods    []Method
-	DescLookup map[string]protoreflect.MessageDescriptor
-	EnumLookup map[string]protoreflect.EnumDescriptor
-	Descs      []string
+	Runtime string
+	Methods []Method
 }
 
-func (s *NodeJSManager) Generate(r *resource.LanguageServiceResource, nodes []node.Node, nodeInfoLookup map[string]*node.Info) error {
+func (s *NodeJSManager) GenerateGRPCService(r *resource.LanguageServiceResource) error {
 	var err error
 
-	tmpl, err := s.generateServiceTemplate(r, nodes, nodeInfoLookup)
+	tmpl, err := s.generateServiceTemplate(r)
 	if err != nil {
 		return errors.Wrapf(err, "error scaffolding functions")
 	}
 
-	err = s.generateServiceProto(tmpl)
-	if err != nil {
-		return errors.Wrapf(err, "error generating service protos")
-	}
+	// TODO breadchris this needs to run once for the project
+	//err = s.generateServiceProto(tmpl)
+	//if err != nil {
+	//	return errors.Wrapf(err, "error generating service protos")
+	//}
 
 	err = s.generateServices(tmpl)
 	if err != nil {
@@ -97,24 +91,35 @@ func writeProtoFile(filepath string, fd *desc.FileDescriptor) error {
 	return nil
 }
 
-func unlinkFieldBuilder(f *builder.FileBuilder, t *builder.FieldBuilder) (*builder.FileBuilder, *builder.FieldBuilder) {
+func unlinkFieldBuilder(f *builder.FileBuilder, t *builder.FieldBuilder, nodeInfo *node.Info) (*builder.FileBuilder, *builder.FieldBuilder) {
 	switch t.GetType().GetType() {
 	case descriptor.FieldDescriptorProto_TYPE_MESSAGE:
+		// TODO breadchris a little hacky, but we need to move the message from the file
 		parts := strings.Split(t.GetType().GetTypeName(), ".")
 		eb := t.GetFile().GetMessage(strings.Join(parts[1:], "."))
 		if eb == nil {
-			log.Warn().Msgf("could not find message %s", strings.Join(parts[1:], "."))
-			return f, nil
+			eb = nodeInfo.Method.FileBuilder.GetMessage(strings.Join(parts[1:], "."))
+			if eb == nil {
+				log.Warn().Msgf("message %s not found", strings.Join(parts[1:], "."))
+				return f, nil
+			}
 		}
 		if ex := f.GetMessage(eb.GetName()); ex != nil {
 			f = f.RemoveMessage(ex.GetName())
 		}
-		f, eb = recursivelyUnlinkBuilder(f, eb)
+		f, eb = recursivelyUnlinkBuilder(f, eb, nodeInfo)
 		f = f.AddMessage(eb)
 		t = t.SetType(builder.FieldTypeMessage(eb))
 	case descriptor.FieldDescriptorProto_TYPE_ENUM:
 		parts := strings.Split(t.GetType().GetTypeName(), ".")
-		eb := t.GetFile().GetEnum(parts[1])
+		eb := t.GetFile().GetEnum(strings.Join(parts[1:], "."))
+		if eb == nil {
+			eb = nodeInfo.Method.FileBuilder.GetEnum(strings.Join(parts[1:], "."))
+			if eb == nil {
+				log.Warn().Msgf("enum %s not found", strings.Join(parts[1:], "."))
+				return f, nil
+			}
+		}
 		if ex := f.GetEnum(eb.GetName()); ex != nil {
 			f = f.RemoveEnum(ex.GetName())
 		}
@@ -127,15 +132,14 @@ func unlinkFieldBuilder(f *builder.FileBuilder, t *builder.FieldBuilder) (*build
 }
 
 // TODO breadchris this is a hack to get the protos to generate correctly. removing all references prevents additional imports in the protofile.
-func recursivelyUnlinkBuilder(f *builder.FileBuilder, b *builder.MessageBuilder) (*builder.FileBuilder, *builder.MessageBuilder) {
+func recursivelyUnlinkBuilder(f *builder.FileBuilder, b *builder.MessageBuilder, nodeInfo *node.Info) (*builder.FileBuilder, *builder.MessageBuilder) {
 	// recursively unlink the message
 	newB := builder.NewMessage(b.GetName())
 	builder.Unlink(newB)
 	for _, fb := range b.GetChildren() {
-		log.Debug().Msgf("unlinking %s", fb.GetName())
 		switch t := fb.(type) {
 		case *builder.FieldBuilder:
-			f, t = unlinkFieldBuilder(f, t)
+			f, t = unlinkFieldBuilder(f, t, nodeInfo)
 			if t != nil {
 				newB.AddField(t)
 			}
@@ -144,7 +148,7 @@ func recursivelyUnlinkBuilder(f *builder.FileBuilder, b *builder.MessageBuilder)
 			for _, v := range t.GetChildren() {
 				switch vt := v.(type) {
 				case *builder.FieldBuilder:
-					f, vt = unlinkFieldBuilder(f, vt)
+					f, vt = unlinkFieldBuilder(f, vt, nodeInfo)
 					if vt != nil {
 						newOneOf.AddChoice(vt)
 					}
@@ -178,11 +182,6 @@ func (s *NodeJSManager) UpdateNodeType(n node.Node, nodeInfo *node.Info) error {
 			log.Warn().Msgf("service not found in proto %s", fd.GetName())
 			continue
 		}
-		m := svc.FindMethodByName(n.NormalizedName())
-		if m == nil {
-			log.Warn().Msgf("method not found in proto %s", fd.GetName())
-			continue
-		}
 		sb, err := builder.FromService(svc)
 		if err != nil {
 			return errors.Wrapf(err, "error building method")
@@ -193,15 +192,9 @@ func (s *NodeJSManager) UpdateNodeType(n node.Node, nodeInfo *node.Info) error {
 			return errors.Wrapf(err, "error building proto file")
 		}
 
-		// refactor the discovered method to match the new node type
-		mb, err := builder.FromMethod(m)
-		if err != nil {
-			return errors.Wrapf(err, "error building method")
-		}
-
 		// TODO breadchris hack to remove references to the parent
 		// does not work for types that have enums and oneofs?
-		it, err := desc.WrapMessage(nodeInfo.Method.Input)
+		it, err := desc.WrapMessage(nodeInfo.Method.MethodDesc.Input())
 		if err != nil {
 			return errors.Wrapf(err, "error wrapping message")
 		}
@@ -209,7 +202,7 @@ func (s *NodeJSManager) UpdateNodeType(n node.Node, nodeInfo *node.Info) error {
 		if err != nil {
 			return errors.Wrapf(err, "error building message")
 		}
-		f, newA := recursivelyUnlinkBuilder(f, a)
+		f, newA := recursivelyUnlinkBuilder(f, a, nodeInfo)
 		existingMsg := f.GetMessage(newA.GetName())
 		if existingMsg != nil {
 			builder.Unlink(existingMsg)
@@ -217,7 +210,7 @@ func (s *NodeJSManager) UpdateNodeType(n node.Node, nodeInfo *node.Info) error {
 		f = f.AddMessage(newA)
 		inputType := builder.RpcTypeMessage(newA, false)
 
-		ot, err := desc.WrapMessage(nodeInfo.Method.Output)
+		ot, err := desc.WrapMessage(nodeInfo.Method.MethodDesc.Output())
 		if err != nil {
 			return errors.Wrapf(err, "error wrapping message")
 		}
@@ -225,7 +218,7 @@ func (s *NodeJSManager) UpdateNodeType(n node.Node, nodeInfo *node.Info) error {
 		if err != nil {
 			return errors.Wrapf(err, "error building message")
 		}
-		f, newB := recursivelyUnlinkBuilder(f, b)
+		f, newB := recursivelyUnlinkBuilder(f, b, nodeInfo)
 		existingMsg = f.GetMessage(newB.GetName())
 		if existingMsg != nil {
 			builder.Unlink(existingMsg)
@@ -233,10 +226,25 @@ func (s *NodeJSManager) UpdateNodeType(n node.Node, nodeInfo *node.Info) error {
 		f = f.AddMessage(newB)
 		outputType := builder.RpcTypeMessage(newB, false)
 
-		mb = mb.SetRequestType(inputType).SetResponseType(outputType)
+		var mb *builder.MethodBuilder
+
+		// see if this method already exists
+		m := svc.FindMethodByName(n.NormalizedName())
+		if m == nil {
+			// create a new method
+			mb = builder.NewMethod(n.NormalizedName(), inputType, outputType)
+		} else {
+			// refactor the discovered method to match the new node type
+			mb, err = builder.FromMethod(m)
+			if err != nil {
+				return errors.Wrapf(err, "error building method")
+			}
+			mb = mb.SetRequestType(inputType).SetResponseType(outputType)
+			sb = sb.RemoveMethod(m.GetName())
+		}
 
 		// replace the existing method and service with the new one
-		sb = sb.RemoveMethod(m.GetName()).AddMethod(mb)
+		sb = sb.AddMethod(mb)
 		f = f.RemoveService(svc.GetName()).AddService(sb)
 
 		fd, err := f.Build()
@@ -251,87 +259,55 @@ func (s *NodeJSManager) UpdateNodeType(n node.Node, nodeInfo *node.Info) error {
 	return nil
 }
 
-func (s *NodeJSManager) GenerateFunctionImpl(r *resource.LanguageServiceResource, nodes []node.Node) ([]Method, error) {
-	// TODO breadchris generate the function implementation
-	// default impl is just a console.log and return
-	return nil, nil
+func (s *NodeJSManager) GenerateFunctionImpl(r *resource.LanguageServiceResource, n node.Node) error {
+	switch n.(type) {
+	case *node.FunctionNode:
+		// create function directory
+		funcDir := path.Join("functions", n.NormalizedName())
+		funcDirPath, err := s.codeRoot.GetFolder(funcDir)
+		if err != nil {
+			return errors.Wrapf(err, "error creating function directory %s", funcDir)
+		}
+
+		method := Method{
+			Name: n.NormalizedName(),
+		}
+
+		err = templates.TemplateFile("node/function.index.tmpl.js", path.Join(funcDirPath, "index.js"), method)
+		if err != nil {
+			return nil
+		}
+	}
+	return nil
 }
 
-func (s *NodeJSManager) generateServiceTemplate(r *resource.LanguageServiceResource, nodes []node.Node, nodeInfoLookup map[string]*node.Info) (*ServiceTemplate, error) {
+func (s *NodeJSManager) generateServiceTemplate(r *resource.LanguageServiceResource) (*ServiceTemplate, error) {
 	tmpl := &ServiceTemplate{
-		Runtime:    strings.ToLower(r.Runtime.String()),
-		Methods:    []Method{},
-		DescLookup: map[string]protoreflect.MessageDescriptor{},
-		EnumLookup: map[string]protoreflect.EnumDescriptor{},
-		Descs:      []string{},
+		Runtime: strings.ToLower(r.Runtime.String()),
+		Methods: []Method{},
 	}
-	for _, resNode := range nodes {
+	for _, resNode := range r.Nodes() {
 		switch n := resNode.(type) {
 		case *node.FunctionNode:
-			// create function directory
-			funcDir := path.Join("functions", n.NormalizedName())
-			funcDirPath, err := s.codeRoot.GetFolder(funcDir)
-			if err != nil {
-				return nil, errors.Wrapf(err, "error creating function directory %s", funcDir)
-			}
-
-			info, ok := nodeInfoLookup[n.ID()]
-			if !ok {
-				return nil, errors.Errorf("error getting node info for %s", n.ID())
-			}
-
-			tmpl.DescLookup = lo.Assign(tmpl.DescLookup, info.Method.DescLookup)
-			tmpl.EnumLookup = lo.Assign(tmpl.EnumLookup, info.Method.EnumLookup)
 
 			method := Method{
-				Name:       n.NormalizedName(),
-				InputType:  string(info.Method.Input.Name()),
-				OutputType: string(info.Method.Output.Name()),
+				Name: n.NormalizedName(),
 			}
-
-			err = templates.TemplateFile("node/function.index.tmpl.js", path.Join(funcDirPath, "index.js"), method)
-			if err != nil {
-				return nil, err
-			}
-
 			tmpl.Methods = append(tmpl.Methods, method)
 		}
 	}
-
-	// TODO breadchris refactor so that we build an actual proto file and add the types to print all at once
-
-	// format proto descs that are needed for the input and output of the nodes
-	var msgStrs []string
-	for _, d := range tmpl.DescLookup {
-		s, err := manager.PrintMessage(d)
-		if err != nil {
-			return nil, errors.Wrapf(err, "error printing message")
-		}
-		msgStrs = append(msgStrs, s)
-	}
-	tmpl.Descs = append(tmpl.Descs, strings.Join(msgStrs, "\n"))
-
-	var enumStrs []string
-	for _, e := range tmpl.EnumLookup {
-		s, err := manager.PrintEnum(e)
-		if err != nil {
-			return nil, errors.Wrapf(err, "error printing enum")
-		}
-		enumStrs = append(enumStrs, s)
-	}
-	tmpl.Descs = append(tmpl.Descs, strings.Join(enumStrs, "\n"))
 	return tmpl, nil
 }
 
 // TODO breadchris should generating service protos be done for all services at once? or in each service directory?
+// TODO breadchris this should only be run once when a project is initialized
 func (s *NodeJSManager) generateServiceProto(tmpl *ServiceTemplate) error {
 	protosPath, err := s.codeRoot.GetFolder("protos")
 	if err != nil {
 		return errors.Wrapf(err, "error getting protos folder %s", path.Join(protosPath, "protos"))
 	}
 
-	runtime := "nodejs"
-	protoPath := path.Join(protosPath, fmt.Sprintf("%s.proto", runtime))
+	protoPath := path.Join(protosPath, fmt.Sprintf("%s.proto", tmpl.Runtime))
 	return templates.TemplateFile("service.tmpl.proto", protoPath, tmpl)
 }
 

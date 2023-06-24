@@ -33,14 +33,22 @@ const (
 // reflection-formatted method names, remove the leading slash and convert the remaining slash to a
 // period.
 const (
-	// GenerateServiceGenerateProcedure is the fully-qualified name of the GenerateService's Generate
+	// GenerateServiceGenerateProcedure is the fully-qualified name of the GenerateService's GenerateGRPCService
 	// RPC.
-	GenerateServiceGenerateProcedure = "/generate.GenerateService/Generate"
+	GenerateServiceGenerateProcedure = "/generate.GenerateService/GenerateGRPCService"
+	// GenerateServiceGenerateImplementationProcedure is the fully-qualified name of the
+	// GenerateService's GenerateImplementation RPC.
+	GenerateServiceGenerateImplementationProcedure = "/generate.GenerateService/GenerateImplementation"
+	// GenerateServiceInferNodeTypeProcedure is the fully-qualified name of the GenerateService's
+	// InferNodeType RPC.
+	GenerateServiceInferNodeTypeProcedure = "/generate.GenerateService/InferNodeType"
 )
 
 // GenerateServiceClient is a client for the generate.GenerateService service.
 type GenerateServiceClient interface {
 	Generate(context.Context, *connect_go.Request[gen.GenerateRequest]) (*connect_go.Response[gen.GenerateResponse], error)
+	GenerateImplementation(context.Context, *connect_go.Request[gen.GenerateImplementationRequest]) (*connect_go.Response[gen.GenerateImplementationResponse], error)
+	InferNodeType(context.Context, *connect_go.Request[gen.InferNodeTypeRequest]) (*connect_go.Response[gen.InfertNodeTypeResponse], error)
 }
 
 // NewGenerateServiceClient constructs a client for the generate.GenerateService service. By
@@ -58,22 +66,46 @@ func NewGenerateServiceClient(httpClient connect_go.HTTPClient, baseURL string, 
 			baseURL+GenerateServiceGenerateProcedure,
 			opts...,
 		),
+		generateImplementation: connect_go.NewClient[gen.GenerateImplementationRequest, gen.GenerateImplementationResponse](
+			httpClient,
+			baseURL+GenerateServiceGenerateImplementationProcedure,
+			opts...,
+		),
+		inferNodeType: connect_go.NewClient[gen.InferNodeTypeRequest, gen.InfertNodeTypeResponse](
+			httpClient,
+			baseURL+GenerateServiceInferNodeTypeProcedure,
+			opts...,
+		),
 	}
 }
 
 // generateServiceClient implements GenerateServiceClient.
 type generateServiceClient struct {
-	generate *connect_go.Client[gen.GenerateRequest, gen.GenerateResponse]
+	generate               *connect_go.Client[gen.GenerateRequest, gen.GenerateResponse]
+	generateImplementation *connect_go.Client[gen.GenerateImplementationRequest, gen.GenerateImplementationResponse]
+	inferNodeType          *connect_go.Client[gen.InferNodeTypeRequest, gen.InfertNodeTypeResponse]
 }
 
-// Generate calls generate.GenerateService.Generate.
+// Generate calls generate.GenerateService.GenerateGRPCService.
 func (c *generateServiceClient) Generate(ctx context.Context, req *connect_go.Request[gen.GenerateRequest]) (*connect_go.Response[gen.GenerateResponse], error) {
 	return c.generate.CallUnary(ctx, req)
+}
+
+// GenerateImplementation calls generate.GenerateService.GenerateImplementation.
+func (c *generateServiceClient) GenerateImplementation(ctx context.Context, req *connect_go.Request[gen.GenerateImplementationRequest]) (*connect_go.Response[gen.GenerateImplementationResponse], error) {
+	return c.generateImplementation.CallUnary(ctx, req)
+}
+
+// InferNodeType calls generate.GenerateService.InferNodeType.
+func (c *generateServiceClient) InferNodeType(ctx context.Context, req *connect_go.Request[gen.InferNodeTypeRequest]) (*connect_go.Response[gen.InfertNodeTypeResponse], error) {
+	return c.inferNodeType.CallUnary(ctx, req)
 }
 
 // GenerateServiceHandler is an implementation of the generate.GenerateService service.
 type GenerateServiceHandler interface {
 	Generate(context.Context, *connect_go.Request[gen.GenerateRequest]) (*connect_go.Response[gen.GenerateResponse], error)
+	GenerateImplementation(context.Context, *connect_go.Request[gen.GenerateImplementationRequest]) (*connect_go.Response[gen.GenerateImplementationResponse], error)
+	InferNodeType(context.Context, *connect_go.Request[gen.InferNodeTypeRequest]) (*connect_go.Response[gen.InfertNodeTypeResponse], error)
 }
 
 // NewGenerateServiceHandler builds an HTTP handler from the service implementation. It returns the
@@ -88,6 +120,16 @@ func NewGenerateServiceHandler(svc GenerateServiceHandler, opts ...connect_go.Ha
 		svc.Generate,
 		opts...,
 	))
+	mux.Handle(GenerateServiceGenerateImplementationProcedure, connect_go.NewUnaryHandler(
+		GenerateServiceGenerateImplementationProcedure,
+		svc.GenerateImplementation,
+		opts...,
+	))
+	mux.Handle(GenerateServiceInferNodeTypeProcedure, connect_go.NewUnaryHandler(
+		GenerateServiceInferNodeTypeProcedure,
+		svc.InferNodeType,
+		opts...,
+	))
 	return "/generate.GenerateService/", mux
 }
 
@@ -95,5 +137,13 @@ func NewGenerateServiceHandler(svc GenerateServiceHandler, opts ...connect_go.Ha
 type UnimplementedGenerateServiceHandler struct{}
 
 func (UnimplementedGenerateServiceHandler) Generate(context.Context, *connect_go.Request[gen.GenerateRequest]) (*connect_go.Response[gen.GenerateResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("generate.GenerateService.Generate is not implemented"))
+	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("generate.GenerateService.GenerateGRPCService is not implemented"))
+}
+
+func (UnimplementedGenerateServiceHandler) GenerateImplementation(context.Context, *connect_go.Request[gen.GenerateImplementationRequest]) (*connect_go.Response[gen.GenerateImplementationResponse], error) {
+	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("generate.GenerateService.GenerateImplementation is not implemented"))
+}
+
+func (UnimplementedGenerateServiceHandler) InferNodeType(context.Context, *connect_go.Request[gen.InferNodeTypeRequest]) (*connect_go.Response[gen.InfertNodeTypeResponse], error) {
+	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("generate.GenerateService.InferNodeType is not implemented"))
 }

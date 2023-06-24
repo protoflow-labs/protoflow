@@ -7,43 +7,6 @@ import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialM
 import { Any, DescriptorProto, Message, proto3 } from "@bufbuild/protobuf";
 
 /**
- * @generated from message block.Backpack
- */
-export class Backpack extends Message<Backpack> {
-  /**
-   * @generated from field: google.protobuf.Any value = 1;
-   */
-  value?: Any;
-
-  constructor(data?: PartialMessage<Backpack>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "block.Backpack";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "value", kind: "message", T: Any },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Backpack {
-    return new Backpack().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Backpack {
-    return new Backpack().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Backpack {
-    return new Backpack().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: Backpack | PlainMessage<Backpack> | undefined, b: Backpack | PlainMessage<Backpack> | undefined): boolean {
-    return proto3.util.equals(Backpack, a, b);
-  }
-}
-
-/**
  * @generated from message block.Input
  */
 export class Input extends Message<Input> {

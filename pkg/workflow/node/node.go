@@ -4,7 +4,9 @@ import (
 	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/gen"
 	"github.com/protoflow-labs/protoflow/pkg/grpc"
+	"github.com/protoflow-labs/protoflow/pkg/grpc/manager"
 	"github.com/protoflow-labs/protoflow/pkg/util"
+	"google.golang.org/protobuf/reflect/protoreflect"
 	"strings"
 )
 
@@ -15,8 +17,19 @@ type Node interface {
 }
 
 type Info struct {
-	MethodProto string
-	Method      *grpc.MethodDescriptor
+	Method *grpc.MethodDescriptor
+}
+
+func (s *Info) BuildProto() (string, error) {
+	s.Method.MethodDesc.ParentFile().Package()
+	svc := s.Method.MethodDesc.Parent().(protoreflect.ServiceDescriptor)
+	pkgName := string(svc.ParentFile().Package())
+	svcName := string(svc.Name())
+	methodProto, err := manager.GetProtoForMethod(pkgName, svcName, s.Method.MethodDesc)
+	if err != nil {
+		return "", errors.Wrapf(err, "error getting proto for method %s", s.Method.MethodDesc.Name())
+	}
+	return methodProto, nil
 }
 
 type BaseNode struct {

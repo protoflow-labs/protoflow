@@ -22,6 +22,9 @@ type Generate struct {
 
 var _ Generator = &Generate{}
 
+// TODO breadchris should this be derived from somewhere?
+const protoflowDir = "protoflow"
+
 func NewGenerate(config Config) (*Generate, error) {
 	var projectDir string
 	// if there is a project path defined, use this for where the bucket goes
@@ -32,7 +35,7 @@ func NewGenerate(config Config) (*Generate, error) {
 		if err != nil {
 			return nil, errors.Wrap(err, "error getting current working directory")
 		}
-		projectDir = path.Join(cwd, "protoflow")
+		projectDir = path.Join(cwd, protoflowDir)
 	}
 	c, err := bucket.FromDir(projectDir)
 	if err != nil {
@@ -43,44 +46,53 @@ func NewGenerate(config Config) (*Generate, error) {
 	}, nil
 }
 
-func (s *Generate) InferNodeType(project *project.Project) error {
-	nodeInfoLookup := map[string]*node.Info{}
-	for _, n := range project.Workflow.NodeLookup {
-		info, err := project.Workflow.GetNodeInfo(n)
-		if err != nil {
-			return errors.Wrapf(err, "error getting node info")
-		}
-		nodeInfoLookup[n.ID()] = info
+func (s *Generate) GenerateImplementation(project *project.Project, n node.Node) error {
+	r, ok := project.Workflow.Resources[n.ResourceID()]
+	if !ok || r == nil {
+		return errors.Errorf("resource %s not found", n.ResourceID())
 	}
-	for _, r := range project.Workflow.Resources {
-		if r == nil {
-			log.Error().Msg("resource is nil")
-			continue
-		}
-		var nodes []node.Node
-		for _, n := range project.Workflow.NodeLookup {
-			if n.ResourceID() == r.ID() {
-				nodes = append(nodes, n)
+	switch r := r.(type) {
+	case *resource.LanguageServiceResource:
+		if r.Runtime == gen.Runtime_NODEJS {
+			jsManager, err := NewNodeJSManager(s.bucket)
+			if err != nil {
+				return errors.Wrap(err, "error creating nodejs manager")
+			}
+
+			err = jsManager.GenerateFunctionImpl(r, n)
+			if err != nil {
+				log.Error().Err(err).Msg("error generating function implementation")
+			}
+			err = jsManager.GenerateGRPCService(r)
+			if err != nil {
+				log.Error().Err(err).Msg("error generating service files")
 			}
 		}
-		switch r := r.(type) {
-		case *resource.LanguageServiceResource:
-			if r.Runtime == gen.Runtime_NODEJS {
-				jsManager, err := NewNodeJSManager(s.bucket)
-				if err != nil {
-					return errors.Wrap(err, "error creating nodejs manager")
-				}
+	}
+	return nil
+}
 
-				for _, n := range nodes {
-					err = jsManager.UpdateNodeType(n, nodeInfoLookup[n.ID()])
-					if err != nil {
-						log.Error().Err(err).Msg("error updating node type")
-					}
-				}
+func (s *Generate) InferNodeType(project *project.Project, n node.Node) error {
+	info, err := project.Workflow.GetNodeInfo(n)
+	if err != nil {
+		return errors.Wrapf(err, "error getting node info")
+	}
 
-				//if err := jsManager.Generate(r, nodes, nodeInfoLookup); err != nil {
-				//	return errors.Wrap(err, "error generating nodejs")
-				//}
+	r, ok := project.Workflow.Resources[n.ResourceID()]
+	if !ok || r == nil {
+		return errors.Errorf("resource %s not found", n.ResourceID())
+	}
+	switch r := r.(type) {
+	case *resource.LanguageServiceResource:
+		if r.Runtime == gen.Runtime_NODEJS {
+			jsManager, err := NewNodeJSManager(s.bucket)
+			if err != nil {
+				return errors.Wrap(err, "error creating nodejs manager")
+			}
+
+			err = jsManager.UpdateNodeType(n, info)
+			if err != nil {
+				log.Error().Err(err).Msg("error updating node type")
 			}
 		}
 	}
@@ -88,24 +100,10 @@ func (s *Generate) InferNodeType(project *project.Project) error {
 }
 
 func (s *Generate) Generate(project *project.Project) error {
-	nodeInfoLookup := map[string]*node.Info{}
-	for _, n := range project.Workflow.NodeLookup {
-		info, err := project.Workflow.GetNodeInfo(n)
-		if err != nil {
-			return errors.Wrapf(err, "error getting node info")
-		}
-		nodeInfoLookup[n.ID()] = info
-	}
 	for _, r := range project.Workflow.Resources {
 		if r == nil {
 			log.Error().Msg("resource is nil")
 			continue
-		}
-		var nodes []node.Node
-		for _, n := range project.Workflow.NodeLookup {
-			if n.ResourceID() == r.ID() {
-				nodes = append(nodes, n)
-			}
 		}
 		switch r := r.(type) {
 		case *resource.LanguageServiceResource:
@@ -115,16 +113,16 @@ func (s *Generate) Generate(project *project.Project) error {
 					return errors.Wrap(err, "error creating nodejs manager")
 				}
 
-				for _, n := range nodes {
-					err = jsManager.UpdateNodeType(n, nodeInfoLookup[n.ID()])
+				for _, n := range r.Nodes() {
+					info, err := project.Workflow.GetNodeInfo(n)
+					if err != nil {
+						return errors.Wrapf(err, "error getting node info")
+					}
+					err = jsManager.UpdateNodeType(n, info)
 					if err != nil {
 						log.Error().Err(err).Msg("error updating node type")
 					}
 				}
-
-				//if err := jsManager.Generate(r, nodes, nodeInfoLookup); err != nil {
-				//	return errors.Wrap(err, "error generating nodejs")
-				//}
 			}
 		}
 	}

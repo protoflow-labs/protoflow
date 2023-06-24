@@ -7,6 +7,3 @@ service {{.Runtime}}Service {
     rpc {{.Name}}({{.InputType}}) returns ({{.OutputType}});
     {{end}}
 }
-{{range .Descs}}
-{{.}}
-{{end}}

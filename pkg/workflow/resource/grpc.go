@@ -71,15 +71,11 @@ func (r *GRPCResource) Info(n node.Node) (*node.Info, error) {
 		}
 	}
 
-	// TODO breadchris move into method descriptor?
-	methodProto, err := manager.GetProtoForMethod(gn.Package, gn.Service, method)
+	md, err := grpc.NewMethodDescriptor(method)
 	if err != nil {
-		return nil, errors.Wrapf(err, "error getting proto for method")
+		return nil, errors.Wrapf(err, "error creating method descriptor")
 	}
-
-	md := grpc.NewMethodDescriptor(method)
 	return &node.Info{
-		Method:      md,
-		MethodProto: methodProto,
+		Method: md,
 	}, nil
 }

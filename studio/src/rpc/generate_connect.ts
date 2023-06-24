@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { GenerateRequest, GenerateResponse } from "./generate_pb.js";
+import { GenerateImplementationRequest, GenerateImplementationResponse, GenerateRequest, GenerateResponse, InferNodeTypeRequest, InfertNodeTypeResponse } from "./generate_pb.js";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -19,6 +19,24 @@ export const GenerateService = {
       name: "Generate",
       I: GenerateRequest,
       O: GenerateResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc generate.GenerateService.GenerateImplementation
+     */
+    generateImplementation: {
+      name: "GenerateImplementation",
+      I: GenerateImplementationRequest,
+      O: GenerateImplementationResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc generate.GenerateService.InferNodeType
+     */
+    inferNodeType: {
+      name: "InferNodeType",
+      I: InferNodeTypeRequest,
+      O: InfertNodeTypeResponse,
       kind: MethodKind.Unary,
     },
   }

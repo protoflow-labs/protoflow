@@ -23,6 +23,8 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type GenerateServiceClient interface {
 	Generate(ctx context.Context, in *GenerateRequest, opts ...grpc.CallOption) (*GenerateResponse, error)
+	GenerateImplementation(ctx context.Context, in *GenerateImplementationRequest, opts ...grpc.CallOption) (*GenerateImplementationResponse, error)
+	InferNodeType(ctx context.Context, in *InferNodeTypeRequest, opts ...grpc.CallOption) (*InfertNodeTypeResponse, error)
 }
 
 type generateServiceClient struct {
@@ -35,7 +37,25 @@ func NewGenerateServiceClient(cc grpc.ClientConnInterface) GenerateServiceClient
 
 func (c *generateServiceClient) Generate(ctx context.Context, in *GenerateRequest, opts ...grpc.CallOption) (*GenerateResponse, error) {
 	out := new(GenerateResponse)
-	err := c.cc.Invoke(ctx, "/generate.GenerateService/Generate", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/generate.GenerateService/GenerateGRPCService", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *generateServiceClient) GenerateImplementation(ctx context.Context, in *GenerateImplementationRequest, opts ...grpc.CallOption) (*GenerateImplementationResponse, error) {
+	out := new(GenerateImplementationResponse)
+	err := c.cc.Invoke(ctx, "/generate.GenerateService/GenerateImplementation", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *generateServiceClient) InferNodeType(ctx context.Context, in *InferNodeTypeRequest, opts ...grpc.CallOption) (*InfertNodeTypeResponse, error) {
+	out := new(InfertNodeTypeResponse)
+	err := c.cc.Invoke(ctx, "/generate.GenerateService/InferNodeType", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -47,6 +67,8 @@ func (c *generateServiceClient) Generate(ctx context.Context, in *GenerateReques
 // for forward compatibility
 type GenerateServiceServer interface {
 	Generate(context.Context, *GenerateRequest) (*GenerateResponse, error)
+	GenerateImplementation(context.Context, *GenerateImplementationRequest) (*GenerateImplementationResponse, error)
+	InferNodeType(context.Context, *InferNodeTypeRequest) (*InfertNodeTypeResponse, error)
 }
 
 // UnimplementedGenerateServiceServer should be embedded to have forward compatible implementations.
@@ -54,7 +76,13 @@ type UnimplementedGenerateServiceServer struct {
 }
 
 func (UnimplementedGenerateServiceServer) Generate(context.Context, *GenerateRequest) (*GenerateResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Generate not implemented")
+	return nil, status.Errorf(codes.Unimplemented, "method GenerateGRPCService not implemented")
+}
+func (UnimplementedGenerateServiceServer) GenerateImplementation(context.Context, *GenerateImplementationRequest) (*GenerateImplementationResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GenerateImplementation not implemented")
+}
+func (UnimplementedGenerateServiceServer) InferNodeType(context.Context, *InferNodeTypeRequest) (*InfertNodeTypeResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method InferNodeType not implemented")
 }
 
 // UnsafeGenerateServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -78,10 +106,46 @@ func _GenerateService_Generate_Handler(srv interface{}, ctx context.Context, dec
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/generate.GenerateService/Generate",
+		FullMethod: "/generate.GenerateService/GenerateGRPCService",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(GenerateServiceServer).Generate(ctx, req.(*GenerateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _GenerateService_GenerateImplementation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GenerateImplementationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GenerateServiceServer).GenerateImplementation(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/generate.GenerateService/GenerateImplementation",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GenerateServiceServer).GenerateImplementation(ctx, req.(*GenerateImplementationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _GenerateService_InferNodeType_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(InferNodeTypeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GenerateServiceServer).InferNodeType(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/generate.GenerateService/InferNodeType",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GenerateServiceServer).InferNodeType(ctx, req.(*InferNodeTypeRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -94,8 +158,16 @@ var GenerateService_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*GenerateServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "Generate",
+			MethodName: "GenerateGRPCService",
 			Handler:    _GenerateService_Generate_Handler,
+		},
+		{
+			MethodName: "GenerateImplementation",
+			Handler:    _GenerateService_GenerateImplementation_Handler,
+		},
+		{
+			MethodName: "InferNodeType",
+			Handler:    _GenerateService_InferNodeType_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

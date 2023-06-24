@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/google/uuid"
 	"github.com/jhump/protoreflect/desc"
+	"github.com/jhump/protoreflect/desc/builder"
 	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/gen"
 	"github.com/rs/zerolog/log"
@@ -91,10 +92,10 @@ func nodesFromGRPC(resourceID string, service *gen.GRPCService, isLangService bo
 
 type MethodDescriptor struct {
 	MethodDesc protoreflect.MethodDescriptor
-	Input      protoreflect.MessageDescriptor
-	Output     protoreflect.MessageDescriptor
 	DescLookup map[string]protoreflect.MessageDescriptor
 	EnumLookup map[string]protoreflect.EnumDescriptor
+	//FileDesc    protoreflect.FileDescriptor
+	FileBuilder *builder.FileBuilder
 }
 
 type MethodDescriptorProto struct {
@@ -102,17 +103,16 @@ type MethodDescriptorProto struct {
 	EnumLookup map[string]*descriptorpb.EnumDescriptorProto
 }
 
-func NewMethodDescriptor(md protoreflect.MethodDescriptor) *MethodDescriptor {
+func NewMethodDescriptor(md protoreflect.MethodDescriptor) (*MethodDescriptor, error) {
 	m := &MethodDescriptor{
-		MethodDesc: md,
-		DescLookup: map[string]protoreflect.MessageDescriptor{},
-		EnumLookup: map[string]protoreflect.EnumDescriptor{},
-		Input:      md.Input(),
-		Output:     md.Output(),
+		MethodDesc:  md,
+		DescLookup:  map[string]protoreflect.MessageDescriptor{},
+		EnumLookup:  map[string]protoreflect.EnumDescriptor{},
+		FileBuilder: builder.NewFile(string(md.Name()) + "File"),
 	}
 	m.buildTypeLookup(md.Input())
 	m.buildTypeLookup(md.Output())
-	return m
+	return m, nil
 }
 
 func (m *MethodDescriptor) buildTypeLookup(msgDesc protoreflect.MessageDescriptor) {
@@ -121,6 +121,17 @@ func (m *MethodDescriptor) buildTypeLookup(msgDesc protoreflect.MessageDescripto
 		msg := msgs[0]
 		msgs = msgs[1:]
 		m.DescLookup[string(msg.FullName())] = msg
+
+		wmsg, err := desc.WrapMessage(msg)
+		if err != nil {
+			log.Warn().Err(err).Msgf("unable to wrap message %s", msg.FullName())
+			continue
+		}
+		mb, err := builder.FromMessage(wmsg)
+		if e := m.FileBuilder.GetMessage(wmsg.GetName()); e == nil {
+			m.FileBuilder = m.FileBuilder.AddMessage(mb)
+		}
+
 		fields := msg.Fields()
 		for i := 0; i < fields.Len(); i++ {
 			f := fields.Get(i)
@@ -131,6 +142,7 @@ func (m *MethodDescriptor) buildTypeLookup(msgDesc protoreflect.MessageDescripto
 				oneOfFields := oneOf.Fields()
 				for j := 0; j < oneOfFields.Len(); j++ {
 					c := oneOfFields.Get(j)
+					// TODO breadchris replace with m.FileBuilder.GetMessage
 					if _, ok := m.DescLookup[lookupName]; ok {
 						continue
 					}
@@ -139,12 +151,22 @@ func (m *MethodDescriptor) buildTypeLookup(msgDesc protoreflect.MessageDescripto
 			} else {
 				switch f.Kind() {
 				case protoreflect.MessageKind:
+					// TODO breadchris replace with m.FileBuilder.GetMessage
 					if _, ok := m.DescLookup[lookupName]; ok {
 						continue
 					}
 					msgs = append(msgs, f.Message())
 				case protoreflect.EnumKind:
 					m.EnumLookup[lookupName] = f.Enum()
+					wenum, err := desc.WrapEnum(f.Enum())
+					if err != nil {
+						log.Warn().Err(err).Msgf("unable to wrap message %s", f.Enum())
+						continue
+					}
+					eb, err := builder.FromEnum(wenum)
+					if e := m.FileBuilder.GetEnum(eb.GetName()); e == nil {
+						m.FileBuilder = m.FileBuilder.AddEnum(eb)
+					}
 				}
 			}
 		}

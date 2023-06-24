@@ -5,6 +5,24 @@ option go_package = "generate";
 
 service GenerateService {
     rpc Generate(GenerateRequest) returns (GenerateResponse);
+    rpc GenerateImplementation(GenerateImplementationRequest) returns (GenerateImplementationResponse);
+    rpc InferNodeType(InferNodeTypeRequest) returns (InfertNodeTypeResponse);
+}
+
+message GenerateImplementationRequest {
+    string project_id = 1;
+    string node_id = 2;
+}
+
+message GenerateImplementationResponse {
+}
+
+message InferNodeTypeRequest {
+    string project_id = 1;
+    string node_id = 2;
+}
+
+message InfertNodeTypeResponse {
 }
 
 message GenerateRequest {

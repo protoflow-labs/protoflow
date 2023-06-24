@@ -7,6 +7,154 @@ import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialM
 import { Message, proto3 } from "@bufbuild/protobuf";
 
 /**
+ * @generated from message generate.GenerateImplementationRequest
+ */
+export class GenerateImplementationRequest extends Message<GenerateImplementationRequest> {
+  /**
+   * @generated from field: string project_id = 1;
+   */
+  projectId = "";
+
+  /**
+   * @generated from field: string node_id = 2;
+   */
+  nodeId = "";
+
+  constructor(data?: PartialMessage<GenerateImplementationRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "generate.GenerateImplementationRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "project_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "node_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GenerateImplementationRequest {
+    return new GenerateImplementationRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GenerateImplementationRequest {
+    return new GenerateImplementationRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GenerateImplementationRequest {
+    return new GenerateImplementationRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GenerateImplementationRequest | PlainMessage<GenerateImplementationRequest> | undefined, b: GenerateImplementationRequest | PlainMessage<GenerateImplementationRequest> | undefined): boolean {
+    return proto3.util.equals(GenerateImplementationRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message generate.GenerateImplementationResponse
+ */
+export class GenerateImplementationResponse extends Message<GenerateImplementationResponse> {
+  constructor(data?: PartialMessage<GenerateImplementationResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "generate.GenerateImplementationResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GenerateImplementationResponse {
+    return new GenerateImplementationResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GenerateImplementationResponse {
+    return new GenerateImplementationResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GenerateImplementationResponse {
+    return new GenerateImplementationResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GenerateImplementationResponse | PlainMessage<GenerateImplementationResponse> | undefined, b: GenerateImplementationResponse | PlainMessage<GenerateImplementationResponse> | undefined): boolean {
+    return proto3.util.equals(GenerateImplementationResponse, a, b);
+  }
+}
+
+/**
+ * @generated from message generate.InferNodeTypeRequest
+ */
+export class InferNodeTypeRequest extends Message<InferNodeTypeRequest> {
+  /**
+   * @generated from field: string project_id = 1;
+   */
+  projectId = "";
+
+  /**
+   * @generated from field: string node_id = 2;
+   */
+  nodeId = "";
+
+  constructor(data?: PartialMessage<InferNodeTypeRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "generate.InferNodeTypeRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "project_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "node_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): InferNodeTypeRequest {
+    return new InferNodeTypeRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): InferNodeTypeRequest {
+    return new InferNodeTypeRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): InferNodeTypeRequest {
+    return new InferNodeTypeRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: InferNodeTypeRequest | PlainMessage<InferNodeTypeRequest> | undefined, b: InferNodeTypeRequest | PlainMessage<InferNodeTypeRequest> | undefined): boolean {
+    return proto3.util.equals(InferNodeTypeRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message generate.InfertNodeTypeResponse
+ */
+export class InfertNodeTypeResponse extends Message<InfertNodeTypeResponse> {
+  constructor(data?: PartialMessage<InfertNodeTypeResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "generate.InfertNodeTypeResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): InfertNodeTypeResponse {
+    return new InfertNodeTypeResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): InfertNodeTypeResponse {
+    return new InfertNodeTypeResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): InfertNodeTypeResponse {
+    return new InfertNodeTypeResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: InfertNodeTypeResponse | PlainMessage<InfertNodeTypeResponse> | undefined, b: InfertNodeTypeResponse | PlainMessage<InfertNodeTypeResponse> | undefined): boolean {
+    return proto3.util.equals(InfertNodeTypeResponse, a, b);
+  }
+}
+
+/**
  * @generated from message generate.GenerateRequest
  */
 export class GenerateRequest extends Message<GenerateRequest> {

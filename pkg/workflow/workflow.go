@@ -15,6 +15,8 @@ import (
 	worknode "github.com/protoflow-labs/protoflow/pkg/workflow/node"
 	"github.com/protoflow-labs/protoflow/pkg/workflow/resource"
 	"github.com/rs/zerolog/log"
+	"github.com/samber/lo"
+	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
 type AdjMap map[string]map[string]graph.Edge[string]
@@ -49,6 +51,35 @@ func (w *Workflow) GetNodeResource(id string) (resource.Resource, error) {
 	return r, nil
 }
 
+// TODO breadchris if there is only one field, set name of message to just the name of the one field.
+// this is canonical in grpc
+func messageFromTypes(name string, types []protoreflect.MessageDescriptor) (*desc.MessageDescriptor, error) {
+	mb := builder.NewMessage(name)
+	if len(types) == 0 {
+		return mb.Build()
+	}
+	var addedFields []string
+	for _, t := range types {
+		wt, err := desc.WrapMessage(t)
+		if err != nil {
+			return nil, errors.Wrapf(err, "error wrapping message %s", name)
+		}
+		msgBuilder, err := builder.FromMessage(wt)
+		if err != nil {
+			return nil, errors.Wrapf(err, "error building message %s", name)
+		}
+		fm := builder.FieldTypeMessage(msgBuilder)
+
+		fieldName := string(t.Name())
+		if lo.Contains(addedFields, fieldName) {
+			return nil, errors.Errorf("duplicate field %s", name)
+		}
+
+		mb = mb.AddField(builder.NewField(fieldName, fm))
+	}
+	return mb.Build()
+}
+
 // TODO breadchris separate "infer" and "collect" type information
 func (w *Workflow) GetNodeInfo(n worknode.Node) (*worknode.Info, error) {
 	var resp *worknode.Info
@@ -72,51 +103,43 @@ func (w *Workflow) GetNodeInfo(n worknode.Node) (*worknode.Info, error) {
 		parents := w.PreMap[n.ID()]
 
 		var (
-			childType  *worknode.Info
-			parentType *worknode.Info
+			childInputs   []protoreflect.MessageDescriptor
+			parentOutputs []protoreflect.MessageDescriptor
 		)
 
-		// TODO breadchris only designed for 1 child and 1 parent, will need to figure out how to support multiple
-		// I think what will need to happen is that we will need to merge the types of all children and all parents.
-		// TODO breadchris use protoreflect builder to build a new message with the merged typesd
 		for child := range children {
 			n, err := w.GetNode(child)
 			if err != nil {
 				return nil, errors.Errorf("node %s not found", child)
 			}
-			childType, err = w.GetNodeInfo(n)
+			childType, err := w.GetNodeInfo(n)
 			if err != nil {
 				return nil, err
 			}
-			break
+			childInputs = append(childInputs, childType.Method.MethodDesc.Input())
 		}
 		for parent := range parents {
 			n, err := w.GetNode(parent)
 			if err != nil {
 				return nil, errors.Errorf("node %s not found", parent)
 			}
-			parentType, err = w.GetNodeInfo(n)
+			parentType, err := w.GetNodeInfo(n)
 			if err != nil {
 				return nil, err
 			}
-			break
+			parentOutputs = append(parentOutputs, parentType.Method.MethodDesc.Output())
 		}
-		if childType == nil || parentType == nil {
-			return nil, errors.New("could not find child or parent type")
-		}
-
-		inputType, err := desc.WrapMessage(parentType.Method.Output)
+		intputType, err := messageFromTypes(n.NormalizedName()+"Request", parentOutputs)
 		if err != nil {
-			return nil, errors.Wrapf(err, "error wrapping message %s", parentType.Method.Output.Name())
+			return nil, errors.Wrapf(err, "error building request message for %s", n.NormalizedName())
 		}
-
-		outputType, err := desc.WrapMessage(childType.Method.Input)
+		outputType, err := messageFromTypes(n.NormalizedName()+"Response", childInputs)
 		if err != nil {
-			return nil, errors.Wrapf(err, "error wrapping message %s", childType.Method.Input.Name())
+			return nil, errors.Wrapf(err, "error building response message for %s", n.NormalizedName())
 		}
 
-		// TODO breadchris check what stream fields we need to access
-		req := builder.RpcTypeImportedMessage(inputType, false)
+		// TODO breadchris how can we determine if the req/res are streaming?
+		req := builder.RpcTypeImportedMessage(intputType, false)
 		res := builder.RpcTypeImportedMessage(outputType, false)
 
 		// TODO breadchris this is a hack to get the name of the function
@@ -129,8 +152,12 @@ func (w *Workflow) GetNodeInfo(n worknode.Node) (*worknode.Info, error) {
 			return nil, err
 		}
 
+		mthd, err := grpc.NewMethodDescriptor(m.UnwrapMethod())
+		if err != nil {
+			return nil, err
+		}
 		return &worknode.Info{
-			Method: grpc.NewMethodDescriptor(m.UnwrapMethod()),
+			Method: mthd,
 		}, nil
 	default:
 		res, err := w.GetNodeResource(n.ID())
