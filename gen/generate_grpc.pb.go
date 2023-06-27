@@ -37,7 +37,7 @@ func NewGenerateServiceClient(cc grpc.ClientConnInterface) GenerateServiceClient
 
 func (c *generateServiceClient) Generate(ctx context.Context, in *GenerateRequest, opts ...grpc.CallOption) (*GenerateResponse, error) {
 	out := new(GenerateResponse)
-	err := c.cc.Invoke(ctx, "/generate.GenerateService/GenerateGRPCService", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/generate.GenerateService/Generate", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -76,7 +76,7 @@ type UnimplementedGenerateServiceServer struct {
 }
 
 func (UnimplementedGenerateServiceServer) Generate(context.Context, *GenerateRequest) (*GenerateResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GenerateGRPCService not implemented")
+	return nil, status.Errorf(codes.Unimplemented, "method Generate not implemented")
 }
 func (UnimplementedGenerateServiceServer) GenerateImplementation(context.Context, *GenerateImplementationRequest) (*GenerateImplementationResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GenerateImplementation not implemented")
@@ -106,7 +106,7 @@ func _GenerateService_Generate_Handler(srv interface{}, ctx context.Context, dec
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/generate.GenerateService/GenerateGRPCService",
+		FullMethod: "/generate.GenerateService/Generate",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(GenerateServiceServer).Generate(ctx, req.(*GenerateRequest))
@@ -158,7 +158,7 @@ var GenerateService_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*GenerateServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "GenerateGRPCService",
+			MethodName: "Generate",
 			Handler:    _GenerateService_Generate_Handler,
 		},
 		{

@@ -16,8 +16,6 @@ import (
 	"net/url"
 )
 
-const BackpackKey = "backpack"
-
 type Activity struct{}
 
 type ActivityFunc func(ctx context.Context, n node.Node, input Input) (Result, error)
@@ -92,15 +90,14 @@ func (a *Activity) ExecuteGRPCNode(ctx context.Context, n node.Node, input Input
 					}
 					break
 				}
+
+				log.Debug().Msgf("pushing data to grpc input stream: %s", d)
+				// TODO breadchris need to transform the data to the correct type
+				// we need to plug in the correct type for the method's input
+
 				inputStream.Push(d)
 			}
 		} else {
-			// TODO breadchris figure out how backpacks work
-			err = util.SetInterfaceField(input.Params, BackpackKey, input.Backpack)
-			if err != nil {
-				outputStream.Error(errors.Wrapf(err, "error setting backpack field"))
-				return
-			}
 			inputStream.Push(input.Params)
 		}
 	}()

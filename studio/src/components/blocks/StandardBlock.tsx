@@ -3,6 +3,7 @@ import {Caption1, CardHeader, Text} from "@fluentui/react-components";
 import {Handle, NodeProps, Position} from "reactflow";
 import {ReactNode} from "react";
 import {useProjectContext} from "@/providers/ProjectProvider";
+import { ResourceState } from "@/rpc/project_pb";
 
 export interface StandardBlockProps {
     name:string;
@@ -17,12 +18,14 @@ type StandardBlockNodeProps = NodeProps<StandardBlockProps>;
 export function StandardBlock(props: StandardBlockNodeProps) {
     const { description, image, selected, id } = props;
 
-    const {nodeLookup} = useProjectContext();
+    const {nodeLookup, resourceLookup} = useProjectContext();
 
     const node = nodeLookup[id];
+    const resource = resourceLookup[node.resourceId];
+    const resOffline = resource && resource.info && resource.info.state === ResourceState.ERROR;
     return (
         <>
-            <BaseBlockCard selected={selected}>
+            <BaseBlockCard selected={selected} appearance={resOffline ? 'outline' : 'filled'}>
                 <CardHeader
                     image={image}
                     header={

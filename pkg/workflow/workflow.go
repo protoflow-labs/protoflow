@@ -10,7 +10,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/gen"
 	"github.com/protoflow-labs/protoflow/pkg/grpc"
-	"github.com/protoflow-labs/protoflow/pkg/util"
 	"github.com/protoflow-labs/protoflow/pkg/workflow/execute"
 	worknode "github.com/protoflow-labs/protoflow/pkg/workflow/node"
 	"github.com/protoflow-labs/protoflow/pkg/workflow/resource"
@@ -54,6 +53,9 @@ func (w *Workflow) GetNodeResource(id string) (resource.Resource, error) {
 // TODO breadchris if there is only one field, set name of message to just the name of the one field.
 // this is canonical in grpc
 func messageFromTypes(name string, types []protoreflect.MessageDescriptor) (*desc.MessageDescriptor, error) {
+	if len(types) == 1 {
+		return desc.WrapMessage(types[0])
+	}
 	mb := builder.NewMessage(name)
 	if len(types) == 0 {
 		return mb.Build()
@@ -189,7 +191,6 @@ func FromProject(project *gen.Project) (*Workflow, error) {
 
 	nodeLookup := map[string]worknode.Node{}
 	for _, node := range project.Graph.Nodes {
-		r := resources[node.ResourceId]
 		if node.Id == "" {
 			return nil, errors.New("node id cannot be empty")
 		}
@@ -204,7 +205,12 @@ func FromProject(project *gen.Project) (*Workflow, error) {
 			return nil, errors.Wrapf(err, "error creating block for node %s", node.Id)
 		}
 		nodeLookup[node.Id] = builtNode
-		r.AddNode(builtNode)
+		r := resources[node.ResourceId]
+		if r != nil {
+			r.AddNode(builtNode)
+		} else {
+			log.Warn().Msgf("no resource found for node %s", node.Id)
+		}
 	}
 
 	for _, edge := range project.Graph.Edges {
@@ -307,31 +313,9 @@ func (w *Workflow) traverseWorkflow(logger Logger, instances Instances, executor
 		// TODO breadchris have this work for streams as well
 		traceNodeExec(executor, vert, input, res.Data)
 
-		// if the backpack has been set by the execution, use it, otherwise pass the previous backpack
-		// TODO breadchris figure out how backpacks work
-		backpack := util.GetFieldValue(res.Data, execute.BackpackKey)
-		//if backpack != nil {
-		//	type Backpack struct {
-		//		ShortCircuit bool `json:"shortCircuit"`
-		//	}
-		//	var b Backpack
-		//	err = json.Unmarshal(backpack.([]byte), &b)
-		//	if err != nil {
-		//		log.Warn().Err(err).Msg("failed to unmarshal backpack")
-		//	} else {
-		//		if b.ShortCircuit {
-		//			return res, nil
-		//		}
-		//	}
-		//}
-		if backpack == nil {
-			backpack = input.Backpack
-		}
-
 		// otherwise pass the singular result data to the next block
 		nextBlockInput = execute.Input{
-			Params:   res.Data,
-			Backpack: backpack,
+			Params: res.Data,
 		}
 	}
 

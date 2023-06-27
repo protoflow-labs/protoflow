@@ -25,6 +25,7 @@ type GetLookup = (lookup: Record<string, ProtoNode>) => Record<string, ProtoNode
 type ProjectContextType = {
     project: Project | undefined;
     resources: EnumeratedResource[];
+    resourceLookup: Record<string, EnumeratedResource>;
     output: any;
     loadingResources: boolean;
 
@@ -61,7 +62,7 @@ export const useResetOutput = () => useProjectContext().resetOutput;
 // project provider holds things that are closer to the database, like information fetched from the database
 export default function ProjectProvider({children}: ProjectProviderProps) {
     const {project, loading, createDefault} = useDefaultProject();
-    const {resources, loading: loadingResources, loadProjectResources} = useProjectResources();
+    const {resources, resourceLookup, loading: loadingResources, loadProjectResources} = useProjectResources();
     const [output, setOutput] = useState<any>(null);
     const {showBoundary} = useErrorBoundary();
     const [nodeLookup, setNodeLookup] = useState<Record<string, ProtoNode>>({});
@@ -214,6 +215,7 @@ export default function ProjectProvider({children}: ProjectProviderProps) {
             value={{
                 project,
                 resources,
+                resourceLookup,
                 output,
                 resetOutput,
                 runWorkflow,

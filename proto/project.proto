@@ -54,6 +54,7 @@ message GetNodeInfoRequest {
     string node_id = 2;
 }
 
+// TODO breadchris a file desc contains all this information it would be simpler to use
 message GRPCTypeInfo {
     google.protobuf.DescriptorProto input = 1;
     google.protobuf.DescriptorProto output = 2;
@@ -167,6 +168,18 @@ message GetResourcesRequest {
 message EnumeratedResource {
     resource.Resource resource = 1;
     repeated graph.Node nodes = 2;
+    ResourceInfo info = 3;
+}
+
+message ResourceInfo {
+    ResourceState state = 1;
+    string error = 2;
+}
+
+enum ResourceState {
+    UNKNOWN = 0;
+    READY = 1;
+    ERROR = 2;
 }
 
 message GetResourcesResponse {

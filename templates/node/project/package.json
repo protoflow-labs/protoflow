@@ -17,7 +17,8 @@
     "@bufbuild/connect-node": "^0.8.6",
     "@bufbuild/protobuf": "^1.2.0",
     "@bufbuild/protoc-gen-connect-es": "^0.8.6",
-    "@bufbuild/protoc-gen-es": "^1.2.0"
+    "@bufbuild/protoc-gen-es": "^1.2.0",
+    "connect-grpcreflect-es": "github:protoflow-labs/connect-grpcreflect-es#main"
   },
   "devDependencies": {
     "nodemon": "^2.0.22"

@@ -1,9 +1,19 @@
-import { Accordion, AccordionHeader, AccordionItem, AccordionPanel, Button } from "@fluentui/react-components";
+import {
+  Accordion,
+  AccordionHeader,
+  AccordionItem,
+  AccordionPanel,
+  Button,
+  Popover,
+  Tooltip
+} from "@fluentui/react-components";
 import { useProjectContext } from "@/providers/ProjectProvider";
 import {GRPC, Function, Input, Collection, Bucket} from "@/rpc/block_pb";
 import {Node} from "@/rpc/graph_pb";
 import {Resource} from "@/rpc/resource_pb";
 import {NodeButton} from "@/components/newBlockSidebar/NodeButton";
+import { ResourceState } from "@/rpc/project_pb";
+import { PlugDisconnected20Regular } from "@fluentui/react-icons";
 
 interface NodeBlock {
   type: string
@@ -65,9 +75,7 @@ export default function BlocksList() {
             <AccordionPanel>
               {builtinBlocks.map((node, i) => {
                 return (
-                    <NodeButton key={i} node={node}>
-                      {node.name}
-                    </NodeButton>
+                    <NodeButton key={i} node={node} />
                 );
               })}
             </AccordionPanel>
@@ -76,26 +84,27 @@ export default function BlocksList() {
             if (!r.resource || !r.resource.type || !r.resource.type.case) {
               return null;
             }
+            const resError = r.info && r.info.state === ResourceState.ERROR;
             const res = r.resource;
             const n = resourceToNode(res, "new");
             return (
-                <AccordionItem key={res.id} value={res.name}>
-                  <AccordionHeader>
-                    {res.name}
+                <AccordionItem key={res.id} value={res.name} disabled={resError}>
+                  <AccordionHeader icon={resError ? <PlugDisconnected20Regular /> : null}>
+                    <Tooltip content={r.info?.error || r.resource.type.case} relationship={"description"}>
+                      <div>{res.name}</div>
+                    </Tooltip>
                   </AccordionHeader>
                   <AccordionPanel className={"overflow-y-auto"} style={{maxHeight: "40em"}}>
                     {r.nodes.length === 0 && (
                         <div className="text-gray-400">No nodes</div>
                     )}
                     {n && (
-                        <NodeButton node={n}>New</NodeButton>
+                        <NodeButton node={n} />
                     )}
                     {r.nodes.map((node) => {
                       // TODO breadchris support more block types
                       return (
-                          <NodeButton key={node.id} node={node}>
-                            {node.name}
-                          </NodeButton>
+                          <NodeButton key={node.id} node={node} />
                       );
                     })}
                     <Button size="small" className="w-full" appearance={'outline'} onClick={() => deleteResource(res.id)}>Delete</Button>
