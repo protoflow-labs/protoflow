@@ -56,12 +56,10 @@ func (r *ClientBuilder) Build() (connect.HTTPClient, error) {
 		}
 	} else {
 		dialFunc = func(ctx context.Context, network, address string) (net.Conn, error) {
-			log.Debug().Msgf("* Dialing (%s) %s...", network, address)
 			conn, err := dialer.DialContext(ctx, network, address)
 			if err != nil {
 				return nil, err
 			}
-			log.Debug().Msgf("* Connected to %s", conn.RemoteAddr().String())
 			return conn, err
 		}
 	}

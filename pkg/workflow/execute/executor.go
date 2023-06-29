@@ -4,26 +4,23 @@ import (
 	"fmt"
 	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/gen"
-	"github.com/protoflow-labs/protoflow/pkg/grpc/bufcurl"
 	"github.com/protoflow-labs/protoflow/pkg/workflow/node"
 	"github.com/protoflow-labs/protoflow/pkg/workflow/resource"
+	"github.com/reactivex/rxgo/v2"
 	"go.temporal.io/sdk/workflow"
 )
 
 type Input struct {
-	Params   interface{}
-	Stream   bufcurl.OutputStream
-	Resource resource.Resource
+	Observable rxgo.Observable
+	Resource   resource.Resource
 }
 
-type Result struct {
-	Data     interface{}
-	Backpack interface{}
-	Stream   bufcurl.OutputStream
+type Output struct {
+	Observable rxgo.Observable
 }
 
 type Executor interface {
-	Execute(n node.Node, input Input) (*Result, error)
+	Execute(n node.Node, input Input) (*Output, error)
 	Trace(nodeExecution *gen.NodeExecution) error
 }
 
@@ -63,8 +60,8 @@ func NewTemporalExecutor(ctx workflow.Context) *TemporalExecutor {
 	}
 }
 
-func (e *TemporalExecutor) Execute(n node.Node, input Input) (*Result, error) {
-	var result Result
+func (e *TemporalExecutor) Execute(n node.Node, input Input) (*Output, error) {
+	var result Output
 	act := nodeToActivityName(n)
 	if act == nil {
 		return nil, fmt.Errorf("error getting activity for node: %s", n.NormalizedName())
@@ -106,7 +103,7 @@ func NewMemoryExecutor(ctx *MemoryContext, opts ...MemoryExecutorOption) *Memory
 	return e
 }
 
-func (e *MemoryExecutor) Execute(n node.Node, input Input) (*Result, error) {
+func (e *MemoryExecutor) Execute(n node.Node, input Input) (*Output, error) {
 	act := nodeToActivityName(n)
 	if act == nil {
 		return nil, fmt.Errorf("error getting activity for node: %s", n.NormalizedName())

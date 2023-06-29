@@ -152,7 +152,7 @@ func (s *Service) RunWorklow(ctx context.Context, c *connect.Request[gen.RunWork
 	}
 	log.Debug().Str("workflow", w.ID).Str("node", c.Msg.NodeId).Msg("workflow finished")
 
-	out, err := json.Marshal(res.Data)
+	out, err := json.Marshal(res)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to marshal result data")
 	}

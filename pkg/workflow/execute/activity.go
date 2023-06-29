@@ -6,11 +6,12 @@ import (
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
-	"github.com/protoflow-labs/protoflow/pkg/grpc/bufcurl"
 	grpcanal "github.com/protoflow-labs/protoflow/pkg/grpc/manager"
 	"github.com/protoflow-labs/protoflow/pkg/util"
+	"github.com/protoflow-labs/protoflow/pkg/util/rx"
 	"github.com/protoflow-labs/protoflow/pkg/workflow/node"
 	"github.com/protoflow-labs/protoflow/pkg/workflow/resource"
+	"github.com/reactivex/rxgo/v2"
 	"github.com/rs/zerolog/log"
 	"io"
 	"net/url"
@@ -18,7 +19,7 @@ import (
 
 type Activity struct{}
 
-type ActivityFunc func(ctx context.Context, n node.Node, input Input) (Result, error)
+type ActivityFunc func(ctx context.Context, n node.Node, input Input) (Output, error)
 
 func formatHost(host string) (string, error) {
 	u, err := url.Parse(host)
@@ -32,17 +33,20 @@ func formatHost(host string) (string, error) {
 }
 
 // TODO breadchris this should be workflow.Context, but for the memory executor it needs context.Context
-func (a *Activity) ExecuteGRPCNode(ctx context.Context, n node.Node, input Input) (Result, error) {
+func (a *Activity) ExecuteGRPCNode(ctx context.Context, n node.Node, input Input) (Output, error) {
 	gn, ok := n.(*node.GRPCNode)
 	if !ok {
-		return Result{}, fmt.Errorf("error getting GRPC resource: %s.%s", gn.Service, gn.Method)
+		return Output{}, fmt.Errorf("error getting GRPC resource: %s.%s", gn.Service, gn.Method)
 	}
 
-	log.Info().Msgf("executing node: %s", gn.Service)
+	log.Info().
+		Str("service", gn.Service).
+		Str("method", gn.Method).
+		Msg("setting up grpc node")
 
 	g, ok := input.Resource.(*resource.GRPCResource)
 	if !ok {
-		return Result{}, fmt.Errorf("error getting GRPC resource: %s.%s", gn.Service, gn.Method)
+		return Output{}, fmt.Errorf("error getting GRPC resource: %s.%s", gn.Service, gn.Method)
 	}
 
 	serviceName := gn.Service
@@ -52,120 +56,93 @@ func (a *Activity) ExecuteGRPCNode(ctx context.Context, n node.Node, input Input
 
 	host, err := formatHost(g.Host)
 	if err != nil {
-		return Result{}, errors.Wrapf(err, "error formatting host: %s", g.Host)
+		return Output{}, errors.Wrapf(err, "error formatting host: %s", g.Host)
 	}
 
-	inputStream := bufcurl.NewMemoryInputStream()
-	outputStream := bufcurl.NewMemoryOutputStream()
-
 	manager := grpcanal.NewReflectionManager(host)
+
 	cleanup, err := manager.Init()
 	if err != nil {
-		return Result{}, errors.Wrapf(err, "error initializing reflection manager")
+		return Output{}, errors.Wrapf(err, "error initializing reflection manager")
 	}
 	defer cleanup()
 
 	method, err := manager.ResolveMethod(serviceName, gn.Method)
 	if err != nil {
-		return Result{}, errors.Wrapf(err, "error resolving method: %s.%s", serviceName, gn.Method)
+		return Output{}, errors.Wrapf(err, "error resolving method: %s.%s", serviceName, gn.Method)
 	}
 
-	go func() {
-		// TODO breadchris we are relying on this grpc call to close the output stream. How can the stream be closed by the caller?
-		defer outputStream.Close()
-		err = manager.ExecuteMethod(ctx, method, inputStream, outputStream)
-		if err != nil {
-			outputStream.Error(errors.Wrapf(err, "error calling grpc method: %s", host))
-		}
-	}()
-	go func() {
-		defer inputStream.Close()
-		// TODO breadchris such indentation
-		if input.Stream != nil {
-			for {
-				d, err := input.Stream.Next()
-				if err != nil {
-					if err != io.EOF {
-						outputStream.Error(err)
-					}
-					break
-				}
+	outputStream := make(chan rxgo.Item)
+	// TODO breadchris we are relying on this grpc call to close the output stream. How can the stream be closed by the caller?
+	if !method.IsStreamingClient() {
+		// if the method is not a client stream, we need to send each input observable as a single request
+		// TODO breadchris type of this method should be inferred when the workflow is parsed
+		input.Observable.ForEach(func(item any) {
+			log.Debug().
+				Str("name", gn.NormalizedName()).
+				Interface("item", item).
+				Msg("executing single grpc method")
 
-				log.Debug().Msgf("pushing data to grpc input stream: %s", d)
-				// TODO breadchris need to transform the data to the correct type
-				// we need to plug in the correct type for the method's input
-
-				inputStream.Push(d)
+			err = manager.ExecuteMethod(ctx, method, rx.FromValues(item), outputStream)
+			if err != nil {
+				outputStream <- rx.NewError(errors.Wrapf(err, "error calling grpc method: %s", host))
 			}
-		} else {
-			inputStream.Push(input.Params)
-		}
-	}()
-
-	var res Result
-	switch {
-	case method.IsStreamingServer() && method.IsStreamingClient():
-		// bidirectional stream: multiple requests, multiple responses
-		fallthrough
-	case method.IsStreamingServer():
-		// server stream: one request, multiple responses
-		res.Stream = outputStream
-	case method.IsStreamingClient():
-		// client stream: multiple requests, one response
+		}, func(err error) {
+			outputStream <- rx.NewError(err)
+		}, func() {
+			close(outputStream)
+		})
+	} else {
 		go func() {
-			for {
-				output, err := outputStream.Next()
-				if err != nil {
-					if err != io.EOF {
-						outputStream.Error(errors.Wrapf(err, "error reading output stream"))
-					}
-					break
-				}
-				res.Stream.Push(output)
+			log.Debug().
+				Str("name", n.NormalizedName()).
+				Msg("executing streaming grpc method")
+			defer close(outputStream)
+			err = manager.ExecuteMethod(ctx, method, input.Observable, outputStream)
+			if err != nil {
+				outputStream <- rx.NewError(errors.Wrapf(err, "error calling grpc method: %s", host))
 			}
 		}()
-	default:
-		// unary
-		output, err := outputStream.Next()
-		if err != nil {
-			if err != io.EOF {
-				return Result{}, errors.Wrapf(err, "error reading output stream")
-			}
-			return Result{}, errors.Wrapf(err, "did not receive any output for unary call")
-		}
-		res.Data = output
+	}
+	res := Output{
+		Observable: rxgo.FromChannel(outputStream, rxgo.WithPublishStrategy()),
 	}
 	return res, nil
 }
 
-func (a *Activity) ExecuteRestNode(ctx context.Context, n node.Node, input Input) (Result, error) {
+func (a *Activity) ExecuteRestNode(ctx context.Context, n node.Node, input Input) (Output, error) {
 	gn, ok := n.(*node.RESTNode)
 	if !ok {
-		return Result{}, fmt.Errorf("error getting REST resource: %s", gn.Name)
+		return Output{}, fmt.Errorf("error getting REST resource: %s", gn.Name)
 	}
 	log.Debug().
 		Interface("headers", gn.Headers).
 		Str("method", gn.Method).
 		Str("path", gn.Path).
 		Msgf("executing rest")
-	res, err := util.InvokeMethodOnUrl(gn.Method, gn.Path, gn.Headers, input.Params)
+	// TODO breadchris turn this into streamable because why not
+	item, err := input.Observable.First().Get()
 	if err != nil {
-		return Result{}, errors.Wrapf(err, "error invoking method: %s", gn.Method)
+		return Output{}, errors.Wrapf(err, "error getting first item from observable")
 	}
-	return Result{
-		Data: res,
+	res, err := util.InvokeMethodOnUrl(gn.Method, gn.Path, gn.Headers, item.V)
+	if err != nil {
+		return Output{Observable: rxgo.Empty()}, nil
+	}
+	return Output{
+		Observable: rxgo.Just(res)(),
 	}, nil
 }
 
-func (a *Activity) ExecuteFunctionNode(ctx context.Context, n node.Node, input Input) (Result, error) {
+func (a *Activity) ExecuteFunctionNode(ctx context.Context, n node.Node, input Input) (Output, error) {
 	gn, ok := n.(*node.FunctionNode)
 	if !ok {
-		return Result{}, fmt.Errorf("error getting Function resource: %s", gn.Name)
+		return Output{}, fmt.Errorf("error getting Function resource: %s", gn.Name)
 	}
-	log.Debug().Msgf("executing function gn: %s", gn.Name)
+	log.Debug().Str("name", gn.Name).Msg("setting up function")
 	g, ok := input.Resource.(*resource.LanguageServiceResource)
 	if !ok {
-		return Result{}, fmt.Errorf("error getting language service resource: %s", gn.Name)
+		return Output{}, fmt.Errorf("error getting language service resource: %s", gn.Name)
 	}
 
 	// provide the grpc resource to the grpc gn call. Is this the best place for this? Should this be provided on injection? Probably.
@@ -175,25 +152,30 @@ func (a *Activity) ExecuteFunctionNode(ctx context.Context, n node.Node, input I
 	return a.ExecuteGRPCNode(ctx, grpcNode, input)
 }
 
-func (a *Activity) ExecuteCollectionNode(ctx context.Context, n node.Node, input Input) (Result, error) {
+func (a *Activity) ExecuteCollectionNode(ctx context.Context, n node.Node, input Input) (Output, error) {
 	gn, ok := n.(*node.CollectionNode)
 	if !ok {
-		return Result{}, fmt.Errorf("error getting Collection resource: %s", gn.Name)
+		return Output{}, fmt.Errorf("error getting Collection resource: %s", gn.Name)
 	}
 	docs, ok := input.Resource.(*resource.DocstoreResource)
 	if !ok {
-		return Result{}, fmt.Errorf("error getting docstore resource: %s", gn.Collection.Name)
+		return Output{}, fmt.Errorf("error getting docstore resource: %s", gn.Collection.Name)
 	}
 
 	collection, cleanup, err := docs.WithCollection(gn.Collection.Name)
 	if err != nil {
-		return Result{}, errors.Wrapf(err, "error connecting to collection")
+		return Output{}, errors.Wrapf(err, "error connecting to collection")
 	}
 	defer cleanup()
 
 	var records []map[string]interface{}
 
-	switch input := input.Params.(type) {
+	item, err := input.Observable.First().Get()
+	if err != nil {
+		return Output{}, errors.Wrapf(err, "error getting first item from observable")
+	}
+
+	switch input := item.V.(type) {
 	case map[string]interface{}:
 		records = append(records, input)
 	case []*map[string]interface{}:
@@ -201,7 +183,7 @@ func (a *Activity) ExecuteCollectionNode(ctx context.Context, n node.Node, input
 			records = append(records, *record)
 		}
 	default:
-		return Result{}, fmt.Errorf("error unsupported input type: %T", input)
+		return Output{}, fmt.Errorf("error unsupported input type: %T", input)
 	}
 
 	for _, record := range records {
@@ -210,72 +192,79 @@ func (a *Activity) ExecuteCollectionNode(ctx context.Context, n node.Node, input
 		}
 		err = collection.Create(context.Background(), record)
 		if err != nil {
-			return Result{}, errors.Wrapf(err, "error creating doc")
+			return Output{}, errors.Wrapf(err, "error creating doc")
 		}
 	}
 
-	return Result{
-		Data: input.Params,
+	// TODO breadchris support streaming of records?
+	return Output{
+		Observable: rxgo.Just(records)(),
 	}, nil
 }
 
-func (a *Activity) ExecuteInputNode(ctx context.Context, n node.Node, input Input) (Result, error) {
-	return Result{
-		Data: input.Params,
+func (a *Activity) ExecuteInputNode(ctx context.Context, n node.Node, input Input) (Output, error) {
+	return Output{
+		Observable: input.Observable,
 	}, nil
 }
 
-func (a *Activity) ExecuteBucketNode(ctx context.Context, n node.Node, input Input) (Result, error) {
+func (a *Activity) ExecuteBucketNode(ctx context.Context, n node.Node, input Input) (Output, error) {
 	gn, ok := n.(*node.BucketNode)
 	if !ok {
-		return Result{}, fmt.Errorf("error getting Collection resource: %s", gn.Name)
+		return Output{}, fmt.Errorf("error getting Collection resource: %s", gn.Name)
 	}
 	bucket, ok := input.Resource.(*resource.BlobstoreResource)
 	if !ok {
-		return Result{}, fmt.Errorf("error getting blobstore resource: %s", gn.Bucket.Path)
+		return Output{}, fmt.Errorf("error getting blobstore resource: %s", gn.Bucket.Path)
+	}
+
+	item, err := input.Observable.First().Get()
+	if err != nil {
+		return Output{}, errors.Wrapf(err, "error getting first item from observable")
 	}
 
 	var (
-		err        error
 		bucketData []byte
 	)
-	switch input.Params.(type) {
+	switch t := item.V.(type) {
 	case []byte:
-		bucketData = input.Params.([]byte)
+		bucketData = t
 	case string:
-		bucketData = []byte(input.Params.(string))
+		bucketData = []byte(t)
 	default:
-		bucketData, err = json.Marshal(input.Params)
+		bucketData, err = json.Marshal(t)
 		if err != nil {
-			return Result{}, errors.Wrapf(err, "error marshaling input params")
+			return Output{}, errors.Wrapf(err, "error marshaling input params")
 		}
 	}
 
 	b, cleanup, err := bucket.WithPath(gn.Path)
 	if err != nil {
-		return Result{}, errors.Wrapf(err, fmt.Sprintf("error connecting to bucket: %s", gn.Path))
+		return Output{}, errors.Wrapf(err, fmt.Sprintf("error connecting to bucket: %s", gn.Path))
 	}
 	defer cleanup()
 
 	err = b.WriteAll(context.Background(), gn.Path, bucketData, nil)
-	return Result{
-		Data: input.Params,
+	return Output{
+		Observable: rxgo.Just(map[string]string{
+			"bucket": gn.Path,
+		})(),
 	}, nil
 }
 
-func (a *Activity) ExecuteQueryNode(ctx context.Context, n node.Node, input Input) (Result, error) {
+func (a *Activity) ExecuteQueryNode(ctx context.Context, n node.Node, input Input) (Output, error) {
 	s, ok := n.(*node.QueryNode)
 	if !ok {
-		return Result{}, fmt.Errorf("error getting query resource: %s", s.Query.Collection)
+		return Output{}, fmt.Errorf("error getting query resource: %s", s.Query.Collection)
 	}
 	docResource, ok := input.Resource.(*resource.DocstoreResource)
 	if !ok {
-		return Result{}, fmt.Errorf("error getting docstore resource: %s", s.Query.Collection)
+		return Output{}, fmt.Errorf("error getting docstore resource: %s", s.Query.Collection)
 	}
 
 	d, cleanup, err := docResource.WithCollection(s.Query.Collection)
 	if err != nil {
-		return Result{}, errors.Wrapf(err, "error connecting to collection")
+		return Output{}, errors.Wrapf(err, "error connecting to collection")
 	}
 	defer cleanup()
 
@@ -288,11 +277,13 @@ func (a *Activity) ExecuteQueryNode(ctx context.Context, n node.Node, input Inpu
 			if err == io.EOF {
 				break
 			}
-			return Result{}, errors.Wrapf(err, "error iterating over query results")
+			return Output{}, errors.Wrapf(err, "error iterating over query results")
 		}
 		docs = append(docs, &doc)
 	}
-	return Result{
-		Data: docs,
+
+	// TODO breadchris support streaming of docs?
+	return Output{
+		Observable: rxgo.Just(docs)(),
 	}, nil
 }

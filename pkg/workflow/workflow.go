@@ -1,6 +1,7 @@
 package workflow
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/dominikbraun/graph"
@@ -13,6 +14,7 @@ import (
 	"github.com/protoflow-labs/protoflow/pkg/workflow/execute"
 	worknode "github.com/protoflow-labs/protoflow/pkg/workflow/node"
 	"github.com/protoflow-labs/protoflow/pkg/workflow/resource"
+	"github.com/reactivex/rxgo/v2"
 	"github.com/rs/zerolog/log"
 	"github.com/samber/lo"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -246,7 +248,7 @@ func FromProject(project *gen.Project) (*Workflow, error) {
 type Instances map[string]resource.Resource
 
 // TODO breadchris nodeID should not be needed, the workflow should already be a slice of the graph that is configured to run
-func (w *Workflow) Run(logger Logger, executor execute.Executor, nodeID string, input interface{}) (*execute.Result, error) {
+func (w *Workflow) Run(logger Logger, executor execute.Executor, nodeID string, input interface{}) ([]any, error) {
 	var cleanupFuncs []func()
 	defer func() {
 		for _, cleanup := range cleanupFuncs {
@@ -259,13 +261,13 @@ func (w *Workflow) Run(logger Logger, executor execute.Executor, nodeID string, 
 	// TODO breadchris make a slice of resources that are needed for the workflow
 	// TODO breadchris implement resource pool to avoid creating resources for every workflow
 	instances := Instances{}
-	for id, resource := range w.Resources {
-		cleanup, err := resource.Init()
+	for id, r := range w.Resources {
+		cleanup, err := r.Init()
 		if err != nil {
 			return nil, errors.Wrapf(err, "error creating resource %s", id)
 		}
 		cleanupFuncs = append(cleanupFuncs, cleanup)
-		instances[id] = resource
+		instances[id] = r
 	}
 
 	vert, err := w.Graph.Vertex(nodeID)
@@ -273,79 +275,77 @@ func (w *Workflow) Run(logger Logger, executor execute.Executor, nodeID string, 
 		return nil, errors.Wrapf(err, "error getting vertex %s", nodeID)
 	}
 
-	res, err := w.traverseWorkflow(logger, instances, executor, vert, execute.Input{
-		Params: input,
+	ctx := context.Background()
+	res, err := w.traverseWorkflow(ctx, instances, executor, vert, execute.Input{
+		Observable: rxgo.Just(input)(),
 	})
 	if err != nil {
 		logger.Error("failed to traverse workflow", "error", err)
 		return nil, err
 	}
-	return res, nil
+
+	var (
+		items  []any
+		obsErr error
+	)
+	<-res.Observable.ForEach(func(item any) {
+		items = append(items, item)
+	}, func(err error) {
+		obsErr = err
+	}, func() {
+		log.Debug().Msg("workflow observable completed")
+	})
+	return items, obsErr
 }
 
-func (w *Workflow) traverseWorkflow(logger Logger, instances Instances, executor execute.Executor, vert string, input execute.Input) (*execute.Result, error) {
+func (w *Workflow) traverseWorkflow(ctx context.Context, instances Instances, executor execute.Executor, vert string, input execute.Input) (*execute.Output, error) {
 	node, ok := w.NodeLookup[vert]
 	if !ok {
 		return nil, fmt.Errorf("vertex not found: %s", vert)
 	}
 
-	log.Debug().Str("vert", vert).Msg("injecting dependencies for node")
+	log.Debug().Str("node", node.NormalizedName()).Msg("injecting dependencies for node")
 	err := injectDepsForNode(instances, &input, node)
 	if err != nil {
 		return nil, errors.Wrapf(err, "error injecting dependencies for node %s", vert)
 	}
 
-	log.Debug().Str("vert", vert).Interface("resource", input.Resource).Msg("executing node")
-	res, err := executor.Execute(node, input)
+	traceObservable("input", node, input.Observable)
+
+	log.Debug().
+		Str("node", node.NormalizedName()).
+		Interface("resource", input.Resource).
+		Msg("wiring node IO")
+	output, err := executor.Execute(node, input)
 	if err != nil {
 		return nil, errors.Wrapf(err, "error executing node: %s", vert)
 	}
 
-	var (
-		nextBlockInput execute.Input
-	)
-	if res.Stream != nil {
-		// if the result is a stream, pass the stream to the next block
-		nextBlockInput = execute.Input{
-			Stream: res.Stream,
-		}
-	} else {
-		// TODO breadchris have this work for streams as well
-		traceNodeExec(executor, vert, input, res.Data)
+	traceObservable("output", node, output.Observable)
 
-		// otherwise pass the singular result data to the next block
-		nextBlockInput = execute.Input{
-			Params: res.Data,
-		}
+	// TODO breadchris figure out what to do with disposed and cancel
+	// disposed, cancel := output.Observable.Connect(ctx)
+	output.Observable.Connect(ctx)
+
+	nextBlockInput := execute.Input{
+		Observable: output.Observable,
 	}
 
-	nextResSet := false
 	for neighbor := range w.AdjMap[vert] {
-		logger.Info("traversing workflow", "nodeID", neighbor)
+		log.Debug().
+			Str("node", node.NormalizedName()).
+			Str("neighbor", w.NodeLookup[neighbor].NormalizedName()).
+			Msg("traversing workflow")
 
 		// TODO breadchris if there are multiple neighbors, and there is a stream, the stream should be split and passed to each neighbor
-
-		neighborRes, err := w.traverseWorkflow(logger, instances, executor, neighbor, nextBlockInput)
+		// TODO breadchris how should we handle multiple neighbors? output is being overwritten
+		output, err = w.traverseWorkflow(ctx, instances, executor, neighbor, nextBlockInput)
 		if err != nil {
-			// TODO breadchris if we are inside of a stream, the error should bubble up to the stream entrypoint
 			return nil, errors.Wrapf(err, "error traversing workflow %s", neighbor)
 		}
-
-		// TODO breadchris how should multiple results be handled?
-		if !nextResSet {
-			res = neighborRes
-			nextResSet = true
-		}
 	}
-	// TODO breadchris need to implement pubsub to handle lifecycle of streams
-	//if input.Stream != nil {
-	//	for {
-	//		time.Sleep(10 * time.Second)
-	//		log.Info().Msg("waiting for stream to finish")
-	//	}
-	//}
-	return &execute.Result{
-		Data: res.Data,
+	return &execute.Output{
+		Observable: output.Observable,
 	}, nil
 }
 
@@ -361,8 +361,26 @@ func injectDepsForNode(instances Instances, input *execute.Input, node worknode.
 	return nil
 }
 
-func traceNodeExec(executor execute.Executor, nodeID string, input any, output any) {
+func traceObservable(name string, node worknode.Node, obs rxgo.Observable) {
+	obs.ForEach(func(item any) {
+		log.Debug().
+			Str("name", node.NormalizedName()).
+			Str("observable", name).
+			Interface("item", item).
+			Msg("node observable")
+	}, func(err error) {
+		log.Error().Err(err).Msg("error reading input")
+	}, func() {
+		log.Debug().
+			Str("name", node.NormalizedName()).
+			Str("observable", name).
+			Msg("complete")
+	})
+}
+
+func traceNodeExec(executor execute.Executor, node worknode.Node, input rxgo.Observable, output rxgo.Observable) {
 	// TODO breadchris clean this up
+
 	inputSer, inputErr := json.Marshal(input)
 	outputSer, outputErr := json.Marshal(output)
 	if inputErr != nil || outputErr != nil {
@@ -372,7 +390,7 @@ func traceNodeExec(executor execute.Executor, nodeID string, input any, output a
 			Msg("error serializing node execution")
 	}
 	err := executor.Trace(&gen.NodeExecution{
-		NodeId: nodeID,
+		NodeId: node.ID(),
 		Input:  string(inputSer),
 		Output: string(outputSer),
 	})

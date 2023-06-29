@@ -18,6 +18,8 @@ type MemoryManager struct {
 	store           store.Project
 }
 
+var _ Manager = (*MemoryManager)(nil)
+
 func NewMemoryManager(store store.Project) *MemoryManager {
 	return &MemoryManager{
 		store: store,
@@ -68,7 +70,7 @@ func (m *MemoryManager) ExecuteWorkflow(ctx context.Context, w *Workflow, nodeID
 	return uuid.New().String(), err
 }
 
-func (m *MemoryManager) ExecuteWorkflowSync(ctx context.Context, w *Workflow, nodeID string, input interface{}) (*execute.Result, error) {
+func (m *MemoryManager) ExecuteWorkflowSync(ctx context.Context, w *Workflow, nodeID string, input interface{}) ([]any, error) {
 	if w.NodeLookup == nil || w.Graph == nil {
 		return nil, fmt.Errorf("workflow is not initialized")
 	}
