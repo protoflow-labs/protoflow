@@ -1,5 +1,5 @@
 import {
-  Card,
+  Card, CardProps,
   makeStyles,
   mergeClasses,
   shorthands,
@@ -7,7 +7,7 @@ import {
 } from "@fluentui/react-components";
 import React, { ReactNode } from "react";
 
-export interface BaseBlockCardProps {
+export interface BaseBlockCardProps extends CardProps {
   children: ReactNode;
   selected: boolean;
 }

@@ -37,6 +37,7 @@ func (r *LanguageServiceResource) Info(n node.Node) (*node.Info, error) {
 func (r *LanguageServiceResource) ToGRPC(n *node.FunctionNode) *node.GRPCNode {
 	serviceName := strings.ToLower(r.Runtime.String()) + "Service"
 	return &node.GRPCNode{
+		BaseNode: n.BaseNode,
 		GRPC: &gen.GRPC{
 			Package: "protoflow",
 			Service: serviceName,

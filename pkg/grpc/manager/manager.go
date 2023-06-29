@@ -8,6 +8,8 @@ import (
 	"github.com/protoflow-labs/protoflow/pkg/grpc/bufcurl"
 	"github.com/protoflow-labs/protoflow/pkg/grpc/bufcurl/protoencoding"
 	"github.com/protoflow-labs/protoflow/pkg/grpc/bufcurl/reflect"
+	"github.com/protoflow-labs/protoflow/pkg/util/rx"
+	"github.com/reactivex/rxgo/v2"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
 	"net/http"
@@ -95,14 +97,14 @@ func (s *ReflectionManager) Init() (func(), error) {
 func (s *ReflectionManager) ExecuteMethod(
 	ctx context.Context,
 	method protoreflect.MethodDescriptor,
-	input bufcurl.InputStream,
-	output bufcurl.OutputStream,
+	input rxgo.Observable,
+	output rx.ItemSink,
 ) (err error) {
 	grpcURL := fmt.Sprintf("%s/%s/%s", s.URL, method.Parent().FullName(), method.Name())
 	clientOptions := loadClientOptions(s.Protocol)
 
-	invoker := bufcurl.NewInvoker(method, s.resolver, s.httpClient, clientOptions, grpcURL, os.Stdout)
-	return invoker.InvokeWithStream(ctx, input, output, s.requestHeaders)
+	invoker := bufcurl.NewInvoker(method, s.resolver, s.httpClient, clientOptions, grpcURL, os.Stdout, output)
+	return invoker.Invoke(ctx, input, s.requestHeaders)
 }
 
 func (s *ReflectionManager) ResolveMethod(service, methodName string) (protoreflect.MethodDescriptor, error) {

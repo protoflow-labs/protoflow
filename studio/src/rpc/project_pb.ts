@@ -9,6 +9,32 @@ import { Graph, Node } from "./graph_pb.js";
 import { Resource } from "./resource_pb.js";
 
 /**
+ * @generated from enum project.ResourceState
+ */
+export enum ResourceState {
+  /**
+   * @generated from enum value: UNKNOWN = 0;
+   */
+  UNKNOWN = 0,
+
+  /**
+   * @generated from enum value: READY = 1;
+   */
+  READY = 1,
+
+  /**
+   * @generated from enum value: ERROR = 2;
+   */
+  ERROR = 2,
+}
+// Retrieve enum metadata with: proto3.getEnumType(ResourceState)
+proto3.util.setEnumType(ResourceState, "project.ResourceState", [
+  { no: 0, name: "UNKNOWN" },
+  { no: 1, name: "READY" },
+  { no: 2, name: "ERROR" },
+]);
+
+/**
  * @generated from message project.GetWorkflowRunsRequest
  */
 export class GetWorkflowRunsRequest extends Message<GetWorkflowRunsRequest> {
@@ -1181,6 +1207,11 @@ export class EnumeratedResource extends Message<EnumeratedResource> {
    */
   nodes: Node[] = [];
 
+  /**
+   * @generated from field: project.ResourceInfo info = 3;
+   */
+  info?: ResourceInfo;
+
   constructor(data?: PartialMessage<EnumeratedResource>) {
     super();
     proto3.util.initPartial(data, this);
@@ -1191,6 +1222,7 @@ export class EnumeratedResource extends Message<EnumeratedResource> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "resource", kind: "message", T: Resource },
     { no: 2, name: "nodes", kind: "message", T: Node, repeated: true },
+    { no: 3, name: "info", kind: "message", T: ResourceInfo },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): EnumeratedResource {
@@ -1207,6 +1239,49 @@ export class EnumeratedResource extends Message<EnumeratedResource> {
 
   static equals(a: EnumeratedResource | PlainMessage<EnumeratedResource> | undefined, b: EnumeratedResource | PlainMessage<EnumeratedResource> | undefined): boolean {
     return proto3.util.equals(EnumeratedResource, a, b);
+  }
+}
+
+/**
+ * @generated from message project.ResourceInfo
+ */
+export class ResourceInfo extends Message<ResourceInfo> {
+  /**
+   * @generated from field: project.ResourceState state = 1;
+   */
+  state = ResourceState.UNKNOWN;
+
+  /**
+   * @generated from field: string error = 2;
+   */
+  error = "";
+
+  constructor(data?: PartialMessage<ResourceInfo>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "project.ResourceInfo";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "state", kind: "enum", T: proto3.getEnumType(ResourceState) },
+    { no: 2, name: "error", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ResourceInfo {
+    return new ResourceInfo().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ResourceInfo {
+    return new ResourceInfo().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ResourceInfo {
+    return new ResourceInfo().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ResourceInfo | PlainMessage<ResourceInfo> | undefined, b: ResourceInfo | PlainMessage<ResourceInfo> | undefined): boolean {
+    return proto3.util.equals(ResourceInfo, a, b);
   }
 }
 

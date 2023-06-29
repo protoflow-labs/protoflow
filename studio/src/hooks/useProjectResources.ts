@@ -6,6 +6,7 @@ import {EnumeratedResource} from "@/rpc/project_pb";
 export function useProjectResources() {
   const [loading, setLoading] = useState(true);
   const [resources, setResources] = useState<EnumeratedResource[]>([]);
+  const [resourceLookup, setResourceLookup] = useState<Record<string, EnumeratedResource>>({});
   const loadProjectResources = async (projectId: string) => {
     setLoading(true);
     try {
@@ -13,6 +14,15 @@ export function useProjectResources() {
         projectId,
       });
       setResources(resources);
+      setResourceLookup(resources.reduce((acc, resource) => {
+        if (!resource.resource) {
+          return acc;
+        }
+        return {
+          ...acc,
+          [resource.resource.id]: resource,
+        };
+      }, {} as Record<string, EnumeratedResource>));
     } catch (e) {
       console.error(e);
     }
@@ -22,6 +32,7 @@ export function useProjectResources() {
   return {
     loading,
     resources,
+    resourceLookup,
     loadProjectResources,
   };
 }

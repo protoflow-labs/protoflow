@@ -22,6 +22,8 @@ import (
 	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/pkg/grpc/bufcurl/protoencoding"
 	"github.com/protoflow-labs/protoflow/pkg/grpc/bufcurl/verbose"
+	"github.com/protoflow-labs/protoflow/pkg/util/rx"
+	"github.com/reactivex/rxgo/v2"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -75,7 +77,7 @@ type invoker struct {
 	output       io.Writer
 	errOutput    io.Writer
 	printer      verbose.Printer
-	outputStream OutputStream
+	outputStream rx.ItemSink
 }
 
 // NewInvoker creates a new invoker for invoking the method described by the
@@ -83,7 +85,15 @@ type invoker struct {
 // in JSON format. The given resolver is used to resolve Any messages and
 // extensions that appear in the input or output. Other parameters are used
 // to create a Connect client, for issuing the RPC.
-func NewInvoker(md protoreflect.MethodDescriptor, res protoencoding.Resolver, httpClient connect.HTTPClient, opts []connect.ClientOption, url string, out io.Writer) Invoker {
+func NewInvoker(
+	md protoreflect.MethodDescriptor,
+	res protoencoding.Resolver,
+	httpClient connect.HTTPClient,
+	opts []connect.ClientOption,
+	url string,
+	out io.Writer,
+	output rx.ItemSink,
+) Invoker {
 	opts = append(opts, connect.WithCodec(protoCodec{}))
 	// TODO: could also provide custom compressor implementations that could give us
 	//  optics into when request and response messages are compressed (which could be
@@ -95,16 +105,11 @@ func NewInvoker(md protoreflect.MethodDescriptor, res protoencoding.Resolver, ht
 		printer:      &ZeroLogPrinter{},
 		errOutput:    os.Stderr,
 		client:       connect.NewClient[dynamicpb.Message, deferredMessage](httpClient, url, opts...),
-		outputStream: NopOutputStream{},
+		outputStream: output,
 	}
 }
 
-func (inv *invoker) InvokeWithStream(ctx context.Context, input InputStream, output OutputStream, headers http.Header) error {
-	inv.outputStream = output
-	return inv.Invoke(ctx, input, headers)
-}
-
-func (inv *invoker) Invoke(ctx context.Context, input InputStream, headers http.Header) error {
+func (inv *invoker) Invoke(ctx context.Context, input rxgo.Observable, headers http.Header) error {
 	inv.printer.Printf("* Invoking RPC %s\n", inv.md.FullName())
 	// request's user-agent header(s) get overwritten by protocol, so we stash them in the
 	// context so that underlying transport can restore them
@@ -121,18 +126,19 @@ func (inv *invoker) Invoke(ctx context.Context, input InputStream, headers http.
 	}
 }
 
-func (inv *invoker) handleUnary(ctx context.Context, input InputStream, headers http.Header) error {
-	provider := newChanStreamMessageProvider(input, inv.res)
+func (inv *invoker) handleUnary(ctx context.Context, input rxgo.Observable, headers http.Header) error {
 	msg := dynamicpb.NewMessage(inv.md.Input())
 
-	for {
-		if err := provider.next(msg); err != nil {
-			if err == io.EOF {
+	for item := range input.Observe() {
+		if item.Error() {
+			if item.E == io.EOF {
 				break
 			}
-			return fmt.Errorf("failed to read input: %w", err)
+			return fmt.Errorf("failed to read input: %w", item.E)
 		}
-
+		if err := resolveMsgFromData(inv.res, msg, item.V); err != nil {
+			return errors.Wrapf(err, "failed to resolve input message for RPC %s", inv.md.FullName())
+		}
 		req := connect.NewRequest(msg)
 		for k, v := range headers {
 			req.Header()[k] = v
@@ -149,8 +155,7 @@ func (inv *invoker) handleUnary(ctx context.Context, input InputStream, headers 
 	return nil
 }
 
-func (inv *invoker) handleClientStream(ctx context.Context, input InputStream, headers http.Header) (retErr error) {
-	provider := newChanStreamMessageProvider(input, inv.res)
+func (inv *invoker) handleClientStream(ctx context.Context, input rxgo.Observable, headers http.Header) (retErr error) {
 	msg := dynamicpb.NewMessage(inv.md.Input())
 	stream := inv.client.CallClientStream(ctx)
 	for k, v := range headers {
@@ -164,7 +169,7 @@ func (inv *invoker) handleClientStream(ctx context.Context, input InputStream, h
 			}
 		}
 	}()
-	if err, isStreamError := inv.handleStreamRequest(provider, msg, stream); err != nil {
+	if err, isStreamError := inv.handleStreamRequest(input, msg, stream); err != nil {
 		if isStreamError {
 			_, recvErr := stream.CloseAndReceive()
 			// stream.Send should return io.EOF on error, and caller is expected to call
@@ -188,16 +193,15 @@ func (inv *invoker) handleClientStream(ctx context.Context, input InputStream, h
 	return nil
 }
 
-func (inv *invoker) handleServerStream(ctx context.Context, input InputStream, headers http.Header) (retErr error) {
-	provider := newChanStreamMessageProvider(input, inv.res)
+func (inv *invoker) handleServerStream(ctx context.Context, input rxgo.Observable, headers http.Header) (retErr error) {
 	msg := dynamicpb.NewMessage(inv.md.Input())
-	if err := provider.next(msg); err != nil {
-		return err
+
+	item := <-input.Observe()
+	if item.Error() {
+		return item.E
 	}
-	// make sure input does not contain a second message
-	dummy := dynamicpb.NewMessage(inv.md.Input())
-	if err := provider.next(dummy); err != io.EOF {
-		return fmt.Errorf("method %s is a unary RPC, but input contained more than one request message", inv.md.Name())
+	if err := resolveMsgFromData(inv.res, msg, item.V); err != nil {
+		return errors.Wrapf(err, "failed to resolve input message for RPC %s", inv.md.FullName())
 	}
 
 	req := connect.NewRequest(msg)
@@ -220,9 +224,8 @@ func (inv *invoker) handleServerStream(ctx context.Context, input InputStream, h
 	return inv.handleStreamResponse(&serverStreamAdapter{stream: stream})
 }
 
-func (inv *invoker) handleBidiStream(ctx context.Context, input InputStream, headers http.Header) (retErr error) {
+func (inv *invoker) handleBidiStream(ctx context.Context, input rxgo.Observable, headers http.Header) (retErr error) {
 	ctx, cancel := context.WithCancel(ctx)
-	provider := newChanStreamMessageProvider(input, inv.res)
 	msg := dynamicpb.NewMessage(inv.md.Input())
 	stream := inv.client.CallBidiStream(ctx)
 	for k, v := range headers {
@@ -265,7 +268,7 @@ func (inv *invoker) handleBidiStream(ctx context.Context, input InputStream, hea
 		}
 	}()
 
-	err, isStreamError := inv.handleStreamRequest(provider, msg, stream)
+	err, isStreamError := inv.handleStreamRequest(input, msg, stream)
 	shouldCancel = err != nil && !isStreamError
 	if err != nil {
 		return err
@@ -303,7 +306,10 @@ func (inv *invoker) handleResponse(data []byte, msg *dynamicpb.Message) error {
 	if err != nil {
 		return errors.Wrapf(err, "error marshalling output")
 	}
-	inv.outputStream.Push(out)
+	if out == nil {
+		return errors.New("output is nil")
+	}
+	inv.outputStream <- rx.NewItem(out)
 	return err
 }
 
@@ -335,12 +341,15 @@ func (ssa *serverStreamAdapter) CloseResponse() error {
 	return ssa.stream.Close()
 }
 
-func (inv *invoker) handleStreamRequest(provider messageProvider, msg *dynamicpb.Message, stream clientStream) (error, bool) {
-	for {
-		if err := provider.next(msg); errors.Is(err, io.EOF) {
+func (inv *invoker) handleStreamRequest(input rxgo.Observable, msg *dynamicpb.Message, stream clientStream) (error, bool) {
+	for item := range input.Observe() {
+		if errors.Is(item.E, io.EOF) {
 			break
-		} else if err != nil {
-			return err, false
+		} else if item.E != nil {
+			return item.E, false
+		}
+		if err := resolveMsgFromData(inv.res, msg, item.V); err != nil {
+			return errors.Wrapf(err, "failed to resolve input message for RPC %s", inv.md.FullName()), false
 		}
 		if err := stream.Send(msg); err != nil {
 			return err, true
@@ -396,30 +405,4 @@ func (inv *invoker) handleErrorResponse(connErr *connect.Error) error {
 	_, _ = inv.errOutput.Write(prettyPrinted.Bytes())
 	_, _ = inv.errOutput.Write([]byte("\n"))
 	return fmt.Errorf("%d", int(connErr.Code()*8))
-}
-
-func newChanStreamMessageProvider(input InputStream, res protoencoding.Resolver) messageProvider {
-	return &chanMessageProvider{input: input, res: res}
-}
-
-type messageProvider interface {
-	next(proto.Message) error
-}
-
-type chanMessageProvider struct {
-	input InputStream
-	res   protoencoding.Resolver
-}
-
-func (s *chanMessageProvider) next(msg proto.Message) error {
-	data, err := s.input.Next()
-	if err != nil {
-		return err
-	}
-	encodedData, err := json.Marshal(data)
-	if err != nil {
-		return errors.Wrapf(err, "marshaling data")
-	}
-	proto.Reset(msg)
-	return protoencoding.NewJSONUnmarshaler(s.res).Unmarshal(encodedData, msg)
 }

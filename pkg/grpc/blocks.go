@@ -36,8 +36,7 @@ func EnumerateResourceBlocks(resource *gen.Resource) ([]*gen.Node, error) {
 	if g != nil {
 		nodes, err = nodesFromGRPC(resource.Id, g, isLangService)
 		if err != nil {
-			log.Warn().Err(err).Msgf("unable to enumerate grpc service %s", g.Host)
-			nodes = []*gen.Node{}
+			return nil, errors.Wrapf(err, "unable to enumerate grpc service %s", g.Host)
 		}
 	}
 	return nodes, nil

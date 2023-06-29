@@ -47,13 +47,19 @@ func NewService(
 func hydrateBlocksForResources(projectResources []*gen.Resource) ([]*gen.EnumeratedResource, error) {
 	var resources []*gen.EnumeratedResource
 	for _, resource := range projectResources {
+		info := &gen.ResourceInfo{
+			State: gen.ResourceState_READY,
+			Error: "",
+		}
 		nodes, err := grpc.EnumerateResourceBlocks(resource)
 		if err != nil {
-			return nil, errors.Wrapf(err, "failed to get blocks for resource: %s", resource.Name)
+			info.State = gen.ResourceState_ERROR
+			info.Error = err.Error()
 		}
 		resources = append(resources, &gen.EnumeratedResource{
 			Resource: resource,
 			Nodes:    nodes,
+			Info:     info,
 		})
 	}
 	return resources, nil
@@ -146,7 +152,7 @@ func (s *Service) RunWorklow(ctx context.Context, c *connect.Request[gen.RunWork
 	}
 	log.Debug().Str("workflow", w.ID).Str("node", c.Msg.NodeId).Msg("workflow finished")
 
-	out, err := json.Marshal(res.Data)
+	out, err := json.Marshal(res)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to marshal result data")
 	}

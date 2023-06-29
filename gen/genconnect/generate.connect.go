@@ -33,9 +33,9 @@ const (
 // reflection-formatted method names, remove the leading slash and convert the remaining slash to a
 // period.
 const (
-	// GenerateServiceGenerateProcedure is the fully-qualified name of the GenerateService's GenerateGRPCService
+	// GenerateServiceGenerateProcedure is the fully-qualified name of the GenerateService's Generate
 	// RPC.
-	GenerateServiceGenerateProcedure = "/generate.GenerateService/GenerateGRPCService"
+	GenerateServiceGenerateProcedure = "/generate.GenerateService/Generate"
 	// GenerateServiceGenerateImplementationProcedure is the fully-qualified name of the
 	// GenerateService's GenerateImplementation RPC.
 	GenerateServiceGenerateImplementationProcedure = "/generate.GenerateService/GenerateImplementation"
@@ -86,7 +86,7 @@ type generateServiceClient struct {
 	inferNodeType          *connect_go.Client[gen.InferNodeTypeRequest, gen.InfertNodeTypeResponse]
 }
 
-// Generate calls generate.GenerateService.GenerateGRPCService.
+// Generate calls generate.GenerateService.Generate.
 func (c *generateServiceClient) Generate(ctx context.Context, req *connect_go.Request[gen.GenerateRequest]) (*connect_go.Response[gen.GenerateResponse], error) {
 	return c.generate.CallUnary(ctx, req)
 }
@@ -137,7 +137,7 @@ func NewGenerateServiceHandler(svc GenerateServiceHandler, opts ...connect_go.Ha
 type UnimplementedGenerateServiceHandler struct{}
 
 func (UnimplementedGenerateServiceHandler) Generate(context.Context, *connect_go.Request[gen.GenerateRequest]) (*connect_go.Response[gen.GenerateResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("generate.GenerateService.GenerateGRPCService is not implemented"))
+	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("generate.GenerateService.Generate is not implemented"))
 }
 
 func (UnimplementedGenerateServiceHandler) GenerateImplementation(context.Context, *connect_go.Request[gen.GenerateImplementationRequest]) (*connect_go.Response[gen.GenerateImplementationResponse], error) {
