@@ -39,12 +39,12 @@ func SetInterfaceField(obj any, fieldName string, newValue any) error {
 		return nil
 	}
 
-	// check if the object is a pointer
+	// not if the object is a pointer
 	if objType.Kind() != reflect.Ptr {
 		return fmt.Errorf("input object must be a pointer")
 	}
 
-	// get the underlying value of the pointer and check if it is a struct
+	// get the underlying value of the pointer and not if it is a struct
 	s := objValue.Elem()
 	if s.Kind() != reflect.Struct {
 		return fmt.Errorf("input object must point to a struct")
@@ -56,7 +56,7 @@ func SetInterfaceField(obj any, fieldName string, newValue any) error {
 		return fmt.Errorf("field %s not found", fieldName)
 	}
 
-	// check if the field is an interface
+	// not if the field is an interface
 	if field.Type().Kind() != reflect.Interface {
 		return fmt.Errorf("field %s is not an interface", fieldName)
 	}

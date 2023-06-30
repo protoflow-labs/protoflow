@@ -184,6 +184,9 @@ func (s *Service) GetNodeInfo(ctx context.Context, c *connect.Request[gen.GetNod
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get node info for node %s", c.Msg.NodeId)
 	}
+	if nodeInfo == nil {
+		return nil, errors.Errorf("node %s has no info", c.Msg.NodeId)
+	}
 	typeInfo, err := nodeInfo.Method.Proto()
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get proto for node %s", c.Msg.NodeId)

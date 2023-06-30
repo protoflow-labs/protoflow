@@ -142,7 +142,8 @@ func (m *MethodDescriptor) buildTypeLookup(msgDesc protoreflect.MessageDescripto
 				for j := 0; j < oneOfFields.Len(); j++ {
 					c := oneOfFields.Get(j)
 					// TODO breadchris replace with m.FileBuilder.GetMessage
-					if _, ok := m.DescLookup[lookupName]; ok {
+					msgName := string(c.Message().FullName())
+					if _, ok := m.DescLookup[msgName]; ok {
 						continue
 					}
 					msgs = append(msgs, c.Message())
@@ -151,7 +152,8 @@ func (m *MethodDescriptor) buildTypeLookup(msgDesc protoreflect.MessageDescripto
 				switch f.Kind() {
 				case protoreflect.MessageKind:
 					// TODO breadchris replace with m.FileBuilder.GetMessage
-					if _, ok := m.DescLookup[lookupName]; ok {
+					msgName := string(f.Message().FullName())
+					if _, ok := m.DescLookup[msgName]; ok {
 						continue
 					}
 					msgs = append(msgs, f.Message())

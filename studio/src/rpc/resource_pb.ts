@@ -4,7 +4,7 @@
 // @ts-nocheck
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
-import { Message, proto3 } from "@bufbuild/protobuf";
+import { DescriptorProto, Message, proto3 } from "@bufbuild/protobuf";
 
 /**
  * @generated from enum resource.Runtime
@@ -47,38 +47,55 @@ export class Resource extends Message<Resource> {
   name = "";
 
   /**
+   * @generated from field: repeated resource.Resource dependencies = 3;
+   */
+  dependencies: Resource[] = [];
+
+  /**
    * @generated from oneof resource.Resource.type
    */
   type: {
     /**
-     * @generated from field: resource.GRPCService grpc_service = 3;
+     * @generated from field: resource.GRPCService grpc_service = 4;
      */
     value: GRPCService;
     case: "grpcService";
   } | {
     /**
-     * @generated from field: resource.RESTService rest_service = 4;
+     * @generated from field: resource.RESTService rest_service = 5;
      */
     value: RESTService;
     case: "restService";
   } | {
     /**
-     * @generated from field: resource.Docstore docstore = 5;
+     * @generated from field: resource.DocStore doc_store = 6;
      */
-    value: Docstore;
-    case: "docstore";
+    value: DocStore;
+    case: "docStore";
   } | {
     /**
-     * @generated from field: resource.Blobstore blobstore = 6;
+     * @generated from field: resource.FileStore file_store = 7;
      */
-    value: Blobstore;
-    case: "blobstore";
+    value: FileStore;
+    case: "fileStore";
   } | {
     /**
-     * @generated from field: resource.LanguageService language_service = 7;
+     * @generated from field: resource.LanguageService language_service = 8;
      */
     value: LanguageService;
     case: "languageService";
+  } | {
+    /**
+     * @generated from field: resource.RuntimeConfig runtime_config = 9;
+     */
+    value: RuntimeConfig;
+    case: "runtimeConfig";
+  } | {
+    /**
+     * @generated from field: resource.SecretStore secret_store = 10;
+     */
+    value: SecretStore;
+    case: "secretStore";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<Resource>) {
@@ -91,11 +108,14 @@ export class Resource extends Message<Resource> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 3, name: "grpc_service", kind: "message", T: GRPCService, oneof: "type" },
-    { no: 4, name: "rest_service", kind: "message", T: RESTService, oneof: "type" },
-    { no: 5, name: "docstore", kind: "message", T: Docstore, oneof: "type" },
-    { no: 6, name: "blobstore", kind: "message", T: Blobstore, oneof: "type" },
-    { no: 7, name: "language_service", kind: "message", T: LanguageService, oneof: "type" },
+    { no: 3, name: "dependencies", kind: "message", T: Resource, repeated: true },
+    { no: 4, name: "grpc_service", kind: "message", T: GRPCService, oneof: "type" },
+    { no: 5, name: "rest_service", kind: "message", T: RESTService, oneof: "type" },
+    { no: 6, name: "doc_store", kind: "message", T: DocStore, oneof: "type" },
+    { no: 7, name: "file_store", kind: "message", T: FileStore, oneof: "type" },
+    { no: 8, name: "language_service", kind: "message", T: LanguageService, oneof: "type" },
+    { no: 9, name: "runtime_config", kind: "message", T: RuntimeConfig, oneof: "type" },
+    { no: 10, name: "secret_store", kind: "message", T: SecretStore, oneof: "type" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Resource {
@@ -116,6 +136,129 @@ export class Resource extends Message<Resource> {
 }
 
 /**
+ * @generated from message resource.SecretStore
+ */
+export class SecretStore extends Message<SecretStore> {
+  /**
+   * @generated from field: string url = 1;
+   */
+  url = "";
+
+  constructor(data?: PartialMessage<SecretStore>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "resource.SecretStore";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "url", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SecretStore {
+    return new SecretStore().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SecretStore {
+    return new SecretStore().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SecretStore {
+    return new SecretStore().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: SecretStore | PlainMessage<SecretStore> | undefined, b: SecretStore | PlainMessage<SecretStore> | undefined): boolean {
+    return proto3.util.equals(SecretStore, a, b);
+  }
+}
+
+/**
+ * @generated from message resource.RuntimeConfig
+ */
+export class RuntimeConfig extends Message<RuntimeConfig> {
+  /**
+   * @generated from field: google.protobuf.DescriptorProto config_type = 1;
+   */
+  configType?: DescriptorProto;
+
+  /**
+   * @generated from field: string config = 2;
+   */
+  config = "";
+
+  constructor(data?: PartialMessage<RuntimeConfig>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "resource.RuntimeConfig";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "config_type", kind: "message", T: DescriptorProto },
+    { no: 2, name: "config", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): RuntimeConfig {
+    return new RuntimeConfig().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): RuntimeConfig {
+    return new RuntimeConfig().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): RuntimeConfig {
+    return new RuntimeConfig().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: RuntimeConfig | PlainMessage<RuntimeConfig> | undefined, b: RuntimeConfig | PlainMessage<RuntimeConfig> | undefined): boolean {
+    return proto3.util.equals(RuntimeConfig, a, b);
+  }
+}
+
+/**
+ * @generated from message resource.CodeConfig
+ */
+export class CodeConfig extends Message<CodeConfig> {
+  /**
+   * @generated from field: string path = 1;
+   */
+  path = "";
+
+  /**
+   * @generated from field: string containerURI = 2;
+   */
+  containerURI = "";
+
+  constructor(data?: PartialMessage<CodeConfig>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "resource.CodeConfig";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "path", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "containerURI", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CodeConfig {
+    return new CodeConfig().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): CodeConfig {
+    return new CodeConfig().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): CodeConfig {
+    return new CodeConfig().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: CodeConfig | PlainMessage<CodeConfig> | undefined, b: CodeConfig | PlainMessage<CodeConfig> | undefined): boolean {
+    return proto3.util.equals(CodeConfig, a, b);
+  }
+}
+
+/**
  * @generated from message resource.LanguageService
  */
 export class LanguageService extends Message<LanguageService> {
@@ -129,6 +272,11 @@ export class LanguageService extends Message<LanguageService> {
    */
   grpc?: GRPCService;
 
+  /**
+   * @generated from field: resource.CodeConfig code_config = 3;
+   */
+  codeConfig?: CodeConfig;
+
   constructor(data?: PartialMessage<LanguageService>) {
     super();
     proto3.util.initPartial(data, this);
@@ -139,6 +287,7 @@ export class LanguageService extends Message<LanguageService> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "runtime", kind: "enum", T: proto3.getEnumType(Runtime) },
     { no: 2, name: "grpc", kind: "message", T: GRPCService },
+    { no: 3, name: "code_config", kind: "message", T: CodeConfig },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): LanguageService {
@@ -233,76 +382,76 @@ export class RESTService extends Message<RESTService> {
 }
 
 /**
- * @generated from message resource.Docstore
+ * @generated from message resource.DocStore
  */
-export class Docstore extends Message<Docstore> {
+export class DocStore extends Message<DocStore> {
   /**
    * @generated from field: string url = 1;
    */
   url = "";
 
-  constructor(data?: PartialMessage<Docstore>) {
+  constructor(data?: PartialMessage<DocStore>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "resource.Docstore";
+  static readonly typeName = "resource.DocStore";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "url", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Docstore {
-    return new Docstore().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DocStore {
+    return new DocStore().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Docstore {
-    return new Docstore().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): DocStore {
+    return new DocStore().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Docstore {
-    return new Docstore().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): DocStore {
+    return new DocStore().fromJsonString(jsonString, options);
   }
 
-  static equals(a: Docstore | PlainMessage<Docstore> | undefined, b: Docstore | PlainMessage<Docstore> | undefined): boolean {
-    return proto3.util.equals(Docstore, a, b);
+  static equals(a: DocStore | PlainMessage<DocStore> | undefined, b: DocStore | PlainMessage<DocStore> | undefined): boolean {
+    return proto3.util.equals(DocStore, a, b);
   }
 }
 
 /**
- * @generated from message resource.Blobstore
+ * @generated from message resource.FileStore
  */
-export class Blobstore extends Message<Blobstore> {
+export class FileStore extends Message<FileStore> {
   /**
    * @generated from field: string url = 1;
    */
   url = "";
 
-  constructor(data?: PartialMessage<Blobstore>) {
+  constructor(data?: PartialMessage<FileStore>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "resource.Blobstore";
+  static readonly typeName = "resource.FileStore";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "url", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Blobstore {
-    return new Blobstore().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): FileStore {
+    return new FileStore().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Blobstore {
-    return new Blobstore().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): FileStore {
+    return new FileStore().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Blobstore {
-    return new Blobstore().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): FileStore {
+    return new FileStore().fromJsonString(jsonString, options);
   }
 
-  static equals(a: Blobstore | PlainMessage<Blobstore> | undefined, b: Blobstore | PlainMessage<Blobstore> | undefined): boolean {
-    return proto3.util.equals(Blobstore, a, b);
+  static equals(a: FileStore | PlainMessage<FileStore> | undefined, b: FileStore | PlainMessage<FileStore> | undefined): boolean {
+    return proto3.util.equals(FileStore, a, b);
   }
 }
 

@@ -114,23 +114,33 @@ type GenerateServiceHandler interface {
 // By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
 // and JSON codecs. They also support gzip compression.
 func NewGenerateServiceHandler(svc GenerateServiceHandler, opts ...connect_go.HandlerOption) (string, http.Handler) {
-	mux := http.NewServeMux()
-	mux.Handle(GenerateServiceGenerateProcedure, connect_go.NewUnaryHandler(
+	generateServiceGenerateHandler := connect_go.NewUnaryHandler(
 		GenerateServiceGenerateProcedure,
 		svc.Generate,
 		opts...,
-	))
-	mux.Handle(GenerateServiceGenerateImplementationProcedure, connect_go.NewUnaryHandler(
+	)
+	generateServiceGenerateImplementationHandler := connect_go.NewUnaryHandler(
 		GenerateServiceGenerateImplementationProcedure,
 		svc.GenerateImplementation,
 		opts...,
-	))
-	mux.Handle(GenerateServiceInferNodeTypeProcedure, connect_go.NewUnaryHandler(
+	)
+	generateServiceInferNodeTypeHandler := connect_go.NewUnaryHandler(
 		GenerateServiceInferNodeTypeProcedure,
 		svc.InferNodeType,
 		opts...,
-	))
-	return "/generate.GenerateService/", mux
+	)
+	return "/generate.GenerateService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case GenerateServiceGenerateProcedure:
+			generateServiceGenerateHandler.ServeHTTP(w, r)
+		case GenerateServiceGenerateImplementationProcedure:
+			generateServiceGenerateImplementationHandler.ServeHTTP(w, r)
+		case GenerateServiceInferNodeTypeProcedure:
+			generateServiceInferNodeTypeHandler.ServeHTTP(w, r)
+		default:
+			http.NotFound(w, r)
+		}
+	})
 }
 
 // UnimplementedGenerateServiceHandler returns CodeUnimplemented from all methods.

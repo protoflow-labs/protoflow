@@ -8,22 +8,22 @@ import (
 	"gocloud.dev/blob"
 )
 
-type BlobstoreResource struct {
+type FileStoreResource struct {
 	*BaseResource
-	*gen.Blobstore
+	*gen.FileStore
 }
 
-var _ Resource = &BlobstoreResource{}
+var _ Resource = &FileStoreResource{}
 
-func (r *BlobstoreResource) Name() string {
+func (r *FileStoreResource) Name() string {
 	return BlobstoreResourceType
 }
 
-func (r *BlobstoreResource) Init() (func(), error) {
+func (r *FileStoreResource) Init() (func(), error) {
 	return nil, nil
 }
 
-func (r *BlobstoreResource) WithPath(path string) (*blob.Bucket, func(), error) {
+func (r *FileStoreResource) WithPath(path string) (*blob.Bucket, func(), error) {
 	// remove leading slash
 	if path[0] == '/' {
 		path = path[1:]

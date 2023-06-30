@@ -31,7 +31,7 @@ func TestBlobstoreResource_Init(t *testing.T) {
 	// 	t.Fatal("expected error")
 	// }
 
-	// resource, err := getResource[BlobstoreResource](resources)
+	// resource, err := getResource[FileStoreResource](resources)
 	// if err != nil {
 	// 	t.Fatal(err)
 	// }

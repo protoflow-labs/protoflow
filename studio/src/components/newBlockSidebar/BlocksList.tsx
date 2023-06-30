@@ -35,13 +35,13 @@ function resourceToNode(res: Resource, name: string) {
         })
       }
       break;
-    case 'docstore':
+    case 'docStore':
       baseNode.config = {
         case: 'collection',
         value: new Collection({})
       }
       break;
-    case 'blobstore':
+    case 'fileStore':
       baseNode.config = {
         case: 'bucket',
         value: new Bucket({})

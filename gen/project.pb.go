@@ -345,6 +345,7 @@ func (x *GetNodeInfoRequest) GetNodeId() string {
 	return ""
 }
 
+// TODO breadchris a file desc contains all this information it would be simpler to use
 type GRPCTypeInfo struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache

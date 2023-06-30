@@ -25,7 +25,7 @@ function maybe_sudo() {
     fi
 }
 
-# check for curl
+# not for curl
 hasCurl=$(which curl 2>/dev/null)
 if [ "$?" = "1" ]; then
     die "You need to install curl to use this script."
@@ -63,7 +63,7 @@ log NOTE: Install a specific version of the CLI by using VERSION variable
 log "curl -L https://raw.githubusercontent.com/$owner/$repo/$version/scripts/install.sh | VERSION=$version bash"
 log "${NC}"
 
-# check for existing installation
+# not for existing installation
 hasCli=$(which $repo 2>/dev/null)
 if [ "$?" = "0" ]; then
     log ""
@@ -111,7 +111,7 @@ try chmod +x $targetFile
 
 log "${GREEN}Download complete!${NC}"
 
-# check for sudo
+# not for sudo
 needSudo=$(mkdir -p ${INSTALL_PATH} && touch ${INSTALL_PATH}/.${repo}install &> /dev/null)
 if [[ "$?" == "1" ]]; then
     NEED_SUDO=1

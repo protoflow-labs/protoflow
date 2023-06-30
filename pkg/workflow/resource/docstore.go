@@ -15,7 +15,7 @@ import (
 
 type DocstoreResource struct {
 	*BaseResource
-	*gen.Docstore
+	*gen.DocStore
 }
 
 var _ Resource = &DocstoreResource{}

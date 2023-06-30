@@ -16,6 +16,12 @@ const (
 	LanguageServiceType   = "language"
 )
 
+type DeploymentInfo struct {
+	ContainerURI string
+	Ports        []int
+	Volumes      []string
+}
+
 type Resource interface {
 	Init() (func(), error)
 	Name() string
@@ -23,6 +29,7 @@ type Resource interface {
 	AddNode(n node.Node)
 	Nodes() []node.Node
 	Info(n node.Node) (*node.Info, error)
+	//DeploymentInfo() (*DeploymentInfo, error)
 }
 
 type BaseResource struct {
@@ -72,15 +79,15 @@ func FromProto(r *gen.Resource) (Resource, error) {
 			BaseResource: base,
 			GRPCService:  t.GrpcService,
 		}, nil
-	case *gen.Resource_Docstore:
+	case *gen.Resource_DocStore:
 		return &DocstoreResource{
 			BaseResource: base,
-			Docstore:     t.Docstore,
+			DocStore:     t.DocStore,
 		}, nil
-	case *gen.Resource_Blobstore:
-		return &BlobstoreResource{
+	case *gen.Resource_FileStore:
+		return &FileStoreResource{
 			BaseResource: base,
-			Blobstore:    t.Blobstore,
+			FileStore:    t.FileStore,
 		}, nil
 	default:
 		return nil, fmt.Errorf("no resource found with type: %s", t)

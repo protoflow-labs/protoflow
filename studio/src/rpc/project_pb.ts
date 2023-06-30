@@ -250,6 +250,8 @@ export class GetNodeInfoRequest extends Message<GetNodeInfoRequest> {
 }
 
 /**
+ * TODO breadchris a file desc contains all this information it would be simpler to use
+ *
  * @generated from message project.GRPCTypeInfo
  */
 export class GRPCTypeInfo extends Message<GRPCTypeInfo> {

@@ -257,68 +257,96 @@ type ProjectServiceHandler interface {
 // By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
 // and JSON codecs. They also support gzip compression.
 func NewProjectServiceHandler(svc ProjectServiceHandler, opts ...connect_go.HandlerOption) (string, http.Handler) {
-	mux := http.NewServeMux()
-	mux.Handle(ProjectServiceGetProjectProcedure, connect_go.NewUnaryHandler(
+	projectServiceGetProjectHandler := connect_go.NewUnaryHandler(
 		ProjectServiceGetProjectProcedure,
 		svc.GetProject,
 		opts...,
-	))
-	mux.Handle(ProjectServiceGetProjectsProcedure, connect_go.NewUnaryHandler(
+	)
+	projectServiceGetProjectsHandler := connect_go.NewUnaryHandler(
 		ProjectServiceGetProjectsProcedure,
 		svc.GetProjects,
 		opts...,
-	))
-	mux.Handle(ProjectServiceCreateProjectProcedure, connect_go.NewUnaryHandler(
+	)
+	projectServiceCreateProjectHandler := connect_go.NewUnaryHandler(
 		ProjectServiceCreateProjectProcedure,
 		svc.CreateProject,
 		opts...,
-	))
-	mux.Handle(ProjectServiceDeleteProjectProcedure, connect_go.NewUnaryHandler(
+	)
+	projectServiceDeleteProjectHandler := connect_go.NewUnaryHandler(
 		ProjectServiceDeleteProjectProcedure,
 		svc.DeleteProject,
 		opts...,
-	))
-	mux.Handle(ProjectServiceGetResourcesProcedure, connect_go.NewUnaryHandler(
+	)
+	projectServiceGetResourcesHandler := connect_go.NewUnaryHandler(
 		ProjectServiceGetResourcesProcedure,
 		svc.GetResources,
 		opts...,
-	))
-	mux.Handle(ProjectServiceDeleteResourceProcedure, connect_go.NewUnaryHandler(
+	)
+	projectServiceDeleteResourceHandler := connect_go.NewUnaryHandler(
 		ProjectServiceDeleteResourceProcedure,
 		svc.DeleteResource,
 		opts...,
-	))
-	mux.Handle(ProjectServiceGetNodeInfoProcedure, connect_go.NewUnaryHandler(
+	)
+	projectServiceGetNodeInfoHandler := connect_go.NewUnaryHandler(
 		ProjectServiceGetNodeInfoProcedure,
 		svc.GetNodeInfo,
 		opts...,
-	))
-	mux.Handle(ProjectServiceSaveProjectProcedure, connect_go.NewUnaryHandler(
+	)
+	projectServiceSaveProjectHandler := connect_go.NewUnaryHandler(
 		ProjectServiceSaveProjectProcedure,
 		svc.SaveProject,
 		opts...,
-	))
-	mux.Handle(ProjectServiceCreateResourceProcedure, connect_go.NewUnaryHandler(
+	)
+	projectServiceCreateResourceHandler := connect_go.NewUnaryHandler(
 		ProjectServiceCreateResourceProcedure,
 		svc.CreateResource,
 		opts...,
-	))
-	mux.Handle(ProjectServiceRunWorklowProcedure, connect_go.NewUnaryHandler(
+	)
+	projectServiceRunWorklowHandler := connect_go.NewUnaryHandler(
 		ProjectServiceRunWorklowProcedure,
 		svc.RunWorklow,
 		opts...,
-	))
-	mux.Handle(ProjectServiceRunNodeProcedure, connect_go.NewUnaryHandler(
+	)
+	projectServiceRunNodeHandler := connect_go.NewUnaryHandler(
 		ProjectServiceRunNodeProcedure,
 		svc.RunNode,
 		opts...,
-	))
-	mux.Handle(ProjectServiceGetWorkflowRunsProcedure, connect_go.NewUnaryHandler(
+	)
+	projectServiceGetWorkflowRunsHandler := connect_go.NewUnaryHandler(
 		ProjectServiceGetWorkflowRunsProcedure,
 		svc.GetWorkflowRuns,
 		opts...,
-	))
-	return "/project.ProjectService/", mux
+	)
+	return "/project.ProjectService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case ProjectServiceGetProjectProcedure:
+			projectServiceGetProjectHandler.ServeHTTP(w, r)
+		case ProjectServiceGetProjectsProcedure:
+			projectServiceGetProjectsHandler.ServeHTTP(w, r)
+		case ProjectServiceCreateProjectProcedure:
+			projectServiceCreateProjectHandler.ServeHTTP(w, r)
+		case ProjectServiceDeleteProjectProcedure:
+			projectServiceDeleteProjectHandler.ServeHTTP(w, r)
+		case ProjectServiceGetResourcesProcedure:
+			projectServiceGetResourcesHandler.ServeHTTP(w, r)
+		case ProjectServiceDeleteResourceProcedure:
+			projectServiceDeleteResourceHandler.ServeHTTP(w, r)
+		case ProjectServiceGetNodeInfoProcedure:
+			projectServiceGetNodeInfoHandler.ServeHTTP(w, r)
+		case ProjectServiceSaveProjectProcedure:
+			projectServiceSaveProjectHandler.ServeHTTP(w, r)
+		case ProjectServiceCreateResourceProcedure:
+			projectServiceCreateResourceHandler.ServeHTTP(w, r)
+		case ProjectServiceRunWorklowProcedure:
+			projectServiceRunWorklowHandler.ServeHTTP(w, r)
+		case ProjectServiceRunNodeProcedure:
+			projectServiceRunNodeHandler.ServeHTTP(w, r)
+		case ProjectServiceGetWorkflowRunsProcedure:
+			projectServiceGetWorkflowRunsHandler.ServeHTTP(w, r)
+		default:
+			http.NotFound(w, r)
+		}
+	})
 }
 
 // UnimplementedProjectServiceHandler returns CodeUnimplemented from all methods.

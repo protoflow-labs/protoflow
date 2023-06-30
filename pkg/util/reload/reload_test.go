@@ -31,7 +31,7 @@ func TestWatcher(t *testing.T) {
 		t.Fatalf("watcher: %v", err)
 	}
 
-	// move directory into the target to check the subdirectories are watched.
+	// move directory into the target to not the subdirectories are watched.
 	if err := os.Rename(path.Join(tmpdir, "mv"), path.Join(tmpdir, "target", "mv")); err != nil {
 		t.Fatalf("Rename: %v", err)
 	}

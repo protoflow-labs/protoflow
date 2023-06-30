@@ -102,13 +102,43 @@ func (w *Workflow) GetNodeInfo(n worknode.Node) (*worknode.Info, error) {
 			}
 			return w.GetNodeInfo(n)
 		}
+	case *worknode.BucketNode:
+		// TODO breadchris how do you handle file permissions?
+		reqMsg := builder.NewMessage("Request")
+		reqMsg = reqMsg.AddField(builder.NewField("path", builder.FieldTypeString()))
+		reqMsg = reqMsg.AddField(builder.NewField("data", builder.FieldTypeBytes()))
+		req := builder.RpcTypeMessage(reqMsg, true)
+
+		resMsg := builder.NewMessage("Response")
+		resMsg = resMsg.AddField(builder.NewField("path", builder.FieldTypeString()))
+		// TODO breadchris what does this type mean if it streaming or not? sync vs async?
+		res := builder.RpcTypeMessage(resMsg, false)
+
+		s := builder.NewService("Service")
+		b := builder.NewMethod(n.NormalizedName(), req, res)
+		s.AddMethod(b)
+
+		m, err := b.Build()
+		if err != nil {
+			return nil, err
+		}
+
+		mthd, err := grpc.NewMethodDescriptor(m.UnwrapMethod())
+		if err != nil {
+			return nil, err
+		}
+		resp = &worknode.Info{
+			Method: mthd,
+		}
 	case *worknode.FunctionNode:
 		children := w.AdjMap[n.ID()]
 		parents := w.PreMap[n.ID()]
 
 		var (
-			childInputs   []protoreflect.MessageDescriptor
-			parentOutputs []protoreflect.MessageDescriptor
+			childInputs     []protoreflect.MessageDescriptor
+			parentOutputs   []protoreflect.MessageDescriptor
+			streamingChild  bool
+			streamingParent bool
 		)
 
 		for child := range children {
@@ -119,6 +149,9 @@ func (w *Workflow) GetNodeInfo(n worknode.Node) (*worknode.Info, error) {
 			childType, err := w.GetNodeInfo(n)
 			if err != nil {
 				return nil, err
+			}
+			if childType.Method.MethodDesc.IsStreamingClient() {
+				streamingChild = true
 			}
 			childInputs = append(childInputs, childType.Method.MethodDesc.Input())
 		}
@@ -131,9 +164,12 @@ func (w *Workflow) GetNodeInfo(n worknode.Node) (*worknode.Info, error) {
 			if err != nil {
 				return nil, err
 			}
+			if parentType.Method.MethodDesc.IsStreamingServer() {
+				streamingParent = true
+			}
 			parentOutputs = append(parentOutputs, parentType.Method.MethodDesc.Output())
 		}
-		intputType, err := messageFromTypes(n.NormalizedName()+"Request", parentOutputs)
+		inputType, err := messageFromTypes(n.NormalizedName()+"Request", parentOutputs)
 		if err != nil {
 			return nil, errors.Wrapf(err, "error building request message for %s", n.NormalizedName())
 		}
@@ -142,9 +178,8 @@ func (w *Workflow) GetNodeInfo(n worknode.Node) (*worknode.Info, error) {
 			return nil, errors.Wrapf(err, "error building response message for %s", n.NormalizedName())
 		}
 
-		// TODO breadchris how can we determine if the req/res are streaming?
-		req := builder.RpcTypeImportedMessage(intputType, false)
-		res := builder.RpcTypeImportedMessage(outputType, false)
+		req := builder.RpcTypeImportedMessage(inputType, streamingParent)
+		res := builder.RpcTypeImportedMessage(outputType, streamingChild)
 
 		// TODO breadchris this is a hack to get the name of the function
 		s := builder.NewService("Service")
@@ -211,7 +246,7 @@ func FromProject(project *gen.Project) (*Workflow, error) {
 		if r != nil {
 			r.AddNode(builtNode)
 		} else {
-			log.Warn().Msgf("no resource found for node %s", node.Id)
+			log.Warn().Str("node", builtNode.NormalizedName()).Msg("no resource found for node")
 		}
 	}
 

@@ -213,7 +213,7 @@ func (a *Activity) ExecuteBucketNode(ctx context.Context, n node.Node, input Inp
 	if !ok {
 		return Output{}, fmt.Errorf("error getting Collection resource: %s", gn.Name)
 	}
-	bucket, ok := input.Resource.(*resource.BlobstoreResource)
+	bucket, ok := input.Resource.(*resource.FileStoreResource)
 	if !ok {
 		return Output{}, fmt.Errorf("error getting blobstore resource: %s", gn.Bucket.Path)
 	}

@@ -19,6 +19,7 @@ func getDefaultProject(name string, bucketDir string) gen.Project {
 					},
 				},
 			},
+			// TODO breadchris programmatically add resources such as language services
 			{
 				Id:   uuid.NewString(),
 				Name: "js",
@@ -33,18 +34,18 @@ func getDefaultProject(name string, bucketDir string) gen.Project {
 			},
 			{
 				Id:   uuid.NewString(),
-				Name: "docs",
-				Type: &gen.Resource_Docstore{
-					Docstore: &gen.Docstore{
+				Name: "doc store",
+				Type: &gen.Resource_DocStore{
+					DocStore: &gen.DocStore{
 						Url: "mem://",
 					},
 				},
 			},
 			{
 				Id:   uuid.NewString(),
-				Name: "bucket",
-				Type: &gen.Resource_Blobstore{
-					Blobstore: &gen.Blobstore{
+				Name: "file store",
+				Type: &gen.Resource_FileStore{
+					FileStore: &gen.FileStore{
 						Url: "file://" + bucketDir,
 					},
 				},
