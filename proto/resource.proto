@@ -24,7 +24,11 @@ message Resource {
     LanguageService language_service = 8;
     RuntimeConfig runtime_config = 9;
     SecretStore secret_store = 10;
+    ReasoningEngine reasoning_engine = 11;
   }
+}
+
+message ReasoningEngine {
 }
 
 message SecretStore {

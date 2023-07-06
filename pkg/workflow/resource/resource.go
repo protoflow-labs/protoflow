@@ -9,13 +9,6 @@ import (
 	_ "gocloud.dev/docstore/memdocstore"
 )
 
-const (
-	GRPCResourceType      = "grpc"
-	DocstoreResourceType  = "docstore"
-	BlobstoreResourceType = "blobstore"
-	LanguageServiceType   = "language"
-)
-
 type DeploymentInfo struct {
 	ContainerURI string
 	Ports        []int
@@ -24,7 +17,6 @@ type DeploymentInfo struct {
 
 type Resource interface {
 	Init() (func(), error)
-	Name() string
 	ID() string
 	AddNode(n node.Node)
 	Nodes() []node.Node
@@ -88,6 +80,11 @@ func FromProto(r *gen.Resource) (Resource, error) {
 		return &FileStoreResource{
 			BaseResource: base,
 			FileStore:    t.FileStore,
+		}, nil
+	case *gen.Resource_ReasoningEngine:
+		return &ReasoningEngineResource{
+			BaseResource:    base,
+			ReasoningEngine: t.ReasoningEngine,
 		}, nil
 	default:
 		return nil, fmt.Errorf("no resource found with type: %s", t)

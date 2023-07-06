@@ -29,6 +29,10 @@ message Query {
   string collection = 1;
 }
 
+message Prompt {
+  string prompt = 3;
+}
+
 message Result {
   bytes data = 1;
 }

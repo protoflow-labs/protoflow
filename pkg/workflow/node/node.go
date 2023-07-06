@@ -80,6 +80,13 @@ type QueryNode struct {
 	Query *gen.Query
 }
 
+type PromptNode struct {
+	BaseNode
+	Prompt *gen.Prompt
+}
+
+var _ Node = &PromptNode{}
+
 func NewNode(node *gen.Node) (Node, error) {
 	switch node.Config.(type) {
 	case *gen.Node_Grpc:
@@ -96,6 +103,8 @@ func NewNode(node *gen.Node) (Node, error) {
 		return NewFunctionNode(node), nil
 	case *gen.Node_Query:
 		return NewQueryNode(node), nil
+	case *gen.Node_Prompt:
+		return NewPromptNode(node), nil
 	default:
 		return nil, errors.New("no node found")
 	}
@@ -107,6 +116,13 @@ func NewBaseNode(node *gen.Node) BaseNode {
 		Name:       util.ToTitleCase(node.Name),
 		id:         node.Id,
 		resourceID: node.ResourceId,
+	}
+}
+
+func NewPromptNode(node *gen.Node) *PromptNode {
+	return &PromptNode{
+		BaseNode: NewBaseNode(node),
+		Prompt:   node.GetPrompt(),
 	}
 }
 

@@ -20,10 +20,6 @@ type DocstoreResource struct {
 
 var _ Resource = &DocstoreResource{}
 
-func (r *DocstoreResource) Name() string {
-	return DocstoreResourceType
-}
-
 func (r *DocstoreResource) Init() (func(), error) {
 	return nil, nil
 }

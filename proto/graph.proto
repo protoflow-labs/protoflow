@@ -30,6 +30,7 @@ message Node {
     block.Input input = 11;
     block.Function function = 12;
     block.Query query = 13;
+    block.Prompt prompt = 14;
   }
 }
 

@@ -8,7 +8,7 @@ import {
   Tooltip
 } from "@fluentui/react-components";
 import { useProjectContext } from "@/providers/ProjectProvider";
-import {GRPC, Function, Input, Collection, Bucket} from "@/rpc/block_pb";
+import {GRPC, Function, Input, Collection, Bucket, Prompt} from "@/rpc/block_pb";
 import {Node} from "@/rpc/graph_pb";
 import {Resource} from "@/rpc/resource_pb";
 import {NodeButton} from "@/components/newBlockSidebar/NodeButton";
@@ -47,10 +47,13 @@ function resourceToNode(res: Resource, name: string) {
         value: new Bucket({})
       }
       break;
+    case 'reasoningEngine':
+        baseNode.config = {
+          case: 'prompt',
+          value: new Prompt({})
+        }
     default:
       return null;
-
-
   }
   return baseNode;
 }

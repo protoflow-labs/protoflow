@@ -146,11 +146,6 @@ export class Resource extends Message<Resource> {
  * @generated from message resource.ReasoningEngine
  */
 export class ReasoningEngine extends Message<ReasoningEngine> {
-  /**
-   * @generated from field: string url = 1;
-   */
-  url = "";
-
   constructor(data?: PartialMessage<ReasoningEngine>) {
     super();
     proto3.util.initPartial(data, this);
@@ -159,7 +154,6 @@ export class ReasoningEngine extends Message<ReasoningEngine> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "resource.ReasoningEngine";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "url", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ReasoningEngine {

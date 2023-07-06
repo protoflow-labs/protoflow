@@ -15,10 +15,6 @@ type FileStoreResource struct {
 
 var _ Resource = &FileStoreResource{}
 
-func (r *FileStoreResource) Name() string {
-	return BlobstoreResourceType
-}
-
 func (r *FileStoreResource) Init() (func(), error) {
 	return nil, nil
 }

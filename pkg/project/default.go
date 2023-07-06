@@ -50,6 +50,13 @@ func getDefaultProject(name string, bucketDir string) gen.Project {
 					},
 				},
 			},
+			{
+				Id:   uuid.NewString(),
+				Name: "openai",
+				Type: &gen.Resource_ReasoningEngine{
+					ReasoningEngine: &gen.ReasoningEngine{},
+				},
+			},
 		},
 	}
 }

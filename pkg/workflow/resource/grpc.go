@@ -16,10 +16,6 @@ type GRPCResource struct {
 	*gen.GRPCService
 }
 
-func (r *GRPCResource) Name() string {
-	return GRPCResourceType
-}
-
 func (r *GRPCResource) Init() (func(), error) {
 	// TODO breadchris this is a hack to get the grpc server running, this is not ideal
 	if !strings.HasPrefix(r.Host, "http://") {

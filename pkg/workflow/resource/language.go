@@ -16,10 +16,6 @@ type LanguageServiceResource struct {
 	*GRPCResource
 }
 
-func (r *LanguageServiceResource) Name() string {
-	return LanguageServiceType
-}
-
 func (r *LanguageServiceResource) Init() (func(), error) {
 	return r.GRPCResource.Init()
 }

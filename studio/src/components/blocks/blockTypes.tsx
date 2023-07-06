@@ -60,4 +60,9 @@ export const blockTypes: BlockType[] = [
         typeName:'rest',
         image: <MdHttp className="h-5 w-5 bg-gray-800" />
     },
+    {
+        label: "Prompt",
+        typeName: 'prompt',
+        image: <MdLightbulb className="h-5 w-5 bg-gray-800" />
+    }
     ]
