@@ -48,10 +48,11 @@ function resourceToNode(res: Resource, name: string) {
       }
       break;
     case 'reasoningEngine':
-        baseNode.config = {
-          case: 'prompt',
-          value: new Prompt({})
-        }
+      baseNode.config = {
+        case: 'prompt',
+        value: new Prompt({})
+      }
+      break;
     default:
       return null;
   }
