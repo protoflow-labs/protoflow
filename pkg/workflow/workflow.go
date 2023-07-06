@@ -141,11 +141,23 @@ func (w *Workflow) GetNodeInfo(n worknode.Node) (*worknode.Info, error) {
 			streamingParent bool
 		)
 
+		// TODO breadchris if two function nodes are connected, you can't infer the type
+		// make sure an infinite loop doesn't happen
 		for child := range children {
 			n, err := w.GetNode(child)
 			if err != nil {
 				return nil, errors.Errorf("node %s not found", child)
 			}
+
+			switch n.(type) {
+			case *worknode.FunctionNode:
+				log.Warn().
+					Str("parent", n.ID()).
+					Str("child", child).
+					Msg("function node connected to function node not supported yet")
+				continue
+			}
+
 			childType, err := w.GetNodeInfo(n)
 			if err != nil {
 				return nil, err
@@ -160,6 +172,16 @@ func (w *Workflow) GetNodeInfo(n worknode.Node) (*worknode.Info, error) {
 			if err != nil {
 				return nil, errors.Errorf("node %s not found", parent)
 			}
+
+			switch n.(type) {
+			case *worknode.FunctionNode:
+				log.Warn().
+					Str("parent", parent).
+					Str("child", n.ID()).
+					Msg("function node connected to function node not supported yet")
+				continue
+			}
+
 			parentType, err := w.GetNodeInfo(n)
 			if err != nil {
 				return nil, err
@@ -246,6 +268,7 @@ func FromProject(project *gen.Project) (*Workflow, error) {
 		if r != nil {
 			r.AddNode(builtNode)
 		} else {
+			// TODO breadchris inputs do not have resources, but should they?
 			log.Warn().Str("node", builtNode.NormalizedName()).Msg("no resource found for node")
 		}
 	}

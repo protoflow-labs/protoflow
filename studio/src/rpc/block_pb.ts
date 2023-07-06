@@ -229,6 +229,43 @@ export class Query extends Message<Query> {
 }
 
 /**
+ * @generated from message block.Prompt
+ */
+export class Prompt extends Message<Prompt> {
+  /**
+   * @generated from field: string prompt = 3;
+   */
+  prompt = "";
+
+  constructor(data?: PartialMessage<Prompt>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "block.Prompt";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 3, name: "prompt", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Prompt {
+    return new Prompt().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Prompt {
+    return new Prompt().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Prompt {
+    return new Prompt().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: Prompt | PlainMessage<Prompt> | undefined, b: Prompt | PlainMessage<Prompt> | undefined): boolean {
+    return proto3.util.equals(Prompt, a, b);
+  }
+}
+
+/**
  * @generated from message block.Result
  */
 export class Result extends Message<Result> {

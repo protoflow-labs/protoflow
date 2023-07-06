@@ -33,6 +33,8 @@ const (
 // reflection-formatted method names, remove the leading slash and convert the remaining slash to a
 // period.
 const (
+	// ProjectServiceSendChatProcedure is the fully-qualified name of the ProjectService's SendChat RPC.
+	ProjectServiceSendChatProcedure = "/project.ProjectService/SendChat"
 	// ProjectServiceGetProjectProcedure is the fully-qualified name of the ProjectService's GetProject
 	// RPC.
 	ProjectServiceGetProjectProcedure = "/project.ProjectService/GetProject"
@@ -72,6 +74,9 @@ const (
 
 // ProjectServiceClient is a client for the project.ProjectService service.
 type ProjectServiceClient interface {
+	// TODO breadchris unfortunately this is needed because of the buf fetch transport not supporting streaming
+	// the suggestion is to build a custom transport that uses websockets https://github.com/bufbuild/connect-es/issues/366
+	SendChat(context.Context, *connect_go.Request[gen.SendChatRequest]) (*connect_go.ServerStreamForClient[gen.SendChatResponse], error)
 	GetProject(context.Context, *connect_go.Request[gen.GetProjectRequest]) (*connect_go.Response[gen.GetProjectResponse], error)
 	GetProjects(context.Context, *connect_go.Request[gen.GetProjectsRequest]) (*connect_go.Response[gen.GetProjectsResponse], error)
 	CreateProject(context.Context, *connect_go.Request[gen.CreateProjectRequest]) (*connect_go.Response[gen.CreateProjectResponse], error)
@@ -96,6 +101,11 @@ type ProjectServiceClient interface {
 func NewProjectServiceClient(httpClient connect_go.HTTPClient, baseURL string, opts ...connect_go.ClientOption) ProjectServiceClient {
 	baseURL = strings.TrimRight(baseURL, "/")
 	return &projectServiceClient{
+		sendChat: connect_go.NewClient[gen.SendChatRequest, gen.SendChatResponse](
+			httpClient,
+			baseURL+ProjectServiceSendChatProcedure,
+			opts...,
+		),
 		getProject: connect_go.NewClient[gen.GetProjectRequest, gen.GetProjectResponse](
 			httpClient,
 			baseURL+ProjectServiceGetProjectProcedure,
@@ -161,6 +171,7 @@ func NewProjectServiceClient(httpClient connect_go.HTTPClient, baseURL string, o
 
 // projectServiceClient implements ProjectServiceClient.
 type projectServiceClient struct {
+	sendChat        *connect_go.Client[gen.SendChatRequest, gen.SendChatResponse]
 	getProject      *connect_go.Client[gen.GetProjectRequest, gen.GetProjectResponse]
 	getProjects     *connect_go.Client[gen.GetProjectsRequest, gen.GetProjectsResponse]
 	createProject   *connect_go.Client[gen.CreateProjectRequest, gen.CreateProjectResponse]
@@ -173,6 +184,11 @@ type projectServiceClient struct {
 	runWorklow      *connect_go.Client[gen.RunWorkflowRequest, gen.RunOutput]
 	runNode         *connect_go.Client[gen.RunNodeRequest, gen.RunOutput]
 	getWorkflowRuns *connect_go.Client[gen.GetWorkflowRunsRequest, gen.GetWorkflowRunsResponse]
+}
+
+// SendChat calls project.ProjectService.SendChat.
+func (c *projectServiceClient) SendChat(ctx context.Context, req *connect_go.Request[gen.SendChatRequest]) (*connect_go.ServerStreamForClient[gen.SendChatResponse], error) {
+	return c.sendChat.CallServerStream(ctx, req)
 }
 
 // GetProject calls project.ProjectService.GetProject.
@@ -237,6 +253,9 @@ func (c *projectServiceClient) GetWorkflowRuns(ctx context.Context, req *connect
 
 // ProjectServiceHandler is an implementation of the project.ProjectService service.
 type ProjectServiceHandler interface {
+	// TODO breadchris unfortunately this is needed because of the buf fetch transport not supporting streaming
+	// the suggestion is to build a custom transport that uses websockets https://github.com/bufbuild/connect-es/issues/366
+	SendChat(context.Context, *connect_go.Request[gen.SendChatRequest], *connect_go.ServerStream[gen.SendChatResponse]) error
 	GetProject(context.Context, *connect_go.Request[gen.GetProjectRequest]) (*connect_go.Response[gen.GetProjectResponse], error)
 	GetProjects(context.Context, *connect_go.Request[gen.GetProjectsRequest]) (*connect_go.Response[gen.GetProjectsResponse], error)
 	CreateProject(context.Context, *connect_go.Request[gen.CreateProjectRequest]) (*connect_go.Response[gen.CreateProjectResponse], error)
@@ -257,6 +276,11 @@ type ProjectServiceHandler interface {
 // By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
 // and JSON codecs. They also support gzip compression.
 func NewProjectServiceHandler(svc ProjectServiceHandler, opts ...connect_go.HandlerOption) (string, http.Handler) {
+	projectServiceSendChatHandler := connect_go.NewServerStreamHandler(
+		ProjectServiceSendChatProcedure,
+		svc.SendChat,
+		opts...,
+	)
 	projectServiceGetProjectHandler := connect_go.NewUnaryHandler(
 		ProjectServiceGetProjectProcedure,
 		svc.GetProject,
@@ -319,6 +343,8 @@ func NewProjectServiceHandler(svc ProjectServiceHandler, opts ...connect_go.Hand
 	)
 	return "/project.ProjectService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
+		case ProjectServiceSendChatProcedure:
+			projectServiceSendChatHandler.ServeHTTP(w, r)
 		case ProjectServiceGetProjectProcedure:
 			projectServiceGetProjectHandler.ServeHTTP(w, r)
 		case ProjectServiceGetProjectsProcedure:
@@ -351,6 +377,10 @@ func NewProjectServiceHandler(svc ProjectServiceHandler, opts ...connect_go.Hand
 
 // UnimplementedProjectServiceHandler returns CodeUnimplemented from all methods.
 type UnimplementedProjectServiceHandler struct{}
+
+func (UnimplementedProjectServiceHandler) SendChat(context.Context, *connect_go.Request[gen.SendChatRequest], *connect_go.ServerStream[gen.SendChatResponse]) error {
+	return connect_go.NewError(connect_go.CodeUnimplemented, errors.New("project.ProjectService.SendChat is not implemented"))
+}
 
 func (UnimplementedProjectServiceHandler) GetProject(context.Context, *connect_go.Request[gen.GetProjectRequest]) (*connect_go.Response[gen.GetProjectResponse], error) {
 	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("project.ProjectService.GetProject is not implemented"))

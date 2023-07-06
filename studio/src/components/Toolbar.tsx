@@ -23,7 +23,7 @@ import { useErrorBoundary } from "react-error-boundary";
 export function Toolbar() {
   const isApple = checkIsApple();
   const { project, runWorkflow } = useProjectContext();
-  const { save, props } = useEditorContext();
+  const { save, props, setMode } = useEditorContext();
   const { selectedNodes } = useSelectedNodes();
   const prevNodeLength = useRef(0);
   const [addResourceOpen, setAddResourceOpen] = useState(false);
@@ -76,6 +76,14 @@ export function Toolbar() {
     setAddResourceOpen(true);
   }
 
+  const onEditor = async () => {
+    setMode("editor");
+  }
+
+  const onChat = async () => {
+    setMode("chat");
+  }
+
   useEffect(() => {
     if (
       selectedNodes.length === 0 &&
@@ -111,11 +119,11 @@ export function Toolbar() {
         </MenuPopover>
       </Menu>
 
-      <Button appearance="subtle" size="small">
-        Edit
+      <Button appearance="subtle" size="small" onClick={onEditor}>
+       Editor
       </Button>
-      <Button appearance="subtle" size="small">
-        View
+      <Button appearance="subtle" size="small" onClick={onChat}>
+        Chat
       </Button>
       <Menu>
         <MenuTrigger disableButtonEnhancement>

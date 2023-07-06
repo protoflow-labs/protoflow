@@ -9,6 +9,10 @@ package project;
 option go_package = "project";
 
 service ProjectService {
+    // TODO breadchris unfortunately this is needed because of the buf fetch transport not supporting streaming
+    // the suggestion is to build a custom transport that uses websockets https://github.com/bufbuild/connect-es/issues/366
+    rpc SendChat(SendChatRequest) returns (stream SendChatResponse) {}
+
     rpc GetProject(GetProjectRequest) returns (GetProjectResponse) {}
     rpc GetProjects(GetProjectsRequest) returns (GetProjectsResponse) {}
     rpc CreateProject(CreateProjectRequest) returns (CreateProjectResponse) {}
@@ -27,6 +31,24 @@ service ProjectService {
     rpc RunNode(RunNodeRequest) returns (RunOutput) {}
 
     rpc GetWorkflowRuns(GetWorkflowRunsRequest) returns (GetWorkflowRunsResponse) {}
+}
+
+message Chat {
+    string id = 1;
+}
+
+message ChatMessage {
+    string role = 1;
+    string message = 2;
+}
+
+message SendChatRequest {
+    Chat chat = 1;
+    string message = 2;
+}
+
+message SendChatResponse {
+    string message = 1;
 }
 
 message GetWorkflowRunsRequest {

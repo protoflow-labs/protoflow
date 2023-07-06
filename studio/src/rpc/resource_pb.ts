@@ -96,6 +96,12 @@ export class Resource extends Message<Resource> {
      */
     value: SecretStore;
     case: "secretStore";
+  } | {
+    /**
+     * @generated from field: resource.ReasoningEngine reasoning_engine = 11;
+     */
+    value: ReasoningEngine;
+    case: "reasoningEngine";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<Resource>) {
@@ -116,6 +122,7 @@ export class Resource extends Message<Resource> {
     { no: 8, name: "language_service", kind: "message", T: LanguageService, oneof: "type" },
     { no: 9, name: "runtime_config", kind: "message", T: RuntimeConfig, oneof: "type" },
     { no: 10, name: "secret_store", kind: "message", T: SecretStore, oneof: "type" },
+    { no: 11, name: "reasoning_engine", kind: "message", T: ReasoningEngine, oneof: "type" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Resource {
@@ -132,6 +139,43 @@ export class Resource extends Message<Resource> {
 
   static equals(a: Resource | PlainMessage<Resource> | undefined, b: Resource | PlainMessage<Resource> | undefined): boolean {
     return proto3.util.equals(Resource, a, b);
+  }
+}
+
+/**
+ * @generated from message resource.ReasoningEngine
+ */
+export class ReasoningEngine extends Message<ReasoningEngine> {
+  /**
+   * @generated from field: string url = 1;
+   */
+  url = "";
+
+  constructor(data?: PartialMessage<ReasoningEngine>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "resource.ReasoningEngine";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "url", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ReasoningEngine {
+    return new ReasoningEngine().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ReasoningEngine {
+    return new ReasoningEngine().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ReasoningEngine {
+    return new ReasoningEngine().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ReasoningEngine | PlainMessage<ReasoningEngine> | undefined, b: ReasoningEngine | PlainMessage<ReasoningEngine> | undefined): boolean {
+    return proto3.util.equals(ReasoningEngine, a, b);
   }
 }
 

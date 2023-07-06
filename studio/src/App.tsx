@@ -12,8 +12,10 @@ import {AppRoutes} from "@/routes";
 import {BrowserRouter} from "react-router-dom";
 import {ErrorBoundary} from "react-error-boundary";
 import {FallbackError} from "@/components/FallbackError";
-import "bootstrap";
-import "bootstrap/dist/css/bootstrap.min.css";
+import "react-chat-elements/dist/main.css"
+import { initializeIcons } from '@fluentui/react/lib/Icons';
+
+initializeIcons();
 
 export default function App() {
   return (

@@ -3,7 +3,7 @@ import React, {useEffect, useState} from "react";
 import {EditorActions, useUnselect} from "../EditorActions";
 import {ProtoViewer} from "@/components/blockEditors/ProtoViewer";
 import {useNodeContext} from "@/providers/NodeProvider";
-import {GRPCInputForm, GRPCInputFormProps} from "@/components/inputForms/GRPCInputForm";
+import {ProtobufInputForm, GRPCInputFormProps} from "@/components/inputForms/ProtobufInputForm";
 import {useForm} from "react-hook-form";
 import {getNodeDataKey} from "@/providers/ProjectProvider";
 import {Node} from '@/rpc/graph_pb'
@@ -42,7 +42,7 @@ export function InputEditor({node}: { node: Node }) {
             fieldPath: nodeInfo?.typeInfo?.packageName || '',
         }
         return (
-            <GRPCInputForm {...inputFormProps} />
+            <ProtobufInputForm {...inputFormProps} />
         )
     }
 

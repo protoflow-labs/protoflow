@@ -3,6 +3,7 @@ package config
 import (
 	"github.com/protoflow-labs/protoflow/pkg/api"
 	"github.com/protoflow-labs/protoflow/pkg/generate"
+	"github.com/protoflow-labs/protoflow/pkg/openai"
 	"os"
 	"path"
 
@@ -27,6 +28,7 @@ type BaseConfig struct {
 	Temporal temporal.Config `yaml:"temporal"`
 	API      api.Config      `yaml:"api"`
 	Generate generate.Config `yaml:"generate"`
+	OpenAI   openai.Config   `yaml:"openai"`
 }
 
 func NewDefaultConfig() BaseConfig {
@@ -37,6 +39,7 @@ func NewDefaultConfig() BaseConfig {
 		Temporal: temporal.NewDefaultConfig(),
 		API:      api.NewDefaultConfig(studioProxy),
 		Generate: generate.NewDefaultConfig(),
+		OpenAI:   openai.NewDefaultConfig(),
 	}
 }
 

@@ -3,29 +3,31 @@ package project
 import (
 	"context"
 	"encoding/json"
-	"github.com/protoflow-labs/protoflow/pkg/bucket"
-	"github.com/protoflow-labs/protoflow/pkg/grpc"
-	store "github.com/protoflow-labs/protoflow/pkg/store"
-	"github.com/rs/zerolog/log"
-
 	"github.com/bufbuild/connect-go"
 	"github.com/google/uuid"
 	"github.com/google/wire"
 	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/gen"
 	"github.com/protoflow-labs/protoflow/gen/genconnect"
+	"github.com/protoflow-labs/protoflow/pkg/bucket"
+	"github.com/protoflow-labs/protoflow/pkg/grpc"
+	openaiclient "github.com/protoflow-labs/protoflow/pkg/openai"
+	"github.com/protoflow-labs/protoflow/pkg/store"
 	"github.com/protoflow-labs/protoflow/pkg/workflow"
+	"github.com/rs/zerolog/log"
 )
 
 type Service struct {
 	store   store.Project
 	manager workflow.Manager
 	cache   bucket.Bucket
+	chat    *openaiclient.ChatServer
 }
 
 var ProviderSet = wire.NewSet(
 	store.ProviderSet,
 	workflow.ProviderSet,
+	openaiclient.ChatProviderSet,
 	NewService,
 	wire.Bind(new(genconnect.ProjectServiceHandler), new(*Service)),
 )
@@ -36,11 +38,13 @@ func NewService(
 	store store.Project,
 	manager workflow.Manager,
 	cache bucket.Bucket,
+	chat *openaiclient.ChatServer,
 ) (*Service, error) {
 	return &Service{
 		store:   store,
 		manager: manager,
 		cache:   cache,
+		chat:    chat,
 	}, nil
 }
 
@@ -63,6 +67,34 @@ func hydrateBlocksForResources(projectResources []*gen.Resource) ([]*gen.Enumera
 		})
 	}
 	return resources, nil
+}
+
+func (s *Service) SendChat(ctx context.Context, c *connect.Request[gen.SendChatRequest], c2 *connect.ServerStream[gen.SendChatResponse]) error {
+	obs, err := s.chat.Send(c.Msg)
+	if err != nil {
+		return errors.Wrapf(err, "failed to create ai chat")
+	}
+	msgChan := obs.Observe()
+	for {
+		select {
+		case item := <-msgChan:
+			if item.Error() {
+				return errors.Wrapf(item.E, "failed to get message")
+			}
+			if item.V == nil {
+				return nil
+			}
+			msg, ok := item.V.(string)
+			if !ok {
+				return errors.Errorf("invalid message type: %T", item.V)
+			}
+			if err := c2.Send(&gen.SendChatResponse{Message: msg}); err != nil {
+				return errors.Wrapf(err, "failed to send message")
+			}
+		case <-ctx.Done():
+			return nil
+		}
+	}
 }
 
 func (s *Service) GetResources(ctx context.Context, c *connect.Request[gen.GetResourcesRequest]) (*connect.Response[gen.GetResourcesResponse], error) {

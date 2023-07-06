@@ -48,7 +48,7 @@ export type ReactFlowProtoflowData = {
   node: ProtoNode
 }
 
-type Mode = "editor" | "run";
+type Mode = "editor" | "run" | "chat";
 
 const EditorContext = createContext<EditorContextType>({} as any);
 
@@ -59,7 +59,7 @@ export function EditorProvider({ children }: { children: ReactNode }) {
   const { saveProject, nodeLookup } = useProjectContext();
   const [draggedNode, setDraggedNode] = useState<ProtoNode | undefined>(undefined);
   const [instance, setInstance] = useState<ReactFlowInstance>();
-  const [mode, setMode] = useState<Mode>("editor");
+  const [mode, setMode] = useState<Mode>("chat");
   const props = useEditorProps(
     draggedNode,
     setDraggedNode,

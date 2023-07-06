@@ -57,11 +57,8 @@ func NewHTTPServer(
 
 	// The generated constructors return a path and a plain net/http
 	// handler.
-	projectRoutes, projectHandlers := genconnect.NewProjectServiceHandler(projectService, interceptors)
-	apiMux.Handle(projectRoutes, projectHandlers)
-
-	generateRoutes, generateHandlers := genconnect.NewGenerateServiceHandler(generateService, interceptors)
-	apiMux.Handle(generateRoutes, generateHandlers)
+	apiMux.Handle(genconnect.NewProjectServiceHandler(projectService, interceptors))
+	apiMux.Handle(genconnect.NewGenerateServiceHandler(generateService, interceptors))
 
 	recoverCall := func(_ context.Context, spec connect.Spec, _ http.Header, p any) error {
 		log.Error().Msgf("%+v\n", p)
@@ -109,6 +106,7 @@ func NewHTTPServer(
 			r.URL.Path = strings.Replace(r.URL.Path, "/studio", "", 1)
 
 			if config.StudioProxy != "" {
+				log.Debug().Msgf("proxying request: %s", r.URL.Path)
 				proxy.ServeHTTP(w, r)
 			} else {
 				filePath := r.URL.Path

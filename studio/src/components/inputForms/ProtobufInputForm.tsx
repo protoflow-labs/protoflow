@@ -30,7 +30,7 @@ type GrpcFormOneof = {
     fields: FieldDescriptorProto[]
 }
 
-type GrpcFormFieldType = GrpcFormField | GrpcFormOneof
+type ProtobufFormFieldType = GrpcFormField | GrpcFormOneof
 
 const getFieldName = (baseFieldName: string | undefined, field: FieldDescriptorProto, idx?: number): string => {
     if (!baseFieldName) {
@@ -77,7 +77,7 @@ const InputFormContents: FC<InputFormContentsProps> = (props) => {
                 <div key={field.number}>
                     {visibleTypes.includes(typeName) ? (
                         <>
-                            <GRPCInputForm
+                            <ProtobufInputForm
                                 {...props}
                                 grpcInfo={new GRPCTypeInfo({
                                     ...grpcInfo,
@@ -135,7 +135,7 @@ export interface GRPCInputFormProps {
 }
 
 interface GRPCInputFormContentsProps extends GRPCInputFormProps {
-    field: GrpcFormFieldType
+    field: ProtobufFormFieldType
     desc: DescriptorProto
 }
 
@@ -205,7 +205,7 @@ const AccordionField: FC<GRPCInputFormContentsProps> = (props) => {
     )
 }
 
-export const GRPCInputForm: FC<GRPCInputFormProps> = (props) => {
+export const ProtobufInputForm: FC<GRPCInputFormProps> = (props) => {
     const {
         grpcInfo,
     } = props;
@@ -215,7 +215,7 @@ export const GRPCInputForm: FC<GRPCInputFormProps> = (props) => {
         return null;
     }
 
-    const formattedFields: GrpcFormFieldType[] = [];
+    const formattedFields: ProtobufFormFieldType[] = [];
     desc.field.forEach((field: FieldDescriptorProto) => {
         if (field.oneofIndex !== undefined) {
             const oneofType = desc.oneofDecl[field.oneofIndex]

@@ -2,7 +2,7 @@ import React, {ReactNode} from "react";
 import { TbBucket } from "react-icons/tb";
 import {HiCircleStack, HiOutlineMagnifyingGlass, HiPencilSquare} from "react-icons/hi2";
 import { HiCodeBracket } from "react-icons/hi2";
-import {MdHttp, MdOutbound} from "react-icons/md";
+import {MdHttp, MdLightbulb, MdOutbound} from "react-icons/md";
 import {AiOutlineMail} from "react-icons/ai";
 
 
@@ -59,5 +59,5 @@ export const blockTypes: BlockType[] = [
         label: "REST",
         typeName:'rest',
         image: <MdHttp className="h-5 w-5 bg-gray-800" />
-    }
+    },
     ]
