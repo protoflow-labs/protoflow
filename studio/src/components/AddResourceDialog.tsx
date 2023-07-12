@@ -6,33 +6,68 @@ import {
   DialogBody,
   DialogActions,
   DialogContent,
-  Button, Field, Input,
+  Button, Field, Input, Textarea, Select,
 } from "@fluentui/react-components";
 import * as React from "react";
-import {FC} from "react";
+import {FC, useState} from "react";
 import {useForm} from "react-hook-form";
 import {useUnselect} from "@/components/EditorActions";
 import {projectService} from "@/lib/api";
 import {useProjectContext} from "@/providers/ProjectProvider";
 import {toast} from "react-hot-toast";
+import {GRPCService, Resource } from "@/rpc/resource_pb";
+import {AnyMessage, MessageType} from "@bufbuild/protobuf";
 
 interface AddResourceDialogProps {
   open: boolean;
   close: () => void;
 }
 
+let configLookup: Record<string, MessageType> = {};
+Resource.fields.list().forEach((field) => {
+  if (field.oneof && field.oneof.name === 'type') {
+    if (field.kind === 'message') {
+      configLookup[field.name] = field.T;
+    }
+  }
+})
+
+function snakeToCamel(s: string): string {
+  const words = s.split('_');
+  const camelWords = words.map((word, index) => {
+    if (index === 0) {
+      return word.toLowerCase();
+    } else {
+      return capitalize(word);
+    }
+  });
+  return camelWords.join('');
+}
+
+function capitalize(word: string): string {
+  return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+}
+
 export const AddResourceDialog: FC<AddResourceDialogProps> = ({open, close}) => {
   const { project, loadResources, loadingResources } = useProjectContext();
   const onCancel = useUnselect();
 
-  const { register, handleSubmit, watch } = useForm({
+  const [configTypeName, setConfigTypeName] = useState<string|null>(null);
+  const configType = configTypeName ? configLookup[configTypeName] : null;
+
+  const {watch, setValue, register, handleSubmit, control} = useForm({
     values: {
-      url: '',
-      name: '',
+      name: "",
+      config: {},
     },
   });
+  const values = watch();
 
   const onSubmit = async (data: any) => {
+    if (!configType) {
+      toast.error('No config type selected');
+      return;
+    }
     if (!project) {
       toast.error('No project loaded');
       return;
@@ -44,22 +79,27 @@ export const AddResourceDialog: FC<AddResourceDialogProps> = ({open, close}) => 
     // TODO breadchris support different resource types
     await projectService.createResource({
       projectId: project.id,
-      resource: {
+      resource: new Resource({
         name: data.name,
         type: {
-          case: 'grpcService',
-          value: {
-            host: data.url,
-          }
+          //@ts-ignore
+          case: snakeToCamel(configTypeName),
+          value: configType.fromJson(data.config),
         }
-      }
+      })
     })
     toast.success('Resource added');
     await loadResources();
-    close();
+    onCancel();
   };
 
-  const values = watch();
+  const resourceChanged = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setValue('name', '')
+    setValue('config', {});
+    setConfigTypeName(e.target.value);
+  }
+
+  const fields = configType ? configType.fields.list() : null;
 
   return (
     <Dialog open={open} onOpenChange={close}>
@@ -67,17 +107,22 @@ export const AddResourceDialog: FC<AddResourceDialogProps> = ({open, close}) => 
         <DialogBody>
           <DialogTitle>Add Resource</DialogTitle>
           <DialogContent>
-            Addd an existing GRPC resource to the project. The GRPC resource must have the reflection API enabled for importing to work correctly.
-            <form>
-              <div className="flex flex-col gap-2 p-3">
-                <Field label="Name" required>
-                  <Input value={values.name} {...register('name')} />
-                </Field>
-                <Field label="URL" required>
-                  <Input value={values.url} {...register('url')} />
-                </Field>
-              </div>
-            </form>
+            <Select onChange={resourceChanged}>
+              {Object.keys(configLookup).map((key) => {
+                return <option key={key} value={key}>{key}</option>
+              })}
+            </Select>
+            <Field label="Name" required>
+              <Input value={values.name} {...register('name')} />
+            </Field>
+            {fields && fields.map((field) => {
+              return (
+                  <Field label={field.name} key={field.name}>
+                    {/* @ts-ignore */}
+                    <Textarea value={values.config[field.name] || ''} {...register(`config.${field.name}`)} />
+                  </Field>
+              )
+            })}
           </DialogContent>
           <DialogActions>
             <DialogTrigger disableButtonEnhancement>

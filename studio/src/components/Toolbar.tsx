@@ -1,7 +1,6 @@
 import { useSelectedNodes } from "@/hooks/useSelectedNodes";
 import { generateService, projectService } from "@/lib/api";
 import { checkIsApple } from "@/lib/checkIsApple";
-import { saveProject } from "@/lib/project";
 
 import { useEditorContext } from "@/providers/EditorProvider";
 import { useProjectContext } from "@/providers/ProjectProvider";
@@ -18,7 +17,6 @@ import {useCallback, useEffect, useRef, useState} from "react";
 import { toast } from "react-hot-toast";
 import { useHotkeys } from "react-hotkeys-hook";
 import {AddResourceDialog} from "@/components/AddResourceDialog";
-import { useErrorBoundary } from "react-error-boundary";
 
 export function Toolbar() {
   const isApple = checkIsApple();
@@ -80,10 +78,6 @@ export function Toolbar() {
     setMode("editor");
   }
 
-  const onChat = async () => {
-    setMode("chat");
-  }
-
   useEffect(() => {
     if (
       selectedNodes.length === 0 &&
@@ -121,9 +115,6 @@ export function Toolbar() {
 
       <Button appearance="subtle" size="small" onClick={onEditor}>
        Editor
-      </Button>
-      <Button appearance="subtle" size="small" onClick={onChat}>
-        Chat
       </Button>
       <Menu>
         <MenuTrigger disableButtonEnhancement>

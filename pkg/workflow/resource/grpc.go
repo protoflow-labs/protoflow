@@ -21,11 +21,11 @@ func (r *GRPCResource) Init() (func(), error) {
 	if !strings.HasPrefix(r.Host, "http://") {
 		r.Host = "http://" + r.Host
 	}
-	if err := ensureRunning(r.Host); err != nil {
-		// TODO breadchris ignore errors for now
-		// return nil, errors.Wrapf(err, "unable to get the %s grpc server running", r.Name())
-		return nil, nil
-	}
+	//if err := ensureRunning(r.Host); err != nil {
+	//	// TODO breadchris ignore errors for now
+	//	// return nil, errors.Wrapf(err, "unable to get the %s grpc server running", r.Name())
+	//	return nil, nil
+	//}
 	return nil, nil
 }
 

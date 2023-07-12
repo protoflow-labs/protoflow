@@ -51,5 +51,5 @@ func (c *ChatServer) Send(chatMsg *gen.SendChatRequest) (rxgo.Observable, error)
 		Role:    "user",
 		Content: chatMsg.Message,
 	})
-	return c.qaClient.AskWithContext(chatState.context, true)
+	return c.qaClient.StreamResponse(chatState.context)
 }

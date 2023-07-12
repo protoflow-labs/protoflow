@@ -3,7 +3,6 @@ package execute
 import (
 	"fmt"
 	"github.com/pkg/errors"
-	"github.com/protoflow-labs/protoflow/gen"
 	"github.com/protoflow-labs/protoflow/pkg/workflow/node"
 	"github.com/protoflow-labs/protoflow/pkg/workflow/resource"
 	"github.com/reactivex/rxgo/v2"
@@ -21,7 +20,6 @@ type Output struct {
 
 type Executor interface {
 	Execute(n node.Node, input Input) (*Output, error)
-	Trace(nodeExecution *gen.NodeExecution) error
 }
 
 var _ Executor = &TemporalExecutor{}
@@ -46,6 +44,8 @@ func nodeToActivityName(n node.Node) ActivityFunc {
 		return activity.ExecuteInputNode
 	case *node.QueryNode:
 		return activity.ExecuteQueryNode
+	case *node.PromptNode:
+		return activity.ExecutePromptNode
 	}
 	return nil
 }
@@ -73,25 +73,13 @@ func (e *TemporalExecutor) Execute(n node.Node, input Input) (*Output, error) {
 	return &result, nil
 }
 
-func (e *TemporalExecutor) Trace(nodeExecution *gen.NodeExecution) error {
-	//TODO implement me
-	panic("implement me")
-}
-
 type MemoryExecutor struct {
-	ctx   *MemoryContext
-	trace chan<- *gen.NodeExecution
+	ctx *MemoryContext
 }
 
 var _ Executor = &MemoryExecutor{}
 
 type MemoryExecutorOption func(*MemoryExecutor)
-
-func WithTrace(trace chan<- *gen.NodeExecution) MemoryExecutorOption {
-	return func(executor *MemoryExecutor) {
-		executor.trace = trace
-	}
-}
 
 func NewMemoryExecutor(ctx *MemoryContext, opts ...MemoryExecutorOption) *MemoryExecutor {
 	e := &MemoryExecutor{
@@ -114,14 +102,4 @@ func (e *MemoryExecutor) Execute(n node.Node, input Input) (*Output, error) {
 		return nil, err
 	}
 	return &res, nil
-}
-
-func (e *MemoryExecutor) Trace(nodeExecution *gen.NodeExecution) error {
-	if e.trace != nil {
-		// Do not block on writing to this channel
-		go func() {
-			e.trace <- nodeExecution
-		}()
-	}
-	return nil
 }

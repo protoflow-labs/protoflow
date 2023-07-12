@@ -6,6 +6,7 @@ import { useProjectContext } from "@/providers/ProjectProvider";
 import { Background, ReactFlow } from "reactflow";
 
 import "reactflow/dist/style.css";
+import ChatPanel from "@/components/chat";
 
 export default function Home() {
   const { project } = useProjectContext();
@@ -21,6 +22,7 @@ export default function Home() {
         <div className="flex flex-1">
           <BlocksList />
           <ActionPanel />
+          <ChatPanel />
           <ReactFlow
             onInit={setInstance}
             proOptions={{ hideAttribution: true }}

@@ -17,7 +17,7 @@ const useOverrides = makeStyles({
 });
 
 export function ActionBar() {
-  const { project, output, resetOutput, runWorkflow } = useProjectContext();
+  const { project, runWorkflow } = useProjectContext();
   const { selectedNodes } = useSelectedNodes();
   const [loading] = useState(false);
   const overrides = useOverrides();
@@ -27,12 +27,6 @@ export function ActionBar() {
 
     await runWorkflow(selectedNodes[0]);
   };
-
-  useEffect(() => {
-    if (selectedNodes.length !== 1) {
-      resetOutput();
-    }
-  }, [selectedNodes, resetOutput]);
 
   return (
     <div className="absolute bottom-8 z-10 left-1/2 -translate-x-1/2">
@@ -46,15 +40,6 @@ export function ActionBar() {
               transition={{ duration: 0.1 }}
               className="flex flex-col gap-4"
             >
-              {output && (
-                <Card className="max-w-5xl">
-                  <CardHeader header={<Text weight="semibold">Output</Text>} />
-                  {/*<code className="block overflow-auto max-w-3xl max-h-96">*/}
-                  {/*  {JSON.stringify(JSON.parse(output), null, 2)}*/}
-                  {/*</code>*/}
-                  <JsonViewer data={JSON.parse(output)} />
-                </Card>
-              )}
               <Card className={overrides.card}>
                 <Button onClick={onRun} disabled={loading}>
                   Run Workflow

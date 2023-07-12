@@ -3,6 +3,7 @@ import {
     Divider,
     Field,
     Input,
+    Textarea,
 } from "@fluentui/react-components";
 import {useForm} from "react-hook-form";
 import {Node} from "@/rpc/graph_pb";
@@ -75,7 +76,7 @@ export function GenericNodeEditor<T>({node, nodeConfig, nodeConfigType}: { node:
                     return (
                         <Field label={field.name} key={field.name}>
                             {/* @ts-ignore */}
-                            <Input value={values.config[field.name] || ''} {...register(`config.${field.name}`)} />
+                            <Textarea value={values.config[field.name] || ''} {...register(`config.${field.name}`)} />
                         </Field>
                     )
                 })}

@@ -4,7 +4,7 @@
 // @ts-nocheck
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
-import { Any, DescriptorProto, Message, proto3 } from "@bufbuild/protobuf";
+import { Message, proto3 } from "@bufbuild/protobuf";
 
 /**
  * @generated from message block.Input
@@ -48,14 +48,12 @@ export class Input extends Message<Input> {
  */
 export class Config extends Message<Config> {
   /**
-   * @generated from field: google.protobuf.DescriptorProto type = 1;
+   * TODO breadchris configs could have a type
+   * google.protobuf.DescriptorProto type = 1;
+   *
+   * @generated from field: string value = 1;
    */
-  type?: DescriptorProto;
-
-  /**
-   * @generated from field: google.protobuf.Any value = 2;
-   */
-  value?: Any;
+  value = "";
 
   constructor(data?: PartialMessage<Config>) {
     super();
@@ -65,8 +63,7 @@ export class Config extends Message<Config> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "block.Config";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "type", kind: "message", T: DescriptorProto },
-    { no: 2, name: "value", kind: "message", T: Any },
+    { no: 1, name: "value", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Config {

@@ -6,6 +6,7 @@ import (
 	"github.com/google/wire"
 	"github.com/protoflow-labs/protoflow/pkg/store"
 	"github.com/protoflow-labs/protoflow/pkg/temporal"
+	"github.com/reactivex/rxgo/v2"
 	"go.uber.org/config"
 )
 
@@ -13,7 +14,7 @@ const TaskQueue = "protoflow"
 
 type Manager interface {
 	ExecuteWorkflow(ctx context.Context, w *Workflow, nodeID string, input interface{}) (string, error)
-	ExecuteWorkflowSync(ctx context.Context, w *Workflow, nodeID string, input interface{}) ([]any, error)
+	ExecuteWorkflowSync(ctx context.Context, w *Workflow, nodeID string, input interface{}) (rxgo.Observable, error)
 	CleanupResources() error
 }
 

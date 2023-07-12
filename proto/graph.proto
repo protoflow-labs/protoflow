@@ -31,6 +31,7 @@ message Node {
     block.Function function = 12;
     block.Query query = 13;
     block.Prompt prompt = 14;
+    block.Config configuration = 15;
   }
 }
 

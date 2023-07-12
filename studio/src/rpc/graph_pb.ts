@@ -5,7 +5,7 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3 } from "@bufbuild/protobuf";
-import { Bucket, Collection, Function, GRPC, Input, Prompt, Query, REST } from "./block_pb.js";
+import { Bucket, Collection, Config, Function, GRPC, Input, Prompt, Query, REST } from "./block_pb.js";
 
 /**
  * @generated from message graph.Graph
@@ -144,6 +144,12 @@ export class Node extends Message<Node> {
      */
     value: Prompt;
     case: "prompt";
+  } | {
+    /**
+     * @generated from field: block.Config configuration = 15;
+     */
+    value: Config;
+    case: "configuration";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<Node>) {
@@ -167,6 +173,7 @@ export class Node extends Message<Node> {
     { no: 12, name: "function", kind: "message", T: Function, oneof: "config" },
     { no: 13, name: "query", kind: "message", T: Query, oneof: "config" },
     { no: 14, name: "prompt", kind: "message", T: Prompt, oneof: "config" },
+    { no: 15, name: "configuration", kind: "message", T: Config, oneof: "config" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Node {
