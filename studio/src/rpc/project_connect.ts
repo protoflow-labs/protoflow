@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { CreateProjectRequest, CreateProjectResponse, CreateResourceRequest, CreateResourceResponse, DeleteProjectRequest, DeleteProjectResponse, DeleteResourceRequest, DeleteResourceResponse, GetNodeInfoRequest, GetNodeInfoResponse, GetProjectRequest, GetProjectResponse, GetProjectsRequest, GetProjectsResponse, GetResourcesRequest, GetResourcesResponse, GetWorkflowRunsRequest, GetWorkflowRunsResponse, RunNodeRequest, RunOutput, RunWorkflowRequest, SaveProjectRequest, SaveProjectResponse, SendChatRequest, SendChatResponse } from "./project_pb.js";
+import { CreateProjectRequest, CreateProjectResponse, CreateResourceRequest, CreateResourceResponse, DeleteProjectRequest, DeleteProjectResponse, DeleteResourceRequest, DeleteResourceResponse, GetNodeInfoRequest, GetNodeInfoResponse, GetProjectRequest, GetProjectResponse, GetProjectsRequest, GetProjectsResponse, GetResourcesRequest, GetResourcesResponse, GetWorkflowRunsRequest, GetWorkflowRunsResponse, NodeExecution, RunWorkflowRequest, SaveProjectRequest, SaveProjectResponse, SendChatRequest, SendChatResponse, UpdateResourceRequest, UpdateResourceResponse } from "./project_pb.js";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -61,6 +61,24 @@ export const ProjectService = {
       kind: MethodKind.Unary,
     },
     /**
+     * @generated from rpc project.ProjectService.UpdateResource
+     */
+    updateResource: {
+      name: "UpdateResource",
+      I: UpdateResourceRequest,
+      O: UpdateResourceResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc project.ProjectService.CreateResource
+     */
+    createResource: {
+      name: "CreateResource",
+      I: CreateResourceRequest,
+      O: CreateResourceResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
      * @generated from rpc project.ProjectService.GetResources
      */
     getResources: {
@@ -97,31 +115,13 @@ export const ProjectService = {
       kind: MethodKind.Unary,
     },
     /**
-     * @generated from rpc project.ProjectService.CreateResource
+     * @generated from rpc project.ProjectService.RunWorkflow
      */
-    createResource: {
-      name: "CreateResource",
-      I: CreateResourceRequest,
-      O: CreateResourceResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * @generated from rpc project.ProjectService.RunWorklow
-     */
-    runWorklow: {
-      name: "RunWorklow",
+    runWorkflow: {
+      name: "RunWorkflow",
       I: RunWorkflowRequest,
-      O: RunOutput,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * @generated from rpc project.ProjectService.RunNode
-     */
-    runNode: {
-      name: "RunNode",
-      I: RunNodeRequest,
-      O: RunOutput,
-      kind: MethodKind.Unary,
+      O: NodeExecution,
+      kind: MethodKind.ServerStreaming,
     },
     /**
      * @generated from rpc project.ProjectService.GetWorkflowRuns

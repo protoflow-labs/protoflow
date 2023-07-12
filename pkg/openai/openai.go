@@ -43,7 +43,8 @@ var ProviderSet = wire.NewSet(
 )
 
 type QAClient interface {
-	AskWithContext(chatCtx []openai.ChatCompletionMessage, stream bool) (rxgo.Observable, error)
+	Ask(chatCtx []openai.ChatCompletionMessage) (string, error)
+	StreamResponse(chatCtx []openai.ChatCompletionMessage) (rxgo.Observable, error)
 }
 
 func NewOpenAIQAClient(c Config) (*OpenAIQAClient, error) {
@@ -73,7 +74,39 @@ type OpenAIQAClient struct {
 
 var _ QAClient = &OpenAIQAClient{}
 
-func (c *OpenAIQAClient) AskWithContext(chatCtx []openai.ChatCompletionMessage, stream bool) (rxgo.Observable, error) {
+func (c *OpenAIQAClient) Ask(chatCtx []openai.ChatCompletionMessage) (string, error) {
+	respTokenCount, err := validateChatCtx(chatCtx, c.modelDetails)
+	if err != nil {
+		return "", err
+	}
+
+	log.Debug().
+		Int("respTokenCount", respTokenCount).
+		Msg("Sending request to OpenAI")
+
+	req := openai.ChatCompletionRequest{
+		Model:       c.model,
+		Temperature: float32(0),
+		MaxTokens:   respTokenCount - 200,
+		Messages:    chatCtx,
+	}
+
+	// TODO breadchris loading the timeout from the config was not working, debug this
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute*1)
+	defer cancel()
+
+	resp, err := c.client.CreateChatCompletion(ctx, req)
+	if err != nil {
+		return "", errors.Wrapf(err, "failed to send request to OpenAI")
+	}
+	if len(resp.Choices) == 0 {
+		return "", errors.New("no response from OpenAI")
+	}
+	choice := resp.Choices[0]
+	return choice.Message.Content, nil
+}
+
+func (c *OpenAIQAClient) StreamResponse(chatCtx []openai.ChatCompletionMessage) (rxgo.Observable, error) {
 	respTokenCount, err := validateChatCtx(chatCtx, c.modelDetails)
 	if err != nil {
 		return nil, err
@@ -81,14 +114,13 @@ func (c *OpenAIQAClient) AskWithContext(chatCtx []openai.ChatCompletionMessage, 
 
 	log.Debug().
 		Int("respTokenCount", respTokenCount).
-		Bool("stream", stream).
 		Msg("Sending request to OpenAI")
 
 	req := openai.ChatCompletionRequest{
 		Model:       c.model,
 		Temperature: float32(0),
 		MaxTokens:   respTokenCount - 200,
-		Stream:      stream,
+		Stream:      true,
 		Messages:    chatCtx,
 		// TODO breadchris need to validate the context size here
 		Functions: []openai.FunctionDefinition{{
@@ -117,7 +149,7 @@ func (c *OpenAIQAClient) AskWithContext(chatCtx []openai.ChatCompletionMessage, 
 		}},
 	}
 
-	// context timeout
+	// TODO breadchris loading the timeout from the config was not working, debug this
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute*1)
 
 	chatStream, err := c.client.CreateChatCompletionStream(ctx, req)
@@ -125,12 +157,6 @@ func (c *OpenAIQAClient) AskWithContext(chatCtx []openai.ChatCompletionMessage, 
 		cancel()
 		return nil, errors.Wrapf(err, "failed to send request to OpenAI")
 	}
-
-	//resp, err := c.client.CreateChatCompletion(ctx, req)
-	//if err != nil {
-	//	cancel()
-	//	return nil, errors.Wrapf(err, "failed to send request to OpenAI")
-	//}
 
 	msgChan := make(chan rxgo.Item)
 	go func() {

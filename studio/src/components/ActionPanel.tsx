@@ -5,11 +5,9 @@ import React from "react";
 import ChatPanel from "@/components/chat";
 
 export function ActionPanel() {
-  const editrMode = useEditorMode();
+  const editorMode = useEditorMode();
 
-  switch (editrMode) {
-    case "chat":
-      return <ChatPanel />;
+  switch (editorMode) {
     case "editor":
       return <EditorPanel />;
     case "run":

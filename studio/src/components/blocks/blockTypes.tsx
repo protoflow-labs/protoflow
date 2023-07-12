@@ -4,6 +4,7 @@ import {HiCircleStack, HiOutlineMagnifyingGlass, HiPencilSquare} from "react-ico
 import { HiCodeBracket } from "react-icons/hi2";
 import {MdHttp, MdLightbulb, MdOutbound} from "react-icons/md";
 import {AiOutlineMail} from "react-icons/ai";
+import {BiClipboard} from "react-icons/bi";
 
 
 // The most basic metadata about a type of block, used by both the sidebar and the main canvas
@@ -64,5 +65,10 @@ export const blockTypes: BlockType[] = [
         label: "Prompt",
         typeName: 'prompt',
         image: <MdLightbulb className="h-5 w-5 bg-gray-800" />
+    },
+    {
+        label: "Config",
+        typeName: 'configuration',
+        image: <BiClipboard className="h-5 w-5 bg-gray-800" />
     }
     ]

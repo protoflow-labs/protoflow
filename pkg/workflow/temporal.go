@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/protoflow-labs/protoflow/pkg/workflow/execute"
+	"github.com/reactivex/rxgo/v2"
 	"time"
 
 	"github.com/google/wire"
@@ -49,13 +50,13 @@ func (m *TemporalManager) ExecuteWorkflow(ctx context.Context, w *Workflow, node
 	return we.GetRunID(), nil
 }
 
-func (m *TemporalManager) ExecuteWorkflowSync(ctx context.Context, w *Workflow, nodeID string, input interface{}) ([]any, error) {
+func (m *TemporalManager) ExecuteWorkflowSync(ctx context.Context, w *Workflow, nodeID string, input any) (rxgo.Observable, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
 // TemporalRun is the entrypoint for a Temporal workflow that will run on a worker
-func TemporalRun(ctx workflow.Context, w *Workflow, nodeID string, input string) ([]any, error) {
+func TemporalRun(ctx workflow.Context, w *Workflow, nodeID string, input string) (rxgo.Observable, error) {
 	if w.NodeLookup == nil || w.Graph == nil {
 		return nil, fmt.Errorf("workflow is not initialized")
 	}
@@ -75,7 +76,7 @@ func TemporalRun(ctx workflow.Context, w *Workflow, nodeID string, input string)
 
 	logger.Info("Starting workflow", "workflowID", workflow.GetInfo(ctx).WorkflowExecution.ID, "nodeID", nodeID)
 
-	return w.Run(logger, executor, nodeID, input)
+	return w.Run(context.Background(), logger, executor, nodeID, input)
 }
 
 func (m *TemporalManager) CleanupResources() error {

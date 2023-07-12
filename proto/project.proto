@@ -18,6 +18,8 @@ service ProjectService {
     rpc CreateProject(CreateProjectRequest) returns (CreateProjectResponse) {}
     rpc DeleteProject(DeleteProjectRequest) returns (DeleteProjectResponse) {}
 
+    rpc UpdateResource(UpdateResourceRequest) returns (UpdateResourceResponse) {}
+    rpc CreateResource(CreateResourceRequest) returns (CreateResourceResponse) {}
     rpc GetResources(GetResourcesRequest) returns (GetResourcesResponse) {}
     rpc DeleteResource(DeleteResourceRequest) returns (DeleteResourceResponse) {}
 
@@ -25,13 +27,17 @@ service ProjectService {
 
     rpc SaveProject(SaveProjectRequest) returns (SaveProjectResponse) {}
 
-    rpc CreateResource(CreateResourceRequest) returns (CreateResourceResponse) {}
-
-    rpc RunWorklow(RunWorkflowRequest) returns (RunOutput) {}
-    rpc RunNode(RunNodeRequest) returns (RunOutput) {}
+    rpc RunWorkflow(RunWorkflowRequest) returns (stream NodeExecution) {}
 
     rpc GetWorkflowRuns(GetWorkflowRunsRequest) returns (GetWorkflowRunsResponse) {}
 }
+
+message UpdateResourceRequest {
+    string project_id = 1;
+    resource.Resource resource = 2;
+}
+
+message UpdateResourceResponse {}
 
 message Chat {
     string id = 1;
@@ -117,18 +123,8 @@ message RunWorkflowRequest {
     string input = 3;
 }
 
-message RunNodeRequest {
-    string project_id = 1;
-    string node_id = 2;
-    string input = 3;
-}
-
 message Data {
     string value = 1;
-}
-
-message RunOutput {
-    string output = 1;
 }
 
 message Project {
