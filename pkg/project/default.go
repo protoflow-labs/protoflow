@@ -57,6 +57,13 @@ func getDefaultProject(name string, bucketDir string) gen.Project {
 					ReasoningEngine: &gen.ReasoningEngine{},
 				},
 			},
+			{
+				Id:   uuid.NewString(),
+				Name: "config provider",
+				Type: &gen.Resource_ConfigProvider{
+					ConfigProvider: &gen.ConfigProvider{},
+				},
+			},
 		},
 	}
 }

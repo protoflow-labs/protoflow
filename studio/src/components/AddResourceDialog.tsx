@@ -52,7 +52,7 @@ export const AddResourceDialog: FC<AddResourceDialogProps> = ({open, close}) => 
   const { project, loadResources, loadingResources } = useProjectContext();
   const onCancel = useUnselect();
 
-  const [configTypeName, setConfigTypeName] = useState<string|null>(null);
+  const [configTypeName, setConfigTypeName] = useState<string|null>(Object.keys(configLookup)[0]);
   const configType = configTypeName ? configLookup[configTypeName] : null;
 
   const {watch, setValue, register, handleSubmit, control} = useForm({

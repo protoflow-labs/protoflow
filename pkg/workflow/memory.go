@@ -65,11 +65,7 @@ func (m *MemoryManager) saveNodeExecutions(projectID, nodeID string, input any, 
 	})
 }
 
-func (m *MemoryManager) ExecuteWorkflow(ctx context.Context, w *Workflow, nodeID string, input any) (string, error) {
-	panic("implement me")
-}
-
-func (m *MemoryManager) ExecuteWorkflowSync(ctx context.Context, w *Workflow, nodeID string, input any) (rxgo.Observable, error) {
+func (m *MemoryManager) ExecuteWorkflow(ctx context.Context, w *Workflow, nodeID string, input rxgo.Observable) (rxgo.Observable, error) {
 	if w.NodeLookup == nil || w.Graph == nil {
 		return nil, fmt.Errorf("workflow is not initialized")
 	}

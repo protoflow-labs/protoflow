@@ -50,6 +50,14 @@ func (a *Activity) ExecutePromptNode(ctx context.Context, n node.Node, input Inp
 
 	outputStream := make(chan rxgo.Item)
 
+	// TODO breadchris how should context be handled here?
+	c := []openai.ChatCompletionMessage{
+		{
+			Role:    "system",
+			Content: pn.Prompt.Prompt,
+		},
+	}
+
 	input.Observable.ForEach(func(item any) {
 		log.Debug().
 			Str("name", pn.NormalizedName()).
@@ -69,16 +77,11 @@ func (a *Activity) ExecutePromptNode(ctx context.Context, n node.Node, input Inp
 			normalizedItem = string(c)
 		}
 
-		c := []openai.ChatCompletionMessage{
-			{
-				Role:    "system",
-				Content: pn.Prompt.Prompt,
-			},
-			{
-				Role:    "user",
-				Content: normalizedItem,
-			},
-		}
+		c = append(c, openai.ChatCompletionMessage{
+			Role:    "user",
+			Content: normalizedItem,
+		})
+
 		s, err := r.QAClient.Ask(c)
 		if err != nil {
 			outputStream <- rx.NewError(errors.Wrapf(err, "error executing prompt: %s", pn.NormalizedName()))

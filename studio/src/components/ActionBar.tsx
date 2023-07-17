@@ -10,7 +10,6 @@ import {
 import { AnimatePresence, LazyMotion, domAnimation, m } from "framer-motion";
 import React from "react";
 import { useEffect, useState } from "react";
-import {JsonViewer} from "@/components/jsonViewer";
 
 const useOverrides = makeStyles({
   card: {},

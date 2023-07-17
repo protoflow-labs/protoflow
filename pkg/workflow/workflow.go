@@ -8,7 +8,6 @@ import (
 	"github.com/jhump/protoreflect/desc/builder"
 	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/pkg/grpc"
-	"github.com/protoflow-labs/protoflow/pkg/util/rx"
 	"github.com/protoflow-labs/protoflow/pkg/workflow/execute"
 	worknode "github.com/protoflow-labs/protoflow/pkg/workflow/node"
 	"github.com/protoflow-labs/protoflow/pkg/workflow/resource"
@@ -232,7 +231,7 @@ func (w *Workflow) GetNodeInfo(n worknode.Node) (*worknode.Info, error) {
 }
 
 // TODO breadchris nodeID should not be needed, the workflow should already be a slice of the graph that is configured to run
-func (w *Workflow) Run(ctx context.Context, logger Logger, executor execute.Executor, nodeID string, input any) (rxgo.Observable, error) {
+func (w *Workflow) Run(ctx context.Context, logger Logger, executor execute.Executor, nodeID string, input rxgo.Observable) (rxgo.Observable, error) {
 	var cleanupFuncs []func()
 	defer func() {
 		for _, cleanup := range cleanupFuncs {
@@ -248,7 +247,7 @@ func (w *Workflow) Run(ctx context.Context, logger Logger, executor execute.Exec
 	for id, r := range w.Resources {
 		cleanup, err := r.Init()
 		if err != nil {
-			return nil, errors.Wrapf(err, "error creating resource %s", id)
+			return nil, errors.Wrapf(err, "error creating resource %s", r.Name())
 		}
 		cleanupFuncs = append(cleanupFuncs, cleanup)
 		instances[id] = r
@@ -260,20 +259,16 @@ func (w *Workflow) Run(ctx context.Context, logger Logger, executor execute.Exec
 	}
 
 	connector := NewConnector()
-	inputChan := make(chan rxgo.Item)
-	o := rxgo.FromChannel(inputChan, rxgo.WithPublishStrategy())
-	connector.Add(o)
+	connector.Add(input)
 
 	err = w.traverseWorkflow(ctx, connector, instances, executor, vert, execute.Input{
-		Observable: o,
+		Observable: input,
 	})
 	if err != nil {
 		logger.Error("failed to traverse workflow", "error", err)
 		return nil, err
 	}
-	connected := connector.Connect(ctx)
-	inputChan <- rx.NewItem(input)
-	return connected, nil
+	return connector.Connect(ctx), nil
 }
 
 type Connector struct {
@@ -291,12 +286,14 @@ func (c *Connector) Add(o rxgo.Observable) {
 }
 
 func (c *Connector) Connect(ctx context.Context) rxgo.Observable {
+	// TODO breadchris is this publish startegy needed here
 	o := rxgo.Merge(c.observers, rxgo.WithPublishStrategy())
 	// TODO breadchris figure out what to do with disposed and cancel
 	// disposed, cancel := output.Observable.Connect(ctx)
 	for _, obs := range c.observers {
 		obs.Connect(ctx)
 	}
+	o.Connect(ctx)
 	return o
 }
 
@@ -328,11 +325,13 @@ func (w *Workflow) traverseWorkflow(
 		return errors.Wrapf(err, "error executing node: %s", nodeID)
 	}
 
-	//connector.Add(output.Observable)
+	connector.Add(output.Observable)
+
 	// TODO breadchris figure out what to do with disposed and cancel
 	// disposed, cancel := output.Observable.Connect(ctx)
-	rx.LogObserver(node.NormalizedName(), output.Observable)
-	output.Observable.Connect(ctx)
+
+	// rx.LogObserver(node.NormalizedName(), output.Observable)
+	// output.Observable.Connect(ctx)
 
 	nextBlockInput := execute.Input{
 		Observable: output.Observable,

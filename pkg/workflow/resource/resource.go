@@ -18,6 +18,7 @@ type DeploymentInfo struct {
 type DependencyProvider map[string]Resource
 
 type Resource interface {
+	Name() string
 	Init() (func(), error)
 	ID() string
 	AddNode(n node.Node)
@@ -29,6 +30,7 @@ type Resource interface {
 
 type BaseResource struct {
 	id               string
+	name             string
 	dependencyLookup map[string]Resource
 	nodes            []node.Node
 }
@@ -38,7 +40,7 @@ func (r *BaseResource) ID() string {
 }
 
 func (r *BaseResource) Name() string {
-	return fmt.Sprintf("%s", r.ID())
+	return r.name
 }
 
 func (r *BaseResource) Init() (func(), error) {
@@ -69,7 +71,8 @@ func (r *BaseResource) ResolveDependencies(dp DependencyProvider) error {
 
 func FromProto(r *gen.Resource) (Resource, error) {
 	base := &BaseResource{
-		id: r.Id,
+		id:   r.Id,
+		name: r.Name,
 	}
 	// TODO breadchris is this too sketch?
 	base.dependencyLookup = make(map[string]Resource)

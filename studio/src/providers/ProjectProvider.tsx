@@ -29,6 +29,7 @@ type ProjectContextType = {
     resourceLookup: Record<string, EnumeratedResource>;
     loadingResources: boolean;
     workflowOutput: string[] | null;
+    setWorkflowOutput: (output: string[] | null) => void;
 
     saveProject: (nodes: Node[], edges: Edge[]) => Promise<void>;
     runWorkflow: (node: Node) => Promise<any>;
@@ -235,6 +236,7 @@ export default function ProjectProvider({children}: ProjectProviderProps) {
                 resourceLookup,
                 runWorkflow,
                 workflowOutput,
+                setWorkflowOutput,
                 saveProject,
                 deleteResource,
                 updateResource,

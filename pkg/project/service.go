@@ -13,7 +13,9 @@ import (
 	"github.com/protoflow-labs/protoflow/pkg/grpc"
 	openaiclient "github.com/protoflow-labs/protoflow/pkg/openai"
 	"github.com/protoflow-labs/protoflow/pkg/store"
+	"github.com/protoflow-labs/protoflow/pkg/util/rx"
 	"github.com/protoflow-labs/protoflow/pkg/workflow"
+	"github.com/reactivex/rxgo/v2"
 	"github.com/rs/zerolog/log"
 )
 
@@ -203,10 +205,19 @@ func (s *Service) RunWorkflow(ctx context.Context, c *connect.Request[gen.RunWor
 		Str("workflow", w.ID).
 		Str("node", c.Msg.NodeId).
 		Msg("workflow starting")
-	obs, err := s.manager.ExecuteWorkflowSync(ctx, w, c.Msg.NodeId, workflowInput)
+
+	inputChan := make(chan rxgo.Item)
+	o := rxgo.FromChannel(inputChan, rxgo.WithPublishStrategy())
+
+	obs, err := s.manager.ExecuteWorkflow(ctx, w, c.Msg.NodeId, o)
 	if err != nil {
 		return err
 	}
+
+	// TODO breadchris support streaming input
+	inputChan <- rx.NewItem(workflowInput)
+	close(inputChan)
+
 	var (
 		obsErr error
 	)
