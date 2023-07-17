@@ -10,8 +10,9 @@ message Input {
 }
 
 message Config {
-  google.protobuf.DescriptorProto type = 1;
-  google.protobuf.Any value = 2;
+  string value = 1;
+  // TODO breadchris configs could have a type
+  //google.protobuf.DescriptorProto type = 1;
 }
 
 message Collection {

@@ -15,18 +15,24 @@ type DeploymentInfo struct {
 	Volumes      []string
 }
 
+type DependencyProvider map[string]Resource
+
 type Resource interface {
+	Name() string
 	Init() (func(), error)
 	ID() string
 	AddNode(n node.Node)
 	Nodes() []node.Node
 	Info(n node.Node) (*node.Info, error)
+	ResolveDependencies(dp DependencyProvider) error
 	//DeploymentInfo() (*DeploymentInfo, error)
 }
 
 type BaseResource struct {
-	id    string
-	nodes []node.Node
+	id               string
+	name             string
+	dependencyLookup map[string]Resource
+	nodes            []node.Node
 }
 
 func (r *BaseResource) ID() string {
@@ -34,7 +40,7 @@ func (r *BaseResource) ID() string {
 }
 
 func (r *BaseResource) Name() string {
-	return fmt.Sprintf("%s", r.ID())
+	return r.name
 }
 
 func (r *BaseResource) Init() (func(), error) {
@@ -53,9 +59,25 @@ func (r *BaseResource) Nodes() []node.Node {
 	return r.nodes
 }
 
+func (r *BaseResource) ResolveDependencies(dp DependencyProvider) error {
+	for id := range r.dependencyLookup {
+		if _, ok := dp[id]; !ok {
+			return fmt.Errorf("dependency not found: %s", id)
+		}
+		r.dependencyLookup[id] = dp[id]
+	}
+	return nil
+}
+
 func FromProto(r *gen.Resource) (Resource, error) {
 	base := &BaseResource{
-		id: r.Id,
+		id:   r.Id,
+		name: r.Name,
+	}
+	// TODO breadchris is this too sketch?
+	base.dependencyLookup = make(map[string]Resource)
+	for _, dep := range r.Dependencies {
+		base.dependencyLookup[dep] = nil
 	}
 	switch t := r.Type.(type) {
 	case *gen.Resource_LanguageService:
@@ -85,6 +107,11 @@ func FromProto(r *gen.Resource) (Resource, error) {
 		return &ReasoningEngineResource{
 			BaseResource:    base,
 			ReasoningEngine: t.ReasoningEngine,
+		}, nil
+	case *gen.Resource_ConfigProvider:
+		return &ConfigProviderResource{
+			BaseResource:   base,
+			ConfigProvider: t.ConfigProvider,
 		}, nil
 	default:
 		return nil, fmt.Errorf("no resource found with type: %s", t)

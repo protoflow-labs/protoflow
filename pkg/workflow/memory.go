@@ -7,6 +7,7 @@ import (
 	"github.com/protoflow-labs/protoflow/gen"
 	"github.com/protoflow-labs/protoflow/pkg/store"
 	"github.com/protoflow-labs/protoflow/pkg/workflow/execute"
+	"github.com/reactivex/rxgo/v2"
 	"github.com/rs/zerolog/log"
 	"sync"
 
@@ -26,7 +27,7 @@ func NewMemoryManager(store store.Project) *MemoryManager {
 	}
 }
 
-func (m *MemoryManager) saveNodeExecutions(projectID, nodeID string, input interface{}, trace chan *gen.NodeExecution) {
+func (m *MemoryManager) saveNodeExecutions(projectID, nodeID string, input any, trace rxgo.Observable) {
 	serInp, err := json.Marshal(input)
 	if err != nil {
 		log.Error().Err(err).Msg("error serializing input")
@@ -45,45 +46,36 @@ func (m *MemoryManager) saveNodeExecutions(projectID, nodeID string, input inter
 		log.Error().Err(err).Msg("error creating workflow run")
 		return
 	}
-	for nodeExecution := range trace {
-		_, err := m.store.SaveNodeExecution(workflowRunID, nodeExecution)
-		if err != nil {
-			log.Error().Err(err).Msg("error saving node execution")
+	trace.ForEach(func(i any) {
+		// TODO breadchris trace should be a generic observable
+		if nodeExec, ok := i.(*gen.NodeExecution); ok {
+			_, err := m.store.SaveNodeExecution(workflowRunID, nodeExec)
+			if err != nil {
+				log.Error().Err(err).Msg("error saving node execution")
+			}
+		} else {
+			log.Error().
+				Interface("item", i).
+				Msg("error saving node execution, not a node execution")
 		}
-	}
+	}, func(err error) {
+		log.Error().Err(err).Msg("trace error")
+	}, func() {
+		log.Debug().Msg("trace complete")
+	})
 }
 
-func (m *MemoryManager) ExecuteWorkflow(ctx context.Context, w *Workflow, nodeID string, input interface{}) (string, error) {
-	if w.NodeLookup == nil || w.Graph == nil {
-		return "", fmt.Errorf("workflow is not initialized")
-	}
-
-	logger := &MemoryLogger{}
-
-	trace := make(chan *gen.NodeExecution)
-	go m.saveNodeExecutions(w.ProjectID, nodeID, input, trace)
-
-	memoryCtx := &execute.MemoryContext{Context: ctx}
-	executor := execute.NewMemoryExecutor(memoryCtx, execute.WithTrace(trace))
-
-	_, err := w.Run(logger, executor, nodeID, input)
-	return uuid.New().String(), err
-}
-
-func (m *MemoryManager) ExecuteWorkflowSync(ctx context.Context, w *Workflow, nodeID string, input interface{}) ([]any, error) {
+func (m *MemoryManager) ExecuteWorkflow(ctx context.Context, w *Workflow, nodeID string, input rxgo.Observable) (rxgo.Observable, error) {
 	if w.NodeLookup == nil || w.Graph == nil {
 		return nil, fmt.Errorf("workflow is not initialized")
 	}
 
 	logger := &MemoryLogger{}
 
-	trace := make(chan *gen.NodeExecution)
-	go m.saveNodeExecutions(w.ProjectID, nodeID, input, trace)
-
 	memoryCtx := &execute.MemoryContext{Context: ctx}
-	executor := execute.NewMemoryExecutor(memoryCtx, execute.WithTrace(trace))
+	executor := execute.NewMemoryExecutor(memoryCtx)
 
-	return w.Run(logger, executor, nodeID, input)
+	return w.Run(ctx, logger, executor, nodeID, input)
 }
 
 func (m *MemoryManager) CleanupResources() error {

@@ -13,6 +13,7 @@ import (
 	"github.com/protoflow-labs/protoflow/pkg/workflow/resource"
 	"github.com/reactivex/rxgo/v2"
 	"github.com/rs/zerolog/log"
+	"github.com/sashabaranov/go-openai"
 	"io"
 	"net/url"
 )
@@ -30,6 +31,74 @@ func formatHost(host string) (string, error) {
 		u.Scheme = "http"
 	}
 	return u.String(), nil
+}
+
+func (a *Activity) ExecutePromptNode(ctx context.Context, n node.Node, input Input) (Output, error) {
+	pn, ok := n.(*node.PromptNode)
+	if !ok {
+		return Output{}, fmt.Errorf("error getting prompt node: %s", pn.Name)
+	}
+
+	r, ok := input.Resource.(*resource.ReasoningEngineResource)
+	if !ok {
+		return Output{}, fmt.Errorf("error getting reasoning engine resource: %s", pn.Name)
+	}
+
+	log.Info().
+		Str("name", pn.Name).
+		Msg("setting up prompt node")
+
+	outputStream := make(chan rxgo.Item)
+
+	// TODO breadchris how should context be handled here?
+	c := []openai.ChatCompletionMessage{
+		{
+			Role:    "system",
+			Content: pn.Prompt.Prompt,
+		},
+	}
+
+	input.Observable.ForEach(func(item any) {
+		log.Debug().
+			Str("name", pn.NormalizedName()).
+			Interface("item", item).
+			Msg("executing prompt node")
+
+		var normalizedItem string
+		switch t := item.(type) {
+		case string:
+			normalizedItem = t
+		default:
+			c, err := json.Marshal(item)
+			if err != nil {
+				outputStream <- rx.NewError(errors.Wrapf(err, "error marshalling input: %s", pn.NormalizedName()))
+				return
+			}
+			normalizedItem = string(c)
+		}
+
+		c = append(c, openai.ChatCompletionMessage{
+			Role:    "user",
+			Content: normalizedItem,
+		})
+
+		s, err := r.QAClient.Ask(c)
+		if err != nil {
+			outputStream <- rx.NewError(errors.Wrapf(err, "error executing prompt: %s", pn.NormalizedName()))
+		}
+
+		// TODO breadchris react to a function call on s.FunctionCall
+
+		outputStream <- rx.NewItem(s)
+	}, func(err error) {
+		outputStream <- rx.NewError(err)
+	}, func() {
+		close(outputStream)
+	})
+	res := Output{
+		Observable: rxgo.FromChannel(outputStream, rxgo.WithPublishStrategy()),
+	}
+	return res, nil
 }
 
 // TODO breadchris this should be workflow.Context, but for the memory executor it needs context.Context
@@ -87,6 +156,10 @@ func (a *Activity) ExecuteGRPCNode(ctx context.Context, n node.Node, input Input
 			if err != nil {
 				outputStream <- rx.NewError(errors.Wrapf(err, "error calling grpc method: %s", host))
 			}
+			log.Debug().
+				Str("name", gn.NormalizedName()).
+				Interface("item", item).
+				Msg("done executing single grpc method")
 		}, func(err error) {
 			outputStream <- rx.NewError(err)
 		}, func() {
@@ -166,39 +239,57 @@ func (a *Activity) ExecuteCollectionNode(ctx context.Context, n node.Node, input
 	if err != nil {
 		return Output{}, errors.Wrapf(err, "error connecting to collection")
 	}
-	defer cleanup()
 
-	var records []map[string]interface{}
-
-	item, err := input.Observable.First().Get()
-	if err != nil {
-		return Output{}, errors.Wrapf(err, "error getting first item from observable")
-	}
-
-	switch input := item.V.(type) {
-	case map[string]interface{}:
-		records = append(records, input)
-	case []*map[string]interface{}:
-		for _, record := range input {
-			records = append(records, *record)
-		}
-	default:
-		return Output{}, fmt.Errorf("error unsupported input type: %T", input)
-	}
-
-	for _, record := range records {
+	insertWithID := func(record map[string]any) (string, error) {
 		if record["id"] == nil {
 			record["id"] = uuid.NewString()
 		}
 		err = collection.Create(context.Background(), record)
 		if err != nil {
-			return Output{}, errors.Wrapf(err, "error creating doc")
+			return "", errors.Wrapf(err, "error creating doc")
 		}
+		return record["id"].(string), nil
 	}
 
-	// TODO breadchris support streaming of records?
+	output := make(chan rxgo.Item)
+	input.Observable.ForEach(func(item any) {
+		var (
+			id  string
+			err error
+		)
+		switch i := item.(type) {
+		case map[string]interface{}:
+			id, err = insertWithID(i)
+			output <- rx.NewItem(id)
+		case []*map[string]interface{}:
+			for _, record := range i {
+				id, err = insertWithID(*record)
+				if err != nil {
+					break
+				}
+				output <- rx.NewItem(id)
+			}
+		case string:
+			id, err = insertWithID(map[string]interface{}{
+				"input": i,
+			})
+			output <- rx.NewItem(id)
+		default:
+			err = fmt.Errorf("error unsupported input type: %T", input)
+		}
+		if err != nil {
+			output <- rx.NewError(errors.Wrapf(err, "error inserting record"))
+		}
+	}, func(err error) {
+		output <- rx.NewError(err)
+		// TODO breadchris cleanup and close here too?
+	}, func() {
+		cleanup()
+		close(output)
+	})
+
 	return Output{
-		Observable: rxgo.Just(records)(),
+		Observable: rxgo.FromChannel(output, rxgo.WithPublishStrategy()),
 	}, nil
 }
 
@@ -266,24 +357,26 @@ func (a *Activity) ExecuteQueryNode(ctx context.Context, n node.Node, input Inpu
 	if err != nil {
 		return Output{}, errors.Wrapf(err, "error connecting to collection")
 	}
-	defer cleanup()
 
-	var docs []*map[string]interface{}
-	iter := d.Query().Get(context.Background())
-	for {
-		doc := map[string]interface{}{}
-		err = iter.Next(context.Background(), doc)
-		if err != nil {
-			if err == io.EOF {
+	output := make(chan rxgo.Item)
+	go func() {
+		defer cleanup()
+		iter := d.Query().Get(ctx)
+		for {
+			doc := map[string]interface{}{}
+			err = iter.Next(ctx, doc)
+			if err != nil {
+				if err != io.EOF {
+					output <- rx.NewError(errors.Wrapf(err, "error iterating over query results"))
+				}
+				close(output)
 				break
 			}
-			return Output{}, errors.Wrapf(err, "error iterating over query results")
+			output <- rx.NewItem(doc)
 		}
-		docs = append(docs, &doc)
-	}
+	}()
 
-	// TODO breadchris support streaming of docs?
 	return Output{
-		Observable: rxgo.Just(docs)(),
+		Observable: rxgo.FromChannel(output, rxgo.WithPublishStrategy()),
 	}, nil
 }

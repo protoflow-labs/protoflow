@@ -29,13 +29,13 @@ type ProjectServiceClient interface {
 	GetProjects(ctx context.Context, in *GetProjectsRequest, opts ...grpc.CallOption) (*GetProjectsResponse, error)
 	CreateProject(ctx context.Context, in *CreateProjectRequest, opts ...grpc.CallOption) (*CreateProjectResponse, error)
 	DeleteProject(ctx context.Context, in *DeleteProjectRequest, opts ...grpc.CallOption) (*DeleteProjectResponse, error)
+	UpdateResource(ctx context.Context, in *UpdateResourceRequest, opts ...grpc.CallOption) (*UpdateResourceResponse, error)
+	CreateResource(ctx context.Context, in *CreateResourceRequest, opts ...grpc.CallOption) (*CreateResourceResponse, error)
 	GetResources(ctx context.Context, in *GetResourcesRequest, opts ...grpc.CallOption) (*GetResourcesResponse, error)
 	DeleteResource(ctx context.Context, in *DeleteResourceRequest, opts ...grpc.CallOption) (*DeleteResourceResponse, error)
 	GetNodeInfo(ctx context.Context, in *GetNodeInfoRequest, opts ...grpc.CallOption) (*GetNodeInfoResponse, error)
 	SaveProject(ctx context.Context, in *SaveProjectRequest, opts ...grpc.CallOption) (*SaveProjectResponse, error)
-	CreateResource(ctx context.Context, in *CreateResourceRequest, opts ...grpc.CallOption) (*CreateResourceResponse, error)
-	RunWorklow(ctx context.Context, in *RunWorkflowRequest, opts ...grpc.CallOption) (*RunOutput, error)
-	RunNode(ctx context.Context, in *RunNodeRequest, opts ...grpc.CallOption) (*RunOutput, error)
+	RunWorkflow(ctx context.Context, in *RunWorkflowRequest, opts ...grpc.CallOption) (ProjectService_RunWorkflowClient, error)
 	GetWorkflowRuns(ctx context.Context, in *GetWorkflowRunsRequest, opts ...grpc.CallOption) (*GetWorkflowRunsResponse, error)
 }
 
@@ -115,6 +115,24 @@ func (c *projectServiceClient) DeleteProject(ctx context.Context, in *DeleteProj
 	return out, nil
 }
 
+func (c *projectServiceClient) UpdateResource(ctx context.Context, in *UpdateResourceRequest, opts ...grpc.CallOption) (*UpdateResourceResponse, error) {
+	out := new(UpdateResourceResponse)
+	err := c.cc.Invoke(ctx, "/project.ProjectService/UpdateResource", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *projectServiceClient) CreateResource(ctx context.Context, in *CreateResourceRequest, opts ...grpc.CallOption) (*CreateResourceResponse, error) {
+	out := new(CreateResourceResponse)
+	err := c.cc.Invoke(ctx, "/project.ProjectService/CreateResource", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *projectServiceClient) GetResources(ctx context.Context, in *GetResourcesRequest, opts ...grpc.CallOption) (*GetResourcesResponse, error) {
 	out := new(GetResourcesResponse)
 	err := c.cc.Invoke(ctx, "/project.ProjectService/GetResources", in, out, opts...)
@@ -151,31 +169,36 @@ func (c *projectServiceClient) SaveProject(ctx context.Context, in *SaveProjectR
 	return out, nil
 }
 
-func (c *projectServiceClient) CreateResource(ctx context.Context, in *CreateResourceRequest, opts ...grpc.CallOption) (*CreateResourceResponse, error) {
-	out := new(CreateResourceResponse)
-	err := c.cc.Invoke(ctx, "/project.ProjectService/CreateResource", in, out, opts...)
+func (c *projectServiceClient) RunWorkflow(ctx context.Context, in *RunWorkflowRequest, opts ...grpc.CallOption) (ProjectService_RunWorkflowClient, error) {
+	stream, err := c.cc.NewStream(ctx, &ProjectService_ServiceDesc.Streams[1], "/project.ProjectService/RunWorkflow", opts...)
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	x := &projectServiceRunWorkflowClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
 }
 
-func (c *projectServiceClient) RunWorklow(ctx context.Context, in *RunWorkflowRequest, opts ...grpc.CallOption) (*RunOutput, error) {
-	out := new(RunOutput)
-	err := c.cc.Invoke(ctx, "/project.ProjectService/RunWorklow", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
+type ProjectService_RunWorkflowClient interface {
+	Recv() (*NodeExecution, error)
+	grpc.ClientStream
 }
 
-func (c *projectServiceClient) RunNode(ctx context.Context, in *RunNodeRequest, opts ...grpc.CallOption) (*RunOutput, error) {
-	out := new(RunOutput)
-	err := c.cc.Invoke(ctx, "/project.ProjectService/RunNode", in, out, opts...)
-	if err != nil {
+type projectServiceRunWorkflowClient struct {
+	grpc.ClientStream
+}
+
+func (x *projectServiceRunWorkflowClient) Recv() (*NodeExecution, error) {
+	m := new(NodeExecution)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
-	return out, nil
+	return m, nil
 }
 
 func (c *projectServiceClient) GetWorkflowRuns(ctx context.Context, in *GetWorkflowRunsRequest, opts ...grpc.CallOption) (*GetWorkflowRunsResponse, error) {
@@ -198,13 +221,13 @@ type ProjectServiceServer interface {
 	GetProjects(context.Context, *GetProjectsRequest) (*GetProjectsResponse, error)
 	CreateProject(context.Context, *CreateProjectRequest) (*CreateProjectResponse, error)
 	DeleteProject(context.Context, *DeleteProjectRequest) (*DeleteProjectResponse, error)
+	UpdateResource(context.Context, *UpdateResourceRequest) (*UpdateResourceResponse, error)
+	CreateResource(context.Context, *CreateResourceRequest) (*CreateResourceResponse, error)
 	GetResources(context.Context, *GetResourcesRequest) (*GetResourcesResponse, error)
 	DeleteResource(context.Context, *DeleteResourceRequest) (*DeleteResourceResponse, error)
 	GetNodeInfo(context.Context, *GetNodeInfoRequest) (*GetNodeInfoResponse, error)
 	SaveProject(context.Context, *SaveProjectRequest) (*SaveProjectResponse, error)
-	CreateResource(context.Context, *CreateResourceRequest) (*CreateResourceResponse, error)
-	RunWorklow(context.Context, *RunWorkflowRequest) (*RunOutput, error)
-	RunNode(context.Context, *RunNodeRequest) (*RunOutput, error)
+	RunWorkflow(*RunWorkflowRequest, ProjectService_RunWorkflowServer) error
 	GetWorkflowRuns(context.Context, *GetWorkflowRunsRequest) (*GetWorkflowRunsResponse, error)
 }
 
@@ -227,6 +250,12 @@ func (UnimplementedProjectServiceServer) CreateProject(context.Context, *CreateP
 func (UnimplementedProjectServiceServer) DeleteProject(context.Context, *DeleteProjectRequest) (*DeleteProjectResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteProject not implemented")
 }
+func (UnimplementedProjectServiceServer) UpdateResource(context.Context, *UpdateResourceRequest) (*UpdateResourceResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateResource not implemented")
+}
+func (UnimplementedProjectServiceServer) CreateResource(context.Context, *CreateResourceRequest) (*CreateResourceResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateResource not implemented")
+}
 func (UnimplementedProjectServiceServer) GetResources(context.Context, *GetResourcesRequest) (*GetResourcesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetResources not implemented")
 }
@@ -239,14 +268,8 @@ func (UnimplementedProjectServiceServer) GetNodeInfo(context.Context, *GetNodeIn
 func (UnimplementedProjectServiceServer) SaveProject(context.Context, *SaveProjectRequest) (*SaveProjectResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SaveProject not implemented")
 }
-func (UnimplementedProjectServiceServer) CreateResource(context.Context, *CreateResourceRequest) (*CreateResourceResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateResource not implemented")
-}
-func (UnimplementedProjectServiceServer) RunWorklow(context.Context, *RunWorkflowRequest) (*RunOutput, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method RunWorklow not implemented")
-}
-func (UnimplementedProjectServiceServer) RunNode(context.Context, *RunNodeRequest) (*RunOutput, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method RunNode not implemented")
+func (UnimplementedProjectServiceServer) RunWorkflow(*RunWorkflowRequest, ProjectService_RunWorkflowServer) error {
+	return status.Errorf(codes.Unimplemented, "method RunWorkflow not implemented")
 }
 func (UnimplementedProjectServiceServer) GetWorkflowRuns(context.Context, *GetWorkflowRunsRequest) (*GetWorkflowRunsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetWorkflowRuns not implemented")
@@ -356,6 +379,42 @@ func _ProjectService_DeleteProject_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ProjectService_UpdateResource_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateResourceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProjectServiceServer).UpdateResource(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/project.ProjectService/UpdateResource",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProjectServiceServer).UpdateResource(ctx, req.(*UpdateResourceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ProjectService_CreateResource_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateResourceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProjectServiceServer).CreateResource(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/project.ProjectService/CreateResource",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProjectServiceServer).CreateResource(ctx, req.(*CreateResourceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _ProjectService_GetResources_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetResourcesRequest)
 	if err := dec(in); err != nil {
@@ -428,58 +487,25 @@ func _ProjectService_SaveProject_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ProjectService_CreateResource_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateResourceRequest)
-	if err := dec(in); err != nil {
-		return nil, err
+func _ProjectService_RunWorkflow_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(RunWorkflowRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
 	}
-	if interceptor == nil {
-		return srv.(ProjectServiceServer).CreateResource(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/project.ProjectService/CreateResource",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ProjectServiceServer).CreateResource(ctx, req.(*CreateResourceRequest))
-	}
-	return interceptor(ctx, in, info, handler)
+	return srv.(ProjectServiceServer).RunWorkflow(m, &projectServiceRunWorkflowServer{stream})
 }
 
-func _ProjectService_RunWorklow_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RunWorkflowRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ProjectServiceServer).RunWorklow(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/project.ProjectService/RunWorklow",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ProjectServiceServer).RunWorklow(ctx, req.(*RunWorkflowRequest))
-	}
-	return interceptor(ctx, in, info, handler)
+type ProjectService_RunWorkflowServer interface {
+	Send(*NodeExecution) error
+	grpc.ServerStream
 }
 
-func _ProjectService_RunNode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RunNodeRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ProjectServiceServer).RunNode(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/project.ProjectService/RunNode",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ProjectServiceServer).RunNode(ctx, req.(*RunNodeRequest))
-	}
-	return interceptor(ctx, in, info, handler)
+type projectServiceRunWorkflowServer struct {
+	grpc.ServerStream
+}
+
+func (x *projectServiceRunWorkflowServer) Send(m *NodeExecution) error {
+	return x.ServerStream.SendMsg(m)
 }
 
 func _ProjectService_GetWorkflowRuns_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -524,6 +550,14 @@ var ProjectService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _ProjectService_DeleteProject_Handler,
 		},
 		{
+			MethodName: "UpdateResource",
+			Handler:    _ProjectService_UpdateResource_Handler,
+		},
+		{
+			MethodName: "CreateResource",
+			Handler:    _ProjectService_CreateResource_Handler,
+		},
+		{
 			MethodName: "GetResources",
 			Handler:    _ProjectService_GetResources_Handler,
 		},
@@ -540,18 +574,6 @@ var ProjectService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _ProjectService_SaveProject_Handler,
 		},
 		{
-			MethodName: "CreateResource",
-			Handler:    _ProjectService_CreateResource_Handler,
-		},
-		{
-			MethodName: "RunWorklow",
-			Handler:    _ProjectService_RunWorklow_Handler,
-		},
-		{
-			MethodName: "RunNode",
-			Handler:    _ProjectService_RunNode_Handler,
-		},
-		{
 			MethodName: "GetWorkflowRuns",
 			Handler:    _ProjectService_GetWorkflowRuns_Handler,
 		},
@@ -560,6 +582,11 @@ var ProjectService_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "SendChat",
 			Handler:       _ProjectService_SendChat_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "RunWorkflow",
+			Handler:       _ProjectService_RunWorkflow_Handler,
 			ServerStreams: true,
 		},
 	},

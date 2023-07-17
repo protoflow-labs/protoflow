@@ -18,6 +18,7 @@ import {useErrorBoundary} from "react-error-boundary";
 import {getUpdatedProject} from "@/lib/project";
 import {Node as ProtoNode} from "@/rpc/graph_pb";
 import {notEmpty} from "@/util/predicates";
+import { Resource } from "@/rpc/resource_pb";
 
 type GetLookup = (lookup: Record<string, ProtoNode>) => Record<string, ProtoNode>;
 
@@ -26,14 +27,15 @@ type ProjectContextType = {
     project: Project | undefined;
     resources: EnumeratedResource[];
     resourceLookup: Record<string, EnumeratedResource>;
-    output: any;
     loadingResources: boolean;
+    workflowOutput: string[] | null;
+    setWorkflowOutput: (output: string[] | null) => void;
 
     saveProject: (nodes: Node[], edges: Edge[]) => Promise<void>;
-    resetOutput: () => void;
     runWorkflow: (node: Node) => Promise<any>;
     loadResources: () => Promise<void>;
     deleteResource: (resourceId: string) => Promise<void>;
+    updateResource: (resource: Resource) => Promise<void>;
     loadNodeInfo: (nodeId: string) => Promise<GetNodeInfoResponse | undefined>;
     activeNode: ProtoNode | null;
     setActiveNodeId: (nodeId: string | null) => void;
@@ -57,16 +59,15 @@ export function getDataFromNode(node: ProtoNode) {
 const ProjectContext = createContext<ProjectContextType>({} as any);
 
 export const useProjectContext = () => useContext(ProjectContext);
-export const useResetOutput = () => useProjectContext().resetOutput;
 
 // project provider holds things that are closer to the database, like information fetched from the database
 export default function ProjectProvider({children}: ProjectProviderProps) {
     const {project, loading, createDefault} = useDefaultProject();
     const {resources, resourceLookup, loading: loadingResources, loadProjectResources} = useProjectResources();
-    const [output, setOutput] = useState<any>(null);
     const {showBoundary} = useErrorBoundary();
     const [nodeLookup, setNodeLookup] = useState<Record<string, ProtoNode>>({});
     const [activeNode, setActiveNode] = useState<ProtoNode | null>(null);
+    const [workflowOutput, setWorkflowOutput] = useState<string[] | null>(null);
 
     const setActiveNodeId = (nodeId: string | null) => {
         if (!nodeId) {
@@ -77,10 +78,6 @@ export default function ProjectProvider({children}: ProjectProviderProps) {
         // TODO breadchris catch error
         setActiveNode(nodeLookup[nodeId]);
     }
-
-    const resetOutput = useCallback(() => {
-        setOutput(null);
-    }, []);
 
     const saveProject = useCallback(async (nodes: Node[], edges: Edge[]) => {
         if (!project) return;
@@ -110,17 +107,20 @@ export default function ProjectProvider({children}: ProjectProviderProps) {
                 return;
             }
             try {
-                const res = await projectService.runWorklow({
+                setWorkflowOutput(null);
+                const res = await projectService.runWorkflow({
                     nodeId: node.id,
                     projectId: project.id,
                     // TODO breadchris this is garbo, we need a better data structure to represent data input
                     input: getDataFromNode(graphNode) || ''
                 });
-
-                setOutput(res.output);
-            } catch (e) {
-                // @ts-ignore
-                toast.error(e.toString());
+                for await (const exec of res) {
+                    setWorkflowOutput((prevState) => [...(prevState || []), exec.output]);
+                }
+            } catch (e: any) {
+                toast.error(e.toString(), {
+                    duration: 10000,
+                });
             }
         },
         [project, nodeLookup]
@@ -136,6 +136,24 @@ export default function ProjectProvider({children}: ProjectProviderProps) {
                     resourceId,
                 });
                 toast.success('deleted resource');
+            } catch (e) {
+                // @ts-ignore
+                toast.error(e.toString());
+            }
+        },
+        [project]
+    );
+
+    const updateResource = useCallback(
+        async (resource: Resource) => {
+            if (!project) return;
+
+            try {
+                const res = await projectService.updateResource({
+                    projectId: project.id,
+                    resource,
+                });
+                toast.success('updated resource');
             } catch (e) {
                 // @ts-ignore
                 toast.error(e.toString());
@@ -216,11 +234,12 @@ export default function ProjectProvider({children}: ProjectProviderProps) {
                 project,
                 resources,
                 resourceLookup,
-                output,
-                resetOutput,
                 runWorkflow,
+                workflowOutput,
+                setWorkflowOutput,
                 saveProject,
                 deleteResource,
+                updateResource,
                 loadResources,
                 loadingResources,
                 loadNodeInfo,

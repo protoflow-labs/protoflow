@@ -13,7 +13,9 @@ import (
 	"github.com/protoflow-labs/protoflow/pkg/grpc"
 	openaiclient "github.com/protoflow-labs/protoflow/pkg/openai"
 	"github.com/protoflow-labs/protoflow/pkg/store"
+	"github.com/protoflow-labs/protoflow/pkg/util/rx"
 	"github.com/protoflow-labs/protoflow/pkg/workflow"
+	"github.com/reactivex/rxgo/v2"
 	"github.com/rs/zerolog/log"
 )
 
@@ -154,15 +156,37 @@ func (s *Service) CreateResource(ctx context.Context, c *connect.Request[gen.Cre
 	}), nil
 }
 
-func (s *Service) RunWorklow(ctx context.Context, c *connect.Request[gen.RunWorkflowRequest]) (*connect.Response[gen.RunOutput], error) {
+func (s *Service) UpdateResource(ctx context.Context, c *connect.Request[gen.UpdateResourceRequest]) (*connect.Response[gen.UpdateResourceResponse], error) {
 	project, err := s.store.GetProject(c.Msg.ProjectId)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get project %s", c.Msg.ProjectId)
 	}
 
-	w, err := workflow.FromProject(project)
+	var newResources []*gen.Resource
+	for _, resource := range project.Resources {
+		if resource.Id == c.Msg.Resource.Id {
+			newResources = append(newResources, c.Msg.Resource)
+			continue
+		}
+		newResources = append(newResources, resource)
+	}
+	project.Resources = newResources
+	_, err = s.store.SaveProject(project)
 	if err != nil {
 		return nil, err
+	}
+	return connect.NewResponse(&gen.UpdateResourceResponse{}), nil
+}
+
+func (s *Service) RunWorkflow(ctx context.Context, c *connect.Request[gen.RunWorkflowRequest], c2 *connect.ServerStream[gen.NodeExecution]) error {
+	project, err := s.store.GetProject(c.Msg.ProjectId)
+	if err != nil {
+		return errors.Wrapf(err, "failed to get project %s", c.Msg.ProjectId)
+	}
+
+	w, err := workflow.FromProject(project)
+	if err != nil {
+		return err
 	}
 
 	// TODO breadchris temporary for when the input is not set
@@ -174,29 +198,54 @@ func (s *Service) RunWorklow(ctx context.Context, c *connect.Request[gen.RunWork
 	var workflowInput map[string]interface{}
 	err = json.Unmarshal([]byte(c.Msg.Input), &workflowInput)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to unmarshal workflow input")
+		return errors.Wrapf(err, "failed to unmarshal workflow input")
 	}
 
-	log.Debug().Str("workflow", w.ID).Str("node", c.Msg.NodeId).Msg("workflow starting")
-	res, err := s.manager.ExecuteWorkflowSync(ctx, w, c.Msg.NodeId, workflowInput)
+	log.Debug().
+		Str("workflow", w.ID).
+		Str("node", c.Msg.NodeId).
+		Msg("workflow starting")
+
+	inputChan := make(chan rxgo.Item)
+	o := rxgo.FromChannel(inputChan, rxgo.WithPublishStrategy())
+
+	obs, err := s.manager.ExecuteWorkflow(ctx, w, c.Msg.NodeId, o)
 	if err != nil {
-		return nil, err
-	}
-	log.Debug().Str("workflow", w.ID).Str("node", c.Msg.NodeId).Msg("workflow finished")
-
-	out, err := json.Marshal(res)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to marshal result data")
+		return err
 	}
 
-	return connect.NewResponse(&gen.RunOutput{
-		Output: string(out),
-	}), nil
-}
+	// TODO breadchris support streaming input
+	inputChan <- rx.NewItem(workflowInput)
+	close(inputChan)
 
-func (s *Service) RunNode(ctx context.Context, c *connect.Request[gen.RunNodeRequest]) (*connect.Response[gen.RunOutput], error) {
-	//TODO implement me
-	panic("implement me")
+	var (
+		obsErr error
+	)
+	<-obs.ForEach(func(item any) {
+		log.Debug().Interface("item", item).Msg("workflow item")
+		out, err := json.Marshal(item)
+		if err != nil {
+			obsErr = errors.Wrapf(err, "failed to marshal result data")
+			return
+		}
+
+		// TODO breadchris node executions should be passed to the observable with the node id, input, and output
+		err = c2.Send(&gen.NodeExecution{
+			Output: string(out),
+		})
+		if err != nil {
+			obsErr = errors.Wrapf(err, "failed to send node execution")
+			return
+		}
+	}, func(err error) {
+		obsErr = err
+	}, func() {
+		log.Debug().
+			Str("workflow", w.ID).
+			Str("node", c.Msg.NodeId).
+			Msg("workflow finished")
+	})
+	return obsErr
 }
 
 func (s *Service) GetNodeInfo(ctx context.Context, c *connect.Request[gen.GetNodeInfoRequest]) (*connect.Response[gen.GetNodeInfoResponse], error) {
@@ -217,7 +266,8 @@ func (s *Service) GetNodeInfo(ctx context.Context, c *connect.Request[gen.GetNod
 		return nil, errors.Wrapf(err, "failed to get node info for node %s", c.Msg.NodeId)
 	}
 	if nodeInfo == nil {
-		return nil, errors.Errorf("node %s has no info", c.Msg.NodeId)
+		log.Warn().Str("node", c.Msg.NodeId).Msg("node has no info")
+		return connect.NewResponse(&gen.GetNodeInfoResponse{}), nil
 	}
 	typeInfo, err := nodeInfo.Method.Proto()
 	if err != nil {

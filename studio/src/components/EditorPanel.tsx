@@ -4,7 +4,7 @@ import { InputEditor } from "./blockEditors/InputEditor";
 import NodeProvider from "@/providers/NodeProvider";
 import {useProjectContext} from "@/providers/ProjectProvider";
 import {Node as ProtoNode} from "@/rpc/graph_pb";
-import {Bucket, Collection, Function, GRPC, Prompt, Query, REST} from "@/rpc/block_pb";
+import {Bucket, Collection, Config, Function, GRPC, Prompt, Query, REST} from "@/rpc/block_pb";
 import {GenericNodeEditor} from "@/components/blockEditors/GenericNodeEditor";
 
 export function EditorPanel() {
@@ -61,6 +61,8 @@ function NodeEditor(props: NodeEditorProps) {
       return <GenericNodeEditor node={props.node} nodeConfig={"grpc"} nodeConfigType={GRPC} />;
     case "prompt":
       return <GenericNodeEditor node={props.node} nodeConfig={"prompt"} nodeConfigType={Prompt} />;
+    case "configuration":
+      return <GenericNodeEditor node={props.node} nodeConfig={"configuration"} nodeConfigType={Config} />;
     default:
       return null;
   }

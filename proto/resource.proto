@@ -15,14 +15,15 @@ enum Runtime {
 message Resource {
   string id = 1;
   string name = 2;
-  repeated Resource dependencies = 3;
+  // dependencies are the ids of other resources
+  repeated string dependencies = 3;
   oneof type {
     GRPCService grpc_service = 4;
     RESTService rest_service = 5;
     DocStore doc_store = 6;
     FileStore file_store = 7;
     LanguageService language_service = 8;
-    RuntimeConfig runtime_config = 9;
+    ConfigProvider config_provider = 9;
     SecretStore secret_store = 10;
     ReasoningEngine reasoning_engine = 11;
   }
@@ -35,10 +36,7 @@ message SecretStore {
   string url = 1;
 }
 
-message RuntimeConfig {
-  google.protobuf.DescriptorProto config_type = 1;
-  string config = 2;
-}
+message ConfigProvider {}
 
 message CodeConfig {
   string path = 1;

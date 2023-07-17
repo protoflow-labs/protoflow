@@ -47,6 +47,12 @@ const (
 	// ProjectServiceDeleteProjectProcedure is the fully-qualified name of the ProjectService's
 	// DeleteProject RPC.
 	ProjectServiceDeleteProjectProcedure = "/project.ProjectService/DeleteProject"
+	// ProjectServiceUpdateResourceProcedure is the fully-qualified name of the ProjectService's
+	// UpdateResource RPC.
+	ProjectServiceUpdateResourceProcedure = "/project.ProjectService/UpdateResource"
+	// ProjectServiceCreateResourceProcedure is the fully-qualified name of the ProjectService's
+	// CreateResource RPC.
+	ProjectServiceCreateResourceProcedure = "/project.ProjectService/CreateResource"
 	// ProjectServiceGetResourcesProcedure is the fully-qualified name of the ProjectService's
 	// GetResources RPC.
 	ProjectServiceGetResourcesProcedure = "/project.ProjectService/GetResources"
@@ -59,14 +65,9 @@ const (
 	// ProjectServiceSaveProjectProcedure is the fully-qualified name of the ProjectService's
 	// SaveProject RPC.
 	ProjectServiceSaveProjectProcedure = "/project.ProjectService/SaveProject"
-	// ProjectServiceCreateResourceProcedure is the fully-qualified name of the ProjectService's
-	// CreateResource RPC.
-	ProjectServiceCreateResourceProcedure = "/project.ProjectService/CreateResource"
-	// ProjectServiceRunWorklowProcedure is the fully-qualified name of the ProjectService's RunWorklow
-	// RPC.
-	ProjectServiceRunWorklowProcedure = "/project.ProjectService/RunWorklow"
-	// ProjectServiceRunNodeProcedure is the fully-qualified name of the ProjectService's RunNode RPC.
-	ProjectServiceRunNodeProcedure = "/project.ProjectService/RunNode"
+	// ProjectServiceRunWorkflowProcedure is the fully-qualified name of the ProjectService's
+	// RunWorkflow RPC.
+	ProjectServiceRunWorkflowProcedure = "/project.ProjectService/RunWorkflow"
 	// ProjectServiceGetWorkflowRunsProcedure is the fully-qualified name of the ProjectService's
 	// GetWorkflowRuns RPC.
 	ProjectServiceGetWorkflowRunsProcedure = "/project.ProjectService/GetWorkflowRuns"
@@ -81,13 +82,13 @@ type ProjectServiceClient interface {
 	GetProjects(context.Context, *connect_go.Request[gen.GetProjectsRequest]) (*connect_go.Response[gen.GetProjectsResponse], error)
 	CreateProject(context.Context, *connect_go.Request[gen.CreateProjectRequest]) (*connect_go.Response[gen.CreateProjectResponse], error)
 	DeleteProject(context.Context, *connect_go.Request[gen.DeleteProjectRequest]) (*connect_go.Response[gen.DeleteProjectResponse], error)
+	UpdateResource(context.Context, *connect_go.Request[gen.UpdateResourceRequest]) (*connect_go.Response[gen.UpdateResourceResponse], error)
+	CreateResource(context.Context, *connect_go.Request[gen.CreateResourceRequest]) (*connect_go.Response[gen.CreateResourceResponse], error)
 	GetResources(context.Context, *connect_go.Request[gen.GetResourcesRequest]) (*connect_go.Response[gen.GetResourcesResponse], error)
 	DeleteResource(context.Context, *connect_go.Request[gen.DeleteResourceRequest]) (*connect_go.Response[gen.DeleteResourceResponse], error)
 	GetNodeInfo(context.Context, *connect_go.Request[gen.GetNodeInfoRequest]) (*connect_go.Response[gen.GetNodeInfoResponse], error)
 	SaveProject(context.Context, *connect_go.Request[gen.SaveProjectRequest]) (*connect_go.Response[gen.SaveProjectResponse], error)
-	CreateResource(context.Context, *connect_go.Request[gen.CreateResourceRequest]) (*connect_go.Response[gen.CreateResourceResponse], error)
-	RunWorklow(context.Context, *connect_go.Request[gen.RunWorkflowRequest]) (*connect_go.Response[gen.RunOutput], error)
-	RunNode(context.Context, *connect_go.Request[gen.RunNodeRequest]) (*connect_go.Response[gen.RunOutput], error)
+	RunWorkflow(context.Context, *connect_go.Request[gen.RunWorkflowRequest]) (*connect_go.ServerStreamForClient[gen.NodeExecution], error)
 	GetWorkflowRuns(context.Context, *connect_go.Request[gen.GetWorkflowRunsRequest]) (*connect_go.Response[gen.GetWorkflowRunsResponse], error)
 }
 
@@ -126,6 +127,16 @@ func NewProjectServiceClient(httpClient connect_go.HTTPClient, baseURL string, o
 			baseURL+ProjectServiceDeleteProjectProcedure,
 			opts...,
 		),
+		updateResource: connect_go.NewClient[gen.UpdateResourceRequest, gen.UpdateResourceResponse](
+			httpClient,
+			baseURL+ProjectServiceUpdateResourceProcedure,
+			opts...,
+		),
+		createResource: connect_go.NewClient[gen.CreateResourceRequest, gen.CreateResourceResponse](
+			httpClient,
+			baseURL+ProjectServiceCreateResourceProcedure,
+			opts...,
+		),
 		getResources: connect_go.NewClient[gen.GetResourcesRequest, gen.GetResourcesResponse](
 			httpClient,
 			baseURL+ProjectServiceGetResourcesProcedure,
@@ -146,19 +157,9 @@ func NewProjectServiceClient(httpClient connect_go.HTTPClient, baseURL string, o
 			baseURL+ProjectServiceSaveProjectProcedure,
 			opts...,
 		),
-		createResource: connect_go.NewClient[gen.CreateResourceRequest, gen.CreateResourceResponse](
+		runWorkflow: connect_go.NewClient[gen.RunWorkflowRequest, gen.NodeExecution](
 			httpClient,
-			baseURL+ProjectServiceCreateResourceProcedure,
-			opts...,
-		),
-		runWorklow: connect_go.NewClient[gen.RunWorkflowRequest, gen.RunOutput](
-			httpClient,
-			baseURL+ProjectServiceRunWorklowProcedure,
-			opts...,
-		),
-		runNode: connect_go.NewClient[gen.RunNodeRequest, gen.RunOutput](
-			httpClient,
-			baseURL+ProjectServiceRunNodeProcedure,
+			baseURL+ProjectServiceRunWorkflowProcedure,
 			opts...,
 		),
 		getWorkflowRuns: connect_go.NewClient[gen.GetWorkflowRunsRequest, gen.GetWorkflowRunsResponse](
@@ -176,13 +177,13 @@ type projectServiceClient struct {
 	getProjects     *connect_go.Client[gen.GetProjectsRequest, gen.GetProjectsResponse]
 	createProject   *connect_go.Client[gen.CreateProjectRequest, gen.CreateProjectResponse]
 	deleteProject   *connect_go.Client[gen.DeleteProjectRequest, gen.DeleteProjectResponse]
+	updateResource  *connect_go.Client[gen.UpdateResourceRequest, gen.UpdateResourceResponse]
+	createResource  *connect_go.Client[gen.CreateResourceRequest, gen.CreateResourceResponse]
 	getResources    *connect_go.Client[gen.GetResourcesRequest, gen.GetResourcesResponse]
 	deleteResource  *connect_go.Client[gen.DeleteResourceRequest, gen.DeleteResourceResponse]
 	getNodeInfo     *connect_go.Client[gen.GetNodeInfoRequest, gen.GetNodeInfoResponse]
 	saveProject     *connect_go.Client[gen.SaveProjectRequest, gen.SaveProjectResponse]
-	createResource  *connect_go.Client[gen.CreateResourceRequest, gen.CreateResourceResponse]
-	runWorklow      *connect_go.Client[gen.RunWorkflowRequest, gen.RunOutput]
-	runNode         *connect_go.Client[gen.RunNodeRequest, gen.RunOutput]
+	runWorkflow     *connect_go.Client[gen.RunWorkflowRequest, gen.NodeExecution]
 	getWorkflowRuns *connect_go.Client[gen.GetWorkflowRunsRequest, gen.GetWorkflowRunsResponse]
 }
 
@@ -211,6 +212,16 @@ func (c *projectServiceClient) DeleteProject(ctx context.Context, req *connect_g
 	return c.deleteProject.CallUnary(ctx, req)
 }
 
+// UpdateResource calls project.ProjectService.UpdateResource.
+func (c *projectServiceClient) UpdateResource(ctx context.Context, req *connect_go.Request[gen.UpdateResourceRequest]) (*connect_go.Response[gen.UpdateResourceResponse], error) {
+	return c.updateResource.CallUnary(ctx, req)
+}
+
+// CreateResource calls project.ProjectService.CreateResource.
+func (c *projectServiceClient) CreateResource(ctx context.Context, req *connect_go.Request[gen.CreateResourceRequest]) (*connect_go.Response[gen.CreateResourceResponse], error) {
+	return c.createResource.CallUnary(ctx, req)
+}
+
 // GetResources calls project.ProjectService.GetResources.
 func (c *projectServiceClient) GetResources(ctx context.Context, req *connect_go.Request[gen.GetResourcesRequest]) (*connect_go.Response[gen.GetResourcesResponse], error) {
 	return c.getResources.CallUnary(ctx, req)
@@ -231,19 +242,9 @@ func (c *projectServiceClient) SaveProject(ctx context.Context, req *connect_go.
 	return c.saveProject.CallUnary(ctx, req)
 }
 
-// CreateResource calls project.ProjectService.CreateResource.
-func (c *projectServiceClient) CreateResource(ctx context.Context, req *connect_go.Request[gen.CreateResourceRequest]) (*connect_go.Response[gen.CreateResourceResponse], error) {
-	return c.createResource.CallUnary(ctx, req)
-}
-
-// RunWorklow calls project.ProjectService.RunWorklow.
-func (c *projectServiceClient) RunWorklow(ctx context.Context, req *connect_go.Request[gen.RunWorkflowRequest]) (*connect_go.Response[gen.RunOutput], error) {
-	return c.runWorklow.CallUnary(ctx, req)
-}
-
-// RunNode calls project.ProjectService.RunNode.
-func (c *projectServiceClient) RunNode(ctx context.Context, req *connect_go.Request[gen.RunNodeRequest]) (*connect_go.Response[gen.RunOutput], error) {
-	return c.runNode.CallUnary(ctx, req)
+// RunWorkflow calls project.ProjectService.RunWorkflow.
+func (c *projectServiceClient) RunWorkflow(ctx context.Context, req *connect_go.Request[gen.RunWorkflowRequest]) (*connect_go.ServerStreamForClient[gen.NodeExecution], error) {
+	return c.runWorkflow.CallServerStream(ctx, req)
 }
 
 // GetWorkflowRuns calls project.ProjectService.GetWorkflowRuns.
@@ -260,13 +261,13 @@ type ProjectServiceHandler interface {
 	GetProjects(context.Context, *connect_go.Request[gen.GetProjectsRequest]) (*connect_go.Response[gen.GetProjectsResponse], error)
 	CreateProject(context.Context, *connect_go.Request[gen.CreateProjectRequest]) (*connect_go.Response[gen.CreateProjectResponse], error)
 	DeleteProject(context.Context, *connect_go.Request[gen.DeleteProjectRequest]) (*connect_go.Response[gen.DeleteProjectResponse], error)
+	UpdateResource(context.Context, *connect_go.Request[gen.UpdateResourceRequest]) (*connect_go.Response[gen.UpdateResourceResponse], error)
+	CreateResource(context.Context, *connect_go.Request[gen.CreateResourceRequest]) (*connect_go.Response[gen.CreateResourceResponse], error)
 	GetResources(context.Context, *connect_go.Request[gen.GetResourcesRequest]) (*connect_go.Response[gen.GetResourcesResponse], error)
 	DeleteResource(context.Context, *connect_go.Request[gen.DeleteResourceRequest]) (*connect_go.Response[gen.DeleteResourceResponse], error)
 	GetNodeInfo(context.Context, *connect_go.Request[gen.GetNodeInfoRequest]) (*connect_go.Response[gen.GetNodeInfoResponse], error)
 	SaveProject(context.Context, *connect_go.Request[gen.SaveProjectRequest]) (*connect_go.Response[gen.SaveProjectResponse], error)
-	CreateResource(context.Context, *connect_go.Request[gen.CreateResourceRequest]) (*connect_go.Response[gen.CreateResourceResponse], error)
-	RunWorklow(context.Context, *connect_go.Request[gen.RunWorkflowRequest]) (*connect_go.Response[gen.RunOutput], error)
-	RunNode(context.Context, *connect_go.Request[gen.RunNodeRequest]) (*connect_go.Response[gen.RunOutput], error)
+	RunWorkflow(context.Context, *connect_go.Request[gen.RunWorkflowRequest], *connect_go.ServerStream[gen.NodeExecution]) error
 	GetWorkflowRuns(context.Context, *connect_go.Request[gen.GetWorkflowRunsRequest]) (*connect_go.Response[gen.GetWorkflowRunsResponse], error)
 }
 
@@ -301,6 +302,16 @@ func NewProjectServiceHandler(svc ProjectServiceHandler, opts ...connect_go.Hand
 		svc.DeleteProject,
 		opts...,
 	)
+	projectServiceUpdateResourceHandler := connect_go.NewUnaryHandler(
+		ProjectServiceUpdateResourceProcedure,
+		svc.UpdateResource,
+		opts...,
+	)
+	projectServiceCreateResourceHandler := connect_go.NewUnaryHandler(
+		ProjectServiceCreateResourceProcedure,
+		svc.CreateResource,
+		opts...,
+	)
 	projectServiceGetResourcesHandler := connect_go.NewUnaryHandler(
 		ProjectServiceGetResourcesProcedure,
 		svc.GetResources,
@@ -321,19 +332,9 @@ func NewProjectServiceHandler(svc ProjectServiceHandler, opts ...connect_go.Hand
 		svc.SaveProject,
 		opts...,
 	)
-	projectServiceCreateResourceHandler := connect_go.NewUnaryHandler(
-		ProjectServiceCreateResourceProcedure,
-		svc.CreateResource,
-		opts...,
-	)
-	projectServiceRunWorklowHandler := connect_go.NewUnaryHandler(
-		ProjectServiceRunWorklowProcedure,
-		svc.RunWorklow,
-		opts...,
-	)
-	projectServiceRunNodeHandler := connect_go.NewUnaryHandler(
-		ProjectServiceRunNodeProcedure,
-		svc.RunNode,
+	projectServiceRunWorkflowHandler := connect_go.NewServerStreamHandler(
+		ProjectServiceRunWorkflowProcedure,
+		svc.RunWorkflow,
 		opts...,
 	)
 	projectServiceGetWorkflowRunsHandler := connect_go.NewUnaryHandler(
@@ -353,6 +354,10 @@ func NewProjectServiceHandler(svc ProjectServiceHandler, opts ...connect_go.Hand
 			projectServiceCreateProjectHandler.ServeHTTP(w, r)
 		case ProjectServiceDeleteProjectProcedure:
 			projectServiceDeleteProjectHandler.ServeHTTP(w, r)
+		case ProjectServiceUpdateResourceProcedure:
+			projectServiceUpdateResourceHandler.ServeHTTP(w, r)
+		case ProjectServiceCreateResourceProcedure:
+			projectServiceCreateResourceHandler.ServeHTTP(w, r)
 		case ProjectServiceGetResourcesProcedure:
 			projectServiceGetResourcesHandler.ServeHTTP(w, r)
 		case ProjectServiceDeleteResourceProcedure:
@@ -361,12 +366,8 @@ func NewProjectServiceHandler(svc ProjectServiceHandler, opts ...connect_go.Hand
 			projectServiceGetNodeInfoHandler.ServeHTTP(w, r)
 		case ProjectServiceSaveProjectProcedure:
 			projectServiceSaveProjectHandler.ServeHTTP(w, r)
-		case ProjectServiceCreateResourceProcedure:
-			projectServiceCreateResourceHandler.ServeHTTP(w, r)
-		case ProjectServiceRunWorklowProcedure:
-			projectServiceRunWorklowHandler.ServeHTTP(w, r)
-		case ProjectServiceRunNodeProcedure:
-			projectServiceRunNodeHandler.ServeHTTP(w, r)
+		case ProjectServiceRunWorkflowProcedure:
+			projectServiceRunWorkflowHandler.ServeHTTP(w, r)
 		case ProjectServiceGetWorkflowRunsProcedure:
 			projectServiceGetWorkflowRunsHandler.ServeHTTP(w, r)
 		default:
@@ -398,6 +399,14 @@ func (UnimplementedProjectServiceHandler) DeleteProject(context.Context, *connec
 	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("project.ProjectService.DeleteProject is not implemented"))
 }
 
+func (UnimplementedProjectServiceHandler) UpdateResource(context.Context, *connect_go.Request[gen.UpdateResourceRequest]) (*connect_go.Response[gen.UpdateResourceResponse], error) {
+	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("project.ProjectService.UpdateResource is not implemented"))
+}
+
+func (UnimplementedProjectServiceHandler) CreateResource(context.Context, *connect_go.Request[gen.CreateResourceRequest]) (*connect_go.Response[gen.CreateResourceResponse], error) {
+	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("project.ProjectService.CreateResource is not implemented"))
+}
+
 func (UnimplementedProjectServiceHandler) GetResources(context.Context, *connect_go.Request[gen.GetResourcesRequest]) (*connect_go.Response[gen.GetResourcesResponse], error) {
 	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("project.ProjectService.GetResources is not implemented"))
 }
@@ -414,16 +423,8 @@ func (UnimplementedProjectServiceHandler) SaveProject(context.Context, *connect_
 	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("project.ProjectService.SaveProject is not implemented"))
 }
 
-func (UnimplementedProjectServiceHandler) CreateResource(context.Context, *connect_go.Request[gen.CreateResourceRequest]) (*connect_go.Response[gen.CreateResourceResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("project.ProjectService.CreateResource is not implemented"))
-}
-
-func (UnimplementedProjectServiceHandler) RunWorklow(context.Context, *connect_go.Request[gen.RunWorkflowRequest]) (*connect_go.Response[gen.RunOutput], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("project.ProjectService.RunWorklow is not implemented"))
-}
-
-func (UnimplementedProjectServiceHandler) RunNode(context.Context, *connect_go.Request[gen.RunNodeRequest]) (*connect_go.Response[gen.RunOutput], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("project.ProjectService.RunNode is not implemented"))
+func (UnimplementedProjectServiceHandler) RunWorkflow(context.Context, *connect_go.Request[gen.RunWorkflowRequest], *connect_go.ServerStream[gen.NodeExecution]) error {
+	return connect_go.NewError(connect_go.CodeUnimplemented, errors.New("project.ProjectService.RunWorkflow is not implemented"))
 }
 
 func (UnimplementedProjectServiceHandler) GetWorkflowRuns(context.Context, *connect_go.Request[gen.GetWorkflowRunsRequest]) (*connect_go.Response[gen.GetWorkflowRunsResponse], error) {

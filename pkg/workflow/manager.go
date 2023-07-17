@@ -5,15 +5,14 @@ import (
 	"fmt"
 	"github.com/google/wire"
 	"github.com/protoflow-labs/protoflow/pkg/store"
-	"github.com/protoflow-labs/protoflow/pkg/temporal"
+	"github.com/reactivex/rxgo/v2"
 	"go.uber.org/config"
 )
 
 const TaskQueue = "protoflow"
 
 type Manager interface {
-	ExecuteWorkflow(ctx context.Context, w *Workflow, nodeID string, input interface{}) (string, error)
-	ExecuteWorkflowSync(ctx context.Context, w *Workflow, nodeID string, input interface{}) ([]any, error)
+	ExecuteWorkflow(ctx context.Context, w *Workflow, nodeID string, input rxgo.Observable) (rxgo.Observable, error)
 	CleanupResources() error
 }
 
@@ -26,14 +25,14 @@ func NewManager(config Config, provider config.Provider, store store.Project) (M
 	switch config.ManagerType {
 	case MemoryManagerType:
 		return NewMemoryManager(store), nil
-	case TemporalManagerType:
-		// TODO breadchris we do this because we don't want a temporal client to try to connect on startup
-		// Is there a way to run this more intelligently? maybe with sync.Once?
-		client, err := temporal.Wire(provider)
-		if err != nil {
-			return nil, err
-		}
-		return NewTemporalManager(client), nil
+	//case TemporalManagerType:
+	//	// TODO breadchris we do this because we don't want a temporal client to try to connect on startup
+	//	// Is there a way to run this more intelligently? maybe with sync.Once?
+	//	client, err := temporal.Wire(provider)
+	//	if err != nil {
+	//		return nil, err
+	//	}
+	//	return NewTemporalManager(client), nil
 	default:
 		return nil, fmt.Errorf("unknown manager type %s", config.ManagerType)
 	}
