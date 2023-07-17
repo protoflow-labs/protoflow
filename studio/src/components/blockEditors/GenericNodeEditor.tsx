@@ -13,7 +13,7 @@ import React from "react";
 import {ProtoViewer} from "@/components/blockEditors/ProtoViewer";
 import {FieldList, JsonReadOptions, JsonValue} from "@bufbuild/protobuf";
 
-interface NodeConfigType<T> {
+export interface NodeConfigType<T> {
     fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): T
     fields: FieldList
 }

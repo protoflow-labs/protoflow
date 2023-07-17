@@ -89,7 +89,10 @@ func (a *Activity) ExecutePromptNode(ctx context.Context, n node.Node, input Inp
 
 		// TODO breadchris react to a function call on s.FunctionCall
 
-		outputStream <- rx.NewItem(s)
+		// TODO breadchris this should be a static type. This is a brittle type that maps to workflow.go:133
+		outputStream <- rx.NewItem(map[string]any{
+			"result": s,
+		})
 	}, func(err error) {
 		outputStream <- rx.NewError(err)
 	}, func() {

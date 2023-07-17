@@ -130,6 +130,31 @@ func (w *Workflow) GetNodeInfo(n worknode.Node) (*worknode.Info, error) {
 		resp = &worknode.Info{
 			Method: mthd,
 		}
+	case *worknode.PromptNode:
+		reqMsg := builder.NewMessage("Request")
+		reqMsg = reqMsg.AddField(builder.NewField("message", builder.FieldTypeString()))
+		req := builder.RpcTypeMessage(reqMsg, true)
+
+		resMsg := builder.NewMessage("Response")
+		resMsg = resMsg.AddField(builder.NewField("result", builder.FieldTypeString()))
+		res := builder.RpcTypeMessage(resMsg, false)
+
+		s := builder.NewService("Service")
+		b := builder.NewMethod(n.NormalizedName(), req, res)
+		s.AddMethod(b)
+
+		m, err := b.Build()
+		if err != nil {
+			return nil, err
+		}
+
+		mthd, err := grpc.NewMethodDescriptor(m.UnwrapMethod())
+		if err != nil {
+			return nil, err
+		}
+		resp = &worknode.Info{
+			Method: mthd,
+		}
 	case *worknode.FunctionNode:
 		children := w.AdjMap[n.ID()]
 		parents := w.PreMap[n.ID()]
@@ -162,6 +187,9 @@ func (w *Workflow) GetNodeInfo(n worknode.Node) (*worknode.Info, error) {
 			if err != nil {
 				return nil, err
 			}
+			if childType == nil {
+				return nil, errors.Wrapf(err, "error getting node info for %s", n.NormalizedName())
+			}
 			if childType.Method.MethodDesc.IsStreamingClient() {
 				streamingChild = true
 			}
@@ -185,6 +213,9 @@ func (w *Workflow) GetNodeInfo(n worknode.Node) (*worknode.Info, error) {
 			parentType, err := w.GetNodeInfo(n)
 			if err != nil {
 				return nil, err
+			}
+			if parentType == nil {
+				return nil, errors.Wrapf(err, "error getting node info for %s", n.NormalizedName())
 			}
 			if parentType.Method.MethodDesc.IsStreamingServer() {
 				streamingParent = true
