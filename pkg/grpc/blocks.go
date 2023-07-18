@@ -14,35 +14,7 @@ import (
 	"google.golang.org/protobuf/types/descriptorpb"
 )
 
-func EnumerateResourceBlocks(resource *gen.Resource) ([]*gen.Node, error) {
-	var (
-		g             *gen.GRPCService
-		nodes         []*gen.Node
-		err           error
-		isLangService bool
-	)
-
-	switch resource.Type.(type) {
-	case *gen.Resource_LanguageService:
-		l := resource.GetLanguageService()
-		g = l.Grpc
-		isLangService = true
-	case *gen.Resource_GrpcService:
-		g = resource.GetGrpcService()
-	default:
-		log.Debug().Interface("type", resource.Type).Msg("resource cannot be enumerated")
-	}
-
-	if g != nil {
-		nodes, err = nodesFromGRPC(resource.Id, g, isLangService)
-		if err != nil {
-			return nil, errors.Wrapf(err, "unable to enumerate grpc service %s", g.Host)
-		}
-	}
-	return nodes, nil
-}
-
-func nodesFromGRPC(resourceID string, service *gen.GRPCService, isLangService bool) ([]*gen.Node, error) {
+func EnumerateResourceBlocks(service *gen.GRPCService, isLangService bool) ([]*gen.Node, error) {
 	if service.Host == "" {
 		return nil, errors.New("host is required")
 	}
@@ -72,9 +44,8 @@ func nodesFromGRPC(resourceID string, service *gen.GRPCService, isLangService bo
 		}
 
 		block := &gen.Node{
-			Id:         uuid.New().String(),
-			Name:       methodName,
-			ResourceId: resourceID,
+			Id:   uuid.New().String(),
+			Name: methodName,
 			Config: &gen.Node_Grpc{
 				Grpc: grpcInfo,
 			},

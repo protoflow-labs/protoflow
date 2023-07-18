@@ -1,14 +1,14 @@
-import { Card } from "@fluentui/react-components";
+import {Badge, Card, Divider} from "@fluentui/react-components";
 import {useOnSelectionChange} from "reactflow";
-import { InputEditor } from "./blockEditors/InputEditor";
 import NodeProvider from "@/providers/NodeProvider";
 import {useProjectContext} from "@/providers/ProjectProvider";
-import {Node as ProtoNode} from "@/rpc/graph_pb";
-import {Bucket, Collection, Config, Function, GRPC, Prompt, Query, REST} from "@/rpc/block_pb";
-import {GenericNodeEditor} from "@/components/blockEditors/GenericNodeEditor";
+import {ActionBar} from "@/components/ActionBar";
+import {ProtoViewer} from "@/components/blockEditors/ProtoViewer";
+import {EditorActions} from "@/components/EditorActions";
+import React, {useEffect, useState} from "react";
 
 export function EditorPanel() {
-  const { activeNode, setActiveNodeId } = useProjectContext();
+  const { resources, activeNode, setActiveNodeId } = useProjectContext();
 
   useOnSelectionChange({
     onChange: ({ nodes }) => {
@@ -24,46 +24,31 @@ export function EditorPanel() {
     return null;
   }
 
+  const getResourceBadge = () => {
+    if (!resources) {
+      return null;
+    }
+    const res = resources.find((r) => {
+      return r.resource && activeNode.resourceId === r.resource.id
+    })
+    if (!res || !res.resource) {
+      return null;
+    }
+    return <Badge key={res.resource.id}>{res.resource.name}</Badge>
+  }
+
   return (
     <NodeProvider nodeId={activeNode.id}>
       <div className="absolute top-0 right-0 m-4 z-10 overflow-auto">
         <Card>
-          <NodeEditor node={activeNode} />
+          <ProtoViewer />
+          <Divider/>
+          {getResourceBadge()}
+          <Divider/>
+          <EditorActions/>
         </Card>
       </div>
+      <ActionBar node={activeNode} />
     </NodeProvider>
   );
-}
-
-type NodeEditorProps = {
-  node: ProtoNode | null;
-};
-
-function NodeEditor(props: NodeEditorProps) {
-  if (!props.node) {
-    return null;
-  }
-
-  switch (props.node.config.case) {
-    case "input":
-      return <InputEditor node={props.node} />;
-    case "collection":
-      return <GenericNodeEditor node={props.node} nodeConfig={'collection'} nodeConfigType={Collection} />
-    case "query":
-      return <GenericNodeEditor node={props.node} nodeConfig={'query'} nodeConfigType={Query} />
-    case "function":
-      return <GenericNodeEditor node={props.node} nodeConfig={"function"} nodeConfigType={Function} />;
-    case "bucket":
-      return <GenericNodeEditor node={props.node} nodeConfig={"bucket"} nodeConfigType={Bucket} />;
-    case "rest":
-      return <GenericNodeEditor node={props.node} nodeConfig={"rest"} nodeConfigType={REST} />;
-    case "grpc":
-      return <GenericNodeEditor node={props.node} nodeConfig={"grpc"} nodeConfigType={GRPC} />;
-    case "prompt":
-      return <GenericNodeEditor node={props.node} nodeConfig={"prompt"} nodeConfigType={Prompt} />;
-    case "configuration":
-      return <GenericNodeEditor node={props.node} nodeConfig={"configuration"} nodeConfigType={Config} />;
-    default:
-      return null;
-  }
 }

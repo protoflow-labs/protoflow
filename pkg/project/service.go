@@ -17,6 +17,8 @@ import (
 	"github.com/protoflow-labs/protoflow/pkg/workflow"
 	"github.com/reactivex/rxgo/v2"
 	"github.com/rs/zerolog/log"
+	"net/url"
+	"os"
 )
 
 type Service struct {
@@ -50,6 +52,31 @@ func NewService(
 	}, nil
 }
 
+func nodesFromFiles(u string) ([]*gen.Node, error) {
+	parsedUrl, err := url.Parse(u)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to parse url %s", u)
+	}
+	// TODO breadchris support recursive enumeration
+	files, err := os.ReadDir(parsedUrl.Path)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to read dir %s", parsedUrl.Path)
+	}
+
+	var nodes []*gen.Node
+	for _, file := range files {
+		nodes = append(nodes, &gen.Node{
+			Name: file.Name(),
+			Config: &gen.Node_File{
+				File: &gen.File{
+					Path: file.Name(),
+				},
+			},
+		})
+	}
+	return nodes, nil
+}
+
 func hydrateBlocksForResources(projectResources []*gen.Resource) ([]*gen.EnumeratedResource, error) {
 	var resources []*gen.EnumeratedResource
 	for _, resource := range projectResources {
@@ -57,10 +84,27 @@ func hydrateBlocksForResources(projectResources []*gen.Resource) ([]*gen.Enumera
 			State: gen.ResourceState_READY,
 			Error: "",
 		}
-		nodes, err := grpc.EnumerateResourceBlocks(resource)
+
+		var (
+			nodes []*gen.Node
+			err   error
+		)
+		switch resource.Type.(type) {
+		case *gen.Resource_FileStore:
+			fileStore := resource.GetFileStore()
+			nodes, err = nodesFromFiles(fileStore.Url)
+		case *gen.Resource_GrpcService:
+			nodes, err = grpc.EnumerateResourceBlocks(resource.GetGrpcService(), false)
+		case *gen.Resource_LanguageService:
+			l := resource.GetLanguageService()
+			nodes, err = grpc.EnumerateResourceBlocks(l.GetGrpc(), true)
+		}
 		if err != nil {
 			info.State = gen.ResourceState_ERROR
 			info.Error = err.Error()
+		}
+		for _, node := range nodes {
+			node.ResourceId = resource.Id
 		}
 		resources = append(resources, &gen.EnumeratedResource{
 			Resource: resource,
@@ -303,7 +347,7 @@ func (s *Service) GetProjects(ctx context.Context, req *connect.Request[gen.GetP
 
 func (s *Service) CreateProject(ctx context.Context, req *connect.Request[gen.CreateProjectRequest]) (*connect.Response[gen.CreateProjectResponse], error) {
 	// TODO breadchris this folder should be configurable
-	bucketDir, err := s.cache.GetFolder(".protoflow")
+	bucketDir, err := s.cache.GetFolder("filestore")
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get bucket dir")
 	}

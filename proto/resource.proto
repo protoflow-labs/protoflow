@@ -26,7 +26,15 @@ message Resource {
     ConfigProvider config_provider = 9;
     SecretStore secret_store = 10;
     ReasoningEngine reasoning_engine = 11;
+    HTTPRouter http_router = 12;
+    TemplateService template_service = 13;
   }
+}
+
+message TemplateService {
+}
+
+message HTTPRouter {
 }
 
 message ReasoningEngine {

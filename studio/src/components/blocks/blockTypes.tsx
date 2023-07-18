@@ -70,5 +70,20 @@ export const blockTypes: BlockType[] = [
         label: "Config",
         typeName: 'configuration',
         image: <BiClipboard className="h-5 w-5 bg-gray-800" />
+    },
+    {
+        label: "Template",
+        typeName: 'template',
+        image: <BiClipboard className="h-5 w-5 bg-gray-800" />
+    },
+    {
+        label: "File",
+        typeName: 'file',
+        image: <BiClipboard className="h-5 w-5 bg-gray-800" />
+    },
+    {
+        label: "Route",
+        typeName: 'route',
+        image: <BiClipboard className="h-5 w-5 bg-gray-800" />
     }
     ]

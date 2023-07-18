@@ -1,5 +1,5 @@
 import {
-    Badge,
+    Badge, Button,
     Divider,
     Field,
     Input,
@@ -13,13 +13,12 @@ import React from "react";
 import {ProtoViewer} from "@/components/blockEditors/ProtoViewer";
 import {FieldList, JsonReadOptions, JsonValue} from "@bufbuild/protobuf";
 
-interface NodeConfigType<T> {
+export interface NodeConfigType<T> {
     fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): T
     fields: FieldList
 }
 
 export function GenericNodeEditor<T>({node, nodeConfig, nodeConfigType}: { node: Node, nodeConfig: Node['config']['case'], nodeConfigType: NodeConfigType<T> }) {
-    const onCancel = useUnselect();
     const {resources, setNodeLookup} = useProjectContext();
     if (node.config.case !== nodeConfig || !node.config.value) {
         return <div>Invalid node config</div>;
@@ -48,21 +47,7 @@ export function GenericNodeEditor<T>({node, nodeConfig, nodeConfigType}: { node:
                 [node.id]: node,
             }
         });
-        onCancel();
     };
-
-    const getResourceBadge = () => {
-        if (!resources) {
-            return null;
-        }
-        const res = resources.find((r) => {
-            return r.resource && node.resourceId === r.resource.id
-        })
-        if (!res || !res.resource) {
-            return null;
-        }
-        return <Badge key={res.resource.id}>{res.resource.name}</Badge>
-    }
 
     const fields = nodeConfigType.fields.list();
 
@@ -76,16 +61,15 @@ export function GenericNodeEditor<T>({node, nodeConfig, nodeConfigType}: { node:
                     return (
                         <Field label={field.name} key={field.name}>
                             {/* @ts-ignore */}
-                            <Textarea value={values.config[field.name] || ''} {...register(`config.${field.name}`)} />
+                            <Textarea resize={"both"} value={values.config[field.name] || ''} {...register(`config.${field.name}`)} />
                         </Field>
                     )
                 })}
-                <Divider/>
-                {getResourceBadge()}
-                <Divider/>
-                <ProtoViewer />
-                <Divider/>
-                <EditorActions/>
+            </div>
+            <div className="flex items-center justify-between gap-2">
+                <Button appearance="primary" type="submit">
+                    Save
+                </Button>
             </div>
         </form>
     );

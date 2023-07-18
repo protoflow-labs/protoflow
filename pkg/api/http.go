@@ -101,6 +101,10 @@ func NewHTTPServer(
 			return
 		}
 
+		if r.URL.Path == "/ui" || strings.HasPrefix(r.URL.Path, "/ui/") {
+			return
+		}
+
 		// If the path is '/studio', forward the request to the other mux handlers
 		if r.URL.Path == "/studio" || strings.HasPrefix(r.URL.Path, "/studio/") || r.URL.Path == "/esbuild" {
 			r.URL.Path = strings.Replace(r.URL.Path, "/studio", "", 1)
