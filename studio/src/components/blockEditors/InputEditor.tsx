@@ -1,4 +1,4 @@
-import {Divider, Field, Input} from "@fluentui/react-components";
+import {Button, Divider, Field, Input} from "@fluentui/react-components";
 import React, {useEffect, useState} from "react";
 import {EditorActions, useUnselect} from "../EditorActions";
 import {ProtoViewer} from "@/components/blockEditors/ProtoViewer";
@@ -7,10 +7,13 @@ import {ProtobufInputForm, GRPCInputFormProps} from "@/components/inputForms/Pro
 import {useForm} from "react-hook-form";
 import {getNodeDataKey} from "@/providers/ProjectProvider";
 import {Node} from '@/rpc/graph_pb'
+import {toast} from "react-hot-toast";
+import {useEditorContext} from "@/providers/EditorProvider";
 
 
 export function InputEditor({node}: { node: Node }) {
     const onCancel = useUnselect();
+    const {save} = useEditorContext();
     const {nodeInfo} = useNodeContext();
     const {watch, setValue, register, handleSubmit, control} = useForm({
         values: {
@@ -21,9 +24,10 @@ export function InputEditor({node}: { node: Node }) {
     });
     const values = watch();
 
-    const onSubmit = (data: any) => {
+    const onSubmit = async (data: any) => {
         localStorage.setItem(getNodeDataKey(node), JSON.stringify(data.data));
-        onCancel();
+        await save();
+        toast.success('Saved!');
     };
 
     const form = () => {
@@ -54,10 +58,11 @@ export function InputEditor({node}: { node: Node }) {
                 </Field>
                 <Divider/>
                 {form()}
-                <Divider/>
-                <ProtoViewer/>
-                <Divider/>
-                <EditorActions/>
+            </div>
+            <div className="flex items-center">
+                <Button appearance="primary" type="submit">
+                    Save
+                </Button>
             </div>
         </form>
     );

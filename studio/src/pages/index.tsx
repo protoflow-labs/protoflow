@@ -31,7 +31,6 @@ export default function Home() {
           >
             <Background />
           </ReactFlow>
-          <ActionBar />
         </div>
       </main>
     </>

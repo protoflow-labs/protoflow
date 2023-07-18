@@ -42,6 +42,8 @@ func nodeToActivityName(n node.Node) ActivityFunc {
 		return activity.ExecuteBucketNode
 	case *node.InputNode:
 		return activity.ExecuteInputNode
+	case *node.FileNode:
+		return activity.ExecuteFileNode
 	case *node.QueryNode:
 		return activity.ExecuteQueryNode
 	case *node.PromptNode:

@@ -15,6 +15,23 @@ message Config {
   //google.protobuf.DescriptorProto type = 1;
 }
 
+message Template {
+  string template = 1;
+}
+
+message Route {
+  string path = 1;
+  string method = 2;
+}
+
+message Secret {
+  string value = 1;
+}
+
+message File {
+  string path = 1;
+}
+
 message Collection {
   string name = 1;
 }

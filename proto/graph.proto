@@ -32,6 +32,10 @@ message Node {
     block.Query query = 13;
     block.Prompt prompt = 14;
     block.Config configuration = 15;
+    block.Route route = 16;
+    block.Template template = 17;
+    block.Secret secret = 18;
+    block.File file = 19;
   }
 }
 

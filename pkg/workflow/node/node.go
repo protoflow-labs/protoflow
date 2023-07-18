@@ -7,7 +7,6 @@ import (
 	"github.com/protoflow-labs/protoflow/pkg/grpc/manager"
 	"github.com/protoflow-labs/protoflow/pkg/util"
 	"google.golang.org/protobuf/reflect/protoreflect"
-	"strings"
 )
 
 type Node interface {
@@ -32,68 +31,6 @@ func (s *Info) BuildProto() (string, error) {
 	return methodProto, nil
 }
 
-type BaseNode struct {
-	Name       string
-	id         string
-	resourceID string
-}
-
-func (n *BaseNode) NormalizedName() string {
-	name := util.ToTitleCase(n.Name)
-	if strings.Contains(name, ".") {
-		name = strings.Split(name, ".")[1]
-	}
-	return name
-}
-
-func (n *BaseNode) ID() string {
-	return n.id
-}
-
-func (n *BaseNode) ResourceID() string {
-	return n.resourceID
-}
-
-type RESTNode struct {
-	BaseNode
-	*gen.REST
-}
-
-var _ Node = &RESTNode{}
-
-type CollectionNode struct {
-	BaseNode
-	Collection *gen.Collection
-}
-
-var _ Node = &CollectionNode{}
-
-type BucketNode struct {
-	BaseNode
-	*gen.Bucket
-}
-
-var _ Node = &BucketNode{}
-
-type QueryNode struct {
-	BaseNode
-	Query *gen.Query
-}
-
-type PromptNode struct {
-	BaseNode
-	Prompt *gen.Prompt
-}
-
-var _ Node = &PromptNode{}
-
-type ConfigNode struct {
-	BaseNode
-	Config *gen.Config
-}
-
-var _ Node = &ConfigNode{}
-
 func NewNode(node *gen.Node) (Node, error) {
 	switch node.Config.(type) {
 	case *gen.Node_Grpc:
@@ -114,6 +51,14 @@ func NewNode(node *gen.Node) (Node, error) {
 		return NewPromptNode(node), nil
 	case *gen.Node_Configuration:
 		return NewConfigNode(node), nil
+	case *gen.Node_Secret:
+		return NewSecretNode(node), nil
+	case *gen.Node_Template:
+		return NewTemplateNode(node), nil
+	case *gen.Node_Route:
+		return NewRouteNode(node), nil
+	case *gen.Node_File:
+		return NewFileNode(node), nil
 	default:
 		return nil, errors.New("no node found")
 	}
@@ -139,6 +84,34 @@ func NewConfigNode(node *gen.Node) *ConfigNode {
 	return &ConfigNode{
 		BaseNode: NewBaseNode(node),
 		Config:   node.GetConfiguration(),
+	}
+}
+
+func NewSecretNode(node *gen.Node) *SecretNode {
+	return &SecretNode{
+		BaseNode: NewBaseNode(node),
+		Secret:   node.GetSecret(),
+	}
+}
+
+func NewTemplateNode(node *gen.Node) *TemplateNode {
+	return &TemplateNode{
+		BaseNode: NewBaseNode(node),
+		Template: node.GetTemplate(),
+	}
+}
+
+func NewRouteNode(node *gen.Node) *RouteNode {
+	return &RouteNode{
+		BaseNode: NewBaseNode(node),
+		Route:    node.GetRoute(),
+	}
+}
+
+func NewFileNode(node *gen.Node) *FileNode {
+	return &FileNode{
+		BaseNode: NewBaseNode(node),
+		File:     node.GetFile(),
 	}
 }
 

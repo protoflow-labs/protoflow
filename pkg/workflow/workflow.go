@@ -130,6 +130,32 @@ func (w *Workflow) GetNodeInfo(n worknode.Node) (*worknode.Info, error) {
 		resp = &worknode.Info{
 			Method: mthd,
 		}
+	case *worknode.FileNode:
+		// TODO breadchris how do you handle file permissions?
+		reqMsg := builder.NewMessage("Request")
+		req := builder.RpcTypeMessage(reqMsg, false)
+
+		resMsg := builder.NewMessage("Response")
+		resMsg = resMsg.AddField(builder.NewField("path", builder.FieldTypeString()))
+		// TODO breadchris what does this type mean if it streaming or not? sync vs async?
+		res := builder.RpcTypeMessage(resMsg, false)
+
+		s := builder.NewService("Service")
+		b := builder.NewMethod(n.NormalizedName(), req, res)
+		s.AddMethod(b)
+
+		m, err := b.Build()
+		if err != nil {
+			return nil, err
+		}
+
+		mthd, err := grpc.NewMethodDescriptor(m.UnwrapMethod())
+		if err != nil {
+			return nil, err
+		}
+		resp = &worknode.Info{
+			Method: mthd,
+		}
 	case *worknode.PromptNode:
 		reqMsg := builder.NewMessage("Request")
 		reqMsg = reqMsg.AddField(builder.NewField("message", builder.FieldTypeString()))
@@ -254,7 +280,7 @@ func (w *Workflow) GetNodeInfo(n worknode.Node) (*worknode.Info, error) {
 	default:
 		res, err := w.GetNodeResource(n.ID())
 		if err != nil {
-			return nil, err
+			return nil, errors.Wrapf(err, "error getting node resource for %s", n.NormalizedName())
 		}
 		return res.Info(n)
 	}

@@ -8,27 +8,26 @@ import {
   makeStyles,
 } from "@fluentui/react-components";
 import { AnimatePresence, LazyMotion, domAnimation, m } from "framer-motion";
+import {Node as ProtoNode} from "@/rpc/graph_pb";
 import React from "react";
 import { useEffect, useState } from "react";
+import {NodeEditor} from "@/components/NodeEditor";
+import {useUnselect} from "@/components/EditorActions";
 
 const useOverrides = makeStyles({
   card: {},
 });
 
-export function ActionBar() {
-  const { project, runWorkflow } = useProjectContext();
+type ActionBarProps = {
+  node: ProtoNode | null;
+};
+
+export const ActionBar: React.FC<ActionBarProps> = ({node}) => {
   const { selectedNodes } = useSelectedNodes();
-  const [loading] = useState(false);
   const overrides = useOverrides();
 
-  const onRun = async () => {
-    if (!project) return;
-
-    await runWorkflow(selectedNodes[0]);
-  };
-
   return (
-    <div className="absolute bottom-8 z-10 left-1/2 -translate-x-1/2">
+    <div className="absolute bottom-8 z-10 left-1/2 -translate-x-1/2 w-96">
       <LazyMotion features={domAnimation}>
         <AnimatePresence>
           {selectedNodes.length === 1 && (
@@ -40,9 +39,7 @@ export function ActionBar() {
               className="flex flex-col gap-4"
             >
               <Card className={overrides.card}>
-                <Button onClick={onRun} disabled={loading}>
-                  Run Workflow
-                </Button>
+                <NodeEditor node={node} />
               </Card>
             </m.div>
           )}

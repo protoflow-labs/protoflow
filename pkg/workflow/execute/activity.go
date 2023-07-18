@@ -16,6 +16,7 @@ import (
 	"github.com/sashabaranov/go-openai"
 	"io"
 	"net/url"
+	"path"
 )
 
 type Activity struct{}
@@ -299,6 +300,34 @@ func (a *Activity) ExecuteCollectionNode(ctx context.Context, n node.Node, input
 func (a *Activity) ExecuteInputNode(ctx context.Context, n node.Node, input Input) (Output, error) {
 	return Output{
 		Observable: input.Observable,
+	}, nil
+}
+
+func (a *Activity) ExecuteFileNode(ctx context.Context, n node.Node, input Input) (Output, error) {
+	f, ok := n.(*node.FileNode)
+	if !ok {
+		return Output{}, fmt.Errorf("error getting File node: %s", n.NormalizedName())
+	}
+	fs, ok := input.Resource.(*resource.FileStoreResource)
+	if !ok {
+		return Output{}, fmt.Errorf("error getting filestore resource: %s", f.File.Path)
+	}
+	u, err := url.Parse(fs.Url)
+	if err != nil {
+		return Output{}, errors.Wrapf(err, "error parsing filestore url")
+	}
+	p := path.Join(u.Path, f.File.Path)
+
+	// TODO breadchris verify file exists?
+	obs := rxgo.Defer([]rxgo.Producer{func(ctx context.Context, next chan<- rxgo.Item) {
+		// TODO breadchris this should be a static type. This is a brittle type that maps to workflow.go:133
+		next <- rx.NewItem(map[string]any{
+			"path": p,
+		})
+	}})
+
+	return Output{
+		Observable: obs,
 	}, nil
 }
 

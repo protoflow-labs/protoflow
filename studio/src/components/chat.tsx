@@ -5,9 +5,16 @@ import {projectService} from "@/lib/api";
 import { Chat, SendChatRequest, ChatMessage } from "@/rpc/project_pb";
 import {useProjectContext} from "@/providers/ProjectProvider";
 import {JsonViewer} from "@/components/jsonViewer";
+import {useSelectedNodes} from "@/hooks/useSelectedNodes";
 
 export default function ChatPanel() {
-    const {workflowOutput, setWorkflowOutput} = useProjectContext();
+    const {
+        workflowOutput,
+        setWorkflowOutput,
+        project,
+        runWorkflow,
+    } = useProjectContext();
+    const { selectedNodes } = useSelectedNodes();
     const [inputValue, setInputValue] = useState('');
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [incomingMessage, setIncomingMessage] = useState<string | null>(null);
@@ -60,6 +67,12 @@ export default function ChatPanel() {
         setWorkflowOutput([]);
     }
 
+    const onRun = async () => {
+        if (!project) return;
+
+        await runWorkflow(selectedNodes[0]);
+    };
+
     return (
         <div className="absolute bottom-0 right-0 m-4 z-10 overflow-auto" style={{maxWidth: '400px', maxHeight: '500px'}}>
             <Card>
@@ -70,7 +83,7 @@ export default function ChatPanel() {
                     </TabList>
                     <>
                         {activeTab === 'workflow' && (
-                            <>
+                            <Stack>
                                 {workflowOutput ? (
                                     <Stack>
                                         <List items={workflowOutput} onRenderCell={(item?: string) => {
@@ -83,9 +96,12 @@ export default function ChatPanel() {
                                         <Button onClick={clearChat}>Clear</Button>
                                     </Stack>
                                 ) : (
-                                    <div>Run workflow</div>
+                                    <div>No results</div>
                                 ) }
-                            </>
+                                <Button onClick={onRun}>
+                                    Run Workflow
+                                </Button>
+                            </Stack>
                         )}
                         {activeTab === 'chat' && (
                             <Stack>

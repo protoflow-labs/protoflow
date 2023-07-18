@@ -8,7 +8,6 @@ const selectResetSelectedElements = (state: ReactFlowState) =>
 export const useUnselect = () => useStore(selectResetSelectedElements);
 
 export function EditorActions() {
-  const onCancel = useUnselect();
   const { project } = useProjectContext();
     const { activeNode } = useProjectContext();
 
@@ -25,12 +24,6 @@ export function EditorActions() {
           <div className="flex items-center justify-between gap-2">
               <Button onClick={updateType}>Update Type</Button>
               <Button onClick={buildNode}>Implementation</Button>
-          </div>
-          <div className="flex items-center justify-between gap-2">
-              <Button onClick={onCancel}>Cancel</Button>
-              <Button appearance="primary" type="submit">
-                  Save
-              </Button>
           </div>
       </>
   );

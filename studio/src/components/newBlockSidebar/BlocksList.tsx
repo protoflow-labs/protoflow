@@ -8,14 +8,13 @@ import {
   Tooltip
 } from "@fluentui/react-components";
 import { useProjectContext } from "@/providers/ProjectProvider";
-import {GRPC, Function, Input, Collection, Bucket, Prompt, Config, Query} from "@/rpc/block_pb";
+import {GRPC, Function, Input, Collection, Bucket, Prompt, Config, Query, Template, Route} from "@/rpc/block_pb";
 import {Node} from "@/rpc/graph_pb";
 import {Resource} from "@/rpc/resource_pb";
 import {NodeButton} from "@/components/newBlockSidebar/NodeButton";
 import { ResourceState } from "@/rpc/project_pb";
 import { PlugDisconnected20Regular } from "@fluentui/react-icons";
 import {useState} from "react";
-import {projectService} from "@/lib/api";
 
 interface NodeBlock {
   type: string
@@ -67,6 +66,18 @@ function defaultNodesForResource(res: Resource, name: string) {
       nodes.push(newNode({
         case: 'configuration',
         value: new Config({})
+      }));
+      break;
+    case 'templateService':
+      nodes.push(newNode({
+          case: 'template',
+          value: new Template({})
+      }));
+      break;
+    case 'httpRouter':
+      nodes.push(newNode({
+        case: 'route',
+        value: new Route({})
       }));
       break;
     default:

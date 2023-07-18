@@ -5,7 +5,7 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3 } from "@bufbuild/protobuf";
-import { Bucket, Collection, Config, Function, GRPC, Input, Prompt, Query, REST } from "./block_pb.js";
+import { Bucket, Collection, Config, File, Function, GRPC, Input, Prompt, Query, REST, Route, Secret, Template } from "./block_pb.js";
 
 /**
  * @generated from message graph.Graph
@@ -150,6 +150,30 @@ export class Node extends Message<Node> {
      */
     value: Config;
     case: "configuration";
+  } | {
+    /**
+     * @generated from field: block.Route route = 16;
+     */
+    value: Route;
+    case: "route";
+  } | {
+    /**
+     * @generated from field: block.Template template = 17;
+     */
+    value: Template;
+    case: "template";
+  } | {
+    /**
+     * @generated from field: block.Secret secret = 18;
+     */
+    value: Secret;
+    case: "secret";
+  } | {
+    /**
+     * @generated from field: block.File file = 19;
+     */
+    value: File;
+    case: "file";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<Node>) {
@@ -174,6 +198,10 @@ export class Node extends Message<Node> {
     { no: 13, name: "query", kind: "message", T: Query, oneof: "config" },
     { no: 14, name: "prompt", kind: "message", T: Prompt, oneof: "config" },
     { no: 15, name: "configuration", kind: "message", T: Config, oneof: "config" },
+    { no: 16, name: "route", kind: "message", T: Route, oneof: "config" },
+    { no: 17, name: "template", kind: "message", T: Template, oneof: "config" },
+    { no: 18, name: "secret", kind: "message", T: Secret, oneof: "config" },
+    { no: 19, name: "file", kind: "message", T: File, oneof: "config" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Node {

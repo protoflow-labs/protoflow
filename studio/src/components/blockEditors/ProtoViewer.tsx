@@ -8,8 +8,7 @@ export const ProtoViewer: React.FC = ({}) => {
     const {nodeInfo} = useNodeContext();
     return (
         <div>
-            <Button onClick={() => setOpen(!open)}>{open ? "Hide" : "Show"} Proto</Button>
-            {(nodeInfo && open) && (
+            {(nodeInfo) && (
                 <div className={"max-w-sm"}>
                     <SyntaxHighlighter language="protobuf">
                         {nodeInfo.methodProto}

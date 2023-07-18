@@ -113,6 +113,21 @@ func FromProto(r *gen.Resource) (Resource, error) {
 			BaseResource:   base,
 			ConfigProvider: t.ConfigProvider,
 		}, nil
+	case *gen.Resource_SecretStore:
+		return &SecretStoreResource{
+			BaseResource: base,
+			SecretStore:  t.SecretStore,
+		}, nil
+	case *gen.Resource_TemplateService:
+		return &TemplateServiceResource{
+			BaseResource:    base,
+			TemplateService: t.TemplateService,
+		}, nil
+	case *gen.Resource_HttpRouter:
+		return &HTTPRouterResource{
+			BaseResource: base,
+			HTTPRouter:   t.HttpRouter,
+		}, nil
 	default:
 		return nil, fmt.Errorf("no resource found with type: %s", t)
 	}

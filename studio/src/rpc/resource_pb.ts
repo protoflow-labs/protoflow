@@ -104,6 +104,18 @@ export class Resource extends Message<Resource> {
      */
     value: ReasoningEngine;
     case: "reasoningEngine";
+  } | {
+    /**
+     * @generated from field: resource.HTTPRouter http_router = 12;
+     */
+    value: HTTPRouter;
+    case: "httpRouter";
+  } | {
+    /**
+     * @generated from field: resource.TemplateService template_service = 13;
+     */
+    value: TemplateService;
+    case: "templateService";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<Resource>) {
@@ -125,6 +137,8 @@ export class Resource extends Message<Resource> {
     { no: 9, name: "config_provider", kind: "message", T: ConfigProvider, oneof: "type" },
     { no: 10, name: "secret_store", kind: "message", T: SecretStore, oneof: "type" },
     { no: 11, name: "reasoning_engine", kind: "message", T: ReasoningEngine, oneof: "type" },
+    { no: 12, name: "http_router", kind: "message", T: HTTPRouter, oneof: "type" },
+    { no: 13, name: "template_service", kind: "message", T: TemplateService, oneof: "type" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Resource {
@@ -141,6 +155,68 @@ export class Resource extends Message<Resource> {
 
   static equals(a: Resource | PlainMessage<Resource> | undefined, b: Resource | PlainMessage<Resource> | undefined): boolean {
     return proto3.util.equals(Resource, a, b);
+  }
+}
+
+/**
+ * @generated from message resource.TemplateService
+ */
+export class TemplateService extends Message<TemplateService> {
+  constructor(data?: PartialMessage<TemplateService>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "resource.TemplateService";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TemplateService {
+    return new TemplateService().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): TemplateService {
+    return new TemplateService().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): TemplateService {
+    return new TemplateService().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: TemplateService | PlainMessage<TemplateService> | undefined, b: TemplateService | PlainMessage<TemplateService> | undefined): boolean {
+    return proto3.util.equals(TemplateService, a, b);
+  }
+}
+
+/**
+ * @generated from message resource.HTTPRouter
+ */
+export class HTTPRouter extends Message<HTTPRouter> {
+  constructor(data?: PartialMessage<HTTPRouter>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "resource.HTTPRouter";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): HTTPRouter {
+    return new HTTPRouter().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): HTTPRouter {
+    return new HTTPRouter().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): HTTPRouter {
+    return new HTTPRouter().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: HTTPRouter | PlainMessage<HTTPRouter> | undefined, b: HTTPRouter | PlainMessage<HTTPRouter> | undefined): boolean {
+    return proto3.util.equals(HTTPRouter, a, b);
   }
 }
 

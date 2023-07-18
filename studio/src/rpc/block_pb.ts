@@ -84,6 +84,160 @@ export class Config extends Message<Config> {
 }
 
 /**
+ * @generated from message block.Template
+ */
+export class Template extends Message<Template> {
+  /**
+   * @generated from field: string template = 1;
+   */
+  template = "";
+
+  constructor(data?: PartialMessage<Template>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "block.Template";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "template", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Template {
+    return new Template().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Template {
+    return new Template().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Template {
+    return new Template().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: Template | PlainMessage<Template> | undefined, b: Template | PlainMessage<Template> | undefined): boolean {
+    return proto3.util.equals(Template, a, b);
+  }
+}
+
+/**
+ * @generated from message block.Route
+ */
+export class Route extends Message<Route> {
+  /**
+   * @generated from field: string path = 1;
+   */
+  path = "";
+
+  /**
+   * @generated from field: string method = 2;
+   */
+  method = "";
+
+  constructor(data?: PartialMessage<Route>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "block.Route";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "path", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "method", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Route {
+    return new Route().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Route {
+    return new Route().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Route {
+    return new Route().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: Route | PlainMessage<Route> | undefined, b: Route | PlainMessage<Route> | undefined): boolean {
+    return proto3.util.equals(Route, a, b);
+  }
+}
+
+/**
+ * @generated from message block.Secret
+ */
+export class Secret extends Message<Secret> {
+  /**
+   * @generated from field: string value = 1;
+   */
+  value = "";
+
+  constructor(data?: PartialMessage<Secret>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "block.Secret";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "value", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Secret {
+    return new Secret().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Secret {
+    return new Secret().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Secret {
+    return new Secret().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: Secret | PlainMessage<Secret> | undefined, b: Secret | PlainMessage<Secret> | undefined): boolean {
+    return proto3.util.equals(Secret, a, b);
+  }
+}
+
+/**
+ * @generated from message block.File
+ */
+export class File extends Message<File> {
+  /**
+   * @generated from field: string path = 1;
+   */
+  path = "";
+
+  constructor(data?: PartialMessage<File>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "block.File";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "path", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): File {
+    return new File().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): File {
+    return new File().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): File {
+    return new File().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: File | PlainMessage<File> | undefined, b: File | PlainMessage<File> | undefined): boolean {
+    return proto3.util.equals(File, a, b);
+  }
+}
+
+/**
  * @generated from message block.Collection
  */
 export class Collection extends Message<Collection> {
