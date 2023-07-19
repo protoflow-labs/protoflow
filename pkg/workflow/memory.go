@@ -2,8 +2,8 @@ package workflow
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
+	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/gen"
 	"github.com/protoflow-labs/protoflow/pkg/store"
 	"github.com/protoflow-labs/protoflow/pkg/workflow/execute"
@@ -27,24 +27,17 @@ func NewMemoryManager(store store.Project) *MemoryManager {
 	}
 }
 
-func (m *MemoryManager) saveNodeExecutions(projectID, nodeID string, input any, trace rxgo.Observable) {
-	serInp, err := json.Marshal(input)
-	if err != nil {
-		log.Error().Err(err).Msg("error serializing input")
-		return
-	}
+func (m *MemoryManager) saveNodeExecutions(projectID, nodeID string, trace rxgo.Observable) error {
 	workflowRun := &gen.WorkflowRun{
 		Id: uuid.NewString(),
 		Request: &gen.RunWorkflowRequest{
 			ProjectId: projectID,
 			NodeId:    nodeID,
-			Input:     string(serInp),
 		},
 	}
 	workflowRunID, err := m.store.CreateWorkflowRun(workflowRun)
 	if err != nil {
-		log.Error().Err(err).Msg("error creating workflow run")
-		return
+		return errors.Wrap(err, "error creating workflow run")
 	}
 	trace.ForEach(func(i any) {
 		// TODO breadchris trace should be a generic observable
@@ -63,6 +56,7 @@ func (m *MemoryManager) saveNodeExecutions(projectID, nodeID string, input any, 
 	}, func() {
 		log.Debug().Msg("trace complete")
 	})
+	return nil
 }
 
 func (m *MemoryManager) ExecuteWorkflow(ctx context.Context, w *Workflow, nodeID string, input rxgo.Observable) (rxgo.Observable, error) {
@@ -76,6 +70,14 @@ func (m *MemoryManager) ExecuteWorkflow(ctx context.Context, w *Workflow, nodeID
 	executor := execute.NewMemoryExecutor(memoryCtx)
 
 	return w.Run(ctx, logger, executor, nodeID, input)
+	//if err != nil {
+	//	return nil, errors.Wrapf(err, "error running workflow")
+	//}
+	//err = m.saveNodeExecutions(w.ProjectID, nodeID, obs)
+	//if err != nil {
+	//	return nil, errors.Wrapf(err, "error saving node executions")
+	//}
+	//return obs, nil
 }
 
 func (m *MemoryManager) CleanupResources() error {

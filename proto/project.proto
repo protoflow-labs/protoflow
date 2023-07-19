@@ -8,6 +8,27 @@ import "resource.proto";
 package project;
 option go_package = "project";
 
+enum LayerType {
+    Execution = 0;
+    Resource = 1;
+}
+
+message Layer {
+    LayerType type = 1;
+    graph.Graph graph = 2;
+}
+
+message Project {
+    string id = 1;
+    string name = 2;
+    string description = 3;
+    string owner = 4;
+    string created_at = 5;
+    string updated_at = 6;
+    graph.Graph graph = 7;
+    repeated resource.Resource resources = 8;
+}
+
 service ProjectService {
     // TODO breadchris unfortunately this is needed because of the buf fetch transport not supporting streaming
     // the suggestion is to build a custom transport that uses websockets https://github.com/bufbuild/connect-es/issues/366
@@ -125,17 +146,6 @@ message RunWorkflowRequest {
 
 message Data {
     string value = 1;
-}
-
-message Project {
-    string id = 1;
-    string name = 2;
-    string description = 3;
-    string owner = 4;
-    string created_at = 5;
-    string updated_at = 6;
-    graph.Graph graph = 7;
-    repeated resource.Resource resources = 8;
 }
 
 message CreateResourceRequest {

@@ -2,7 +2,8 @@ import {InputEditor} from "@/components/blockEditors/InputEditor";
 import {GenericNodeEditor} from "@/components/blockEditors/GenericNodeEditor";
 import React from "react";
 import {Node as ProtoNode} from "@/rpc/graph_pb";
-import {Bucket, Collection, Config, Function, GRPC, Prompt, Query, REST, Template, File} from "@/rpc/block_pb";
+import {Bucket, Collection, Config, Function, GRPC, Prompt, Query, REST, Template, File, Route} from "@/rpc/block_pb";
+import {Message} from "@bufbuild/protobuf";
 
 type NodeEditorProps = {
     node: ProtoNode | null;
@@ -36,6 +37,8 @@ export function NodeEditor(props: NodeEditorProps) {
             return <GenericNodeEditor node={props.node} nodeConfig={"template"} nodeConfigType={Template} />;
         case "file":
             return <GenericNodeEditor node={props.node} nodeConfig={"file"} nodeConfigType={File} />;
+        case "route":
+            return <GenericNodeEditor node={props.node} nodeConfig={"route"} nodeConfigType={Route} />;
         default:
             return null;
     }
