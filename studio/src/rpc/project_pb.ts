@@ -5,8 +5,28 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { DescriptorProto, EnumDescriptorProto, Message, MethodDescriptorProto, proto3 } from "@bufbuild/protobuf";
-import { Resource } from "./resource_pb.js";
 import { Graph, Node } from "./graph_pb.js";
+import { Resource } from "./resource_pb.js";
+
+/**
+ * @generated from enum project.LayerType
+ */
+export enum LayerType {
+  /**
+   * @generated from enum value: Execution = 0;
+   */
+  Execution = 0,
+
+  /**
+   * @generated from enum value: Resource = 1;
+   */
+  Resource = 1,
+}
+// Retrieve enum metadata with: proto3.getEnumType(LayerType)
+proto3.util.setEnumType(LayerType, "project.LayerType", [
+  { no: 0, name: "Execution" },
+  { no: 1, name: "Resource" },
+]);
 
 /**
  * @generated from enum project.ResourceState
@@ -33,6 +53,128 @@ proto3.util.setEnumType(ResourceState, "project.ResourceState", [
   { no: 1, name: "READY" },
   { no: 2, name: "ERROR" },
 ]);
+
+/**
+ * @generated from message project.Layer
+ */
+export class Layer extends Message<Layer> {
+  /**
+   * @generated from field: project.LayerType type = 1;
+   */
+  type = LayerType.Execution;
+
+  /**
+   * @generated from field: graph.Graph graph = 2;
+   */
+  graph?: Graph;
+
+  constructor(data?: PartialMessage<Layer>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "project.Layer";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "type", kind: "enum", T: proto3.getEnumType(LayerType) },
+    { no: 2, name: "graph", kind: "message", T: Graph },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Layer {
+    return new Layer().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Layer {
+    return new Layer().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Layer {
+    return new Layer().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: Layer | PlainMessage<Layer> | undefined, b: Layer | PlainMessage<Layer> | undefined): boolean {
+    return proto3.util.equals(Layer, a, b);
+  }
+}
+
+/**
+ * @generated from message project.Project
+ */
+export class Project extends Message<Project> {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id = "";
+
+  /**
+   * @generated from field: string name = 2;
+   */
+  name = "";
+
+  /**
+   * @generated from field: string description = 3;
+   */
+  description = "";
+
+  /**
+   * @generated from field: string owner = 4;
+   */
+  owner = "";
+
+  /**
+   * @generated from field: string created_at = 5;
+   */
+  createdAt = "";
+
+  /**
+   * @generated from field: string updated_at = 6;
+   */
+  updatedAt = "";
+
+  /**
+   * @generated from field: graph.Graph graph = 7;
+   */
+  graph?: Graph;
+
+  /**
+   * @generated from field: repeated resource.Resource resources = 8;
+   */
+  resources: Resource[] = [];
+
+  constructor(data?: PartialMessage<Project>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "project.Project";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "description", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "owner", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 5, name: "created_at", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 6, name: "updated_at", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 7, name: "graph", kind: "message", T: Graph },
+    { no: 8, name: "resources", kind: "message", T: Resource, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Project {
+    return new Project().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Project {
+    return new Project().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Project {
+    return new Project().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: Project | PlainMessage<Project> | undefined, b: Project | PlainMessage<Project> | undefined): boolean {
+    return proto3.util.equals(Project, a, b);
+  }
+}
 
 /**
  * @generated from message project.UpdateResourceRequest
@@ -848,85 +990,6 @@ export class Data extends Message<Data> {
 
   static equals(a: Data | PlainMessage<Data> | undefined, b: Data | PlainMessage<Data> | undefined): boolean {
     return proto3.util.equals(Data, a, b);
-  }
-}
-
-/**
- * @generated from message project.Project
- */
-export class Project extends Message<Project> {
-  /**
-   * @generated from field: string id = 1;
-   */
-  id = "";
-
-  /**
-   * @generated from field: string name = 2;
-   */
-  name = "";
-
-  /**
-   * @generated from field: string description = 3;
-   */
-  description = "";
-
-  /**
-   * @generated from field: string owner = 4;
-   */
-  owner = "";
-
-  /**
-   * @generated from field: string created_at = 5;
-   */
-  createdAt = "";
-
-  /**
-   * @generated from field: string updated_at = 6;
-   */
-  updatedAt = "";
-
-  /**
-   * @generated from field: graph.Graph graph = 7;
-   */
-  graph?: Graph;
-
-  /**
-   * @generated from field: repeated resource.Resource resources = 8;
-   */
-  resources: Resource[] = [];
-
-  constructor(data?: PartialMessage<Project>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "project.Project";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 3, name: "description", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 4, name: "owner", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 5, name: "created_at", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 6, name: "updated_at", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 7, name: "graph", kind: "message", T: Graph },
-    { no: 8, name: "resources", kind: "message", T: Resource, repeated: true },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Project {
-    return new Project().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Project {
-    return new Project().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Project {
-    return new Project().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: Project | PlainMessage<Project> | undefined, b: Project | PlainMessage<Project> | undefined): boolean {
-    return proto3.util.equals(Project, a, b);
   }
 }
 

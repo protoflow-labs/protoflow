@@ -35,6 +35,7 @@ message TemplateService {
 }
 
 message HTTPRouter {
+  string root = 1;
 }
 
 message ReasoningEngine {

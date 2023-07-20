@@ -5,8 +5,13 @@ import (
 	"fmt"
 	"github.com/bufbuild/connect-go"
 	"github.com/google/wire"
+	"github.com/pkg/errors"
+	"github.com/protoflow-labs/protoflow/gen"
+	"github.com/protoflow-labs/protoflow/pkg/util/rx"
+	"github.com/protoflow-labs/protoflow/pkg/workflow/resource"
 	"github.com/protoflow-labs/protoflow/studio/public"
 	"github.com/rs/zerolog/log"
+	"io"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
@@ -44,6 +49,25 @@ func NewLogInterceptor() connect.UnaryInterceptorFunc {
 		}
 	}
 	return interceptor
+}
+
+func ParseHttpRequest(r *http.Request) (*gen.HttpRequest, error) {
+	var req gen.HttpRequest
+	h := make([]*gen.Header, 0)
+	for name, headers := range r.Header {
+		for _, hValue := range headers {
+			h = append(h, &gen.Header{Name: name, Value: hValue})
+		}
+	}
+	req.Method = r.Method
+	req.Url = r.URL.String()
+	req.Headers = h
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "error reading request body")
+	}
+	req.Body = body
+	return &req, nil
 }
 
 func NewHTTPServer(
@@ -91,6 +115,8 @@ func NewHTTPServer(
 	}
 	proxy := httputil.NewSingleHostReverseProxy(u)
 
+	httpStream := resource.NewHTTPEventStream()
+
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		log.Debug().Msgf("request: %s", r.URL.Path)
@@ -102,6 +128,21 @@ func NewHTTPServer(
 		}
 
 		if r.URL.Path == "/ui" || strings.HasPrefix(r.URL.Path, "/ui/") {
+			req, err := ParseHttpRequest(r)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			httpStream.Requests <- rx.NewItem(req)
+			resp := <-httpStream.Responses
+			for _, h := range resp.Headers {
+				w.Header().Set(h.Name, h.Value)
+			}
+			_, err = w.Write(resp.Body)
+			if err != nil {
+				http.Error(w, "failed writing body", http.StatusInternalServerError)
+				return
+			}
 			return
 		}
 

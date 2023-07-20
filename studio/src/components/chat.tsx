@@ -6,6 +6,7 @@ import { Chat, SendChatRequest, ChatMessage } from "@/rpc/project_pb";
 import {useProjectContext} from "@/providers/ProjectProvider";
 import {JsonViewer} from "@/components/jsonViewer";
 import {useSelectedNodes} from "@/hooks/useSelectedNodes";
+import {toast} from "react-hot-toast";
 
 export default function ChatPanel() {
     const {
@@ -69,6 +70,10 @@ export default function ChatPanel() {
 
     const onRun = async () => {
         if (!project) return;
+        if (!selectedNodes.length) {
+            toast.error('Please select a node to run');
+            return;
+        }
 
         await runWorkflow(selectedNodes[0]);
     };

@@ -109,7 +109,7 @@ func (w *Workflow) traverseWorkflow(
 
 	log.Debug().
 		Str("node", node.NormalizedName()).
-		Interface("resource", input.Resource).
+		Interface("resource", input.Resource.Name()).
 		Msg("wiring node IO")
 	output, err := executor.Execute(node, input)
 	if err != nil {

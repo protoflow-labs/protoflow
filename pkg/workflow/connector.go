@@ -23,7 +23,7 @@ func (c *Connector) Connect(ctx context.Context) rxgo.Observable {
 	o := rxgo.Merge(c.observers, rxgo.WithPublishStrategy())
 
 	// TODO breadchris figure out what to do with disposed and cancel
-	// disposed, cancel := output.Observable.Connect(ctx)
+	// disposed, cancel := output.RequestObs.Connect(ctx)
 
 	for _, obs := range c.observers {
 		obs.Connect(ctx)

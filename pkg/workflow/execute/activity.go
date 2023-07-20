@@ -1,11 +1,13 @@
 package execute
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
+	"github.com/protoflow-labs/protoflow/gen"
 	grpcanal "github.com/protoflow-labs/protoflow/pkg/grpc/manager"
 	"github.com/protoflow-labs/protoflow/pkg/util"
 	"github.com/protoflow-labs/protoflow/pkg/util/rx"
@@ -14,6 +16,7 @@ import (
 	"github.com/reactivex/rxgo/v2"
 	"github.com/rs/zerolog/log"
 	"github.com/sashabaranov/go-openai"
+	"html/template"
 	"io"
 	"net/url"
 	"path"
@@ -407,6 +410,83 @@ func (a *Activity) ExecuteQueryNode(ctx context.Context, n node.Node, input Inpu
 			output <- rx.NewItem(doc)
 		}
 	}()
+
+	return Output{
+		Observable: rxgo.FromChannel(output, rxgo.WithPublishStrategy()),
+	}, nil
+}
+
+func (a *Activity) ExecuteRouteNode(ctx context.Context, n node.Node, input Input) (Output, error) {
+	s, ok := n.(*node.RouteNode)
+	if !ok {
+		return Output{}, fmt.Errorf("error getting route resource: %s", n.NormalizedName())
+	}
+	routerResource, ok := input.Resource.(*resource.HTTPRouterResource)
+	if !ok {
+		return Output{}, fmt.Errorf("error getting http router resource: %s", s.Route.Path)
+	}
+
+	output := make(chan rxgo.Item)
+	input.Observable.ForEach(func(item any) {
+		r, ok := item.(*gen.HttpRequest)
+		if !ok {
+			output <- rx.NewError(fmt.Errorf("error getting http request from stream"))
+			return
+		}
+		u, err := url.Parse(r.Url)
+		if err != nil {
+			output <- rx.NewError(errors.Wrapf(err, "error parsing request url"))
+			return
+		}
+		if u.Path != routerResource.Path(s) || r.Method != s.Route.Method {
+			return
+		}
+		output <- rx.NewItem(r)
+	}, func(err error) {
+		output <- rx.NewError(err)
+	}, func() {
+		close(output)
+	})
+
+	return Output{
+		Observable: rxgo.FromChannel(output, rxgo.WithPublishStrategy()),
+	}, nil
+}
+
+func (a *Activity) ExecuteTemplateNode(ctx context.Context, n node.Node, input Input) (Output, error) {
+	s, ok := n.(*node.TemplateNode)
+	if !ok {
+		return Output{}, fmt.Errorf("error getting template resource: %s", n.NormalizedName())
+	}
+	_, ok = input.Resource.(*resource.TemplateServiceResource)
+	if !ok {
+		return Output{}, fmt.Errorf("error getting template service resource: %s", n.NormalizedName())
+	}
+
+	output := make(chan rxgo.Item)
+
+	input.Observable.ForEach(func(item any) {
+		tmpl, err := template.New(n.NormalizedName()).Parse(s.Template.Template)
+		if err != nil {
+			output <- rx.NewError(err)
+			return
+		}
+		b := &bytes.Buffer{}
+		err = tmpl.Execute(b, item)
+		if err != nil {
+			output <- rx.NewError(err)
+			return
+		}
+		resp := &gen.HttpResponse{
+			Headers: []*gen.Header{},
+			Body:    b.Bytes(),
+		}
+		output <- rx.NewItem(resp)
+	}, func(err error) {
+		output <- rx.NewError(err)
+	}, func() {
+		close(output)
+	})
 
 	return Output{
 		Observable: rxgo.FromChannel(output, rxgo.WithPublishStrategy()),

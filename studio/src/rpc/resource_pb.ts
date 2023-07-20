@@ -193,6 +193,11 @@ export class TemplateService extends Message<TemplateService> {
  * @generated from message resource.HTTPRouter
  */
 export class HTTPRouter extends Message<HTTPRouter> {
+  /**
+   * @generated from field: string root = 1;
+   */
+  root = "";
+
   constructor(data?: PartialMessage<HTTPRouter>) {
     super();
     proto3.util.initPartial(data, this);
@@ -201,6 +206,7 @@ export class HTTPRouter extends Message<HTTPRouter> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "resource.HTTPRouter";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "root", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): HTTPRouter {

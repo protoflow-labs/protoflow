@@ -15,6 +15,8 @@ import (
 	"github.com/protoflow-labs/protoflow/pkg/store"
 	"github.com/protoflow-labs/protoflow/pkg/util/rx"
 	"github.com/protoflow-labs/protoflow/pkg/workflow"
+	"github.com/protoflow-labs/protoflow/pkg/workflow/node"
+	"github.com/protoflow-labs/protoflow/pkg/workflow/resource"
 	"github.com/reactivex/rxgo/v2"
 	"github.com/rs/zerolog/log"
 	"net/url"
@@ -250,22 +252,49 @@ func (s *Service) RunWorkflow(ctx context.Context, c *connect.Request[gen.RunWor
 		Str("node", c.Msg.NodeId).
 		Msg("workflow starting")
 
-	inputChan := make(chan rxgo.Item)
-	o := rxgo.FromChannel(inputChan, rxgo.WithPublishStrategy())
+	n, ok := w.NodeLookup[c.Msg.NodeId]
+	if !ok {
+		return errors.Errorf("node %s not found in workflow", c.Msg.NodeId)
+	}
 
-	obs, err := s.manager.ExecuteWorkflow(ctx, w, c.Msg.NodeId, o)
+	var (
+		httpStream  *resource.HTTPEventStream
+		inputChan   chan rxgo.Item
+		inputObs    rxgo.Observable
+		httpRequest bool
+	)
+	switch n.(type) {
+	case *node.RouteNode:
+		httpStream = resource.NewHTTPEventStream()
+		inputObs = httpStream.RequestObs
+		httpRequest = true
+	default:
+		inputChan = make(chan rxgo.Item)
+		inputObs = rxgo.FromChannel(inputChan, rxgo.WithPublishStrategy())
+	}
+
+	obs, err := s.manager.ExecuteWorkflow(ctx, w, c.Msg.NodeId, inputObs)
 	if err != nil {
 		return err
 	}
 
 	// TODO breadchris support streaming input
-	inputChan <- rx.NewItem(workflowInput)
-	close(inputChan)
+	if !httpRequest {
+		inputChan <- rx.NewItem(workflowInput)
+		close(inputChan)
+	}
 
 	var (
 		obsErr error
 	)
 	<-obs.ForEach(func(item any) {
+		if httpRequest {
+			switch t := item.(type) {
+			case *gen.HttpResponse:
+				httpStream.Responses <- t
+				log.Debug().Msg("sent http response")
+			}
+		}
 		log.Debug().Interface("item", item).Msg("workflow item")
 		out, err := json.Marshal(item)
 		if err != nil {

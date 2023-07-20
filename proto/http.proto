@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package http;
+option go_package = "http";
+
+message Header {
+  string name = 1;
+  string value = 2;
+}
+
+message HttpRequest {
+  string method = 1;
+  string url = 2;
+  repeated Header headers = 3;
+  bytes body = 4;
+}
+
+message HttpResponse {
+  repeated Header headers = 1;
+  bytes body = 2;
+}

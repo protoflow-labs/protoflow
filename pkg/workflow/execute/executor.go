@@ -48,6 +48,10 @@ func nodeToActivityName(n node.Node) ActivityFunc {
 		return activity.ExecuteQueryNode
 	case *node.PromptNode:
 		return activity.ExecutePromptNode
+	case *node.RouteNode:
+		return activity.ExecuteRouteNode
+	case *node.TemplateNode:
+		return activity.ExecuteTemplateNode
 	}
 	return nil
 }
