@@ -224,6 +224,51 @@ func (s *Service) UpdateResource(ctx context.Context, c *connect.Request[gen.Upd
 	return connect.NewResponse(&gen.UpdateResourceResponse{}), nil
 }
 
+func (s *Service) startWorkflow(
+	ctx context.Context,
+	w *workflow.Workflow,
+	nodeID string,
+	workflowInput any,
+	// TODO breadchris this should not be needed
+	httpStream *resource.HTTPEventStream,
+) (rxgo.Observable, error) {
+	log.Debug().
+		Str("workflow", w.ID).
+		Str("node", nodeID).
+		Msg("workflow starting")
+
+	n, ok := w.NodeLookup[nodeID]
+	if !ok {
+		return nil, errors.Errorf("node %s not found in workflow", nodeID)
+	}
+
+	var (
+		inputChan   chan rxgo.Item
+		inputObs    rxgo.Observable
+		httpRequest bool
+	)
+	switch n.(type) {
+	case *node.RouteNode:
+		inputObs = httpStream.RequestObs
+		httpRequest = true
+	default:
+		inputChan = make(chan rxgo.Item)
+		inputObs = rxgo.FromChannel(inputChan, rxgo.WithPublishStrategy())
+	}
+
+	obs, err := s.manager.ExecuteWorkflow(ctx, w, nodeID, inputObs)
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO breadchris support streaming input
+	if !httpRequest {
+		inputChan <- rx.NewItem(workflowInput)
+		close(inputChan)
+	}
+	return obs, nil
+}
+
 func (s *Service) RunWorkflow(ctx context.Context, c *connect.Request[gen.RunWorkflowRequest], c2 *connect.ServerStream[gen.NodeExecution]) error {
 	project, err := s.store.GetProject(c.Msg.ProjectId)
 	if err != nil {
@@ -241,60 +286,50 @@ func (s *Service) RunWorkflow(ctx context.Context, c *connect.Request[gen.RunWor
 	}
 
 	// TODO breadchris this is a _little_ sketchy, we would like to be able to use the correct type, which might just be some data!
-	var workflowInput map[string]interface{}
+	var workflowInput map[string]any
 	err = json.Unmarshal([]byte(c.Msg.Input), &workflowInput)
 	if err != nil {
 		return errors.Wrapf(err, "failed to unmarshal workflow input")
 	}
 
-	log.Debug().
-		Str("workflow", w.ID).
-		Str("node", c.Msg.NodeId).
-		Msg("workflow starting")
-
-	n, ok := w.NodeLookup[c.Msg.NodeId]
-	if !ok {
-		return errors.Errorf("node %s not found in workflow", c.Msg.NodeId)
-	}
-
 	var (
-		httpStream  *resource.HTTPEventStream
-		inputChan   chan rxgo.Item
-		inputObs    rxgo.Observable
-		httpRequest bool
+		entrypoints []string
+		observables []rxgo.Observable
 	)
-	switch n.(type) {
-	case *node.RouteNode:
-		httpStream = resource.NewHTTPEventStream()
-		inputObs = httpStream.RequestObs
-		httpRequest = true
-	default:
-		inputChan = make(chan rxgo.Item)
-		inputObs = rxgo.FromChannel(inputChan, rxgo.WithPublishStrategy())
+
+	httpStream := resource.NewHTTPEventStream()
+
+	if c.Msg.StartServer {
+		for _, n := range w.NodeLookup {
+			switch n.(type) {
+			case *node.RouteNode:
+				entrypoints = append(entrypoints, n.ID())
+			}
+		}
+	} else {
+		entrypoints = append(entrypoints, c.Msg.NodeId)
 	}
 
-	obs, err := s.manager.ExecuteWorkflow(ctx, w, c.Msg.NodeId, inputObs)
-	if err != nil {
-		return err
+	for _, entrypoint := range entrypoints {
+		obs, err := s.startWorkflow(ctx, w, entrypoint, workflowInput, httpStream)
+		if err != nil {
+			return errors.Wrapf(err, "failed to start workflow")
+		}
+		observables = append(observables, obs)
 	}
 
-	// TODO breadchris support streaming input
-	if !httpRequest {
-		inputChan <- rx.NewItem(workflowInput)
-		close(inputChan)
-	}
+	obs := rxgo.Merge(observables)
 
 	var (
 		obsErr error
 	)
 	<-obs.ForEach(func(item any) {
-		if httpRequest {
-			switch t := item.(type) {
-			case *gen.HttpResponse:
-				httpStream.Responses <- t
-				log.Debug().Msg("sent http response")
-			}
+		switch t := item.(type) {
+		case *gen.HttpResponse:
+			httpStream.Responses <- t
+			log.Debug().Msg("sent http response")
 		}
+
 		log.Debug().Interface("item", item).Msg("workflow item")
 		out, err := json.Marshal(item)
 		if err != nil {

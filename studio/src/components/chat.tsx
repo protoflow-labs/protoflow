@@ -7,6 +7,7 @@ import {useProjectContext} from "@/providers/ProjectProvider";
 import {JsonViewer} from "@/components/jsonViewer";
 import {useSelectedNodes} from "@/hooks/useSelectedNodes";
 import {toast} from "react-hot-toast";
+import {start} from "repl";
 
 export default function ChatPanel() {
     const {
@@ -78,6 +79,11 @@ export default function ChatPanel() {
         await runWorkflow(selectedNodes[0]);
     };
 
+    const onStartServer = async () => {
+        if (!project) return;
+        await runWorkflow(undefined, true);
+    };
+
     return (
         <div className="absolute bottom-0 right-0 m-4 z-10 overflow-auto" style={{maxWidth: '400px', maxHeight: '500px'}}>
             <Card>
@@ -105,6 +111,9 @@ export default function ChatPanel() {
                                 ) }
                                 <Button onClick={onRun}>
                                     Run Workflow
+                                </Button>
+                                <Button onClick={onStartServer}>
+                                    Start Server
                                 </Button>
                             </Stack>
                         )}

@@ -32,7 +32,7 @@ type ProjectContextType = {
     setWorkflowOutput: (output: string[] | null) => void;
 
     saveProject: (nodes: Node[], edges: Edge[]) => Promise<void>;
-    runWorkflow: (node: Node) => Promise<any>;
+    runWorkflow: (node?: Node, startServer?: boolean) => Promise<any>;
     loadResources: () => Promise<void>;
     deleteResource: (resourceId: string) => Promise<void>;
     updateResource: (resource: Resource) => Promise<void>;
@@ -98,8 +98,27 @@ export default function ProjectProvider({children}: ProjectProviderProps) {
     }, [nodeLookup, resources]);
 
     const runWorkflow = useCallback(
-        async (node: Node) => {
+        async (node?: Node, startServer?: boolean) => {
             if (!project) return;
+
+            // TODO breadchris cleanup
+            if (!node) {
+                try {
+                    setWorkflowOutput(null);
+                    const res = await projectService.runWorkflow({
+                        projectId: project.id,
+                        startServer,
+                    });
+                    for await (const exec of res) {
+                        setWorkflowOutput((prevState) => [...(prevState || []), exec.output]);
+                    }
+                } catch (e: any) {
+                    toast.error(e.toString(), {
+                        duration: 10000,
+                    });
+                }
+                return;
+            }
 
             const graphNode = nodeLookup[node.id];
             if (!graphNode) {
@@ -112,7 +131,8 @@ export default function ProjectProvider({children}: ProjectProviderProps) {
                     nodeId: node.id,
                     projectId: project.id,
                     // TODO breadchris this is garbo, we need a better data structure to represent data input
-                    input: getDataFromNode(graphNode) || ''
+                    input: getDataFromNode(graphNode) || '',
+                    startServer,
                 });
                 for await (const exec of res) {
                     setWorkflowOutput((prevState) => [...(prevState || []), exec.output]);
