@@ -3,7 +3,7 @@ package resource
 import (
 	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/gen"
-	"github.com/protoflow-labs/protoflow/pkg/workflow/node"
+	"github.com/protoflow-labs/protoflow/pkg/workflow/graph"
 	"go.uber.org/config"
 	"gopkg.in/yaml.v3"
 )
@@ -13,13 +13,13 @@ type ConfigProviderResource struct {
 	*gen.ConfigProvider
 }
 
-var _ Resource = &ConfigProviderResource{}
+var _ graph.Resource = &ConfigProviderResource{}
 
 func (r *ConfigProviderResource) Init() (func(), error) {
 	return nil, nil
 }
 
-func (r *ConfigProviderResource) Build(options ...config.YAMLOption) (config.Provider, error) {
+func (r *ConfigProviderResource) NewConfigProvider(options ...config.YAMLOption) (config.Provider, error) {
 	opts := []config.YAMLOption{
 		config.Permissive(),
 	}
@@ -28,14 +28,13 @@ func (r *ConfigProviderResource) Build(options ...config.YAMLOption) (config.Pro
 		opts = append(opts, o)
 	}
 
-	for _, n := range r.nodes {
-		c, ok := n.(*node.ConfigNode)
-		if !ok {
-			return nil, errors.New("node is not a config provider node")
+	for _, n := range r.Nodes() {
+		repr, err := n.Represent()
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to represent node")
 		}
-
-		var u map[string]interface{}
-		err := yaml.Unmarshal([]byte(c.Config.Value), &u)
+		var u map[string]any
+		err = yaml.Unmarshal([]byte(repr), &u)
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to unmarshal config yaml")
 		}

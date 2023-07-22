@@ -75,6 +75,7 @@ type OpenAIQAClient struct {
 var _ QAClient = &OpenAIQAClient{}
 
 func (c *OpenAIQAClient) Ask(chatCtx []openai.ChatCompletionMessage) (string, error) {
+	// TODO breadchris figure out how to handle the context being too large
 	respTokenCount, err := validateChatCtx(chatCtx, c.modelDetails)
 	if err != nil {
 		return "", err

@@ -1,11 +1,8 @@
 package resource
 
 import (
-	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/gen"
-	"github.com/protoflow-labs/protoflow/pkg/workflow/node"
 	"github.com/reactivex/rxgo/v2"
-	"path"
 	"sync"
 )
 
@@ -47,17 +44,5 @@ type HTTPRouterResource struct {
 func (r *HTTPRouterResource) Init() (func(), error) {
 	// TODO breadchris proper dependency injection will need to be figured out to make this work
 	r.HTTPStream = NewHTTPEventStream()
-	return nil, nil
-}
-
-func (r *HTTPRouterResource) Path(n *node.RouteNode) string {
-	return path.Join(r.HTTPRouter.Root, n.Route.Path)
-}
-
-func (r *HTTPRouterResource) Info(n node.Node) (*node.Info, error) {
-	_, ok := n.(*node.RouteNode)
-	if !ok {
-		return nil, errors.New("node is not a route node")
-	}
 	return nil, nil
 }

@@ -926,6 +926,11 @@ export class RunWorkflowRequest extends Message<RunWorkflowRequest> {
    */
   input = "";
 
+  /**
+   * @generated from field: bool start_server = 4;
+   */
+  startServer = false;
+
   constructor(data?: PartialMessage<RunWorkflowRequest>) {
     super();
     proto3.util.initPartial(data, this);
@@ -937,6 +942,7 @@ export class RunWorkflowRequest extends Message<RunWorkflowRequest> {
     { no: 1, name: "project_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "node_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 3, name: "input", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "start_server", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): RunWorkflowRequest {

@@ -3,31 +3,30 @@ package workflow
 import (
 	"context"
 	"fmt"
-	"github.com/dominikbraun/graph"
+	graphlib "github.com/dominikbraun/graph"
 	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/pkg/workflow/execute"
-	worknode "github.com/protoflow-labs/protoflow/pkg/workflow/node"
-	"github.com/protoflow-labs/protoflow/pkg/workflow/resource"
+	"github.com/protoflow-labs/protoflow/pkg/workflow/graph"
 	"github.com/reactivex/rxgo/v2"
 	"github.com/rs/zerolog/log"
 )
 
-type AdjMap map[string]map[string]graph.Edge[string]
+type AdjMap map[string]map[string]graphlib.Edge[string]
 
 // TODO breadchris can this be a map[string]Resource?
-type Instances map[string]resource.Resource
+type Instances map[string]graph.Resource
 
 type Workflow struct {
 	ID         string
 	ProjectID  string
-	Graph      graph.Graph[string, string]
-	NodeLookup map[string]worknode.Node
+	Graph      graphlib.Graph[string, string]
+	NodeLookup map[string]graph.Node
 	AdjMap     AdjMap
 	PreMap     AdjMap
-	Resources  map[string]resource.Resource
+	Resources  map[string]graph.Resource
 }
 
-func (w *Workflow) GetNode(id string) (worknode.Node, error) {
+func (w *Workflow) GetNode(id string) (graph.Node, error) {
 	node, ok := w.NodeLookup[id]
 	if !ok {
 		return nil, fmt.Errorf("node with id %s not found", id)
@@ -35,7 +34,7 @@ func (w *Workflow) GetNode(id string) (worknode.Node, error) {
 	return node, nil
 }
 
-func (w *Workflow) GetNodeResource(id string) (resource.Resource, error) {
+func (w *Workflow) GetNodeResource(id string) (graph.Resource, error) {
 	node, err := w.GetNode(id)
 	if err != nil {
 		return nil, err
@@ -78,7 +77,8 @@ func (w *Workflow) Run(ctx context.Context, logger Logger, executor execute.Exec
 	connector := NewConnector()
 	connector.Add(input)
 
-	err = w.traverseWorkflow(ctx, connector, instances, executor, vert, execute.Input{
+	// wire an input into the workflow so that data can flow between nodes
+	err = w.wireWorkflow(ctx, connector, instances, executor, vert, graph.Input{
 		Observable: input,
 	})
 	if err != nil {
@@ -88,13 +88,13 @@ func (w *Workflow) Run(ctx context.Context, logger Logger, executor execute.Exec
 	return connector.Connect(ctx), nil
 }
 
-func (w *Workflow) traverseWorkflow(
+func (w *Workflow) wireWorkflow(
 	ctx context.Context,
 	connector *Connector,
 	instances Instances,
 	executor execute.Executor,
 	nodeID string,
-	input execute.Input,
+	input graph.Input,
 ) error {
 	node, ok := w.NodeLookup[nodeID]
 	if !ok {
@@ -109,16 +109,16 @@ func (w *Workflow) traverseWorkflow(
 
 	log.Debug().
 		Str("node", node.NormalizedName()).
-		Interface("resource", input.Resource.Name()).
+		// Interface("resource", input.Resource.Name()).
 		Msg("wiring node IO")
-	output, err := executor.Execute(node, input)
+	output, err := node.Wire(ctx, input)
 	if err != nil {
 		return errors.Wrapf(err, "error executing node: %s", nodeID)
 	}
 
 	connector.Add(output.Observable)
 
-	nextBlockInput := execute.Input{
+	nextBlockInput := graph.Input{
 		Observable: output.Observable,
 	}
 
@@ -128,7 +128,7 @@ func (w *Workflow) traverseWorkflow(
 			Str("neighbor", w.NodeLookup[neighbor].NormalizedName()).
 			Msg("traversing workflow")
 
-		err = w.traverseWorkflow(ctx, connector, instances, executor, neighbor, nextBlockInput)
+		err = w.wireWorkflow(ctx, connector, instances, executor, neighbor, nextBlockInput)
 		if err != nil {
 			return errors.Wrapf(err, "error traversing workflow %s", neighbor)
 		}
@@ -136,7 +136,7 @@ func (w *Workflow) traverseWorkflow(
 	return nil
 }
 
-func injectDepsForNode(instances Instances, input *execute.Input, node worknode.Node) error {
+func injectDepsForNode(instances Instances, input *graph.Input, node graph.Node) error {
 	if node.ResourceID() == "" {
 		return nil
 	}

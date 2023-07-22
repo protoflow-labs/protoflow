@@ -3,7 +3,7 @@ package resource
 import (
 	"fmt"
 	"github.com/protoflow-labs/protoflow/gen"
-	"github.com/protoflow-labs/protoflow/pkg/workflow/node"
+	"github.com/protoflow-labs/protoflow/pkg/workflow/graph"
 	_ "gocloud.dev/blob/fileblob"
 	_ "gocloud.dev/blob/memblob"
 	_ "gocloud.dev/docstore/memdocstore"
@@ -15,24 +15,11 @@ type DeploymentInfo struct {
 	Volumes      []string
 }
 
-type DependencyProvider map[string]Resource
-
-type Resource interface {
-	Name() string
-	Init() (func(), error)
-	ID() string
-	AddNode(n node.Node)
-	Nodes() []node.Node
-	Info(n node.Node) (*node.Info, error)
-	ResolveDependencies(dp DependencyProvider) error
-	//DeploymentInfo() (*DeploymentInfo, error)
-}
-
 type BaseResource struct {
 	id               string
 	name             string
-	dependencyLookup map[string]Resource
-	nodes            []node.Node
+	dependencyLookup map[string]graph.Resource
+	nodes            []graph.Node
 }
 
 func (r *BaseResource) ID() string {
@@ -47,19 +34,19 @@ func (r *BaseResource) Init() (func(), error) {
 	return func() {}, nil
 }
 
-func (r *BaseResource) Info(n node.Node) (*node.Info, error) {
+func (r *BaseResource) Info(n graph.Node) (*graph.Info, error) {
 	return nil, nil
 }
 
-func (r *BaseResource) AddNode(n node.Node) {
+func (r *BaseResource) AddNode(n graph.Node) {
 	r.nodes = append(r.nodes, n)
 }
 
-func (r *BaseResource) Nodes() []node.Node {
+func (r *BaseResource) Nodes() []graph.Node {
 	return r.nodes
 }
 
-func (r *BaseResource) ResolveDependencies(dp DependencyProvider) error {
+func (r *BaseResource) ResolveDependencies(dp graph.DependencyProvider) error {
 	for id := range r.dependencyLookup {
 		if _, ok := dp[id]; !ok {
 			return fmt.Errorf("dependency not found: %s", id)
@@ -69,13 +56,13 @@ func (r *BaseResource) ResolveDependencies(dp DependencyProvider) error {
 	return nil
 }
 
-func FromProto(r *gen.Resource) (Resource, error) {
+func FromProto(r *gen.Resource) (graph.Resource, error) {
 	base := &BaseResource{
 		id:   r.Id,
 		name: r.Name,
 	}
 	// TODO breadchris is this too sketch?
-	base.dependencyLookup = make(map[string]Resource)
+	base.dependencyLookup = make(map[string]graph.Resource)
 	for _, dep := range r.Dependencies {
 		base.dependencyLookup[dep] = nil
 	}
