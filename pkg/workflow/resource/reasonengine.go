@@ -4,7 +4,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/gen"
 	openaiclient "github.com/protoflow-labs/protoflow/pkg/openai"
-	"github.com/protoflow-labs/protoflow/pkg/workflow/build"
 	"go.uber.org/config"
 )
 
@@ -27,7 +26,7 @@ func (r *ReasoningEngineResource) Init() (func(), error) {
 		switch t := n.(type) {
 		case *ConfigProviderResource:
 			// TODO breadchris how do we handle resources that need to be initialized before others?
-			configProvider, err = build.Config(t, config.Static(staticConfig))
+			configProvider, err = t.NewConfigProvider(config.Static(staticConfig))
 			if err != nil {
 				return nil, errors.Wrapf(err, "failed to build config provider")
 			}

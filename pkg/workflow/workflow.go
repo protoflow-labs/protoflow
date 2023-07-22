@@ -77,7 +77,8 @@ func (w *Workflow) Run(ctx context.Context, logger Logger, executor execute.Exec
 	connector := NewConnector()
 	connector.Add(input)
 
-	err = w.traverseWorkflow(ctx, connector, instances, executor, vert, execute.Input{
+	// wire an input into the workflow so that data can flow between nodes
+	err = w.wireWorkflow(ctx, connector, instances, executor, vert, graph.Input{
 		Observable: input,
 	})
 	if err != nil {
@@ -87,13 +88,13 @@ func (w *Workflow) Run(ctx context.Context, logger Logger, executor execute.Exec
 	return connector.Connect(ctx), nil
 }
 
-func (w *Workflow) traverseWorkflow(
+func (w *Workflow) wireWorkflow(
 	ctx context.Context,
 	connector *Connector,
 	instances Instances,
 	executor execute.Executor,
 	nodeID string,
-	input execute.Input,
+	input graph.Input,
 ) error {
 	node, ok := w.NodeLookup[nodeID]
 	if !ok {
@@ -110,14 +111,14 @@ func (w *Workflow) traverseWorkflow(
 		Str("node", node.NormalizedName()).
 		// Interface("resource", input.Resource.Name()).
 		Msg("wiring node IO")
-	output, err := executor.Execute(node, input)
+	output, err := node.Wire(ctx, input)
 	if err != nil {
 		return errors.Wrapf(err, "error executing node: %s", nodeID)
 	}
 
 	connector.Add(output.Observable)
 
-	nextBlockInput := execute.Input{
+	nextBlockInput := graph.Input{
 		Observable: output.Observable,
 	}
 
@@ -127,7 +128,7 @@ func (w *Workflow) traverseWorkflow(
 			Str("neighbor", w.NodeLookup[neighbor].NormalizedName()).
 			Msg("traversing workflow")
 
-		err = w.traverseWorkflow(ctx, connector, instances, executor, neighbor, nextBlockInput)
+		err = w.wireWorkflow(ctx, connector, instances, executor, neighbor, nextBlockInput)
 		if err != nil {
 			return errors.Wrapf(err, "error traversing workflow %s", neighbor)
 		}
@@ -135,7 +136,7 @@ func (w *Workflow) traverseWorkflow(
 	return nil
 }
 
-func injectDepsForNode(instances Instances, input *execute.Input, node graph.Node) error {
+func injectDepsForNode(instances Instances, input *graph.Input, node graph.Node) error {
 	if node.ResourceID() == "" {
 		return nil
 	}

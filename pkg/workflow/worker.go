@@ -2,7 +2,6 @@ package workflow
 
 import (
 	"context"
-	"github.com/protoflow-labs/protoflow/pkg/workflow/execute"
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/worker"
 )
@@ -23,7 +22,8 @@ func (s *Worker) Run() error {
 	})
 
 	w.RegisterWorkflow(TemporalRun)
-	w.RegisterActivity(&execute.Activity{})
+	// TODO breadchris register node activities
+	// w.RegisterActivity(&execute.Activity{})
 
 	return w.Run(worker.InterruptCh())
 }

@@ -3,7 +3,6 @@ package node
 import (
 	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/gen"
-	"github.com/protoflow-labs/protoflow/pkg/util"
 	"github.com/protoflow-labs/protoflow/pkg/workflow/graph"
 )
 
@@ -38,70 +37,5 @@ func NewNode(node *gen.Node) (graph.Node, error) {
 		return NewFileNode(node), nil
 	default:
 		return nil, errors.New("no node found")
-	}
-}
-
-// NewBaseNode creates a new BaseNode from a gen.Node, gen.Node cannot be embedded into BaseNode because proto deserialization will fail on the type
-func NewBaseNode(node *gen.Node) BaseNode {
-	return BaseNode{
-		Name:       util.ToTitleCase(node.Name),
-		id:         node.Id,
-		resourceID: node.ResourceId,
-	}
-}
-
-func NewPromptNode(node *gen.Node) *PromptNode {
-	return &PromptNode{
-		BaseNode: NewBaseNode(node),
-		Prompt:   node.GetPrompt(),
-	}
-}
-
-func NewSecretNode(node *gen.Node) *SecretNode {
-	return &SecretNode{
-		BaseNode: NewBaseNode(node),
-		Secret:   node.GetSecret(),
-	}
-}
-
-func NewTemplateNode(node *gen.Node) *TemplateNode {
-	return &TemplateNode{
-		BaseNode: NewBaseNode(node),
-		Template: node.GetTemplate(),
-	}
-}
-
-func NewFileNode(node *gen.Node) *FileNode {
-	return &FileNode{
-		BaseNode: NewBaseNode(node),
-		File:     node.GetFile(),
-	}
-}
-
-func NewRestNode(node *gen.Node) *RESTNode {
-	return &RESTNode{
-		BaseNode: NewBaseNode(node),
-		REST:     node.GetRest(),
-	}
-}
-
-func NewCollectionNode(node *gen.Node) *CollectionNode {
-	return &CollectionNode{
-		BaseNode:   NewBaseNode(node),
-		Collection: node.GetCollection(),
-	}
-}
-
-func NewBucketNode(node *gen.Node) *BucketNode {
-	return &BucketNode{
-		BaseNode: NewBaseNode(node),
-		Bucket:   node.GetBucket(),
-	}
-}
-
-func NewQueryNode(node *gen.Node) *QueryNode {
-	return &QueryNode{
-		BaseNode: NewBaseNode(node),
-		Query:    node.GetQuery(),
 	}
 }

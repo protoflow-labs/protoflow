@@ -1,11 +1,22 @@
 package graph
 
 import (
+	"context"
 	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/pkg/grpc"
 	"github.com/protoflow-labs/protoflow/pkg/grpc/manager"
+	"github.com/reactivex/rxgo/v2"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
+
+type Input struct {
+	Observable rxgo.Observable
+	Resource   Resource
+}
+
+type Output struct {
+	Observable rxgo.Observable
+}
 
 type DependencyProvider map[string]Resource
 
@@ -30,7 +41,10 @@ type Node interface {
 	ID() string
 	ResourceID() string
 	Info(r Resource) (*Info, error)
+	// Represent the node as a string
 	Represent() (string, error)
+	// Wire up the node to an input stream of data and return an output stream of data
+	Wire(ctx context.Context, input Input) (Output, error)
 }
 
 type Resource interface {
