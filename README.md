@@ -22,7 +22,7 @@ protoflow studio
 ```
 
 ## Demo
-[![youtube demo screenshot](http://img.youtube.com/vi/ZnUyUbh-Xp8/0.jpg)](https://www.youtube.com/watch?v=ZnUyUbh-Xp8)
+[![youtube demo screenshot](http://img.youtube.com/vi/ZnUyUbh-Xp8/0.jpg)](https://www.youtube.com/live/hemR9YiD_Ec?feature=share&t=688)
 
 ## Hack
 ### Backend
