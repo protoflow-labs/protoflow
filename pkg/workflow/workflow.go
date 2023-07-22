@@ -3,31 +3,30 @@ package workflow
 import (
 	"context"
 	"fmt"
-	"github.com/dominikbraun/graph"
+	graphlib "github.com/dominikbraun/graph"
 	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/pkg/workflow/execute"
-	worknode "github.com/protoflow-labs/protoflow/pkg/workflow/node"
-	"github.com/protoflow-labs/protoflow/pkg/workflow/resource"
+	"github.com/protoflow-labs/protoflow/pkg/workflow/graph"
 	"github.com/reactivex/rxgo/v2"
 	"github.com/rs/zerolog/log"
 )
 
-type AdjMap map[string]map[string]graph.Edge[string]
+type AdjMap map[string]map[string]graphlib.Edge[string]
 
 // TODO breadchris can this be a map[string]Resource?
-type Instances map[string]resource.Resource
+type Instances map[string]graph.Resource
 
 type Workflow struct {
 	ID         string
 	ProjectID  string
-	Graph      graph.Graph[string, string]
-	NodeLookup map[string]worknode.Node
+	Graph      graphlib.Graph[string, string]
+	NodeLookup map[string]graph.Node
 	AdjMap     AdjMap
 	PreMap     AdjMap
-	Resources  map[string]resource.Resource
+	Resources  map[string]graph.Resource
 }
 
-func (w *Workflow) GetNode(id string) (worknode.Node, error) {
+func (w *Workflow) GetNode(id string) (graph.Node, error) {
 	node, ok := w.NodeLookup[id]
 	if !ok {
 		return nil, fmt.Errorf("node with id %s not found", id)
@@ -35,7 +34,7 @@ func (w *Workflow) GetNode(id string) (worknode.Node, error) {
 	return node, nil
 }
 
-func (w *Workflow) GetNodeResource(id string) (resource.Resource, error) {
+func (w *Workflow) GetNodeResource(id string) (graph.Resource, error) {
 	node, err := w.GetNode(id)
 	if err != nil {
 		return nil, err
@@ -109,7 +108,7 @@ func (w *Workflow) traverseWorkflow(
 
 	log.Debug().
 		Str("node", node.NormalizedName()).
-		Interface("resource", input.Resource.Name()).
+		// Interface("resource", input.Resource.Name()).
 		Msg("wiring node IO")
 	output, err := executor.Execute(node, input)
 	if err != nil {
@@ -136,7 +135,7 @@ func (w *Workflow) traverseWorkflow(
 	return nil
 }
 
-func injectDepsForNode(instances Instances, input *execute.Input, node worknode.Node) error {
+func injectDepsForNode(instances Instances, input *execute.Input, node graph.Node) error {
 	if node.ResourceID() == "" {
 		return nil
 	}

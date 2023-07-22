@@ -3,15 +3,15 @@ package execute
 import (
 	"fmt"
 	"github.com/pkg/errors"
+	"github.com/protoflow-labs/protoflow/pkg/workflow/graph"
 	"github.com/protoflow-labs/protoflow/pkg/workflow/node"
-	"github.com/protoflow-labs/protoflow/pkg/workflow/resource"
 	"github.com/reactivex/rxgo/v2"
 	"go.temporal.io/sdk/workflow"
 )
 
 type Input struct {
 	Observable rxgo.Observable
-	Resource   resource.Resource
+	Resource   graph.Resource
 }
 
 type Output struct {
@@ -19,7 +19,7 @@ type Output struct {
 }
 
 type Executor interface {
-	Execute(n node.Node, input Input) (*Output, error)
+	Execute(n graph.Node, input Input) (*Output, error)
 }
 
 var _ Executor = &TemporalExecutor{}
@@ -28,7 +28,7 @@ var activity = &Activity{}
 
 // TODO breadchris each node should have an Execute function, however at the moment, an import cycle would be formed by
 // node -> resource -> node. Need to figure out how to avoid this.
-func nodeToActivityName(n node.Node) ActivityFunc {
+func nodeToActivityName(n graph.Node) ActivityFunc {
 	switch n.(type) {
 	case *node.RESTNode:
 		return activity.ExecuteRestNode
@@ -66,7 +66,7 @@ func NewTemporalExecutor(ctx workflow.Context) *TemporalExecutor {
 	}
 }
 
-func (e *TemporalExecutor) Execute(n node.Node, input Input) (*Output, error) {
+func (e *TemporalExecutor) Execute(n graph.Node, input Input) (*Output, error) {
 	var result Output
 	act := nodeToActivityName(n)
 	if act == nil {
@@ -97,7 +97,7 @@ func NewMemoryExecutor(ctx *MemoryContext, opts ...MemoryExecutorOption) *Memory
 	return e
 }
 
-func (e *MemoryExecutor) Execute(n node.Node, input Input) (*Output, error) {
+func (e *MemoryExecutor) Execute(n graph.Node, input Input) (*Output, error) {
 	act := nodeToActivityName(n)
 	if act == nil {
 		return nil, fmt.Errorf("error getting activity for node: %s", n.NormalizedName())

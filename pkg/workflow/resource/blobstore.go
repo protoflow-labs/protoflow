@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/protoflow-labs/protoflow/gen"
+	"github.com/protoflow-labs/protoflow/pkg/workflow/graph"
 	"github.com/rs/zerolog/log"
 	"gocloud.dev/blob"
 )
@@ -13,7 +14,7 @@ type FileStoreResource struct {
 	*gen.FileStore
 }
 
-var _ Resource = &FileStoreResource{}
+var _ graph.Resource = &FileStoreResource{}
 
 func (r *FileStoreResource) Init() (func(), error) {
 	return nil, nil

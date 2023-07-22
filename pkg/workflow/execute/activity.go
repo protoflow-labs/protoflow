@@ -11,6 +11,7 @@ import (
 	grpcanal "github.com/protoflow-labs/protoflow/pkg/grpc/manager"
 	"github.com/protoflow-labs/protoflow/pkg/util"
 	"github.com/protoflow-labs/protoflow/pkg/util/rx"
+	"github.com/protoflow-labs/protoflow/pkg/workflow/graph"
 	"github.com/protoflow-labs/protoflow/pkg/workflow/node"
 	"github.com/protoflow-labs/protoflow/pkg/workflow/resource"
 	"github.com/reactivex/rxgo/v2"
@@ -24,7 +25,7 @@ import (
 
 type Activity struct{}
 
-type ActivityFunc func(ctx context.Context, n node.Node, input Input) (Output, error)
+type ActivityFunc func(ctx context.Context, n graph.Node, input Input) (Output, error)
 
 func formatHost(host string) (string, error) {
 	u, err := url.Parse(host)
@@ -37,7 +38,7 @@ func formatHost(host string) (string, error) {
 	return u.String(), nil
 }
 
-func (a *Activity) ExecutePromptNode(ctx context.Context, n node.Node, input Input) (Output, error) {
+func (a *Activity) ExecutePromptNode(ctx context.Context, n graph.Node, input Input) (Output, error) {
 	pn, ok := n.(*node.PromptNode)
 	if !ok {
 		return Output{}, fmt.Errorf("error getting prompt node: %s", pn.Name)
@@ -109,7 +110,7 @@ func (a *Activity) ExecutePromptNode(ctx context.Context, n node.Node, input Inp
 }
 
 // TODO breadchris this should be workflow.Context, but for the memory executor it needs context.Context
-func (a *Activity) ExecuteGRPCNode(ctx context.Context, n node.Node, input Input) (Output, error) {
+func (a *Activity) ExecuteGRPCNode(ctx context.Context, n graph.Node, input Input) (Output, error) {
 	gn, ok := n.(*node.GRPCNode)
 	if !ok {
 		return Output{}, fmt.Errorf("error getting GRPC resource: %s.%s", gn.Service, gn.Method)
@@ -190,7 +191,7 @@ func (a *Activity) ExecuteGRPCNode(ctx context.Context, n node.Node, input Input
 	return res, nil
 }
 
-func (a *Activity) ExecuteRestNode(ctx context.Context, n node.Node, input Input) (Output, error) {
+func (a *Activity) ExecuteRestNode(ctx context.Context, n graph.Node, input Input) (Output, error) {
 	gn, ok := n.(*node.RESTNode)
 	if !ok {
 		return Output{}, fmt.Errorf("error getting REST resource: %s", gn.Name)
@@ -214,7 +215,7 @@ func (a *Activity) ExecuteRestNode(ctx context.Context, n node.Node, input Input
 	}, nil
 }
 
-func (a *Activity) ExecuteFunctionNode(ctx context.Context, n node.Node, input Input) (Output, error) {
+func (a *Activity) ExecuteFunctionNode(ctx context.Context, n graph.Node, input Input) (Output, error) {
 	gn, ok := n.(*node.FunctionNode)
 	if !ok {
 		return Output{}, fmt.Errorf("error getting Function resource: %s", gn.Name)
@@ -228,11 +229,11 @@ func (a *Activity) ExecuteFunctionNode(ctx context.Context, n node.Node, input I
 	// provide the grpc resource to the grpc gn call. Is this the best place for this? Should this be provided on injection? Probably.
 	input.Resource = g.GRPCResource
 
-	grpcNode := g.ToGRPC(gn)
+	grpcNode := gn.ToGRPC(g)
 	return a.ExecuteGRPCNode(ctx, grpcNode, input)
 }
 
-func (a *Activity) ExecuteCollectionNode(ctx context.Context, n node.Node, input Input) (Output, error) {
+func (a *Activity) ExecuteCollectionNode(ctx context.Context, n graph.Node, input Input) (Output, error) {
 	gn, ok := n.(*node.CollectionNode)
 	if !ok {
 		return Output{}, fmt.Errorf("error getting Collection resource: %s", gn.Name)
@@ -300,13 +301,13 @@ func (a *Activity) ExecuteCollectionNode(ctx context.Context, n node.Node, input
 	}, nil
 }
 
-func (a *Activity) ExecuteInputNode(ctx context.Context, n node.Node, input Input) (Output, error) {
+func (a *Activity) ExecuteInputNode(ctx context.Context, n graph.Node, input Input) (Output, error) {
 	return Output{
 		Observable: input.Observable,
 	}, nil
 }
 
-func (a *Activity) ExecuteFileNode(ctx context.Context, n node.Node, input Input) (Output, error) {
+func (a *Activity) ExecuteFileNode(ctx context.Context, n graph.Node, input Input) (Output, error) {
 	f, ok := n.(*node.FileNode)
 	if !ok {
 		return Output{}, fmt.Errorf("error getting File node: %s", n.NormalizedName())
@@ -334,7 +335,7 @@ func (a *Activity) ExecuteFileNode(ctx context.Context, n node.Node, input Input
 	}, nil
 }
 
-func (a *Activity) ExecuteBucketNode(ctx context.Context, n node.Node, input Input) (Output, error) {
+func (a *Activity) ExecuteBucketNode(ctx context.Context, n graph.Node, input Input) (Output, error) {
 	gn, ok := n.(*node.BucketNode)
 	if !ok {
 		return Output{}, fmt.Errorf("error getting Collection resource: %s", gn.Name)
@@ -378,7 +379,7 @@ func (a *Activity) ExecuteBucketNode(ctx context.Context, n node.Node, input Inp
 	}, nil
 }
 
-func (a *Activity) ExecuteQueryNode(ctx context.Context, n node.Node, input Input) (Output, error) {
+func (a *Activity) ExecuteQueryNode(ctx context.Context, n graph.Node, input Input) (Output, error) {
 	s, ok := n.(*node.QueryNode)
 	if !ok {
 		return Output{}, fmt.Errorf("error getting query resource: %s", s.Query.Collection)
@@ -398,7 +399,7 @@ func (a *Activity) ExecuteQueryNode(ctx context.Context, n node.Node, input Inpu
 		defer cleanup()
 		iter := d.Query().Get(ctx)
 		for {
-			doc := map[string]interface{}{}
+			doc := map[string]any{}
 			err = iter.Next(ctx, doc)
 			if err != nil {
 				if err != io.EOF {
@@ -416,7 +417,7 @@ func (a *Activity) ExecuteQueryNode(ctx context.Context, n node.Node, input Inpu
 	}, nil
 }
 
-func (a *Activity) ExecuteRouteNode(ctx context.Context, n node.Node, input Input) (Output, error) {
+func (a *Activity) ExecuteRouteNode(ctx context.Context, n graph.Node, input Input) (Output, error) {
 	s, ok := n.(*node.RouteNode)
 	if !ok {
 		return Output{}, fmt.Errorf("error getting route resource: %s", n.NormalizedName())
@@ -438,7 +439,7 @@ func (a *Activity) ExecuteRouteNode(ctx context.Context, n node.Node, input Inpu
 			output <- rx.NewError(errors.Wrapf(err, "error parsing request url"))
 			return
 		}
-		if u.Path != routerResource.Path(s) || r.Method != s.Route.Method {
+		if u.Path != s.Path(routerResource) || r.Method != s.Route.Method {
 			return
 		}
 		output <- rx.NewItem(r)
@@ -453,7 +454,7 @@ func (a *Activity) ExecuteRouteNode(ctx context.Context, n node.Node, input Inpu
 	}, nil
 }
 
-func (a *Activity) ExecuteTemplateNode(ctx context.Context, n node.Node, input Input) (Output, error) {
+func (a *Activity) ExecuteTemplateNode(ctx context.Context, n graph.Node, input Input) (Output, error) {
 	s, ok := n.(*node.TemplateNode)
 	if !ok {
 		return Output{}, fmt.Errorf("error getting template resource: %s", n.NormalizedName())

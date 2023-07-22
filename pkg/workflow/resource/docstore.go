@@ -5,6 +5,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/gen"
 	"github.com/protoflow-labs/protoflow/pkg/util"
+	"github.com/protoflow-labs/protoflow/pkg/workflow/graph"
 	"github.com/rs/zerolog/log"
 	"gocloud.dev/docstore"
 	"gocloud.dev/docstore/memdocstore"
@@ -18,7 +19,7 @@ type DocstoreResource struct {
 	*gen.DocStore
 }
 
-var _ Resource = &DocstoreResource{}
+var _ graph.Resource = &DocstoreResource{}
 
 func (r *DocstoreResource) Init() (func(), error) {
 	return nil, nil

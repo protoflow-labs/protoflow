@@ -1,23 +1,24 @@
 package workflow
 
 import (
-	"github.com/dominikbraun/graph"
+	graphlib "github.com/dominikbraun/graph"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/gen"
+	"github.com/protoflow-labs/protoflow/pkg/workflow/graph"
 	worknode "github.com/protoflow-labs/protoflow/pkg/workflow/node"
 	"github.com/protoflow-labs/protoflow/pkg/workflow/resource"
 	"github.com/rs/zerolog/log"
 )
 
 func FromProject(project *gen.Project) (*Workflow, error) {
-	g := graph.New(graph.StringHash, graph.Directed(), graph.PreventCycles())
+	g := graphlib.New(graphlib.StringHash, graphlib.Directed(), graphlib.PreventCycles())
 
 	if project.Graph == nil {
 		return nil, errors.New("project graph is nil")
 	}
 
-	resources := resource.DependencyProvider{}
+	resources := graph.DependencyProvider{}
 	for _, protoRes := range project.Resources {
 		r, err := resource.FromProto(protoRes)
 		if err != nil {
@@ -32,7 +33,7 @@ func FromProject(project *gen.Project) (*Workflow, error) {
 		}
 	}
 
-	nodeLookup := map[string]worknode.Node{}
+	nodeLookup := map[string]graph.Node{}
 	for _, node := range project.Graph.Nodes {
 		if node.Id == "" {
 			return nil, errors.New("node id cannot be empty")

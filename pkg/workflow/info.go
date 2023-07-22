@@ -5,6 +5,7 @@ import (
 	"github.com/jhump/protoreflect/desc/builder"
 	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/pkg/grpc"
+	"github.com/protoflow-labs/protoflow/pkg/workflow/graph"
 	worknode "github.com/protoflow-labs/protoflow/pkg/workflow/node"
 	"github.com/rs/zerolog/log"
 	"github.com/samber/lo"
@@ -12,8 +13,8 @@ import (
 )
 
 // TODO breadchris separate "infer" and "collect" type information
-func (w *Workflow) GetNodeInfo(n worknode.Node) (*worknode.Info, error) {
-	var resp *worknode.Info
+func (w *Workflow) GetNodeInfo(n graph.Node) (*graph.Info, error) {
+	var resp *graph.Info
 	switch n.(type) {
 	case *worknode.InputNode:
 		children := w.AdjMap[n.ID()]
@@ -54,7 +55,7 @@ func (w *Workflow) GetNodeInfo(n worknode.Node) (*worknode.Info, error) {
 		if err != nil {
 			return nil, err
 		}
-		resp = &worknode.Info{
+		resp = &graph.Info{
 			Method: mthd,
 		}
 	case *worknode.FileNode:
@@ -80,7 +81,7 @@ func (w *Workflow) GetNodeInfo(n worknode.Node) (*worknode.Info, error) {
 		if err != nil {
 			return nil, err
 		}
-		resp = &worknode.Info{
+		resp = &graph.Info{
 			Method: mthd,
 		}
 	case *worknode.PromptNode:
@@ -105,7 +106,7 @@ func (w *Workflow) GetNodeInfo(n worknode.Node) (*worknode.Info, error) {
 		if err != nil {
 			return nil, err
 		}
-		resp = &worknode.Info{
+		resp = &graph.Info{
 			Method: mthd,
 		}
 	case *worknode.FunctionNode:
@@ -201,7 +202,7 @@ func (w *Workflow) GetNodeInfo(n worknode.Node) (*worknode.Info, error) {
 		if err != nil {
 			return nil, err
 		}
-		return &worknode.Info{
+		return &graph.Info{
 			Method: mthd,
 		}, nil
 	default:
@@ -209,7 +210,7 @@ func (w *Workflow) GetNodeInfo(n worknode.Node) (*worknode.Info, error) {
 		if err != nil {
 			return nil, errors.Wrapf(err, "error getting node resource for %s", n.NormalizedName())
 		}
-		return res.Info(n)
+		return n.Info(res)
 	}
 	return resp, nil
 }

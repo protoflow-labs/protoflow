@@ -3,35 +3,12 @@ package node
 import (
 	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/gen"
-	"github.com/protoflow-labs/protoflow/pkg/grpc"
-	"github.com/protoflow-labs/protoflow/pkg/grpc/manager"
 	"github.com/protoflow-labs/protoflow/pkg/util"
-	"google.golang.org/protobuf/reflect/protoreflect"
+	"github.com/protoflow-labs/protoflow/pkg/workflow/graph"
 )
 
-type Node interface {
-	NormalizedName() string
-	ID() string
-	ResourceID() string
-}
-
-type Info struct {
-	Method *grpc.MethodDescriptor
-}
-
-func (s *Info) BuildProto() (string, error) {
-	s.Method.MethodDesc.ParentFile().Package()
-	svc := s.Method.MethodDesc.Parent().(protoreflect.ServiceDescriptor)
-	pkgName := string(svc.ParentFile().Package())
-	svcName := string(svc.Name())
-	methodProto, err := manager.GetProtoForMethod(pkgName, svcName, s.Method.MethodDesc)
-	if err != nil {
-		return "", errors.Wrapf(err, "error getting proto for method %s", s.Method.MethodDesc.Name())
-	}
-	return methodProto, nil
-}
-
-func NewNode(node *gen.Node) (Node, error) {
+// TODO breadchris make this something that can be modularized
+func NewNode(node *gen.Node) (graph.Node, error) {
 	switch node.Config.(type) {
 	case *gen.Node_Grpc:
 		return NewGRPCNode(node), nil
@@ -80,13 +57,6 @@ func NewPromptNode(node *gen.Node) *PromptNode {
 	}
 }
 
-func NewConfigNode(node *gen.Node) *ConfigNode {
-	return &ConfigNode{
-		BaseNode: NewBaseNode(node),
-		Config:   node.GetConfiguration(),
-	}
-}
-
 func NewSecretNode(node *gen.Node) *SecretNode {
 	return &SecretNode{
 		BaseNode: NewBaseNode(node),
@@ -98,13 +68,6 @@ func NewTemplateNode(node *gen.Node) *TemplateNode {
 	return &TemplateNode{
 		BaseNode: NewBaseNode(node),
 		Template: node.GetTemplate(),
-	}
-}
-
-func NewRouteNode(node *gen.Node) *RouteNode {
-	return &RouteNode{
-		BaseNode: NewBaseNode(node),
-		Route:    node.GetRoute(),
 	}
 }
 

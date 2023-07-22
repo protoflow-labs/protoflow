@@ -9,6 +9,7 @@ import (
 	"github.com/protoflow-labs/protoflow/pkg/bucket"
 	"github.com/protoflow-labs/protoflow/pkg/grpc"
 	"github.com/protoflow-labs/protoflow/pkg/grpc/manager"
+	"github.com/protoflow-labs/protoflow/pkg/workflow/graph"
 	"github.com/protoflow-labs/protoflow/pkg/workflow/node"
 	"github.com/protoflow-labs/protoflow/pkg/workflow/resource"
 	"github.com/protoflow-labs/protoflow/templates"
@@ -91,7 +92,7 @@ func writeProtoFile(filepath string, fd *desc.FileDescriptor) error {
 	return nil
 }
 
-func unlinkFieldBuilder(f *builder.FileBuilder, t *builder.FieldBuilder, nodeInfo *node.Info) (*builder.FileBuilder, *builder.FieldBuilder) {
+func unlinkFieldBuilder(f *builder.FileBuilder, t *builder.FieldBuilder, nodeInfo *graph.Info) (*builder.FileBuilder, *builder.FieldBuilder) {
 	switch t.GetType().GetType() {
 	case descriptor.FieldDescriptorProto_TYPE_MESSAGE:
 		// TODO breadchris a little hacky, but we need to move the message from the file
@@ -132,7 +133,7 @@ func unlinkFieldBuilder(f *builder.FileBuilder, t *builder.FieldBuilder, nodeInf
 }
 
 // TODO breadchris this is a hack to get the protos to generate correctly. removing all references prevents additional imports in the protofile.
-func recursivelyUnlinkBuilder(f *builder.FileBuilder, b *builder.MessageBuilder, nodeInfo *node.Info) (*builder.FileBuilder, *builder.MessageBuilder) {
+func recursivelyUnlinkBuilder(f *builder.FileBuilder, b *builder.MessageBuilder, nodeInfo *graph.Info) (*builder.FileBuilder, *builder.MessageBuilder) {
 	// recursively unlink the message
 	newB := builder.NewMessage(b.GetName())
 	builder.Unlink(newB)
@@ -165,7 +166,7 @@ func recursivelyUnlinkBuilder(f *builder.FileBuilder, b *builder.MessageBuilder,
 	return f, newB
 }
 
-func (s *NodeJSManager) UpdateNodeType(n node.Node, nodeInfo *node.Info) error {
+func (s *NodeJSManager) UpdateNodeType(n graph.Node, nodeInfo *graph.Info) error {
 	funcDirPath, err := s.codeRoot.GetFolder("protos")
 	if err != nil {
 		return errors.Wrapf(err, "error getting protos dir")
@@ -259,7 +260,7 @@ func (s *NodeJSManager) UpdateNodeType(n node.Node, nodeInfo *node.Info) error {
 	return nil
 }
 
-func (s *NodeJSManager) GenerateFunctionImpl(r *resource.LanguageServiceResource, n node.Node) error {
+func (s *NodeJSManager) GenerateFunctionImpl(r *resource.LanguageServiceResource, n graph.Node) error {
 	switch n.(type) {
 	case *node.FunctionNode:
 		// create function directory

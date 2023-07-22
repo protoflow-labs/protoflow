@@ -2,6 +2,7 @@ package node
 
 import (
 	"github.com/protoflow-labs/protoflow/gen"
+	"github.com/protoflow-labs/protoflow/pkg/workflow/graph"
 )
 
 type InputNode struct {
@@ -9,7 +10,7 @@ type InputNode struct {
 	*gen.Input
 }
 
-var _ Node = &InputNode{}
+var _ graph.Node = &InputNode{}
 
 func NewInputNode(node *gen.Node) *InputNode {
 	return &InputNode{

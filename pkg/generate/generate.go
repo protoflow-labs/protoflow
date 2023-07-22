@@ -5,7 +5,7 @@ import (
 	"github.com/protoflow-labs/protoflow/gen"
 	"github.com/protoflow-labs/protoflow/pkg/bucket"
 	"github.com/protoflow-labs/protoflow/pkg/project"
-	"github.com/protoflow-labs/protoflow/pkg/workflow/node"
+	"github.com/protoflow-labs/protoflow/pkg/workflow/graph"
 	"github.com/protoflow-labs/protoflow/pkg/workflow/resource"
 	"github.com/rs/zerolog/log"
 	"os"
@@ -46,7 +46,7 @@ func NewGenerate(config Config) (*Generate, error) {
 	}, nil
 }
 
-func (s *Generate) GenerateImplementation(project *project.Project, n node.Node) error {
+func (s *Generate) GenerateImplementation(project *project.Project, n graph.Node) error {
 	r, ok := project.Workflow.Resources[n.ResourceID()]
 	if !ok || r == nil {
 		return errors.Errorf("resource %s not found", n.ResourceID())
@@ -72,7 +72,7 @@ func (s *Generate) GenerateImplementation(project *project.Project, n node.Node)
 	return nil
 }
 
-func (s *Generate) InferNodeType(project *project.Project, n node.Node) error {
+func (s *Generate) InferNodeType(project *project.Project, n graph.Node) error {
 	info, err := project.Workflow.GetNodeInfo(n)
 	if err != nil {
 		return errors.Wrapf(err, "error getting node info")
