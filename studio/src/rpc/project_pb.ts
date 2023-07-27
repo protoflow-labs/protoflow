@@ -177,6 +177,314 @@ export class Project extends Message<Project> {
 }
 
 /**
+ * @generated from message project.ExportProjectRequest
+ */
+export class ExportProjectRequest extends Message<ExportProjectRequest> {
+  /**
+   * @generated from field: string project_id = 1;
+   */
+  projectId = "";
+
+  /**
+   * @generated from field: string path = 2;
+   */
+  path = "";
+
+  constructor(data?: PartialMessage<ExportProjectRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "project.ExportProjectRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "project_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "path", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ExportProjectRequest {
+    return new ExportProjectRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ExportProjectRequest {
+    return new ExportProjectRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ExportProjectRequest {
+    return new ExportProjectRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ExportProjectRequest | PlainMessage<ExportProjectRequest> | undefined, b: ExportProjectRequest | PlainMessage<ExportProjectRequest> | undefined): boolean {
+    return proto3.util.equals(ExportProjectRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message project.ExportProjectResponse
+ */
+export class ExportProjectResponse extends Message<ExportProjectResponse> {
+  constructor(data?: PartialMessage<ExportProjectResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "project.ExportProjectResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ExportProjectResponse {
+    return new ExportProjectResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ExportProjectResponse {
+    return new ExportProjectResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ExportProjectResponse {
+    return new ExportProjectResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ExportProjectResponse | PlainMessage<ExportProjectResponse> | undefined, b: ExportProjectResponse | PlainMessage<ExportProjectResponse> | undefined): boolean {
+    return proto3.util.equals(ExportProjectResponse, a, b);
+  }
+}
+
+/**
+ * @generated from message project.LoadProjectRequest
+ */
+export class LoadProjectRequest extends Message<LoadProjectRequest> {
+  /**
+   * @generated from field: string path = 1;
+   */
+  path = "";
+
+  constructor(data?: PartialMessage<LoadProjectRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "project.LoadProjectRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "path", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): LoadProjectRequest {
+    return new LoadProjectRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): LoadProjectRequest {
+    return new LoadProjectRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): LoadProjectRequest {
+    return new LoadProjectRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: LoadProjectRequest | PlainMessage<LoadProjectRequest> | undefined, b: LoadProjectRequest | PlainMessage<LoadProjectRequest> | undefined): boolean {
+    return proto3.util.equals(LoadProjectRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message project.LoadProjectResponse
+ */
+export class LoadProjectResponse extends Message<LoadProjectResponse> {
+  /**
+   * @generated from field: project.Project project = 1;
+   */
+  project?: Project;
+
+  constructor(data?: PartialMessage<LoadProjectResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "project.LoadProjectResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "project", kind: "message", T: Project },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): LoadProjectResponse {
+    return new LoadProjectResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): LoadProjectResponse {
+    return new LoadProjectResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): LoadProjectResponse {
+    return new LoadProjectResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: LoadProjectResponse | PlainMessage<LoadProjectResponse> | undefined, b: LoadProjectResponse | PlainMessage<LoadProjectResponse> | undefined): boolean {
+    return proto3.util.equals(LoadProjectResponse, a, b);
+  }
+}
+
+/**
+ * @generated from message project.GetProjectTypesRequest
+ */
+export class GetProjectTypesRequest extends Message<GetProjectTypesRequest> {
+  constructor(data?: PartialMessage<GetProjectTypesRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "project.GetProjectTypesRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetProjectTypesRequest {
+    return new GetProjectTypesRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetProjectTypesRequest {
+    return new GetProjectTypesRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetProjectTypesRequest {
+    return new GetProjectTypesRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetProjectTypesRequest | PlainMessage<GetProjectTypesRequest> | undefined, b: GetProjectTypesRequest | PlainMessage<GetProjectTypesRequest> | undefined): boolean {
+    return proto3.util.equals(GetProjectTypesRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message project.ProjectTypes
+ */
+export class ProjectTypes extends Message<ProjectTypes> {
+  /**
+   * @generated from field: google.protobuf.DescriptorProto node_type = 1;
+   */
+  nodeType?: DescriptorProto;
+
+  /**
+   * @generated from field: google.protobuf.DescriptorProto edge_type = 2;
+   */
+  edgeType?: DescriptorProto;
+
+  /**
+   * @generated from field: map<string, google.protobuf.DescriptorProto> desc_lookup = 3;
+   */
+  descLookup: { [key: string]: DescriptorProto } = {};
+
+  /**
+   * @generated from field: map<string, google.protobuf.EnumDescriptorProto> enum_lookup = 4;
+   */
+  enumLookup: { [key: string]: EnumDescriptorProto } = {};
+
+  constructor(data?: PartialMessage<ProjectTypes>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "project.ProjectTypes";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "node_type", kind: "message", T: DescriptorProto },
+    { no: 2, name: "edge_type", kind: "message", T: DescriptorProto },
+    { no: 3, name: "desc_lookup", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "message", T: DescriptorProto} },
+    { no: 4, name: "enum_lookup", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "message", T: EnumDescriptorProto} },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ProjectTypes {
+    return new ProjectTypes().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ProjectTypes {
+    return new ProjectTypes().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ProjectTypes {
+    return new ProjectTypes().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ProjectTypes | PlainMessage<ProjectTypes> | undefined, b: ProjectTypes | PlainMessage<ProjectTypes> | undefined): boolean {
+    return proto3.util.equals(ProjectTypes, a, b);
+  }
+}
+
+/**
+ * @generated from message project.StopWorkflowRequest
+ */
+export class StopWorkflowRequest extends Message<StopWorkflowRequest> {
+  /**
+   * @generated from field: string project_id = 1;
+   */
+  projectId = "";
+
+  /**
+   * @generated from field: string workflow_id = 2;
+   */
+  workflowId = "";
+
+  constructor(data?: PartialMessage<StopWorkflowRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "project.StopWorkflowRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "project_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "workflow_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): StopWorkflowRequest {
+    return new StopWorkflowRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): StopWorkflowRequest {
+    return new StopWorkflowRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): StopWorkflowRequest {
+    return new StopWorkflowRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: StopWorkflowRequest | PlainMessage<StopWorkflowRequest> | undefined, b: StopWorkflowRequest | PlainMessage<StopWorkflowRequest> | undefined): boolean {
+    return proto3.util.equals(StopWorkflowRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message project.StopWorkflowResponse
+ */
+export class StopWorkflowResponse extends Message<StopWorkflowResponse> {
+  constructor(data?: PartialMessage<StopWorkflowResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "project.StopWorkflowResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): StopWorkflowResponse {
+    return new StopWorkflowResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): StopWorkflowResponse {
+    return new StopWorkflowResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): StopWorkflowResponse {
+    return new StopWorkflowResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: StopWorkflowResponse | PlainMessage<StopWorkflowResponse> | undefined, b: StopWorkflowResponse | PlainMessage<StopWorkflowResponse> | undefined): boolean {
+    return proto3.util.equals(StopWorkflowResponse, a, b);
+  }
+}
+
+/**
  * @generated from message project.UpdateResourceRequest
  */
 export class UpdateResourceRequest extends Message<UpdateResourceRequest> {
@@ -1125,6 +1433,11 @@ export class GetProjectResponse extends Message<GetProjectResponse> {
    */
   project?: Project;
 
+  /**
+   * @generated from field: project.ProjectTypes types = 2;
+   */
+  types?: ProjectTypes;
+
   constructor(data?: PartialMessage<GetProjectResponse>) {
     super();
     proto3.util.initPartial(data, this);
@@ -1134,6 +1447,7 @@ export class GetProjectResponse extends Message<GetProjectResponse> {
   static readonly typeName = "project.GetProjectResponse";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "project", kind: "message", T: Project },
+    { no: 2, name: "types", kind: "message", T: ProjectTypes },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetProjectResponse {
@@ -1195,9 +1509,9 @@ export class GetProjectsRequest extends Message<GetProjectsRequest> {
  */
 export class GetProjectsResponse extends Message<GetProjectsResponse> {
   /**
-   * @generated from field: repeated project.Project projects = 1;
+   * @generated from field: repeated project.GetProjectResponse projects = 1;
    */
-  projects: Project[] = [];
+  projects: GetProjectResponse[] = [];
 
   constructor(data?: PartialMessage<GetProjectsResponse>) {
     super();
@@ -1207,7 +1521,7 @@ export class GetProjectsResponse extends Message<GetProjectsResponse> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "project.GetProjectsResponse";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "projects", kind: "message", T: Project, repeated: true },
+    { no: 1, name: "projects", kind: "message", T: GetProjectResponse, repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetProjectsResponse {

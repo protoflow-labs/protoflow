@@ -2,141 +2,58 @@ package workflow
 
 import (
 	"context"
-	"github.com/protoflow-labs/protoflow/pkg/workflow/execute"
+	"github.com/protoflow-labs/protoflow/pkg/workflow/graph"
 	"github.com/protoflow-labs/protoflow/pkg/workflow/node"
+	"github.com/protoflow-labs/protoflow/pkg/workflow/resource"
+	"github.com/reactivex/rxgo/v2"
+	"github.com/rs/zerolog/log"
 	"testing"
 
 	"github.com/protoflow-labs/protoflow/gen"
-	"github.com/protoflow-labs/protoflow/pkg/grpc"
 )
 
 func TestRun(t *testing.T) {
 	// TODO breadchris start server to listen for localhost:8080?
-	nodeID := "1"
-	lr := &gen.Resource{
-		Id: "2",
+
+	r := resource.NewProto(&gen.Resource{
 		Type: &gen.Resource_LanguageService{
-			LanguageService: &gen.LanguageService{
-				Runtime: gen.Runtime_NODEJS,
-				Grpc: &gen.GRPCService{
-					Host: "localhost:8086",
-				},
-			},
+			LanguageService: &gen.LanguageService{},
 		},
-	}
-	r := &gen.Resource{
-		Id: nodeID,
-		Type: &gen.Resource_GrpcService{
-			GrpcService: &gen.GRPCService{
-				Host: "localhost:8080",
-			},
-		},
-	}
-	blocks, err := grpc.EnumerateResourceBlocks(r)
-	if err != nil {
-		t.Fatal(err)
-	}
-	getProjectsBlockId := blocks[1].Id
-	p := &gen.Project{
-		Graph: &gen.Graph{
-			Nodes: []*gen.Node{
-				{
-					Id: nodeID,
-					Config: &gen.Node_Grpc{
-						Grpc: &gen.GRPC{
-							Service: "ProjectService",
-							Method:  "GetProjects",
-						},
-					},
-				},
-			},
-		},
-		Resources: []*gen.Resource{lr, r},
-	}
+	})
 
-	w, err := FromProject(p)
+	n1 := node.NewFunctionNode(
+		node.NewFunctionProto("test 1", r.Id),
+		node.WithFunction(node.InMemoryObserver("test 1")),
+	)
+	n2 := node.NewFunctionNode(
+		node.NewFunctionProto("test 2", r.Id),
+		node.WithFunction(node.InMemoryObserver("test 2")),
+	)
+
+	a, err := Default().
+		WithResource(r).
+		WithBuiltNodes(n1, n2).
+		WithBuiltEdges(graph.Edge{
+			From: n1,
+			To:   n2,
+		}).
+		Build()
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	ctx := execute.MemoryContext{context.Background()}
-	executor := execute.NewMemoryExecutor(&ctx, nil)
-	logger := &MemoryLogger{}
-	_, err = w.Run(logger, executor, nodeID, "")
+	input := rxgo.Defer([]rxgo.Producer{func(ctx context.Context, next chan<- rxgo.Item) {
+		next <- rxgo.Of("input")
+	}})
+	obs, err := a.WireNodes(context.Background(), n1.ID(), input)
 	if err != nil {
 		t.Fatal(err)
 	}
-}
-
-func TestBuildingGraph(t *testing.T) {
-	p := &gen.Project{
-		Graph: &gen.Graph{
-			Edges: []*gen.Edge{
-				{
-					From: "input-node",
-					To:   "crawl-node",
-				},
-				{
-					From: "crawl-node",
-					To:   "normalize-html-node",
-				},
-				{
-					From: "normalize-html-node",
-					To:   "create-embeddings-node",
-				},
-			},
-			Nodes: []*gen.Node{
-				{
-					Id:   "input-node",
-					Name: "Website",
-					Config: &gen.Node_Input{
-						Input: &gen.Input{
-							Fields: []*gen.FieldDefinition{
-								{
-									Name: "url",
-								},
-							},
-						},
-					},
-				},
-				{
-					Id:   "crawl-node",
-					Name: "Crawl Website",
-					Config: &gen.Node_Function{
-						Function: &gen.Function{},
-					},
-				},
-				{
-					Id:   "normalize-html-node",
-					Name: "Crawl Website",
-					Config: &gen.Node_Function{
-						Function: &gen.Function{},
-					},
-				},
-				{
-					Id:   "create-embeddings-node",
-					Name: "Create Embeddings for HTML",
-					Config: &gen.Node_Function{
-						Function: &gen.Function{},
-					},
-				},
-			},
-		},
-	}
-
-	w, err := FromProject(p, node.ResourceMap{})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	ctx := execute.MemoryContext{context.Background()}
-	executor := execute.NewMemoryExecutor(&ctx)
-	logger := &MemoryLogger{}
-
-	entrypointNode := "input-node"
-	input := `{"url": "https://example.com"}`
-	_, err = w.Run(logger, executor, entrypointNode, input)
-	if err != nil {
-		t.Fatal(err)
-	}
+	<-obs.ForEach(func(item any) {
+		log.Info().Interface("item", item).Msg("trace")
+	}, func(err error) {
+		log.Error().Err(err).Msg("err")
+	}, func() {
+		log.Info().Msg("complete")
+	})
 }

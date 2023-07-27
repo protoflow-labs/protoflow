@@ -13,6 +13,10 @@ type BaseNode struct {
 	Name       string
 	id         string
 	resourceID string
+
+	// TODO breadchris see if resources can also be represented as nodes
+	// predecessors []graph.Node
+	// successors   []graph.Node
 }
 
 // NewBaseNode creates a new BaseNode from a gen.Node, gen.Node cannot be embedded into BaseNode because proto deserialization will fail on the type

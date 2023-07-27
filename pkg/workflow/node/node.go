@@ -1,6 +1,7 @@
 package node
 
 import (
+	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/gen"
 	"github.com/protoflow-labs/protoflow/pkg/workflow/graph"
@@ -8,6 +9,9 @@ import (
 
 // TODO breadchris make this something that can be modularized
 func NewNode(node *gen.Node) (graph.Node, error) {
+	if node.Id == "" {
+		node.Id = uuid.NewString()
+	}
 	switch node.Config.(type) {
 	case *gen.Node_Grpc:
 		return NewGRPCNode(node), nil

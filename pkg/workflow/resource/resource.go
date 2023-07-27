@@ -2,6 +2,7 @@ package resource
 
 import (
 	"fmt"
+	"github.com/google/uuid"
 	"github.com/protoflow-labs/protoflow/gen"
 	"github.com/protoflow-labs/protoflow/pkg/workflow/graph"
 	_ "gocloud.dev/blob/fileblob"
@@ -46,6 +47,7 @@ func (r *BaseResource) Nodes() []graph.Node {
 	return r.nodes
 }
 
+// TODO breadchris resolve dependencies using a go wire pattern? https://github.com/google/wire
 func (r *BaseResource) ResolveDependencies(dp graph.DependencyProvider) error {
 	for id := range r.dependencyLookup {
 		if _, ok := dp[id]; !ok {
@@ -54,6 +56,14 @@ func (r *BaseResource) ResolveDependencies(dp graph.DependencyProvider) error {
 		r.dependencyLookup[id] = dp[id]
 	}
 	return nil
+}
+
+// NewProto creates a new resource from a proto resource and generates a new ID.
+func NewProto(r *gen.Resource) *gen.Resource {
+	return &gen.Resource{
+		Id:   uuid.NewString(),
+		Type: r.Type,
+	}
 }
 
 func FromProto(r *gen.Resource) (graph.Resource, error) {

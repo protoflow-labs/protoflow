@@ -22,9 +22,12 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ProjectServiceClient interface {
+	GetProjectTypes(ctx context.Context, in *GetProjectTypesRequest, opts ...grpc.CallOption) (*ProjectTypes, error)
 	// TODO breadchris unfortunately this is needed because of the buf fetch transport not supporting streaming
 	// the suggestion is to build a custom transport that uses websockets https://github.com/bufbuild/connect-es/issues/366
 	SendChat(ctx context.Context, in *SendChatRequest, opts ...grpc.CallOption) (ProjectService_SendChatClient, error)
+	ExportProject(ctx context.Context, in *ExportProjectRequest, opts ...grpc.CallOption) (*ExportProjectResponse, error)
+	LoadProject(ctx context.Context, in *LoadProjectRequest, opts ...grpc.CallOption) (*LoadProjectResponse, error)
 	GetProject(ctx context.Context, in *GetProjectRequest, opts ...grpc.CallOption) (*GetProjectResponse, error)
 	GetProjects(ctx context.Context, in *GetProjectsRequest, opts ...grpc.CallOption) (*GetProjectsResponse, error)
 	CreateProject(ctx context.Context, in *CreateProjectRequest, opts ...grpc.CallOption) (*CreateProjectResponse, error)
@@ -36,6 +39,7 @@ type ProjectServiceClient interface {
 	GetNodeInfo(ctx context.Context, in *GetNodeInfoRequest, opts ...grpc.CallOption) (*GetNodeInfoResponse, error)
 	SaveProject(ctx context.Context, in *SaveProjectRequest, opts ...grpc.CallOption) (*SaveProjectResponse, error)
 	RunWorkflow(ctx context.Context, in *RunWorkflowRequest, opts ...grpc.CallOption) (ProjectService_RunWorkflowClient, error)
+	StopWorkflow(ctx context.Context, in *StopWorkflowRequest, opts ...grpc.CallOption) (*StopWorkflowResponse, error)
 	GetWorkflowRuns(ctx context.Context, in *GetWorkflowRunsRequest, opts ...grpc.CallOption) (*GetWorkflowRunsResponse, error)
 }
 
@@ -45,6 +49,15 @@ type projectServiceClient struct {
 
 func NewProjectServiceClient(cc grpc.ClientConnInterface) ProjectServiceClient {
 	return &projectServiceClient{cc}
+}
+
+func (c *projectServiceClient) GetProjectTypes(ctx context.Context, in *GetProjectTypesRequest, opts ...grpc.CallOption) (*ProjectTypes, error) {
+	out := new(ProjectTypes)
+	err := c.cc.Invoke(ctx, "/project.ProjectService/GetProjectTypes", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *projectServiceClient) SendChat(ctx context.Context, in *SendChatRequest, opts ...grpc.CallOption) (ProjectService_SendChatClient, error) {
@@ -77,6 +90,24 @@ func (x *projectServiceSendChatClient) Recv() (*SendChatResponse, error) {
 		return nil, err
 	}
 	return m, nil
+}
+
+func (c *projectServiceClient) ExportProject(ctx context.Context, in *ExportProjectRequest, opts ...grpc.CallOption) (*ExportProjectResponse, error) {
+	out := new(ExportProjectResponse)
+	err := c.cc.Invoke(ctx, "/project.ProjectService/ExportProject", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *projectServiceClient) LoadProject(ctx context.Context, in *LoadProjectRequest, opts ...grpc.CallOption) (*LoadProjectResponse, error) {
+	out := new(LoadProjectResponse)
+	err := c.cc.Invoke(ctx, "/project.ProjectService/LoadProject", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *projectServiceClient) GetProject(ctx context.Context, in *GetProjectRequest, opts ...grpc.CallOption) (*GetProjectResponse, error) {
@@ -201,6 +232,15 @@ func (x *projectServiceRunWorkflowClient) Recv() (*NodeExecution, error) {
 	return m, nil
 }
 
+func (c *projectServiceClient) StopWorkflow(ctx context.Context, in *StopWorkflowRequest, opts ...grpc.CallOption) (*StopWorkflowResponse, error) {
+	out := new(StopWorkflowResponse)
+	err := c.cc.Invoke(ctx, "/project.ProjectService/StopWorkflow", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *projectServiceClient) GetWorkflowRuns(ctx context.Context, in *GetWorkflowRunsRequest, opts ...grpc.CallOption) (*GetWorkflowRunsResponse, error) {
 	out := new(GetWorkflowRunsResponse)
 	err := c.cc.Invoke(ctx, "/project.ProjectService/GetWorkflowRuns", in, out, opts...)
@@ -214,9 +254,12 @@ func (c *projectServiceClient) GetWorkflowRuns(ctx context.Context, in *GetWorkf
 // All implementations should embed UnimplementedProjectServiceServer
 // for forward compatibility
 type ProjectServiceServer interface {
+	GetProjectTypes(context.Context, *GetProjectTypesRequest) (*ProjectTypes, error)
 	// TODO breadchris unfortunately this is needed because of the buf fetch transport not supporting streaming
 	// the suggestion is to build a custom transport that uses websockets https://github.com/bufbuild/connect-es/issues/366
 	SendChat(*SendChatRequest, ProjectService_SendChatServer) error
+	ExportProject(context.Context, *ExportProjectRequest) (*ExportProjectResponse, error)
+	LoadProject(context.Context, *LoadProjectRequest) (*LoadProjectResponse, error)
 	GetProject(context.Context, *GetProjectRequest) (*GetProjectResponse, error)
 	GetProjects(context.Context, *GetProjectsRequest) (*GetProjectsResponse, error)
 	CreateProject(context.Context, *CreateProjectRequest) (*CreateProjectResponse, error)
@@ -228,6 +271,7 @@ type ProjectServiceServer interface {
 	GetNodeInfo(context.Context, *GetNodeInfoRequest) (*GetNodeInfoResponse, error)
 	SaveProject(context.Context, *SaveProjectRequest) (*SaveProjectResponse, error)
 	RunWorkflow(*RunWorkflowRequest, ProjectService_RunWorkflowServer) error
+	StopWorkflow(context.Context, *StopWorkflowRequest) (*StopWorkflowResponse, error)
 	GetWorkflowRuns(context.Context, *GetWorkflowRunsRequest) (*GetWorkflowRunsResponse, error)
 }
 
@@ -235,8 +279,17 @@ type ProjectServiceServer interface {
 type UnimplementedProjectServiceServer struct {
 }
 
+func (UnimplementedProjectServiceServer) GetProjectTypes(context.Context, *GetProjectTypesRequest) (*ProjectTypes, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetProjectTypes not implemented")
+}
 func (UnimplementedProjectServiceServer) SendChat(*SendChatRequest, ProjectService_SendChatServer) error {
 	return status.Errorf(codes.Unimplemented, "method SendChat not implemented")
+}
+func (UnimplementedProjectServiceServer) ExportProject(context.Context, *ExportProjectRequest) (*ExportProjectResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ExportProject not implemented")
+}
+func (UnimplementedProjectServiceServer) LoadProject(context.Context, *LoadProjectRequest) (*LoadProjectResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method LoadProject not implemented")
 }
 func (UnimplementedProjectServiceServer) GetProject(context.Context, *GetProjectRequest) (*GetProjectResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetProject not implemented")
@@ -271,6 +324,9 @@ func (UnimplementedProjectServiceServer) SaveProject(context.Context, *SaveProje
 func (UnimplementedProjectServiceServer) RunWorkflow(*RunWorkflowRequest, ProjectService_RunWorkflowServer) error {
 	return status.Errorf(codes.Unimplemented, "method RunWorkflow not implemented")
 }
+func (UnimplementedProjectServiceServer) StopWorkflow(context.Context, *StopWorkflowRequest) (*StopWorkflowResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method StopWorkflow not implemented")
+}
 func (UnimplementedProjectServiceServer) GetWorkflowRuns(context.Context, *GetWorkflowRunsRequest) (*GetWorkflowRunsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetWorkflowRuns not implemented")
 }
@@ -284,6 +340,24 @@ type UnsafeProjectServiceServer interface {
 
 func RegisterProjectServiceServer(s grpc.ServiceRegistrar, srv ProjectServiceServer) {
 	s.RegisterService(&ProjectService_ServiceDesc, srv)
+}
+
+func _ProjectService_GetProjectTypes_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetProjectTypesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProjectServiceServer).GetProjectTypes(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/project.ProjectService/GetProjectTypes",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProjectServiceServer).GetProjectTypes(ctx, req.(*GetProjectTypesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _ProjectService_SendChat_Handler(srv interface{}, stream grpc.ServerStream) error {
@@ -305,6 +379,42 @@ type projectServiceSendChatServer struct {
 
 func (x *projectServiceSendChatServer) Send(m *SendChatResponse) error {
 	return x.ServerStream.SendMsg(m)
+}
+
+func _ProjectService_ExportProject_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ExportProjectRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProjectServiceServer).ExportProject(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/project.ProjectService/ExportProject",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProjectServiceServer).ExportProject(ctx, req.(*ExportProjectRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ProjectService_LoadProject_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(LoadProjectRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProjectServiceServer).LoadProject(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/project.ProjectService/LoadProject",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProjectServiceServer).LoadProject(ctx, req.(*LoadProjectRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _ProjectService_GetProject_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -508,6 +618,24 @@ func (x *projectServiceRunWorkflowServer) Send(m *NodeExecution) error {
 	return x.ServerStream.SendMsg(m)
 }
 
+func _ProjectService_StopWorkflow_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(StopWorkflowRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProjectServiceServer).StopWorkflow(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/project.ProjectService/StopWorkflow",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProjectServiceServer).StopWorkflow(ctx, req.(*StopWorkflowRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _ProjectService_GetWorkflowRuns_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetWorkflowRunsRequest)
 	if err := dec(in); err != nil {
@@ -533,6 +661,18 @@ var ProjectService_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "project.ProjectService",
 	HandlerType: (*ProjectServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "GetProjectTypes",
+			Handler:    _ProjectService_GetProjectTypes_Handler,
+		},
+		{
+			MethodName: "ExportProject",
+			Handler:    _ProjectService_ExportProject_Handler,
+		},
+		{
+			MethodName: "LoadProject",
+			Handler:    _ProjectService_LoadProject_Handler,
+		},
 		{
 			MethodName: "GetProject",
 			Handler:    _ProjectService_GetProject_Handler,
@@ -572,6 +712,10 @@ var ProjectService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SaveProject",
 			Handler:    _ProjectService_SaveProject_Handler,
+		},
+		{
+			MethodName: "StopWorkflow",
+			Handler:    _ProjectService_StopWorkflow_Handler,
 		},
 		{
 			MethodName: "GetWorkflowRuns",

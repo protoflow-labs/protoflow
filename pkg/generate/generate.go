@@ -84,7 +84,8 @@ func (s *Generate) InferNodeType(project *project.Project, n graph.Node) error {
 	}
 	switch r := r.(type) {
 	case *resource.LanguageServiceResource:
-		if r.Runtime == gen.Runtime_NODEJS {
+		switch r.Runtime {
+		case gen.Runtime_NODEJS:
 			jsManager, err := NewNodeJSManager(s.bucket)
 			if err != nil {
 				return errors.Wrap(err, "error creating nodejs manager")

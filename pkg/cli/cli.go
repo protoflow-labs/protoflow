@@ -1,6 +1,8 @@
 package cli
 
 import (
+	"github.com/bufbuild/connect-go"
+	"github.com/protoflow-labs/protoflow/gen"
 	"github.com/protoflow-labs/protoflow/pkg/util/reload"
 	"os"
 
@@ -90,9 +92,9 @@ func New(
 				},
 			},
 			{
-				Name: "projects",
+				Name: "load",
 				Action: func(ctx *cli.Context) error {
-					res, err := project.GetProjects(ctx.Context, nil)
+					res, err := project.LoadProject(ctx.Context, connect.NewRequest(&gen.LoadProjectRequest{}))
 					if err != nil {
 						return err
 					}

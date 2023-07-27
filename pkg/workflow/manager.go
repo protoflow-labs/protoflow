@@ -28,7 +28,7 @@ func NewManager(config Config, provider config.Provider, store store.Project) (M
 	//case TemporalManagerType:
 	//	// TODO breadchris we do this because we don't want a temporal client to try to connect on startup
 	//	// Is there a way to run this more intelligently? maybe with sync.Once?
-	//	client, err := temporal.Wire(provider)
+	//	client, err := temporal.WireNodes(provider)
 	//	if err != nil {
 	//		return nil, err
 	//	}

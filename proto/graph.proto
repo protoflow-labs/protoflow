@@ -39,8 +39,16 @@ message Node {
   }
 }
 
- message Edge {
+message CodeAdapter {
+  string code = 1;
+}
+
+message Edge {
    string id = 1;
    string from = 2;
    string to = 3;
- }
+
+   oneof config {
+     CodeAdapter code_adapter = 4;
+   }
+}

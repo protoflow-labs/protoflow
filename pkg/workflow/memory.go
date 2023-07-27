@@ -2,11 +2,9 @@ package workflow
 
 import (
 	"context"
-	"fmt"
 	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/gen"
 	"github.com/protoflow-labs/protoflow/pkg/store"
-	"github.com/protoflow-labs/protoflow/pkg/workflow/execute"
 	"github.com/reactivex/rxgo/v2"
 	"github.com/rs/zerolog/log"
 	"sync"
@@ -60,16 +58,13 @@ func (m *MemoryManager) saveNodeExecutions(projectID, nodeID string, trace rxgo.
 }
 
 func (m *MemoryManager) ExecuteWorkflow(ctx context.Context, w *Workflow, nodeID string, input rxgo.Observable) (rxgo.Observable, error) {
-	if w.NodeLookup == nil || w.Graph == nil {
-		return nil, fmt.Errorf("workflow is not initialized")
-	}
+	return w.WireNodes(ctx, nodeID, input)
 
-	logger := &MemoryLogger{}
+	//logger := &MemoryLogger{}
+	//
+	//memoryCtx := &execute.MemoryContext{Context: ctx}
+	//executor := execute.NewMemoryExecutor(memoryCtx)
 
-	memoryCtx := &execute.MemoryContext{Context: ctx}
-	executor := execute.NewMemoryExecutor(memoryCtx)
-
-	return w.Run(ctx, logger, executor, nodeID, input)
 	//if err != nil {
 	//	return nil, errors.Wrapf(err, "error running workflow")
 	//}

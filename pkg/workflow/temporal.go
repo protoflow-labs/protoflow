@@ -72,7 +72,7 @@ func TemporalRun(ctx workflow.Context, w *Workflow, nodeID string, input string)
 	//
 	//logger.Info("Starting workflow", "workflowID", workflow.GetInfo(ctx).WorkflowExecution.ID, "nodeID", nodeID)
 	//
-	//return w.Run(context.Background(), logger, executor, nodeID, input)
+	//return w.WireNodes(context.Background(), logger, executor, nodeID, input)
 	return nil, nil
 }
 

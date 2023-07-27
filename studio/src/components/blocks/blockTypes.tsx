@@ -20,6 +20,7 @@ export interface BlockType {
 // }
 
 
+// TODO breadchris now that project types exist, this should be able to be generically defined
 export const blockTypes: BlockType[] = [
     {
         label: "Bucket",

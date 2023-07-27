@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import { Project } from "@/rpc/project_pb";
+import { Project, ProjectTypes } from "@/rpc/project_pb";
 import { projectService } from "@/lib/api";
 
 export function useDefaultProject() {
   const [loading, setLoading] = useState(true);
   const [project, setProject] = useState<Project>();
+  const [projectTypes, setProjectTypes] = useState<ProjectTypes>();
   const loadProject = async () => {
     try {
       const { projects } = await projectService.getProjects({
@@ -15,7 +16,8 @@ export function useDefaultProject() {
         throw new Error(`No default project found: ${projects}`);
       }
 
-      setProject(projects[0]);
+      setProject(projects[0].project);
+      setProjectTypes(projects[0].types);
     } catch (e) {
       console.error(e);
     }
@@ -40,6 +42,7 @@ export function useDefaultProject() {
   return {
     loading,
     project,
+    projectTypes,
     createDefault,
   };
 }

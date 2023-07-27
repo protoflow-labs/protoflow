@@ -24,7 +24,7 @@ func NewTemporalExecutor(ctx workflow.Context) *TemporalExecutor {
 
 func (e *TemporalExecutor) Execute(n graph.Node, input graph.Input) (*graph.Output, error) {
 	var result graph.Output
-	// TODO breadchris n.Wire will not work here since n is a pointer and we are changing execution context, i think
+	// TODO breadchris n.WireNodes will not work here since n is a pointer and we are changing execution context, i think
 	err := workflow.ExecuteActivity(e.ctx, n.Wire, n, input).Get(e.ctx, &result)
 	if err != nil {
 		return nil, errors.Wrap(err, "error executing activity")

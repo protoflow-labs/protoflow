@@ -36,6 +36,8 @@ func (s *Info) BuildProto() (string, error) {
 	return methodProto, nil
 }
 
+type IOFunc func(ctx context.Context, input Input) (Output, error)
+
 type Node interface {
 	NormalizedName() string
 	ID() string
@@ -45,6 +47,11 @@ type Node interface {
 	Represent() (string, error)
 	// Wire up the node to an input stream of data and return an output stream of data
 	Wire(ctx context.Context, input Input) (Output, error)
+}
+
+type Edge struct {
+	From Node
+	To   Node
 }
 
 type Resource interface {

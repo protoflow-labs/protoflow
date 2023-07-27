@@ -24,6 +24,7 @@ type GRPCNode struct {
 
 var _ graph.Node = &GRPCNode{}
 
+// TODO breadchris I would like to be able to return a *GRPCNode from NewGRPCNode
 func NewGRPCNode(node *gen.Node) *GRPCNode {
 	return &GRPCNode{
 		BaseNode: NewBaseNode(node),

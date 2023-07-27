@@ -73,6 +73,7 @@ type MethodDescriptorProto struct {
 	EnumLookup map[string]*descriptorpb.EnumDescriptorProto
 }
 
+// TODO breadchris make this more generic to allow different type of descriptors such as MessageDescriptor
 func NewMethodDescriptor(md protoreflect.MethodDescriptor) (*MethodDescriptor, error) {
 	m := &MethodDescriptor{
 		MethodDesc:  md,
@@ -83,6 +84,73 @@ func NewMethodDescriptor(md protoreflect.MethodDescriptor) (*MethodDescriptor, e
 	m.buildTypeLookup(md.Input())
 	m.buildTypeLookup(md.Output())
 	return m, nil
+}
+
+// TODO breadchris placeholder until the above is implemented
+func ResolveTypeLookup(
+	msgDesc protoreflect.MessageDescriptor,
+	descLookup map[string]protoreflect.MessageDescriptor,
+	enumLookup map[string]protoreflect.EnumDescriptor,
+) (map[string]protoreflect.MessageDescriptor, map[string]protoreflect.EnumDescriptor) {
+	msgs := []protoreflect.MessageDescriptor{msgDesc}
+	fileBuilder := builder.NewFile("File")
+	for len(msgs) > 0 {
+		msg := msgs[0]
+		msgs = msgs[1:]
+		descLookup[string(msg.FullName())] = msg
+
+		wmsg, err := desc.WrapMessage(msg)
+		if err != nil {
+			log.Warn().Err(err).Msgf("unable to wrap message %s", msg.FullName())
+			continue
+		}
+		mb, err := builder.FromMessage(wmsg)
+		if e := fileBuilder.GetMessage(wmsg.GetName()); e == nil {
+			fileBuilder = fileBuilder.AddMessage(mb)
+		}
+
+		fields := msg.Fields()
+		for i := 0; i < fields.Len(); i++ {
+			f := fields.Get(i)
+			lookupName := string(f.FullName())
+
+			oneOf := f.ContainingOneof()
+			if oneOf != nil {
+				oneOfFields := oneOf.Fields()
+				for j := 0; j < oneOfFields.Len(); j++ {
+					c := oneOfFields.Get(j)
+					// TODO breadchris replace with m.FileBuilder.GetMessage
+					msgName := string(c.Message().FullName())
+					if _, ok := descLookup[msgName]; ok {
+						continue
+					}
+					msgs = append(msgs, c.Message())
+				}
+			} else {
+				switch f.Kind() {
+				case protoreflect.MessageKind:
+					// TODO breadchris replace with m.FileBuilder.GetMessage
+					msgName := string(f.Message().FullName())
+					if _, ok := descLookup[msgName]; ok {
+						continue
+					}
+					msgs = append(msgs, f.Message())
+				case protoreflect.EnumKind:
+					enumLookup[lookupName] = f.Enum()
+					wenum, err := desc.WrapEnum(f.Enum())
+					if err != nil {
+						log.Warn().Err(err).Msgf("unable to wrap message %s", f.Enum())
+						continue
+					}
+					eb, err := builder.FromEnum(wenum)
+					if e := fileBuilder.GetEnum(eb.GetName()); e == nil {
+						fileBuilder = fileBuilder.AddEnum(eb)
+					}
+				}
+			}
+		}
+	}
+	return descLookup, enumLookup
 }
 
 func (m *MethodDescriptor) buildTypeLookup(msgDesc protoreflect.MessageDescriptor) {
@@ -175,11 +243,12 @@ func (m *MethodDescriptor) Proto() (*gen.GRPCTypeInfo, error) {
 	}
 
 	return &gen.GRPCTypeInfo{
-		Input:      descMethod.GetInputType().AsDescriptorProto(),
-		Output:     descMethod.GetOutputType().AsDescriptorProto(),
-		DescLookup: d.DescLookup,
-		EnumLookup: d.EnumLookup,
-		MethodDesc: descMethod.AsMethodDescriptorProto(),
+		Input:       descMethod.GetInputType().AsDescriptorProto(),
+		Output:      descMethod.GetOutputType().AsDescriptorProto(),
+		DescLookup:  d.DescLookup,
+		EnumLookup:  d.EnumLookup,
+		MethodDesc:  descMethod.AsMethodDescriptorProto(),
+		PackageName: string(m.MethodDesc.ParentFile().Package()),
 	}, nil
 }
 

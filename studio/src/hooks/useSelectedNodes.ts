@@ -1,10 +1,22 @@
 import { ReactFlowState, useStore } from "reactflow";
 
-const selectSelectedNodes = (state: ReactFlowState) =>
-  state.getNodes().filter((node) => node.selected);
+interface Selected {
+    selectedNodes: Node[];
+    selectedEdges: ReactFlowState["edges"];
+}
+
+const selectSelectedNodes = (state: ReactFlowState) => {
+  return {
+    selectedNodes: state.getNodes().filter((node) => node.selected),
+    selectedEdges: state.edges.filter((edge) => edge.selected),
+  }
+}
 
 export const useSelectedNodes = () => {
-  const selectedNodes = useStore(selectSelectedNodes);
+  const selected = useStore(selectSelectedNodes);
 
-  return { selectedNodes };
+  return {
+    selectedNodes: selected.selectedNodes,
+    selectedEdges: selected.selectedEdges,
+  };
 };

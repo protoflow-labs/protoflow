@@ -14,6 +14,7 @@ export function NodeEditor(props: NodeEditorProps) {
         return null;
     }
 
+    // TODO breadchris now that project types exist, this should be able to be generically defined
     switch (props.node.config.case) {
         case "input":
             return <InputEditor node={props.node} />;

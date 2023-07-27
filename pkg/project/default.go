@@ -5,8 +5,8 @@ import (
 	"github.com/protoflow-labs/protoflow/gen"
 )
 
-func getDefaultProject(name string, bucketDir string) gen.Project {
-	return gen.Project{
+func getDefaultProject(name string, bucketDir string) *gen.Project {
+	return &gen.Project{
 		Id:   uuid.NewString(),
 		Name: name,
 		Resources: []*gen.Resource{

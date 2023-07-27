@@ -103,7 +103,8 @@ const InputFormContents: FC<InputFormContentsProps> = (props) => {
         if (!field.typeName) {
             throw new Error("Enum field has no type name");
         }
-        const enumType = enumLookup[`${fieldPath}.${field.name}`] || [];
+        const enumTypeName = `${fieldPath}.${field.name}`;
+        const enumType = enumLookup[enumTypeName];
         if (!enumType) {
             throw new Error(`Enum type ${fieldPath}.${field.name} not found in ${Object.keys(enumLookup)}`);
         }
@@ -242,7 +243,7 @@ export const ProtobufInputForm: FC<GRPCInputFormProps> = (props) => {
     return (
         <Accordion>
             {formattedFields.map((field) => {
-                return <AccordionField key={field.name} field={field} desc={desc} {...props} />
+                return <AccordionField key={field.name} {...props} field={field} desc={desc} />
             })}
         </Accordion>
     )

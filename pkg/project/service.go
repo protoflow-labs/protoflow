@@ -2,10 +2,9 @@ package project
 
 import (
 	"context"
-	"encoding/json"
 	"github.com/bufbuild/connect-go"
-	"github.com/google/uuid"
 	"github.com/google/wire"
+	"github.com/jhump/protoreflect/desc"
 	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/gen"
 	"github.com/protoflow-labs/protoflow/gen/genconnect"
@@ -13,21 +12,21 @@ import (
 	"github.com/protoflow-labs/protoflow/pkg/grpc"
 	openaiclient "github.com/protoflow-labs/protoflow/pkg/openai"
 	"github.com/protoflow-labs/protoflow/pkg/store"
-	"github.com/protoflow-labs/protoflow/pkg/util/rx"
 	"github.com/protoflow-labs/protoflow/pkg/workflow"
-	"github.com/protoflow-labs/protoflow/pkg/workflow/node"
-	"github.com/protoflow-labs/protoflow/pkg/workflow/resource"
-	"github.com/reactivex/rxgo/v2"
+	"github.com/protoflow-labs/protoflow/pkg/workflow/graph"
 	"github.com/rs/zerolog/log"
+	"google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/types/descriptorpb"
 	"net/url"
 	"os"
 )
 
 type Service struct {
-	store   store.Project
-	manager workflow.Manager
-	cache   bucket.Bucket
-	chat    *openaiclient.ChatServer
+	store          store.Project
+	manager        workflow.Manager
+	cache          bucket.Bucket
+	chat           *openaiclient.ChatServer
+	defaultProject *gen.Project
 }
 
 var ProviderSet = wire.NewSet(
@@ -40,17 +39,28 @@ var ProviderSet = wire.NewSet(
 
 var _ genconnect.ProjectServiceHandler = (*Service)(nil)
 
+func NewDefaultProject(cache bucket.Bucket) (*gen.Project, error) {
+	// TODO breadchris this folder should be configurable
+	bucketDir, err := cache.GetFolder("filestore")
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get bucket dir")
+	}
+	return getDefaultProject("local", bucketDir), nil
+}
+
 func NewService(
 	store store.Project,
 	manager workflow.Manager,
 	cache bucket.Bucket,
 	chat *openaiclient.ChatServer,
+	defaultProject *gen.Project,
 ) (*Service, error) {
 	return &Service{
-		store:   store,
-		manager: manager,
-		cache:   cache,
-		chat:    chat,
+		store:          store,
+		manager:        manager,
+		cache:          cache,
+		chat:           chat,
+		defaultProject: defaultProject,
 	}, nil
 }
 
@@ -117,6 +127,94 @@ func hydrateBlocksForResources(projectResources []*gen.Resource) ([]*gen.Enumera
 	return resources, nil
 }
 
+func getProjectTypes() (*gen.ProjectTypes, error) {
+	// TODO breadchris when types are bound to a project, this should be specific to a project
+	// return the rules for different layers
+	n := &gen.Node{}
+	nd, err := desc.WrapMessage(n.ProtoReflect().Descriptor())
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to wrap message")
+	}
+	e := &gen.Edge{}
+	ed, err := desc.WrapMessage(e.ProtoReflect().Descriptor())
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to wrap message")
+	}
+
+	// TODO breadchris cleanup this code, see blocks.go:76
+	descLookup := map[string]protoreflect.MessageDescriptor{}
+	enumLookup := map[string]protoreflect.EnumDescriptor{}
+	descLookup, enumLookup = grpc.ResolveTypeLookup(n.ProtoReflect().Descriptor(), descLookup, enumLookup)
+	descLookup, enumLookup = grpc.ResolveTypeLookup(e.ProtoReflect().Descriptor(), descLookup, enumLookup)
+
+	dl := map[string]*descriptorpb.DescriptorProto{}
+	el := map[string]*descriptorpb.EnumDescriptorProto{}
+
+	for k, v := range descLookup {
+		m, err := desc.WrapMessage(v)
+		if err != nil {
+			log.Warn().Err(err).Msgf("unable to wrap message %s", k)
+			continue
+		}
+		dl[k] = m.AsDescriptorProto()
+	}
+	for k, v := range enumLookup {
+		e, err := desc.WrapEnum(v)
+		if err != nil {
+			log.Warn().Err(err).Msgf("unable to wrap enum %s", k)
+			continue
+		}
+		el[k] = e.AsEnumDescriptorProto()
+	}
+	return &gen.ProjectTypes{
+		NodeType:   nd.AsDescriptorProto(),
+		EdgeType:   ed.AsDescriptorProto(),
+		DescLookup: dl,
+		EnumLookup: el,
+	}, nil
+}
+
+func maybeDefaultPath(path string) string {
+	if path == "" {
+		return "protoflow.bin"
+	}
+	return path
+}
+
+func (s *Service) ExportProject(ctx context.Context, c *connect.Request[gen.ExportProjectRequest]) (*connect.Response[gen.ExportProjectResponse], error) {
+	project, err := s.store.GetProject(c.Msg.ProjectId)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get project %s", c.Msg.ProjectId)
+	}
+
+	return connect.NewResponse(
+		&gen.ExportProjectResponse{},
+	), SaveToFile(project, maybeDefaultPath(c.Msg.Path))
+}
+
+func (s *Service) LoadProject(ctx context.Context, c *connect.Request[gen.LoadProjectRequest]) (*connect.Response[gen.LoadProjectResponse], error) {
+	project, err := LoadFromFile(maybeDefaultPath(c.Msg.Path))
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to load project from %s", c.Msg.Path)
+	}
+	_, err = s.store.SaveProject(project)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to save project %s", project.Id)
+	}
+	return connect.NewResponse(
+		&gen.LoadProjectResponse{
+			Project: project,
+		},
+	), nil
+}
+
+func (s *Service) GetProjectTypes(ctx context.Context, c *connect.Request[gen.GetProjectTypesRequest]) (*connect.Response[gen.ProjectTypes], error) {
+	projectTypes, err := getProjectTypes()
+	return &connect.Response[gen.ProjectTypes]{
+		Msg: projectTypes,
+	}, err
+}
+
 func (s *Service) SendChat(ctx context.Context, c *connect.Request[gen.SendChatRequest], c2 *connect.ServerStream[gen.SendChatResponse]) error {
 	obs, err := s.chat.Send(c.Msg)
 	if err != nil {
@@ -145,225 +243,17 @@ func (s *Service) SendChat(ctx context.Context, c *connect.Request[gen.SendChatR
 	}
 }
 
-func (s *Service) GetResources(ctx context.Context, c *connect.Request[gen.GetResourcesRequest]) (*connect.Response[gen.GetResourcesResponse], error) {
-	project, err := s.store.GetProject(c.Msg.ProjectId)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get project %s", c.Msg.ProjectId)
-	}
-
-	resources, err := hydrateBlocksForResources(project.Resources)
-	if err != nil {
-		return nil, err
-	}
-
-	return connect.NewResponse(&gen.GetResourcesResponse{
-		Resources: resources,
-	}), nil
-}
-
-func (s *Service) DeleteResource(ctx context.Context, c *connect.Request[gen.DeleteResourceRequest]) (*connect.Response[gen.DeleteResourceResponse], error) {
-	project, err := s.store.GetProject(c.Msg.ProjectId)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get project %s", c.Msg.ProjectId)
-	}
-
-	var newResources []*gen.Resource
-	for _, resource := range project.Resources {
-		if resource.Id == c.Msg.ResourceId {
-			continue
-		}
-		newResources = append(newResources, resource)
-	}
-	project.Resources = newResources
-	_, err = s.store.SaveProject(project)
-	if err != nil {
-		return nil, err
-	}
-	return connect.NewResponse(&gen.DeleteResourceResponse{}), nil
-}
-
-func (s *Service) CreateResource(ctx context.Context, c *connect.Request[gen.CreateResourceRequest]) (*connect.Response[gen.CreateResourceResponse], error) {
-	project, err := s.store.GetProject(c.Msg.ProjectId)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get project %s", c.Msg.ProjectId)
-	}
-
-	r := c.Msg.Resource
-	r.Id = uuid.New().String()
-
-	project.Resources = append(project.Resources, r)
-	_, err = s.store.SaveProject(project)
-	if err != nil {
-		return nil, err
-	}
-
-	return connect.NewResponse(&gen.CreateResourceResponse{
-		ResourceId: r.Id,
-	}), nil
-}
-
-func (s *Service) UpdateResource(ctx context.Context, c *connect.Request[gen.UpdateResourceRequest]) (*connect.Response[gen.UpdateResourceResponse], error) {
-	project, err := s.store.GetProject(c.Msg.ProjectId)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get project %s", c.Msg.ProjectId)
-	}
-
-	var newResources []*gen.Resource
-	for _, resource := range project.Resources {
-		if resource.Id == c.Msg.Resource.Id {
-			newResources = append(newResources, c.Msg.Resource)
-			continue
-		}
-		newResources = append(newResources, resource)
-	}
-	project.Resources = newResources
-	_, err = s.store.SaveProject(project)
-	if err != nil {
-		return nil, err
-	}
-	return connect.NewResponse(&gen.UpdateResourceResponse{}), nil
-}
-
-func (s *Service) startWorkflow(
-	ctx context.Context,
-	w *workflow.Workflow,
-	nodeID string,
-	workflowInput any,
-	// TODO breadchris this should not be needed
-	httpStream *resource.HTTPEventStream,
-) (rxgo.Observable, error) {
-	log.Debug().
-		Str("workflow", w.ID).
-		Str("node", nodeID).
-		Msg("workflow starting")
-
-	n, ok := w.NodeLookup[nodeID]
-	if !ok {
-		return nil, errors.Errorf("node %s not found in workflow", nodeID)
-	}
-
-	var (
-		inputChan   chan rxgo.Item
-		inputObs    rxgo.Observable
-		httpRequest bool
-	)
-	switch n.(type) {
-	case *node.RouteNode:
-		inputObs = httpStream.RequestObs
-		httpRequest = true
-	default:
-		inputChan = make(chan rxgo.Item)
-		inputObs = rxgo.FromChannel(inputChan, rxgo.WithPublishStrategy())
-	}
-
-	obs, err := s.manager.ExecuteWorkflow(ctx, w, nodeID, inputObs)
-	if err != nil {
-		return nil, err
-	}
-
-	// TODO breadchris support streaming input
-	if !httpRequest {
-		inputChan <- rx.NewItem(workflowInput)
-		close(inputChan)
-	}
-	return obs, nil
-}
-
-func (s *Service) RunWorkflow(ctx context.Context, c *connect.Request[gen.RunWorkflowRequest], c2 *connect.ServerStream[gen.NodeExecution]) error {
-	project, err := s.store.GetProject(c.Msg.ProjectId)
-	if err != nil {
-		return errors.Wrapf(err, "failed to get project %s", c.Msg.ProjectId)
-	}
-
-	w, err := workflow.FromProject(project)
-	if err != nil {
-		return err
-	}
-
-	// TODO breadchris temporary for when the input is not set
-	if c.Msg.Input == "" {
-		c.Msg.Input = "{}"
-	}
-
-	// TODO breadchris this is a _little_ sketchy, we would like to be able to use the correct type, which might just be some data!
-	var workflowInput map[string]any
-	err = json.Unmarshal([]byte(c.Msg.Input), &workflowInput)
-	if err != nil {
-		return errors.Wrapf(err, "failed to unmarshal workflow input")
-	}
-
-	var (
-		entrypoints []string
-		observables []rxgo.Observable
-	)
-
-	httpStream := resource.NewHTTPEventStream()
-
-	if c.Msg.StartServer {
-		for _, n := range w.NodeLookup {
-			switch n.(type) {
-			case *node.RouteNode:
-				entrypoints = append(entrypoints, n.ID())
-			}
-		}
-	} else {
-		entrypoints = append(entrypoints, c.Msg.NodeId)
-	}
-
-	for _, entrypoint := range entrypoints {
-		obs, err := s.startWorkflow(ctx, w, entrypoint, workflowInput, httpStream)
-		if err != nil {
-			return errors.Wrapf(err, "failed to start workflow")
-		}
-		observables = append(observables, obs)
-	}
-
-	obs := rxgo.Merge(observables)
-
-	var (
-		obsErr error
-	)
-	<-obs.ForEach(func(item any) {
-		switch t := item.(type) {
-		case *gen.HttpResponse:
-			httpStream.Responses <- t
-			log.Debug().Msg("sent http response")
-		}
-
-		log.Debug().Interface("item", item).Msg("workflow item")
-		out, err := json.Marshal(item)
-		if err != nil {
-			obsErr = errors.Wrapf(err, "failed to marshal result data")
-			return
-		}
-
-		// TODO breadchris node executions should be passed to the observable with the node id, input, and output
-		err = c2.Send(&gen.NodeExecution{
-			Output: string(out),
-		})
-		if err != nil {
-			obsErr = errors.Wrapf(err, "failed to send node execution")
-			return
-		}
-	}, func(err error) {
-		obsErr = err
-	}, func() {
-		log.Debug().
-			Str("workflow", w.ID).
-			Str("node", c.Msg.NodeId).
-			Msg("workflow finished")
-	})
-	return obsErr
-}
-
 func (s *Service) GetNodeInfo(ctx context.Context, c *connect.Request[gen.GetNodeInfoRequest]) (*connect.Response[gen.GetNodeInfoResponse], error) {
 	project, err := s.store.GetProject(c.Msg.ProjectId)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get project %s", c.Msg.ProjectId)
 	}
-	w, err := workflow.FromProject(project)
+
+	w, err := workflow.Default().
+		WithProtoProject(graph.ConvertProto(project)).
+		Build()
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get workflow from project")
+		return nil, err
 	}
 	n, err := w.GetNode(c.Msg.NodeId)
 	if err != nil {
@@ -389,72 +279,4 @@ func (s *Service) GetNodeInfo(ctx context.Context, c *connect.Request[gen.GetNod
 		MethodProto: proto,
 		TypeInfo:    typeInfo,
 	}), nil
-}
-
-func (s *Service) GetProject(context.Context, *connect.Request[gen.GetProjectRequest]) (*connect.Response[gen.GetProjectResponse], error) {
-	proj, err := s.store.GetProject("local")
-	if err != nil {
-		return nil, err
-	}
-
-	return connect.NewResponse(&gen.GetProjectResponse{Project: proj}), nil
-}
-
-func (s *Service) GetProjects(ctx context.Context, req *connect.Request[gen.GetProjectsRequest]) (*connect.Response[gen.GetProjectsResponse], error) {
-	projects, err := s.store.ListProjects()
-	if err != nil {
-		return nil, err
-	}
-
-	return connect.NewResponse(&gen.GetProjectsResponse{Projects: projects}), nil
-}
-
-func (s *Service) CreateProject(ctx context.Context, req *connect.Request[gen.CreateProjectRequest]) (*connect.Response[gen.CreateProjectResponse], error) {
-	// TODO breadchris this folder should be configurable
-	bucketDir, err := s.cache.GetFolder("filestore")
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get bucket dir")
-	}
-
-	project := getDefaultProject(req.Msg.Name, bucketDir)
-
-	_, err = s.store.CreateProject(&project)
-
-	if err != nil {
-		return connect.NewResponse(&gen.CreateProjectResponse{Project: nil}), nil
-	}
-
-	return connect.NewResponse(&gen.CreateProjectResponse{Project: &project}), nil
-}
-
-func (s *Service) DeleteProject(context.Context, *connect.Request[gen.DeleteProjectRequest]) (*connect.Response[gen.DeleteProjectResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("project.ProjectService.DeleteProject is not implemented"))
-}
-
-func (s *Service) SaveProject(ctx context.Context, req *connect.Request[gen.SaveProjectRequest]) (*connect.Response[gen.SaveProjectResponse], error) {
-	project, err := s.store.GetProject(req.Msg.ProjectId)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get project %s", req.Msg.ProjectId)
-	}
-
-	project.Graph = req.Msg.Graph
-
-	if len(req.Msg.Resources) > 0 {
-		project.Resources = req.Msg.Resources
-	}
-
-	_, err = s.store.SaveProject(project)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to save project %s", project.Id)
-	}
-
-	return connect.NewResponse(&gen.SaveProjectResponse{Project: project}), nil
-}
-
-func (s *Service) GetWorkflowRuns(ctx context.Context, c *connect.Request[gen.GetWorkflowRunsRequest]) (*connect.Response[gen.GetWorkflowRunsResponse], error) {
-	runs, err := s.store.GetWorkflowRunsForProject(c.Msg.ProjectId)
-	if err != nil {
-		return nil, err
-	}
-	return connect.NewResponse(&gen.GetWorkflowRunsResponse{Runs: runs}), nil
 }

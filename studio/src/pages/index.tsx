@@ -21,7 +21,6 @@ export default function Home() {
       <main className="flex">
         <div className="flex flex-1">
           <BlocksList />
-          <ActionPanel />
           <ChatPanel />
           <ReactFlow
             onInit={setInstance}
@@ -30,6 +29,7 @@ export default function Home() {
             fitView
           >
             <Background />
+            <ActionPanel />
           </ReactFlow>
         </div>
       </main>

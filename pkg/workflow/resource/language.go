@@ -15,7 +15,10 @@ type LanguageServiceResource struct {
 }
 
 func (r *LanguageServiceResource) Init() (func(), error) {
-	return r.GRPCResource.Init()
+	if r.GRPCResource.GRPCService != nil {
+		return r.GRPCResource.Init()
+	}
+	return nil, nil
 }
 
 func ensureRunning(host string) error {

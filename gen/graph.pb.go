@@ -367,6 +367,53 @@ func (*Node_Secret) isNode_Config() {}
 
 func (*Node_File) isNode_Config() {}
 
+type CodeAdapter struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Code string `protobuf:"bytes,1,opt,name=code,proto3" json:"code,omitempty"`
+}
+
+func (x *CodeAdapter) Reset() {
+	*x = CodeAdapter{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_graph_proto_msgTypes[2]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *CodeAdapter) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CodeAdapter) ProtoMessage() {}
+
+func (x *CodeAdapter) ProtoReflect() protoreflect.Message {
+	mi := &file_graph_proto_msgTypes[2]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CodeAdapter.ProtoReflect.Descriptor instead.
+func (*CodeAdapter) Descriptor() ([]byte, []int) {
+	return file_graph_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *CodeAdapter) GetCode() string {
+	if x != nil {
+		return x.Code
+	}
+	return ""
+}
+
 type Edge struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -375,12 +422,16 @@ type Edge struct {
 	Id   string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	From string `protobuf:"bytes,2,opt,name=from,proto3" json:"from,omitempty"`
 	To   string `protobuf:"bytes,3,opt,name=to,proto3" json:"to,omitempty"`
+	// Types that are assignable to Config:
+	//
+	//	*Edge_CodeAdapter
+	Config isEdge_Config `protobuf_oneof:"config"`
 }
 
 func (x *Edge) Reset() {
 	*x = Edge{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_graph_proto_msgTypes[2]
+		mi := &file_graph_proto_msgTypes[3]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -393,7 +444,7 @@ func (x *Edge) String() string {
 func (*Edge) ProtoMessage() {}
 
 func (x *Edge) ProtoReflect() protoreflect.Message {
-	mi := &file_graph_proto_msgTypes[2]
+	mi := &file_graph_proto_msgTypes[3]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -406,7 +457,7 @@ func (x *Edge) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Edge.ProtoReflect.Descriptor instead.
 func (*Edge) Descriptor() ([]byte, []int) {
-	return file_graph_proto_rawDescGZIP(), []int{2}
+	return file_graph_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *Edge) GetId() string {
@@ -429,6 +480,30 @@ func (x *Edge) GetTo() string {
 	}
 	return ""
 }
+
+func (m *Edge) GetConfig() isEdge_Config {
+	if m != nil {
+		return m.Config
+	}
+	return nil
+}
+
+func (x *Edge) GetCodeAdapter() *CodeAdapter {
+	if x, ok := x.GetConfig().(*Edge_CodeAdapter); ok {
+		return x.CodeAdapter
+	}
+	return nil
+}
+
+type isEdge_Config interface {
+	isEdge_Config()
+}
+
+type Edge_CodeAdapter struct {
+	CodeAdapter *CodeAdapter `protobuf:"bytes,4,opt,name=code_adapter,json=codeAdapter,proto3,oneof"`
+}
+
+func (*Edge_CodeAdapter) isEdge_Config() {}
 
 var File_graph_proto protoreflect.FileDescriptor
 
@@ -484,19 +559,25 @@ var file_graph_proto_rawDesc = []byte{
 	0x74, 0x48, 0x00, 0x52, 0x06, 0x73, 0x65, 0x63, 0x72, 0x65, 0x74, 0x12, 0x21, 0x0a, 0x04, 0x66,
 	0x69, 0x6c, 0x65, 0x18, 0x13, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x0b, 0x2e, 0x62, 0x6c, 0x6f, 0x63,
 	0x6b, 0x2e, 0x46, 0x69, 0x6c, 0x65, 0x48, 0x00, 0x52, 0x04, 0x66, 0x69, 0x6c, 0x65, 0x42, 0x08,
-	0x0a, 0x06, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x22, 0x3a, 0x0a, 0x04, 0x45, 0x64, 0x67, 0x65,
-	0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x02, 0x69, 0x64,
-	0x12, 0x12, 0x0a, 0x04, 0x66, 0x72, 0x6f, 0x6d, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04,
-	0x66, 0x72, 0x6f, 0x6d, 0x12, 0x0e, 0x0a, 0x02, 0x74, 0x6f, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09,
-	0x52, 0x02, 0x74, 0x6f, 0x42, 0x74, 0x0a, 0x09, 0x63, 0x6f, 0x6d, 0x2e, 0x67, 0x72, 0x61, 0x70,
-	0x68, 0x42, 0x0a, 0x47, 0x72, 0x61, 0x70, 0x68, 0x50, 0x72, 0x6f, 0x74, 0x6f, 0x50, 0x01, 0x5a,
-	0x27, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x70, 0x72, 0x6f, 0x74,
-	0x6f, 0x66, 0x6c, 0x6f, 0x77, 0x2d, 0x6c, 0x61, 0x62, 0x73, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f,
-	0x66, 0x6c, 0x6f, 0x77, 0x2f, 0x67, 0x65, 0x6e, 0xa2, 0x02, 0x03, 0x47, 0x58, 0x58, 0xaa, 0x02,
-	0x05, 0x47, 0x72, 0x61, 0x70, 0x68, 0xca, 0x02, 0x05, 0x47, 0x72, 0x61, 0x70, 0x68, 0xe2, 0x02,
-	0x11, 0x47, 0x72, 0x61, 0x70, 0x68, 0x5c, 0x47, 0x50, 0x42, 0x4d, 0x65, 0x74, 0x61, 0x64, 0x61,
-	0x74, 0x61, 0xea, 0x02, 0x05, 0x47, 0x72, 0x61, 0x70, 0x68, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74,
-	0x6f, 0x33,
+	0x0a, 0x06, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x22, 0x21, 0x0a, 0x0b, 0x43, 0x6f, 0x64, 0x65,
+	0x41, 0x64, 0x61, 0x70, 0x74, 0x65, 0x72, 0x12, 0x12, 0x0a, 0x04, 0x63, 0x6f, 0x64, 0x65, 0x18,
+	0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x63, 0x6f, 0x64, 0x65, 0x22, 0x7d, 0x0a, 0x04, 0x45,
+	0x64, 0x67, 0x65, 0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52,
+	0x02, 0x69, 0x64, 0x12, 0x12, 0x0a, 0x04, 0x66, 0x72, 0x6f, 0x6d, 0x18, 0x02, 0x20, 0x01, 0x28,
+	0x09, 0x52, 0x04, 0x66, 0x72, 0x6f, 0x6d, 0x12, 0x0e, 0x0a, 0x02, 0x74, 0x6f, 0x18, 0x03, 0x20,
+	0x01, 0x28, 0x09, 0x52, 0x02, 0x74, 0x6f, 0x12, 0x37, 0x0a, 0x0c, 0x63, 0x6f, 0x64, 0x65, 0x5f,
+	0x61, 0x64, 0x61, 0x70, 0x74, 0x65, 0x72, 0x18, 0x04, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x12, 0x2e,
+	0x67, 0x72, 0x61, 0x70, 0x68, 0x2e, 0x43, 0x6f, 0x64, 0x65, 0x41, 0x64, 0x61, 0x70, 0x74, 0x65,
+	0x72, 0x48, 0x00, 0x52, 0x0b, 0x63, 0x6f, 0x64, 0x65, 0x41, 0x64, 0x61, 0x70, 0x74, 0x65, 0x72,
+	0x42, 0x08, 0x0a, 0x06, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x42, 0x74, 0x0a, 0x09, 0x63, 0x6f,
+	0x6d, 0x2e, 0x67, 0x72, 0x61, 0x70, 0x68, 0x42, 0x0a, 0x47, 0x72, 0x61, 0x70, 0x68, 0x50, 0x72,
+	0x6f, 0x74, 0x6f, 0x50, 0x01, 0x5a, 0x27, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f,
+	0x6d, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x66, 0x6c, 0x6f, 0x77, 0x2d, 0x6c, 0x61, 0x62, 0x73,
+	0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x66, 0x6c, 0x6f, 0x77, 0x2f, 0x67, 0x65, 0x6e, 0xa2, 0x02,
+	0x03, 0x47, 0x58, 0x58, 0xaa, 0x02, 0x05, 0x47, 0x72, 0x61, 0x70, 0x68, 0xca, 0x02, 0x05, 0x47,
+	0x72, 0x61, 0x70, 0x68, 0xe2, 0x02, 0x11, 0x47, 0x72, 0x61, 0x70, 0x68, 0x5c, 0x47, 0x50, 0x42,
+	0x4d, 0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0xea, 0x02, 0x05, 0x47, 0x72, 0x61, 0x70, 0x68,
+	0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -511,46 +592,48 @@ func file_graph_proto_rawDescGZIP() []byte {
 	return file_graph_proto_rawDescData
 }
 
-var file_graph_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_graph_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_graph_proto_goTypes = []interface{}{
-	(*Graph)(nil),      // 0: graph.Graph
-	(*Node)(nil),       // 1: graph.Node
-	(*Edge)(nil),       // 2: graph.Edge
-	(*REST)(nil),       // 3: block.REST
-	(*GRPC)(nil),       // 4: block.GRPC
-	(*Collection)(nil), // 5: block.Collection
-	(*Bucket)(nil),     // 6: block.Bucket
-	(*Input)(nil),      // 7: block.Input
-	(*Function)(nil),   // 8: block.Function
-	(*Query)(nil),      // 9: block.Query
-	(*Prompt)(nil),     // 10: block.Prompt
-	(*Config)(nil),     // 11: block.Config
-	(*Route)(nil),      // 12: block.Route
-	(*Template)(nil),   // 13: block.Template
-	(*Secret)(nil),     // 14: block.Secret
-	(*File)(nil),       // 15: block.File
+	(*Graph)(nil),       // 0: graph.Graph
+	(*Node)(nil),        // 1: graph.Node
+	(*CodeAdapter)(nil), // 2: graph.CodeAdapter
+	(*Edge)(nil),        // 3: graph.Edge
+	(*REST)(nil),        // 4: block.REST
+	(*GRPC)(nil),        // 5: block.GRPC
+	(*Collection)(nil),  // 6: block.Collection
+	(*Bucket)(nil),      // 7: block.Bucket
+	(*Input)(nil),       // 8: block.Input
+	(*Function)(nil),    // 9: block.Function
+	(*Query)(nil),       // 10: block.Query
+	(*Prompt)(nil),      // 11: block.Prompt
+	(*Config)(nil),      // 12: block.Config
+	(*Route)(nil),       // 13: block.Route
+	(*Template)(nil),    // 14: block.Template
+	(*Secret)(nil),      // 15: block.Secret
+	(*File)(nil),        // 16: block.File
 }
 var file_graph_proto_depIdxs = []int32{
 	1,  // 0: graph.Graph.nodes:type_name -> graph.Node
-	2,  // 1: graph.Graph.edges:type_name -> graph.Edge
-	3,  // 2: graph.Node.rest:type_name -> block.REST
-	4,  // 3: graph.Node.grpc:type_name -> block.GRPC
-	5,  // 4: graph.Node.collection:type_name -> block.Collection
-	6,  // 5: graph.Node.bucket:type_name -> block.Bucket
-	7,  // 6: graph.Node.input:type_name -> block.Input
-	8,  // 7: graph.Node.function:type_name -> block.Function
-	9,  // 8: graph.Node.query:type_name -> block.Query
-	10, // 9: graph.Node.prompt:type_name -> block.Prompt
-	11, // 10: graph.Node.configuration:type_name -> block.Config
-	12, // 11: graph.Node.route:type_name -> block.Route
-	13, // 12: graph.Node.template:type_name -> block.Template
-	14, // 13: graph.Node.secret:type_name -> block.Secret
-	15, // 14: graph.Node.file:type_name -> block.File
-	15, // [15:15] is the sub-list for method output_type
-	15, // [15:15] is the sub-list for method input_type
-	15, // [15:15] is the sub-list for extension type_name
-	15, // [15:15] is the sub-list for extension extendee
-	0,  // [0:15] is the sub-list for field type_name
+	3,  // 1: graph.Graph.edges:type_name -> graph.Edge
+	4,  // 2: graph.Node.rest:type_name -> block.REST
+	5,  // 3: graph.Node.grpc:type_name -> block.GRPC
+	6,  // 4: graph.Node.collection:type_name -> block.Collection
+	7,  // 5: graph.Node.bucket:type_name -> block.Bucket
+	8,  // 6: graph.Node.input:type_name -> block.Input
+	9,  // 7: graph.Node.function:type_name -> block.Function
+	10, // 8: graph.Node.query:type_name -> block.Query
+	11, // 9: graph.Node.prompt:type_name -> block.Prompt
+	12, // 10: graph.Node.configuration:type_name -> block.Config
+	13, // 11: graph.Node.route:type_name -> block.Route
+	14, // 12: graph.Node.template:type_name -> block.Template
+	15, // 13: graph.Node.secret:type_name -> block.Secret
+	16, // 14: graph.Node.file:type_name -> block.File
+	2,  // 15: graph.Edge.code_adapter:type_name -> graph.CodeAdapter
+	16, // [16:16] is the sub-list for method output_type
+	16, // [16:16] is the sub-list for method input_type
+	16, // [16:16] is the sub-list for extension type_name
+	16, // [16:16] is the sub-list for extension extendee
+	0,  // [0:16] is the sub-list for field type_name
 }
 
 func init() { file_graph_proto_init() }
@@ -586,6 +669,18 @@ func file_graph_proto_init() {
 			}
 		}
 		file_graph_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*CodeAdapter); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_graph_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Edge); i {
 			case 0:
 				return &v.state
@@ -613,13 +708,16 @@ func file_graph_proto_init() {
 		(*Node_Secret)(nil),
 		(*Node_File)(nil),
 	}
+	file_graph_proto_msgTypes[3].OneofWrappers = []interface{}{
+		(*Edge_CodeAdapter)(nil),
+	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_graph_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   3,
+			NumMessages:   4,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

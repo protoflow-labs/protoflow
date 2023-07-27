@@ -11,6 +11,7 @@ type Config struct {
 	StudioProxy string `yaml:"studio_proxy"`
 }
 
+// TODO breadchris studio proxy should not be set by default only turn on when in dev mode
 func NewDefaultConfig(studioProxy string) Config {
 	return Config{
 		StudioProxy: studioProxy,

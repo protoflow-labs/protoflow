@@ -30,9 +30,13 @@ message Project {
 }
 
 service ProjectService {
+    rpc GetProjectTypes(GetProjectTypesRequest) returns (ProjectTypes) {}
     // TODO breadchris unfortunately this is needed because of the buf fetch transport not supporting streaming
     // the suggestion is to build a custom transport that uses websockets https://github.com/bufbuild/connect-es/issues/366
     rpc SendChat(SendChatRequest) returns (stream SendChatResponse) {}
+
+    rpc ExportProject(ExportProjectRequest) returns (ExportProjectResponse) {}
+    rpc LoadProject(LoadProjectRequest) returns (LoadProjectResponse) {}
 
     rpc GetProject(GetProjectRequest) returns (GetProjectResponse) {}
     rpc GetProjects(GetProjectsRequest) returns (GetProjectsResponse) {}
@@ -49,9 +53,41 @@ service ProjectService {
     rpc SaveProject(SaveProjectRequest) returns (SaveProjectResponse) {}
 
     rpc RunWorkflow(RunWorkflowRequest) returns (stream NodeExecution) {}
+    rpc StopWorkflow(StopWorkflowRequest) returns (StopWorkflowResponse) {}
 
     rpc GetWorkflowRuns(GetWorkflowRunsRequest) returns (GetWorkflowRunsResponse) {}
 }
+
+message ExportProjectRequest {
+    string project_id = 1;
+    string path = 2;
+}
+
+message ExportProjectResponse {}
+
+message LoadProjectRequest {
+    string path = 1;
+}
+
+message LoadProjectResponse {
+    Project project = 1;
+}
+
+message GetProjectTypesRequest {}
+
+message ProjectTypes {
+    google.protobuf.DescriptorProto node_type = 1;
+    google.protobuf.DescriptorProto edge_type = 2;
+    map<string, google.protobuf.DescriptorProto> desc_lookup = 3;
+    map<string, google.protobuf.EnumDescriptorProto> enum_lookup = 4;
+}
+
+message StopWorkflowRequest {
+    string project_id = 1;
+    string workflow_id = 2;
+}
+
+message StopWorkflowResponse {}
 
 message UpdateResourceRequest {
     string project_id = 1;
@@ -164,6 +200,7 @@ message GetProjectRequest {
 
 message GetProjectResponse {
     Project project = 1;
+    ProjectTypes types = 2;
 }
 
 message GetProjectsRequest {
@@ -171,7 +208,7 @@ message GetProjectsRequest {
 }
 
 message GetProjectsResponse {
-    repeated Project projects = 1;
+    repeated GetProjectResponse projects = 1;
 }
 
 message CreateProjectRequest {

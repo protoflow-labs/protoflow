@@ -4,34 +4,30 @@
 //go:build !wireinject
 // +build !wireinject
 
-package cli
+package protoflow
 
 import (
+	"github.com/protoflow-labs/protoflow/gen"
 	"github.com/protoflow-labs/protoflow/pkg/api"
 	"github.com/protoflow-labs/protoflow/pkg/bucket"
 	"github.com/protoflow-labs/protoflow/pkg/config"
 	"github.com/protoflow-labs/protoflow/pkg/db"
 	"github.com/protoflow-labs/protoflow/pkg/generate"
-	"github.com/protoflow-labs/protoflow/pkg/log"
 	"github.com/protoflow-labs/protoflow/pkg/openai"
 	"github.com/protoflow-labs/protoflow/pkg/project"
 	"github.com/protoflow-labs/protoflow/pkg/store"
 	"github.com/protoflow-labs/protoflow/pkg/workflow"
-	"github.com/urfave/cli/v2"
 )
 
 // Injectors from wire.go:
 
-func Wire(cacheConfig bucket.Config) (*cli.App, error) {
+// TODO breadchris should not need a bucket config, should be able to pass config in-memory
+func Wire(cacheConfig bucket.Config, defaultProject *gen.Project) (*Protoflow, error) {
 	localBucket, err := bucket.NewUserCache(cacheConfig)
 	if err != nil {
 		return nil, err
 	}
 	provider, err := config.NewProvider(localBucket)
-	if err != nil {
-		return nil, err
-	}
-	logConfig, err := log.NewConfig(provider)
 	if err != nil {
 		return nil, err
 	}
@@ -68,11 +64,7 @@ func Wire(cacheConfig bucket.Config) (*cli.App, error) {
 		return nil, err
 	}
 	chatServer := openai.NewChat(openAIQAClient)
-	genProject, err := project.NewDefaultProject(localBucket)
-	if err != nil {
-		return nil, err
-	}
-	service, err := project.NewService(projectStore, manager, localBucket, chatServer, genProject)
+	service, err := project.NewService(projectStore, manager, localBucket, chatServer, defaultProject)
 	if err != nil {
 		return nil, err
 	}
@@ -88,6 +80,6 @@ func Wire(cacheConfig bucket.Config) (*cli.App, error) {
 	if err != nil {
 		return nil, err
 	}
-	app := New(logConfig, httpServer, service, provider)
-	return app, nil
+	protoflow := New(httpServer, service, projectStore)
+	return protoflow, nil
 }

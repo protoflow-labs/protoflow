@@ -1,25 +1,25 @@
 //go:build wireinject
 // +build wireinject
 
-package cli
+package protoflow
 
 import (
 	"github.com/google/wire"
+	"github.com/protoflow-labs/protoflow/gen"
 	"github.com/protoflow-labs/protoflow/pkg/api"
 	"github.com/protoflow-labs/protoflow/pkg/bucket"
 	"github.com/protoflow-labs/protoflow/pkg/config"
 	"github.com/protoflow-labs/protoflow/pkg/generate"
 	"github.com/protoflow-labs/protoflow/pkg/project"
-	urfavcli "github.com/urfave/cli/v2"
 )
 
-func Wire(cacheConfig bucket.Config) (*urfavcli.App, error) {
+// TODO breadchris should not need a bucket config, should be able to pass config in-memory
+func Wire(cacheConfig bucket.Config, defaultProject *gen.Project) (*Protoflow, error) {
 	panic(wire.Build(
-		New,
-		project.NewDefaultProject,
 		config.ProviderSet,
 		project.ProviderSet,
 		generate.ProviderSet,
 		api.ProviderSet,
+		New,
 	))
 }

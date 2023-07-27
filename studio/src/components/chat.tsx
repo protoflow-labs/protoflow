@@ -8,6 +8,7 @@ import {JsonViewer} from "@/components/jsonViewer";
 import {useSelectedNodes} from "@/hooks/useSelectedNodes";
 import {toast} from "react-hot-toast";
 import {start} from "repl";
+import ReactMarkdown from "react-markdown";
 
 export default function ChatPanel() {
     const {
@@ -98,10 +99,19 @@ export default function ChatPanel() {
                                 {workflowOutput ? (
                                     <Stack>
                                         <List items={workflowOutput} onRenderCell={(item?: string) => {
+                                            const getText = () => {
+                                                if (!item) {
+                                                    return '';
+                                                }
+                                                const parsed = JSON.parse(item);
+                                                // if (Object.keys(parsed).length === 1) {
+                                                //     const value: any = Object.values(parsed)[0];
+                                                //     return (<ReactMarkdown>{value.toString()}</ReactMarkdown>);
+                                                // }
+                                                return <JsonViewer data={parsed} />;
+                                            }
                                             return (
-                                                <MessageBar messageBarType={0} >
-                                                    <JsonViewer data={item ? JSON.parse(item) : ''} />
-                                                </MessageBar>
+                                                <MessageBar messageBarType={0}>{getText()}</MessageBar>
                                             );
                                         }} />
                                         <Button onClick={clearChat}>Clear</Button>
@@ -119,7 +129,11 @@ export default function ChatPanel() {
                         )}
                         {activeTab === 'chat' && (
                             <Stack>
-                                <List items={messages} onRenderCell={(item?: ChatMessage) => <MessageBar messageBarType={0} >{item?.message}</MessageBar>} />
+                                <List items={messages} onRenderCell={(item?: ChatMessage) => (
+                                    <MessageBar messageBarType={0}>
+                                        {item?.message}
+                                    </MessageBar>
+                                )} />
                                 {incomingMessage && <MessageBar messageBarType={0} >{incomingMessage}</MessageBar>}
                                 <Stack horizontal tokens={{ childrenGap: 10 }}>
                                     <TextField value={inputValue} onChange={(event, newValue) => {

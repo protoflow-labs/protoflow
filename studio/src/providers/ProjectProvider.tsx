@@ -11,12 +11,12 @@ import {
 import {createContext, useCallback, useContext, useEffect, useState} from "react";
 import {HiExclamationCircle, HiPlus} from "react-icons/hi2";
 import {Edge, Node} from "reactflow";
-import {EnumeratedResource, GetNodeInfoResponse, Project} from "@/rpc/project_pb";
+import {EnumeratedResource, GetNodeInfoResponse, Project, ProjectTypes} from "@/rpc/project_pb";
 import {useProjectResources} from "@/hooks/useProjectResources";
 import {toast} from "react-hot-toast";
 import {useErrorBoundary} from "react-error-boundary";
 import {getUpdatedProject} from "@/lib/project";
-import {Node as ProtoNode} from "@/rpc/graph_pb";
+import {Node as ProtoNode, Edge as ProtoEdge} from "@/rpc/graph_pb";
 import {notEmpty} from "@/util/predicates";
 import { Resource } from "@/rpc/resource_pb";
 
@@ -38,7 +38,11 @@ type ProjectContextType = {
     updateResource: (resource: Resource) => Promise<void>;
     loadNodeInfo: (nodeId: string) => Promise<GetNodeInfoResponse | undefined>;
     activeNode: ProtoNode | null;
+    activeEdge: ProtoEdge | null;
     setActiveNodeId: (nodeId: string | null) => void;
+    setActiveEdgeId: (edgeId: string | null) => void;
+
+    projectTypes?: ProjectTypes;
 
     setNodeLookup: (getLookup: GetLookup) => void;
     nodeLookup: Record<string, ProtoNode>;
@@ -62,11 +66,13 @@ export const useProjectContext = () => useContext(ProjectContext);
 
 // project provider holds things that are closer to the database, like information fetched from the database
 export default function ProjectProvider({children}: ProjectProviderProps) {
-    const {project, loading, createDefault} = useDefaultProject();
+    const {project, loading, createDefault, projectTypes} = useDefaultProject();
     const {resources, resourceLookup, loading: loadingResources, loadProjectResources} = useProjectResources();
     const {showBoundary} = useErrorBoundary();
     const [nodeLookup, setNodeLookup] = useState<Record<string, ProtoNode>>({});
+    const [edgeLookup, setEdgeLookup] = useState<Record<string, ProtoEdge>>({});
     const [activeNode, setActiveNode] = useState<ProtoNode | null>(null);
+    const [activeEdge, setActiveEdge] = useState<ProtoEdge | null>(null);
     const [workflowOutput, setWorkflowOutput] = useState<string[] | null>(null);
 
     const setActiveNodeId = (nodeId: string | null) => {
@@ -77,6 +83,16 @@ export default function ProjectProvider({children}: ProjectProviderProps) {
 
         // TODO breadchris catch error
         setActiveNode(nodeLookup[nodeId]);
+    }
+
+    const setActiveEdgeId = (edgeId: string | null) => {
+        if (!edgeId) {
+            setActiveEdge(null);
+            return;
+        }
+
+        // TODO breadchris catch error
+        setActiveEdge(edgeLookup[edgeId]);
     }
 
     const saveProject = useCallback(async (nodes: Node[], edges: Edge[]) => {
@@ -212,9 +228,18 @@ export default function ProjectProvider({children}: ProjectProviderProps) {
                 return acc;
             }, {} as Record<string, ProtoNode>);
 
+            const edgeLookup = project.graph.edges.reduce((acc, edge) => {
+                acc[edge.id] = edge;
+                return acc;
+            }, {} as Record<string, ProtoEdge>);
+
             setNodeLookup((prev) => {
                 return lookup;
             })
+
+            setEdgeLookup((prev) => {
+                return edgeLookup;
+            });
         }
     }, [project]);
 
@@ -264,7 +289,10 @@ export default function ProjectProvider({children}: ProjectProviderProps) {
                 loadingResources,
                 loadNodeInfo,
                 setActiveNodeId,
+                setActiveEdgeId,
+                projectTypes,
                 activeNode,
+                activeEdge,
                 setNodeLookup,
                 nodeLookup,
             }}

@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { CreateProjectRequest, CreateProjectResponse, CreateResourceRequest, CreateResourceResponse, DeleteProjectRequest, DeleteProjectResponse, DeleteResourceRequest, DeleteResourceResponse, GetNodeInfoRequest, GetNodeInfoResponse, GetProjectRequest, GetProjectResponse, GetProjectsRequest, GetProjectsResponse, GetResourcesRequest, GetResourcesResponse, GetWorkflowRunsRequest, GetWorkflowRunsResponse, NodeExecution, RunWorkflowRequest, SaveProjectRequest, SaveProjectResponse, SendChatRequest, SendChatResponse, UpdateResourceRequest, UpdateResourceResponse } from "./project_pb.js";
+import { CreateProjectRequest, CreateProjectResponse, CreateResourceRequest, CreateResourceResponse, DeleteProjectRequest, DeleteProjectResponse, DeleteResourceRequest, DeleteResourceResponse, ExportProjectRequest, ExportProjectResponse, GetNodeInfoRequest, GetNodeInfoResponse, GetProjectRequest, GetProjectResponse, GetProjectsRequest, GetProjectsResponse, GetProjectTypesRequest, GetResourcesRequest, GetResourcesResponse, GetWorkflowRunsRequest, GetWorkflowRunsResponse, LoadProjectRequest, LoadProjectResponse, NodeExecution, ProjectTypes, RunWorkflowRequest, SaveProjectRequest, SaveProjectResponse, SendChatRequest, SendChatResponse, StopWorkflowRequest, StopWorkflowResponse, UpdateResourceRequest, UpdateResourceResponse } from "./project_pb.js";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -12,6 +12,15 @@ import { MethodKind } from "@bufbuild/protobuf";
 export const ProjectService = {
   typeName: "project.ProjectService",
   methods: {
+    /**
+     * @generated from rpc project.ProjectService.GetProjectTypes
+     */
+    getProjectTypes: {
+      name: "GetProjectTypes",
+      I: GetProjectTypesRequest,
+      O: ProjectTypes,
+      kind: MethodKind.Unary,
+    },
     /**
      * TODO breadchris unfortunately this is needed because of the buf fetch transport not supporting streaming
      * the suggestion is to build a custom transport that uses websockets https://github.com/bufbuild/connect-es/issues/366
@@ -23,6 +32,24 @@ export const ProjectService = {
       I: SendChatRequest,
       O: SendChatResponse,
       kind: MethodKind.ServerStreaming,
+    },
+    /**
+     * @generated from rpc project.ProjectService.ExportProject
+     */
+    exportProject: {
+      name: "ExportProject",
+      I: ExportProjectRequest,
+      O: ExportProjectResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc project.ProjectService.LoadProject
+     */
+    loadProject: {
+      name: "LoadProject",
+      I: LoadProjectRequest,
+      O: LoadProjectResponse,
+      kind: MethodKind.Unary,
     },
     /**
      * @generated from rpc project.ProjectService.GetProject
@@ -122,6 +149,15 @@ export const ProjectService = {
       I: RunWorkflowRequest,
       O: NodeExecution,
       kind: MethodKind.ServerStreaming,
+    },
+    /**
+     * @generated from rpc project.ProjectService.StopWorkflow
+     */
+    stopWorkflow: {
+      name: "StopWorkflow",
+      I: StopWorkflowRequest,
+      O: StopWorkflowResponse,
+      kind: MethodKind.Unary,
     },
     /**
      * @generated from rpc project.ProjectService.GetWorkflowRuns

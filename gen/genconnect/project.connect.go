@@ -33,8 +33,17 @@ const (
 // reflection-formatted method names, remove the leading slash and convert the remaining slash to a
 // period.
 const (
+	// ProjectServiceGetProjectTypesProcedure is the fully-qualified name of the ProjectService's
+	// GetProjectTypes RPC.
+	ProjectServiceGetProjectTypesProcedure = "/project.ProjectService/GetProjectTypes"
 	// ProjectServiceSendChatProcedure is the fully-qualified name of the ProjectService's SendChat RPC.
 	ProjectServiceSendChatProcedure = "/project.ProjectService/SendChat"
+	// ProjectServiceExportProjectProcedure is the fully-qualified name of the ProjectService's
+	// ExportProject RPC.
+	ProjectServiceExportProjectProcedure = "/project.ProjectService/ExportProject"
+	// ProjectServiceLoadProjectProcedure is the fully-qualified name of the ProjectService's
+	// LoadProject RPC.
+	ProjectServiceLoadProjectProcedure = "/project.ProjectService/LoadProject"
 	// ProjectServiceGetProjectProcedure is the fully-qualified name of the ProjectService's GetProject
 	// RPC.
 	ProjectServiceGetProjectProcedure = "/project.ProjectService/GetProject"
@@ -68,6 +77,9 @@ const (
 	// ProjectServiceRunWorkflowProcedure is the fully-qualified name of the ProjectService's
 	// RunWorkflow RPC.
 	ProjectServiceRunWorkflowProcedure = "/project.ProjectService/RunWorkflow"
+	// ProjectServiceStopWorkflowProcedure is the fully-qualified name of the ProjectService's
+	// StopWorkflow RPC.
+	ProjectServiceStopWorkflowProcedure = "/project.ProjectService/StopWorkflow"
 	// ProjectServiceGetWorkflowRunsProcedure is the fully-qualified name of the ProjectService's
 	// GetWorkflowRuns RPC.
 	ProjectServiceGetWorkflowRunsProcedure = "/project.ProjectService/GetWorkflowRuns"
@@ -75,9 +87,12 @@ const (
 
 // ProjectServiceClient is a client for the project.ProjectService service.
 type ProjectServiceClient interface {
+	GetProjectTypes(context.Context, *connect_go.Request[gen.GetProjectTypesRequest]) (*connect_go.Response[gen.ProjectTypes], error)
 	// TODO breadchris unfortunately this is needed because of the buf fetch transport not supporting streaming
 	// the suggestion is to build a custom transport that uses websockets https://github.com/bufbuild/connect-es/issues/366
 	SendChat(context.Context, *connect_go.Request[gen.SendChatRequest]) (*connect_go.ServerStreamForClient[gen.SendChatResponse], error)
+	ExportProject(context.Context, *connect_go.Request[gen.ExportProjectRequest]) (*connect_go.Response[gen.ExportProjectResponse], error)
+	LoadProject(context.Context, *connect_go.Request[gen.LoadProjectRequest]) (*connect_go.Response[gen.LoadProjectResponse], error)
 	GetProject(context.Context, *connect_go.Request[gen.GetProjectRequest]) (*connect_go.Response[gen.GetProjectResponse], error)
 	GetProjects(context.Context, *connect_go.Request[gen.GetProjectsRequest]) (*connect_go.Response[gen.GetProjectsResponse], error)
 	CreateProject(context.Context, *connect_go.Request[gen.CreateProjectRequest]) (*connect_go.Response[gen.CreateProjectResponse], error)
@@ -89,6 +104,7 @@ type ProjectServiceClient interface {
 	GetNodeInfo(context.Context, *connect_go.Request[gen.GetNodeInfoRequest]) (*connect_go.Response[gen.GetNodeInfoResponse], error)
 	SaveProject(context.Context, *connect_go.Request[gen.SaveProjectRequest]) (*connect_go.Response[gen.SaveProjectResponse], error)
 	RunWorkflow(context.Context, *connect_go.Request[gen.RunWorkflowRequest]) (*connect_go.ServerStreamForClient[gen.NodeExecution], error)
+	StopWorkflow(context.Context, *connect_go.Request[gen.StopWorkflowRequest]) (*connect_go.Response[gen.StopWorkflowResponse], error)
 	GetWorkflowRuns(context.Context, *connect_go.Request[gen.GetWorkflowRunsRequest]) (*connect_go.Response[gen.GetWorkflowRunsResponse], error)
 }
 
@@ -102,9 +118,24 @@ type ProjectServiceClient interface {
 func NewProjectServiceClient(httpClient connect_go.HTTPClient, baseURL string, opts ...connect_go.ClientOption) ProjectServiceClient {
 	baseURL = strings.TrimRight(baseURL, "/")
 	return &projectServiceClient{
+		getProjectTypes: connect_go.NewClient[gen.GetProjectTypesRequest, gen.ProjectTypes](
+			httpClient,
+			baseURL+ProjectServiceGetProjectTypesProcedure,
+			opts...,
+		),
 		sendChat: connect_go.NewClient[gen.SendChatRequest, gen.SendChatResponse](
 			httpClient,
 			baseURL+ProjectServiceSendChatProcedure,
+			opts...,
+		),
+		exportProject: connect_go.NewClient[gen.ExportProjectRequest, gen.ExportProjectResponse](
+			httpClient,
+			baseURL+ProjectServiceExportProjectProcedure,
+			opts...,
+		),
+		loadProject: connect_go.NewClient[gen.LoadProjectRequest, gen.LoadProjectResponse](
+			httpClient,
+			baseURL+ProjectServiceLoadProjectProcedure,
 			opts...,
 		),
 		getProject: connect_go.NewClient[gen.GetProjectRequest, gen.GetProjectResponse](
@@ -162,6 +193,11 @@ func NewProjectServiceClient(httpClient connect_go.HTTPClient, baseURL string, o
 			baseURL+ProjectServiceRunWorkflowProcedure,
 			opts...,
 		),
+		stopWorkflow: connect_go.NewClient[gen.StopWorkflowRequest, gen.StopWorkflowResponse](
+			httpClient,
+			baseURL+ProjectServiceStopWorkflowProcedure,
+			opts...,
+		),
 		getWorkflowRuns: connect_go.NewClient[gen.GetWorkflowRunsRequest, gen.GetWorkflowRunsResponse](
 			httpClient,
 			baseURL+ProjectServiceGetWorkflowRunsProcedure,
@@ -172,7 +208,10 @@ func NewProjectServiceClient(httpClient connect_go.HTTPClient, baseURL string, o
 
 // projectServiceClient implements ProjectServiceClient.
 type projectServiceClient struct {
+	getProjectTypes *connect_go.Client[gen.GetProjectTypesRequest, gen.ProjectTypes]
 	sendChat        *connect_go.Client[gen.SendChatRequest, gen.SendChatResponse]
+	exportProject   *connect_go.Client[gen.ExportProjectRequest, gen.ExportProjectResponse]
+	loadProject     *connect_go.Client[gen.LoadProjectRequest, gen.LoadProjectResponse]
 	getProject      *connect_go.Client[gen.GetProjectRequest, gen.GetProjectResponse]
 	getProjects     *connect_go.Client[gen.GetProjectsRequest, gen.GetProjectsResponse]
 	createProject   *connect_go.Client[gen.CreateProjectRequest, gen.CreateProjectResponse]
@@ -184,12 +223,28 @@ type projectServiceClient struct {
 	getNodeInfo     *connect_go.Client[gen.GetNodeInfoRequest, gen.GetNodeInfoResponse]
 	saveProject     *connect_go.Client[gen.SaveProjectRequest, gen.SaveProjectResponse]
 	runWorkflow     *connect_go.Client[gen.RunWorkflowRequest, gen.NodeExecution]
+	stopWorkflow    *connect_go.Client[gen.StopWorkflowRequest, gen.StopWorkflowResponse]
 	getWorkflowRuns *connect_go.Client[gen.GetWorkflowRunsRequest, gen.GetWorkflowRunsResponse]
+}
+
+// GetProjectTypes calls project.ProjectService.GetProjectTypes.
+func (c *projectServiceClient) GetProjectTypes(ctx context.Context, req *connect_go.Request[gen.GetProjectTypesRequest]) (*connect_go.Response[gen.ProjectTypes], error) {
+	return c.getProjectTypes.CallUnary(ctx, req)
 }
 
 // SendChat calls project.ProjectService.SendChat.
 func (c *projectServiceClient) SendChat(ctx context.Context, req *connect_go.Request[gen.SendChatRequest]) (*connect_go.ServerStreamForClient[gen.SendChatResponse], error) {
 	return c.sendChat.CallServerStream(ctx, req)
+}
+
+// ExportProject calls project.ProjectService.ExportProject.
+func (c *projectServiceClient) ExportProject(ctx context.Context, req *connect_go.Request[gen.ExportProjectRequest]) (*connect_go.Response[gen.ExportProjectResponse], error) {
+	return c.exportProject.CallUnary(ctx, req)
+}
+
+// LoadProject calls project.ProjectService.LoadProject.
+func (c *projectServiceClient) LoadProject(ctx context.Context, req *connect_go.Request[gen.LoadProjectRequest]) (*connect_go.Response[gen.LoadProjectResponse], error) {
+	return c.loadProject.CallUnary(ctx, req)
 }
 
 // GetProject calls project.ProjectService.GetProject.
@@ -247,6 +302,11 @@ func (c *projectServiceClient) RunWorkflow(ctx context.Context, req *connect_go.
 	return c.runWorkflow.CallServerStream(ctx, req)
 }
 
+// StopWorkflow calls project.ProjectService.StopWorkflow.
+func (c *projectServiceClient) StopWorkflow(ctx context.Context, req *connect_go.Request[gen.StopWorkflowRequest]) (*connect_go.Response[gen.StopWorkflowResponse], error) {
+	return c.stopWorkflow.CallUnary(ctx, req)
+}
+
 // GetWorkflowRuns calls project.ProjectService.GetWorkflowRuns.
 func (c *projectServiceClient) GetWorkflowRuns(ctx context.Context, req *connect_go.Request[gen.GetWorkflowRunsRequest]) (*connect_go.Response[gen.GetWorkflowRunsResponse], error) {
 	return c.getWorkflowRuns.CallUnary(ctx, req)
@@ -254,9 +314,12 @@ func (c *projectServiceClient) GetWorkflowRuns(ctx context.Context, req *connect
 
 // ProjectServiceHandler is an implementation of the project.ProjectService service.
 type ProjectServiceHandler interface {
+	GetProjectTypes(context.Context, *connect_go.Request[gen.GetProjectTypesRequest]) (*connect_go.Response[gen.ProjectTypes], error)
 	// TODO breadchris unfortunately this is needed because of the buf fetch transport not supporting streaming
 	// the suggestion is to build a custom transport that uses websockets https://github.com/bufbuild/connect-es/issues/366
 	SendChat(context.Context, *connect_go.Request[gen.SendChatRequest], *connect_go.ServerStream[gen.SendChatResponse]) error
+	ExportProject(context.Context, *connect_go.Request[gen.ExportProjectRequest]) (*connect_go.Response[gen.ExportProjectResponse], error)
+	LoadProject(context.Context, *connect_go.Request[gen.LoadProjectRequest]) (*connect_go.Response[gen.LoadProjectResponse], error)
 	GetProject(context.Context, *connect_go.Request[gen.GetProjectRequest]) (*connect_go.Response[gen.GetProjectResponse], error)
 	GetProjects(context.Context, *connect_go.Request[gen.GetProjectsRequest]) (*connect_go.Response[gen.GetProjectsResponse], error)
 	CreateProject(context.Context, *connect_go.Request[gen.CreateProjectRequest]) (*connect_go.Response[gen.CreateProjectResponse], error)
@@ -268,6 +331,7 @@ type ProjectServiceHandler interface {
 	GetNodeInfo(context.Context, *connect_go.Request[gen.GetNodeInfoRequest]) (*connect_go.Response[gen.GetNodeInfoResponse], error)
 	SaveProject(context.Context, *connect_go.Request[gen.SaveProjectRequest]) (*connect_go.Response[gen.SaveProjectResponse], error)
 	RunWorkflow(context.Context, *connect_go.Request[gen.RunWorkflowRequest], *connect_go.ServerStream[gen.NodeExecution]) error
+	StopWorkflow(context.Context, *connect_go.Request[gen.StopWorkflowRequest]) (*connect_go.Response[gen.StopWorkflowResponse], error)
 	GetWorkflowRuns(context.Context, *connect_go.Request[gen.GetWorkflowRunsRequest]) (*connect_go.Response[gen.GetWorkflowRunsResponse], error)
 }
 
@@ -277,9 +341,24 @@ type ProjectServiceHandler interface {
 // By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
 // and JSON codecs. They also support gzip compression.
 func NewProjectServiceHandler(svc ProjectServiceHandler, opts ...connect_go.HandlerOption) (string, http.Handler) {
+	projectServiceGetProjectTypesHandler := connect_go.NewUnaryHandler(
+		ProjectServiceGetProjectTypesProcedure,
+		svc.GetProjectTypes,
+		opts...,
+	)
 	projectServiceSendChatHandler := connect_go.NewServerStreamHandler(
 		ProjectServiceSendChatProcedure,
 		svc.SendChat,
+		opts...,
+	)
+	projectServiceExportProjectHandler := connect_go.NewUnaryHandler(
+		ProjectServiceExportProjectProcedure,
+		svc.ExportProject,
+		opts...,
+	)
+	projectServiceLoadProjectHandler := connect_go.NewUnaryHandler(
+		ProjectServiceLoadProjectProcedure,
+		svc.LoadProject,
 		opts...,
 	)
 	projectServiceGetProjectHandler := connect_go.NewUnaryHandler(
@@ -337,6 +416,11 @@ func NewProjectServiceHandler(svc ProjectServiceHandler, opts ...connect_go.Hand
 		svc.RunWorkflow,
 		opts...,
 	)
+	projectServiceStopWorkflowHandler := connect_go.NewUnaryHandler(
+		ProjectServiceStopWorkflowProcedure,
+		svc.StopWorkflow,
+		opts...,
+	)
 	projectServiceGetWorkflowRunsHandler := connect_go.NewUnaryHandler(
 		ProjectServiceGetWorkflowRunsProcedure,
 		svc.GetWorkflowRuns,
@@ -344,8 +428,14 @@ func NewProjectServiceHandler(svc ProjectServiceHandler, opts ...connect_go.Hand
 	)
 	return "/project.ProjectService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
+		case ProjectServiceGetProjectTypesProcedure:
+			projectServiceGetProjectTypesHandler.ServeHTTP(w, r)
 		case ProjectServiceSendChatProcedure:
 			projectServiceSendChatHandler.ServeHTTP(w, r)
+		case ProjectServiceExportProjectProcedure:
+			projectServiceExportProjectHandler.ServeHTTP(w, r)
+		case ProjectServiceLoadProjectProcedure:
+			projectServiceLoadProjectHandler.ServeHTTP(w, r)
 		case ProjectServiceGetProjectProcedure:
 			projectServiceGetProjectHandler.ServeHTTP(w, r)
 		case ProjectServiceGetProjectsProcedure:
@@ -368,6 +458,8 @@ func NewProjectServiceHandler(svc ProjectServiceHandler, opts ...connect_go.Hand
 			projectServiceSaveProjectHandler.ServeHTTP(w, r)
 		case ProjectServiceRunWorkflowProcedure:
 			projectServiceRunWorkflowHandler.ServeHTTP(w, r)
+		case ProjectServiceStopWorkflowProcedure:
+			projectServiceStopWorkflowHandler.ServeHTTP(w, r)
 		case ProjectServiceGetWorkflowRunsProcedure:
 			projectServiceGetWorkflowRunsHandler.ServeHTTP(w, r)
 		default:
@@ -379,8 +471,20 @@ func NewProjectServiceHandler(svc ProjectServiceHandler, opts ...connect_go.Hand
 // UnimplementedProjectServiceHandler returns CodeUnimplemented from all methods.
 type UnimplementedProjectServiceHandler struct{}
 
+func (UnimplementedProjectServiceHandler) GetProjectTypes(context.Context, *connect_go.Request[gen.GetProjectTypesRequest]) (*connect_go.Response[gen.ProjectTypes], error) {
+	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("project.ProjectService.GetProjectTypes is not implemented"))
+}
+
 func (UnimplementedProjectServiceHandler) SendChat(context.Context, *connect_go.Request[gen.SendChatRequest], *connect_go.ServerStream[gen.SendChatResponse]) error {
 	return connect_go.NewError(connect_go.CodeUnimplemented, errors.New("project.ProjectService.SendChat is not implemented"))
+}
+
+func (UnimplementedProjectServiceHandler) ExportProject(context.Context, *connect_go.Request[gen.ExportProjectRequest]) (*connect_go.Response[gen.ExportProjectResponse], error) {
+	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("project.ProjectService.ExportProject is not implemented"))
+}
+
+func (UnimplementedProjectServiceHandler) LoadProject(context.Context, *connect_go.Request[gen.LoadProjectRequest]) (*connect_go.Response[gen.LoadProjectResponse], error) {
+	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("project.ProjectService.LoadProject is not implemented"))
 }
 
 func (UnimplementedProjectServiceHandler) GetProject(context.Context, *connect_go.Request[gen.GetProjectRequest]) (*connect_go.Response[gen.GetProjectResponse], error) {
@@ -425,6 +529,10 @@ func (UnimplementedProjectServiceHandler) SaveProject(context.Context, *connect_
 
 func (UnimplementedProjectServiceHandler) RunWorkflow(context.Context, *connect_go.Request[gen.RunWorkflowRequest], *connect_go.ServerStream[gen.NodeExecution]) error {
 	return connect_go.NewError(connect_go.CodeUnimplemented, errors.New("project.ProjectService.RunWorkflow is not implemented"))
+}
+
+func (UnimplementedProjectServiceHandler) StopWorkflow(context.Context, *connect_go.Request[gen.StopWorkflowRequest]) (*connect_go.Response[gen.StopWorkflowResponse], error) {
+	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("project.ProjectService.StopWorkflow is not implemented"))
 }
 
 func (UnimplementedProjectServiceHandler) GetWorkflowRuns(context.Context, *connect_go.Request[gen.GetWorkflowRunsRequest]) (*connect_go.Response[gen.GetWorkflowRunsResponse], error) {
