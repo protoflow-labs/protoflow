@@ -6,12 +6,10 @@ import (
 	"fmt"
 	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/gen"
-	"github.com/protoflow-labs/protoflow/pkg/util"
 	"github.com/protoflow-labs/protoflow/pkg/util/rx"
 	"github.com/protoflow-labs/protoflow/pkg/workflow/graph"
 	"github.com/protoflow-labs/protoflow/pkg/workflow/resource"
 	"github.com/reactivex/rxgo/v2"
-	"github.com/rs/zerolog/log"
 	"html/template"
 	"net/url"
 	"path"
@@ -118,36 +116,37 @@ func (n *TemplateNode) Wire(ctx context.Context, input graph.Input) (graph.Outpu
 	}, nil
 }
 
-type RESTNode struct {
-	BaseNode
-	*gen.REST
-}
-
-var _ graph.Node = &RESTNode{}
-
-func NewRestNode(node *gen.Node) *RESTNode {
-	return &RESTNode{
-		BaseNode: NewBaseNode(node),
-		REST:     node.GetRest(),
-	}
-}
-
-func (n *RESTNode) Wire(ctx context.Context, input graph.Input) (graph.Output, error) {
-	log.Debug().
-		Interface("headers", n.Headers).
-		Str("method", n.Method).
-		Str("path", n.Path).
-		Msgf("executing rest")
-	// TODO breadchris turn this into streamable because why not
-	item, err := input.Observable.First().Get()
-	if err != nil {
-		return graph.Output{}, errors.Wrapf(err, "error getting first item from observable")
-	}
-	res, err := util.InvokeMethodOnUrl(n.Method, n.Path, n.Headers, item.V)
-	if err != nil {
-		return graph.Output{Observable: rxgo.Empty()}, nil
-	}
-	return graph.Output{
-		Observable: rxgo.Just(res)(),
-	}, nil
-}
+//
+//type RESTNode struct {
+//	BaseNode
+//	*gen.REST
+//}
+//
+//var _ graph.Node = &RESTNode{}
+//
+//func NewRestNode(node *gen.Node) *RESTNode {
+//	return &RESTNode{
+//		BaseNode: NewBaseNode(node),
+//		REST:     node.GetRest(),
+//	}
+//}
+//
+//func (n *RESTNode) Wire(ctx context.Context, input graph.Input) (graph.Output, error) {
+//	log.Debug().
+//		Interface("headers", n.Headers).
+//		Str("method", n.Method).
+//		Str("path", n.Path).
+//		Msgf("executing rest")
+//	// TODO breadchris turn this into streamable because why not
+//	item, err := input.Observable.First().Get()
+//	if err != nil {
+//		return graph.Output{}, errors.Wrapf(err, "error getting first item from observable")
+//	}
+//	res, err := util.InvokeMethodOnUrl(n.Method, n.Path, n.Headers, item.V)
+//	if err != nil {
+//		return graph.Output{Observable: rxgo.Empty()}, nil
+//	}
+//	return graph.Output{
+//		Observable: rxgo.Just(res)(),
+//	}, nil
+//}

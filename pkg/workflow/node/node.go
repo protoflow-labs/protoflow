@@ -15,30 +15,26 @@ func NewNode(node *gen.Node) (graph.Node, error) {
 	switch node.Config.(type) {
 	case *gen.Node_Grpc:
 		return NewGRPCNode(node), nil
-	case *gen.Node_Collection:
-		return NewCollectionNode(node), nil
-	case *gen.Node_Bucket:
-		return NewBucketNode(node), nil
-	case *gen.Node_Rest:
-		return NewRestNode(node), nil
 	case *gen.Node_Input:
 		return NewInputNode(node), nil
 	case *gen.Node_Function:
 		return NewFunctionNode(node), nil
-	case *gen.Node_Query:
-		return NewQueryNode(node), nil
 	case *gen.Node_Prompt:
 		return NewPromptNode(node), nil
-	case *gen.Node_Configuration:
-		return NewConfigNode(node), nil
-	case *gen.Node_Secret:
-		return NewSecretNode(node), nil
 	case *gen.Node_Template:
 		return NewTemplateNode(node), nil
 	case *gen.Node_Route:
 		return NewRouteNode(node), nil
-	case *gen.Node_File:
-		return NewFileNode(node), nil
+	//case *gen.Node_Collection:
+	//	return NewCollectionNode(node), nil
+	//case *gen.Node_Bucket:
+	//	return NewBucketNode(node), nil
+	//case *gen.Node_Query:
+	//	return NewQueryNode(node), nil
+	//case *gen.Node_Configuration:
+	//	return NewConfigNode(node), nil
+	//case *gen.Node_File:
+	//	return NewFileNode(node), nil
 	default:
 		return nil, errors.New("no node found")
 	}

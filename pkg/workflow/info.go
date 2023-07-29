@@ -30,60 +30,6 @@ func (w *Workflow) GetNodeInfo(n graph.Node) (*graph.Info, error) {
 			}
 			return w.GetNodeInfo(n)
 		}
-	case *worknode.BucketNode:
-		// TODO breadchris how do you handle file permissions?
-		reqMsg := builder.NewMessage("Request")
-		reqMsg = reqMsg.AddField(builder.NewField("path", builder.FieldTypeString()))
-		reqMsg = reqMsg.AddField(builder.NewField("data", builder.FieldTypeBytes()))
-		req := builder.RpcTypeMessage(reqMsg, true)
-
-		resMsg := builder.NewMessage("Response")
-		resMsg = resMsg.AddField(builder.NewField("path", builder.FieldTypeString()))
-		// TODO breadchris what does this type mean if it streaming or not? sync vs async?
-		res := builder.RpcTypeMessage(resMsg, false)
-
-		s := builder.NewService("Service")
-		b := builder.NewMethod(n.NormalizedName(), req, res)
-		s.AddMethod(b)
-
-		m, err := b.Build()
-		if err != nil {
-			return nil, err
-		}
-
-		mthd, err := grpc.NewMethodDescriptor(m.UnwrapMethod())
-		if err != nil {
-			return nil, err
-		}
-		resp = &graph.Info{
-			Method: mthd,
-		}
-	case *worknode.FileNode:
-		// TODO breadchris how do you handle file permissions?
-		reqMsg := builder.NewMessage("Request")
-		req := builder.RpcTypeMessage(reqMsg, false)
-
-		resMsg := builder.NewMessage("Response")
-		resMsg = resMsg.AddField(builder.NewField("path", builder.FieldTypeString()))
-		// TODO breadchris what does this type mean if it streaming or not? sync vs async?
-		res := builder.RpcTypeMessage(resMsg, false)
-
-		s := builder.NewService("Service")
-		b := builder.NewMethod(n.NormalizedName(), req, res)
-		s.AddMethod(b)
-
-		m, err := b.Build()
-		if err != nil {
-			return nil, err
-		}
-
-		mthd, err := grpc.NewMethodDescriptor(m.UnwrapMethod())
-		if err != nil {
-			return nil, err
-		}
-		resp = &graph.Info{
-			Method: mthd,
-		}
 	case *worknode.PromptNode:
 		reqMsg := builder.NewMessage("Request")
 		reqMsg = reqMsg.AddField(builder.NewField("message", builder.FieldTypeString()))
@@ -205,6 +151,60 @@ func (w *Workflow) GetNodeInfo(n graph.Node) (*graph.Info, error) {
 		return &graph.Info{
 			Method: mthd,
 		}, nil
+	//case *worknode.BucketNode:
+	//	// TODO breadchris how do you handle file permissions?
+	//	reqMsg := builder.NewMessage("Request")
+	//	reqMsg = reqMsg.AddField(builder.NewField("path", builder.FieldTypeString()))
+	//	reqMsg = reqMsg.AddField(builder.NewField("data", builder.FieldTypeBytes()))
+	//	req := builder.RpcTypeMessage(reqMsg, true)
+	//
+	//	resMsg := builder.NewMessage("Response")
+	//	resMsg = resMsg.AddField(builder.NewField("path", builder.FieldTypeString()))
+	//	// TODO breadchris what does this type mean if it streaming or not? sync vs async?
+	//	res := builder.RpcTypeMessage(resMsg, false)
+	//
+	//	s := builder.NewService("Service")
+	//	b := builder.NewMethod(n.NormalizedName(), req, res)
+	//	s.AddMethod(b)
+	//
+	//	m, err := b.Build()
+	//	if err != nil {
+	//		return nil, err
+	//	}
+	//
+	//	mthd, err := grpc.NewMethodDescriptor(m.UnwrapMethod())
+	//	if err != nil {
+	//		return nil, err
+	//	}
+	//	resp = &graph.Info{
+	//		Method: mthd,
+	//	}
+	//case *worknode.FileNode:
+	//	// TODO breadchris how do you handle file permissions?
+	//	reqMsg := builder.NewMessage("Request")
+	//	req := builder.RpcTypeMessage(reqMsg, false)
+	//
+	//	resMsg := builder.NewMessage("Response")
+	//	resMsg = resMsg.AddField(builder.NewField("path", builder.FieldTypeString()))
+	//	// TODO breadchris what does this type mean if it streaming or not? sync vs async?
+	//	res := builder.RpcTypeMessage(resMsg, false)
+	//
+	//	s := builder.NewService("Service")
+	//	b := builder.NewMethod(n.NormalizedName(), req, res)
+	//	s.AddMethod(b)
+	//
+	//	m, err := b.Build()
+	//	if err != nil {
+	//		return nil, err
+	//	}
+	//
+	//	mthd, err := grpc.NewMethodDescriptor(m.UnwrapMethod())
+	//	if err != nil {
+	//		return nil, err
+	//	}
+	//	resp = &graph.Info{
+	//		Method: mthd,
+	//	}
 	default:
 		res, err := w.GetNodeResource(n.ID())
 		if err != nil {

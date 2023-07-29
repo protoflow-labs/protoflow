@@ -104,10 +104,10 @@ export default function ChatPanel() {
                                                     return '';
                                                 }
                                                 const parsed = JSON.parse(item);
-                                                // if (Object.keys(parsed).length === 1) {
-                                                //     const value: any = Object.values(parsed)[0];
-                                                //     return (<ReactMarkdown>{value.toString()}</ReactMarkdown>);
-                                                // }
+                                                if (Object.keys(parsed).length === 1) {
+                                                    const value: any = Object.values(parsed)[0];
+                                                    return (<ReactMarkdown>{value.toString()}</ReactMarkdown>);
+                                                }
                                                 return <JsonViewer data={parsed} />;
                                             }
                                             return (

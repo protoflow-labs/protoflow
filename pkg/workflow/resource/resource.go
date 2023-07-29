@@ -90,16 +90,6 @@ func FromProto(r *gen.Resource) (graph.Resource, error) {
 			BaseResource: base,
 			GRPCService:  t.GrpcService,
 		}, nil
-	case *gen.Resource_DocStore:
-		return &DocstoreResource{
-			BaseResource: base,
-			DocStore:     t.DocStore,
-		}, nil
-	case *gen.Resource_FileStore:
-		return &FileStoreResource{
-			BaseResource: base,
-			FileStore:    t.FileStore,
-		}, nil
 	case *gen.Resource_ReasoningEngine:
 		return &ReasoningEngineResource{
 			BaseResource:    base,
@@ -109,11 +99,6 @@ func FromProto(r *gen.Resource) (graph.Resource, error) {
 		return &ConfigProviderResource{
 			BaseResource:   base,
 			ConfigProvider: t.ConfigProvider,
-		}, nil
-	case *gen.Resource_SecretStore:
-		return &SecretStoreResource{
-			BaseResource: base,
-			SecretStore:  t.SecretStore,
 		}, nil
 	case *gen.Resource_TemplateService:
 		return &TemplateServiceResource{
@@ -125,6 +110,16 @@ func FromProto(r *gen.Resource) (graph.Resource, error) {
 			BaseResource: base,
 			HTTPRouter:   t.HttpRouter,
 		}, nil
+	//case *gen.Resource_DocStore:
+	//	return &DocstoreResource{
+	//		BaseResource: base,
+	//		DocStore:     t.DocStore,
+	//	}, nil
+	//case *gen.Resource_FileStore:
+	//	return &FileStoreResource{
+	//		BaseResource: base,
+	//		FileStore:    t.FileStore,
+	//	}, nil
 	default:
 		return nil, fmt.Errorf("no resource found with type: %s", t)
 	}

@@ -105,6 +105,7 @@ const InputFormContents: FC<InputFormContentsProps> = (props) => {
         }
         const enumTypeName = `${fieldPath}.${field.name}`;
         const enumType = enumLookup[enumTypeName];
+        console.log(enumLookup, enumTypeName, enumType)
         if (!enumType) {
             throw new Error(`Enum type ${fieldPath}.${field.name} not found in ${Object.keys(enumLookup)}`);
         }
