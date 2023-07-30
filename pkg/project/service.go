@@ -7,7 +7,10 @@ import (
 	"github.com/jhump/protoreflect/desc"
 	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/gen"
+	"github.com/protoflow-labs/protoflow/gen/code"
 	"github.com/protoflow-labs/protoflow/gen/genconnect"
+	pgrpc "github.com/protoflow-labs/protoflow/gen/grpc"
+	"github.com/protoflow-labs/protoflow/gen/storage"
 	"github.com/protoflow-labs/protoflow/pkg/bucket"
 	"github.com/protoflow-labs/protoflow/pkg/grpc"
 	openaiclient "github.com/protoflow-labs/protoflow/pkg/openai"
@@ -77,11 +80,16 @@ func nodesFromFiles(u string) ([]*gen.Node, error) {
 
 	var nodes []*gen.Node
 	for _, file := range files {
+		// TODO breadchris need to collapse this instantiation
 		nodes = append(nodes, &gen.Node{
 			Name: file.Name(),
-			Config: &gen.Node_File{
-				File: &gen.File{
-					Path: file.Name(),
+			Type: &gen.Node_Storage{
+				Storage: &storage.Storage{
+					Type: &storage.Storage_File{
+						File: &storage.File{
+							Path: file.Name(),
+						},
+					},
 				},
 			},
 		})
@@ -89,38 +97,45 @@ func nodesFromFiles(u string) ([]*gen.Node, error) {
 	return nodes, nil
 }
 
-func hydrateBlocksForResources(projectResources []*gen.Resource) ([]*gen.EnumeratedResource, error) {
-	var resources []*gen.EnumeratedResource
-	for _, resource := range projectResources {
-		info := &gen.ResourceInfo{
-			State: gen.ResourceState_READY,
+// TODO breadchris this will be something that needs to be specified when someone is calling the API
+func enumerateProvidersFromNodes(nodes []*gen.Node) ([]*gen.EnumeratedProvider, error) {
+	var resources []*gen.EnumeratedProvider
+	for _, node := range nodes {
+		info := &gen.ProviderInfo{
+			State: gen.ProviderState_READY,
 			Error: "",
 		}
 
 		var (
-			nodes []*gen.Node
-			err   error
+			providedNodes []*gen.Node
+			err           error
 		)
-		switch resource.Type.(type) {
-		case *gen.Resource_FileStore:
-			fileStore := resource.GetFileStore()
-			nodes, err = nodesFromFiles(fileStore.Url)
-		case *gen.Resource_GrpcService:
-			nodes, err = grpc.EnumerateResourceBlocks(resource.GetGrpcService(), false)
-		case *gen.Resource_LanguageService:
-			l := resource.GetLanguageService()
-			nodes, err = grpc.EnumerateResourceBlocks(l.GetGrpc(), true)
+		switch t := node.Type.(type) {
+		case *gen.Node_Storage:
+			switch u := t.Storage.Type.(type) {
+			case *storage.Storage_Folder:
+				providedNodes, err = nodesFromFiles(u.Folder.Url)
+			}
+		case *gen.Node_Grpc:
+			switch u := t.Grpc.Type.(type) {
+			case *pgrpc.GRPC_Server:
+				providedNodes, err = grpc.EnumerateResourceBlocks(u.Server, false)
+			}
+		case *gen.Node_Code:
+			switch u := t.Code.Type.(type) {
+			case *code.Code_Server:
+				providedNodes, err = grpc.EnumerateResourceBlocks(u.Server.Grpc, false)
+			}
+		default:
+			continue
 		}
 		if err != nil {
-			info.State = gen.ResourceState_ERROR
+			info.State = gen.ProviderState_ERROR
 			info.Error = err.Error()
 		}
-		for _, node := range nodes {
-			node.ResourceId = resource.Id
-		}
-		resources = append(resources, &gen.EnumeratedResource{
-			Resource: resource,
-			Nodes:    nodes,
+		resources = append(resources, &gen.EnumeratedProvider{
+			Provider: node,
+			Nodes:    providedNodes,
 			Info:     info,
 		})
 	}

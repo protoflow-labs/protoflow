@@ -1,17 +1,18 @@
 syntax = "proto3";
 
-import "block.proto";
-import "resource.proto";
+import "grpc/grpc.proto";
+import "reason/reason.proto";
+import "data/data.proto";
+import "http/http.proto";
+import "storage/storage.proto";
+import "code/code.proto";
 
 package graph;
 option go_package = "graph";
 
 message Graph {
-  // TODO breadchris get rid of id and name, they are not needed
-  string id = 1;
-  string name = 2;
-  repeated Node nodes = 3;
-  repeated Edge edges = 4;
+  repeated Node nodes = 1;
+  repeated Edge edges = 2;
 }
 
 message Node {
@@ -20,35 +21,31 @@ message Node {
   float x = 4;
   float y = 5;
 
-  string resource_id = 6;
-
-  oneof config {
-    block.REST rest = 7;
-    block.GRPC grpc = 8;
-    block.Collection collection = 9;
-    block.Bucket bucket = 10;
-    block.Input input = 11;
-    block.Function function = 12;
-    block.Query query = 13;
-    block.Prompt prompt = 14;
-    block.Config configuration = 15;
-    block.Route route = 16;
-    block.Template template = 17;
-    block.Secret secret = 18;
-    block.File file = 19;
+  oneof type {
+    data.Data data = 7;
+    reason.Reason reason = 8;
+    grpc.GRPC grpc = 9;
+    http.HTTP http = 10;
+    storage.Storage storage = 11;
+    code.Code code = 12;
   }
 }
+
+// TODO breadchris message NodeInstance { node_id, name, x, y } for displaying
 
 message CodeAdapter {
   string code = 1;
 }
+
+message Provides {}
 
 message Edge {
    string id = 1;
    string from = 2;
    string to = 3;
 
-   oneof config {
+   oneof type {
      CodeAdapter code_adapter = 4;
+     Provides provides = 5;
    }
 }

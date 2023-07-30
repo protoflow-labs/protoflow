@@ -16,16 +16,12 @@ func ConvertProto(p *gen.Project) *protoProject[*gen.Node] {
 	for _, e := range p.GetGraph().GetEdges() {
 		pp.graph.edges = append(pp.graph.edges, e)
 	}
-	for _, r := range p.GetResources() {
-		pp.resources = append(pp.resources, r)
-	}
 	return pp
 }
 
 type ProtoNode interface {
 	protoreflect.ProtoMessage
 	GetId() string
-	GetResourceId() string
 }
 
 type ProtoEdge interface {
@@ -65,17 +61,11 @@ func (g *protoGraph[T]) SetEdges(edges []*gen.Edge) {
 type ProtoProject[T ProtoNode] interface {
 	GetId() string
 	GetGraph() ProtoGraph[T]
-	GetResources() []*gen.Resource
 }
 
 type protoProject[T ProtoNode] struct {
-	id        string
-	graph     protoGraph[T]
-	resources []*gen.Resource
-}
-
-func (p *protoProject[T]) GetResources() []*gen.Resource {
-	return p.resources
+	id    string
+	graph protoGraph[T]
 }
 
 func (p *protoProject[T]) SetId(id string) {

@@ -6,11 +6,11 @@ import (
 	"github.com/bufbuild/connect-go"
 	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/gen"
+	phttp "github.com/protoflow-labs/protoflow/gen/http"
+	"github.com/protoflow-labs/protoflow/pkg/node/http"
 	"github.com/protoflow-labs/protoflow/pkg/util/rx"
 	"github.com/protoflow-labs/protoflow/pkg/workflow"
 	"github.com/protoflow-labs/protoflow/pkg/workflow/graph"
-	"github.com/protoflow-labs/protoflow/pkg/workflow/node"
-	"github.com/protoflow-labs/protoflow/pkg/workflow/resource"
 	"github.com/reactivex/rxgo/v2"
 	"github.com/rs/zerolog/log"
 )
@@ -21,7 +21,7 @@ func (s *Service) startWorkflow(
 	nodeID string,
 	workflowInput any,
 	// TODO breadchris this should not be needed
-	httpStream *resource.HTTPEventStream,
+	httpStream *http.HTTPEventStream,
 ) (rxgo.Observable, error) {
 	log.Debug().
 		Str("workflow", w.ID).
@@ -39,7 +39,7 @@ func (s *Service) startWorkflow(
 		httpRequest bool
 	)
 	switch n.(type) {
-	case *node.RouteNode:
+	case *http.RouteNode:
 		inputObs = httpStream.RequestObs
 		httpRequest = true
 	default:
@@ -90,12 +90,12 @@ func (s *Service) RunWorkflow(ctx context.Context, c *connect.Request[gen.RunWor
 		observables []rxgo.Observable
 	)
 
-	httpStream := resource.NewHTTPEventStream()
+	httpStream := http.NewHTTPEventStream()
 
 	if c.Msg.StartServer {
 		for _, n := range w.NodeLookup {
 			switch n.(type) {
-			case *node.RouteNode:
+			case *http.RouteNode:
 				entrypoints = append(entrypoints, n.ID())
 			}
 		}
@@ -118,7 +118,7 @@ func (s *Service) RunWorkflow(ctx context.Context, c *connect.Request[gen.RunWor
 	)
 	<-obs.ForEach(func(item any) {
 		switch t := item.(type) {
-		case *gen.HttpResponse:
+		case *phttp.Response:
 			httpStream.Responses <- t
 			log.Debug().Msg("sent http response")
 		}

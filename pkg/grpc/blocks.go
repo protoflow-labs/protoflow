@@ -7,6 +7,8 @@ import (
 	"github.com/jhump/protoreflect/desc/builder"
 	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/gen"
+	"github.com/protoflow-labs/protoflow/gen/code"
+	pgrpc "github.com/protoflow-labs/protoflow/gen/grpc"
 	"github.com/rs/zerolog/log"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -14,14 +16,14 @@ import (
 	"google.golang.org/protobuf/types/descriptorpb"
 )
 
-func EnumerateResourceBlocks(service *gen.GRPCService, isLangService bool) ([]*gen.Node, error) {
-	if service.Host == "" {
+func EnumerateResourceBlocks(server *pgrpc.Server, isLangService bool) ([]*gen.Node, error) {
+	if server.Host == "" {
 		return nil, errors.New("host is required")
 	}
 
-	conn, err := grpc.Dial(service.Host, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.Dial(server.Host, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		return nil, errors.Wrapf(err, "unable to connect to python server at %s", service.Host)
+		return nil, errors.Wrapf(err, "unable to connect to python server at %s", server.Host)
 	}
 
 	// TODO breadchris there is some repeat code, the grpc package has some code from Buf that does reflection already
@@ -30,14 +32,14 @@ func EnumerateResourceBlocks(service *gen.GRPCService, isLangService bool) ([]*g
 		return nil, errors.Wrapf(err, "unable to get all methods via reflection")
 	}
 
-	log.Debug().Str("service", service.Host).Msgf("found %d methods", len(methodDesc))
+	log.Debug().Str("server", server.Host).Msgf("found %d methods", len(methodDesc))
 
 	var blocks []*gen.Node
 	for _, m := range methodDesc {
 		serviceName := m.GetService().GetName()
 		methodName := m.GetName()
 
-		grpcInfo := &gen.GRPC{
+		grpcInfo := &pgrpc.Method{
 			Package: m.GetFile().GetPackage(),
 			Service: serviceName,
 			Method:  methodName,
@@ -46,13 +48,21 @@ func EnumerateResourceBlocks(service *gen.GRPCService, isLangService bool) ([]*g
 		block := &gen.Node{
 			Id:   uuid.New().String(),
 			Name: methodName,
-			Config: &gen.Node_Grpc{
-				Grpc: grpcInfo,
+			Type: &gen.Node_Grpc{
+				Grpc: &pgrpc.GRPC{
+					Type: &pgrpc.GRPC_Method{
+						Method: grpcInfo,
+					},
+				},
 			},
 		}
 		if isLangService {
-			block.Config = &gen.Node_Function{
-				Function: &gen.Function{},
+			block.Type = &gen.Node_Code{
+				Code: &code.Code{
+					Type: &code.Code_Function{
+						Function: &code.Function{},
+					},
+				},
 			}
 		}
 		blocks = append(blocks, block)

@@ -5,8 +5,10 @@ import (
 	"github.com/jhump/protoreflect/desc/builder"
 	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/pkg/grpc"
+	"github.com/protoflow-labs/protoflow/pkg/node/code"
+	"github.com/protoflow-labs/protoflow/pkg/node/data"
+	"github.com/protoflow-labs/protoflow/pkg/node/reason"
 	"github.com/protoflow-labs/protoflow/pkg/workflow/graph"
-	worknode "github.com/protoflow-labs/protoflow/pkg/workflow/node"
 	"github.com/rs/zerolog/log"
 	"github.com/samber/lo"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -16,7 +18,7 @@ import (
 func (w *Workflow) GetNodeInfo(n graph.Node) (*graph.Info, error) {
 	var resp *graph.Info
 	switch n.(type) {
-	case *worknode.InputNode:
+	case *data.InputNode:
 		children := w.AdjMap[n.ID()]
 		if len(children) != 1 {
 			// TODO breadchris support multiple children
@@ -30,7 +32,7 @@ func (w *Workflow) GetNodeInfo(n graph.Node) (*graph.Info, error) {
 			}
 			return w.GetNodeInfo(n)
 		}
-	case *worknode.PromptNode:
+	case *reason.PromptNode:
 		reqMsg := builder.NewMessage("Request")
 		reqMsg = reqMsg.AddField(builder.NewField("message", builder.FieldTypeString()))
 		req := builder.RpcTypeMessage(reqMsg, true)
@@ -55,7 +57,7 @@ func (w *Workflow) GetNodeInfo(n graph.Node) (*graph.Info, error) {
 		resp = &graph.Info{
 			Method: mthd,
 		}
-	case *worknode.FunctionNode:
+	case *code.FunctionNode:
 		children := w.AdjMap[n.ID()]
 		parents := w.PreMap[n.ID()]
 
@@ -75,7 +77,7 @@ func (w *Workflow) GetNodeInfo(n graph.Node) (*graph.Info, error) {
 			}
 
 			switch n.(type) {
-			case *worknode.FunctionNode:
+			case *code.FunctionNode:
 				log.Warn().
 					Str("parent", n.ID()).
 					Str("child", child).
@@ -102,7 +104,7 @@ func (w *Workflow) GetNodeInfo(n graph.Node) (*graph.Info, error) {
 			}
 
 			switch n.(type) {
-			case *worknode.FunctionNode:
+			case *code.FunctionNode:
 				log.Warn().
 					Str("parent", parent).
 					Str("child", n.ID()).
@@ -206,11 +208,7 @@ func (w *Workflow) GetNodeInfo(n graph.Node) (*graph.Info, error) {
 	//		Method: mthd,
 	//	}
 	default:
-		res, err := w.GetNodeResource(n.ID())
-		if err != nil {
-			return nil, errors.Wrapf(err, "error getting node resource for %s", n.NormalizedName())
-		}
-		return n.Info(res)
+		return n.Info()
 	}
 	return resp, nil
 }

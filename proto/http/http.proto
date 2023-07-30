@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+package http;
+option go_package = "http";
+
+message Header {
+  string name = 1;
+  string value = 2;
+}
+
+message Request {
+  string method = 1;
+  string url = 2;
+  repeated Header headers = 3;
+  bytes body = 4;
+}
+
+message Response {
+  repeated Header headers = 1;
+  bytes body = 2;
+}
+
+message Route {
+  string path = 1;
+  string method = 2;
+}
+
+message Template {
+  string template = 1;
+}
+
+message Router {
+  string root = 1;
+}
+
+message HTTP {
+  oneof type {
+    Route route = 9;
+    Template template = 10;
+    Router router = 11;
+  }
+}

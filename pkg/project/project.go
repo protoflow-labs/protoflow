@@ -79,10 +79,6 @@ func (s *Service) SaveProject(ctx context.Context, req *connect.Request[gen.Save
 
 	project.Graph = req.Msg.Graph
 
-	if len(req.Msg.Resources) > 0 {
-		project.Resources = req.Msg.Resources
-	}
-
 	_, err = s.store.SaveProject(project)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to save project %s", project.Id)

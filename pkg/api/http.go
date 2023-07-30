@@ -6,9 +6,9 @@ import (
 	"github.com/bufbuild/connect-go"
 	"github.com/google/wire"
 	"github.com/pkg/errors"
-	"github.com/protoflow-labs/protoflow/gen"
+	phttp "github.com/protoflow-labs/protoflow/gen/http"
+	nhttp "github.com/protoflow-labs/protoflow/pkg/node/http"
 	"github.com/protoflow-labs/protoflow/pkg/util/rx"
-	"github.com/protoflow-labs/protoflow/pkg/workflow/resource"
 	"github.com/protoflow-labs/protoflow/studio/public"
 	"github.com/rs/zerolog/log"
 	"io"
@@ -51,12 +51,12 @@ func NewLogInterceptor() connect.UnaryInterceptorFunc {
 	return interceptor
 }
 
-func ParseHttpRequest(r *http.Request) (*gen.HttpRequest, error) {
-	var req gen.HttpRequest
-	h := make([]*gen.Header, 0)
+func ParseHttpRequest(r *http.Request) (*phttp.Request, error) {
+	var req phttp.Request
+	h := make([]*phttp.Header, 0)
 	for name, headers := range r.Header {
 		for _, hValue := range headers {
-			h = append(h, &gen.Header{Name: name, Value: hValue})
+			h = append(h, &phttp.Header{Name: name, Value: hValue})
 		}
 	}
 	req.Method = r.Method
@@ -115,7 +115,7 @@ func NewHTTPServer(
 	}
 	proxy := httputil.NewSingleHostReverseProxy(u)
 
-	httpStream := resource.NewHTTPEventStream()
+	httpStream := nhttp.NewHTTPEventStream()
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {

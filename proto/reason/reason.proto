@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package reason;
+option go_package = "reason";
+
+message Prompt {
+  string prompt = 1;
+}
+
+message Engine {
+
+}
+
+message Reason {
+  oneof type {
+    Prompt prompt = 1;
+    Engine engine = 2;
+  }
+}

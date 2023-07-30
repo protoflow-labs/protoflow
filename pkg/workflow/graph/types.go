@@ -11,14 +11,13 @@ import (
 
 type Input struct {
 	Observable rxgo.Observable
-	Resource   Resource
 }
 
 type Output struct {
 	Observable rxgo.Observable
 }
 
-type DependencyProvider map[string]Resource
+type DependencyProvider map[string]Node
 
 type Info struct {
 	Method *grpc.MethodDescriptor
@@ -41,25 +40,23 @@ type IOFunc func(ctx context.Context, input Input) (Output, error)
 type Node interface {
 	NormalizedName() string
 	ID() string
-	ResourceID() string
-	Info(r Resource) (*Info, error)
+	Info() (*Info, error)
 	// Represent the node as a string
 	Represent() (string, error)
 	// Wire up the node to an input stream of data and return an output stream of data
 	Wire(ctx context.Context, input Input) (Output, error)
+
+	Init() (func(), error)
+
+	AddPredecessor(n Node)
+	AddSuccessor(n Node)
+	Predecessors() []Node
+	Successors() []Node
+	Provider() (Node, error)
+	//DeploymentInfo() (*DeploymentInfo, error)
 }
 
 type Edge struct {
 	From Node
 	To   Node
-}
-
-type Resource interface {
-	Name() string
-	Init() (func(), error)
-	ID() string
-	AddNode(n Node)
-	Nodes() []Node
-	ResolveDependencies(dp DependencyProvider) error
-	//DeploymentInfo() (*DeploymentInfo, error)
 }

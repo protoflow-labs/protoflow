@@ -3,14 +3,14 @@ package generate
 import (
 	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/pkg/bucket"
-	"github.com/protoflow-labs/protoflow/pkg/workflow/resource"
+	"github.com/protoflow-labs/protoflow/pkg/node/code"
 )
 
 type GoManager struct {
 	codeRoot bucket.Bucket
 }
 
-func (g GoManager) GenerateGRPCService(r *resource.LanguageServiceResource) error {
+func (g GoManager) GenerateGRPCService(r *code.Server) error {
 	//TODO implement me
 	panic("implement me")
 }

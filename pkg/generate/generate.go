@@ -2,11 +2,11 @@ package generate
 
 import (
 	"github.com/pkg/errors"
-	"github.com/protoflow-labs/protoflow/gen"
+	pcode "github.com/protoflow-labs/protoflow/gen/code"
 	"github.com/protoflow-labs/protoflow/pkg/bucket"
+	"github.com/protoflow-labs/protoflow/pkg/node/code"
 	"github.com/protoflow-labs/protoflow/pkg/project"
 	"github.com/protoflow-labs/protoflow/pkg/workflow/graph"
-	"github.com/protoflow-labs/protoflow/pkg/workflow/resource"
 	"github.com/rs/zerolog/log"
 	"os"
 	"path"
@@ -47,13 +47,14 @@ func NewGenerate(config Config) (*Generate, error) {
 }
 
 func (s *Generate) GenerateImplementation(project *project.Project, n graph.Node) error {
-	r, ok := project.Workflow.Resources[n.ResourceID()]
-	if !ok || r == nil {
-		return errors.Errorf("resource %s not found", n.ResourceID())
+	r, err := n.Provider()
+	if err != nil {
+		return errors.Wrapf(err, "error getting node provider")
 	}
+
 	switch r := r.(type) {
-	case *resource.LanguageServiceResource:
-		if r.Runtime == gen.Runtime_NODEJS {
+	case *code.Server:
+		if r.Runtime == pcode.Runtime_NODEJS {
 			jsManager, err := NewNodeJSManager(s.bucket)
 			if err != nil {
 				return errors.Wrap(err, "error creating nodejs manager")
@@ -78,14 +79,14 @@ func (s *Generate) InferNodeType(project *project.Project, n graph.Node) error {
 		return errors.Wrapf(err, "error getting node info")
 	}
 
-	r, ok := project.Workflow.Resources[n.ResourceID()]
-	if !ok || r == nil {
-		return errors.Errorf("resource %s not found", n.ResourceID())
+	r, err := n.Provider()
+	if err != nil {
+		return errors.Wrapf(err, "error getting node provider")
 	}
 	switch r := r.(type) {
-	case *resource.LanguageServiceResource:
+	case *code.Server:
 		switch r.Runtime {
-		case gen.Runtime_NODEJS:
+		case pcode.Runtime_NODEJS:
 			jsManager, err := NewNodeJSManager(s.bucket)
 			if err != nil {
 				return errors.Wrap(err, "error creating nodejs manager")
@@ -101,20 +102,20 @@ func (s *Generate) InferNodeType(project *project.Project, n graph.Node) error {
 }
 
 func (s *Generate) Generate(project *project.Project) error {
-	for _, r := range project.Workflow.Resources {
+	for _, r := range project.Workflow.NodeLookup {
 		if r == nil {
 			log.Error().Msg("resource is nil")
 			continue
 		}
 		switch r := r.(type) {
-		case *resource.LanguageServiceResource:
-			if r.Runtime == gen.Runtime_NODEJS {
+		case *code.Server:
+			if r.Runtime == pcode.Runtime_NODEJS {
 				jsManager, err := NewNodeJSManager(s.bucket)
 				if err != nil {
 					return errors.Wrap(err, "error creating nodejs manager")
 				}
 
-				for _, n := range r.Nodes() {
+				for _, n := range r.Successors() {
 					info, err := project.Workflow.GetNodeInfo(n)
 					if err != nil {
 						return errors.Wrapf(err, "error getting node info")

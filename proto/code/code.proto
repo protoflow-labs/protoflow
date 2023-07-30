@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package code;
+option go_package = "code";
+
+import "grpc/grpc.proto";
+
+enum Runtime {
+  NODEJS = 0;
+  PYTHON = 1;
+  GO = 2;
+}
+
+message Function {
+}
+
+message Server {
+  Runtime runtime = 1;
+  grpc.Server grpc = 2;
+  string path = 3;
+  // string containerURI = 4;
+}
+
+message Code {
+  oneof type {
+    Function function = 1;
+    Server server = 2;
+  }
+}

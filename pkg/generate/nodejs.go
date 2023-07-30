@@ -5,16 +5,15 @@ import (
 	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/pkg/bucket"
 	"github.com/protoflow-labs/protoflow/pkg/grpc"
+	"github.com/protoflow-labs/protoflow/pkg/node/code"
 	"github.com/protoflow-labs/protoflow/pkg/workflow/graph"
-	"github.com/protoflow-labs/protoflow/pkg/workflow/node"
-	"github.com/protoflow-labs/protoflow/pkg/workflow/resource"
 	"github.com/protoflow-labs/protoflow/templates"
 	"path"
 	"strings"
 )
 
 type LanguageManager interface {
-	GenerateGRPCService(r *resource.LanguageServiceResource) error
+	GenerateGRPCService(r *code.Server) error
 }
 
 type NodeJSManager struct {
@@ -38,7 +37,7 @@ type Method struct {
 }
 
 type FunctionTemplate struct {
-	Node *node.FunctionNode
+	Node *code.FunctionNode
 }
 
 type ServiceTemplate struct {
@@ -46,7 +45,7 @@ type ServiceTemplate struct {
 	Methods []Method
 }
 
-func (s *NodeJSManager) GenerateGRPCService(r *resource.LanguageServiceResource) error {
+func (s *NodeJSManager) GenerateGRPCService(r *code.Server) error {
 	var err error
 
 	tmpl, err := s.generateServiceTemplate(r)
@@ -90,9 +89,9 @@ func (s *NodeJSManager) UpdateNodeType(n graph.Node, nodeInfo *graph.Info) error
 	return nil
 }
 
-func (s *NodeJSManager) GenerateFunctionImpl(r *resource.LanguageServiceResource, n graph.Node) error {
+func (s *NodeJSManager) GenerateFunctionImpl(r *code.Server, n graph.Node) error {
 	switch n.(type) {
-	case *node.FunctionNode:
+	case *code.FunctionNode:
 		// create function directory
 		funcDir := path.Join("functions", n.NormalizedName())
 		funcDirPath, err := s.codeRoot.GetFolder(funcDir)
@@ -112,14 +111,14 @@ func (s *NodeJSManager) GenerateFunctionImpl(r *resource.LanguageServiceResource
 	return nil
 }
 
-func (s *NodeJSManager) generateServiceTemplate(r *resource.LanguageServiceResource) (*ServiceTemplate, error) {
+func (s *NodeJSManager) generateServiceTemplate(r *code.Server) (*ServiceTemplate, error) {
 	tmpl := &ServiceTemplate{
 		Runtime: strings.ToLower(r.Runtime.String()),
 		Methods: []Method{},
 	}
-	for _, resNode := range r.Nodes() {
+	for _, resNode := range r.Successors() {
 		switch n := resNode.(type) {
-		case *node.FunctionNode:
+		case *code.FunctionNode:
 
 			method := Method{
 				Name: n.NormalizedName(),

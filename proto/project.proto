@@ -2,31 +2,14 @@ syntax = "proto3";
 
 import "google/protobuf/descriptor.proto";
 import "graph.proto";
-import "block.proto";
-import "resource.proto";
 
 package project;
 option go_package = "project";
 
-enum LayerType {
-    Execution = 0;
-    Resource = 1;
-}
-
-message Layer {
-    LayerType type = 1;
-    graph.Graph graph = 2;
-}
-
 message Project {
     string id = 1;
     string name = 2;
-    string description = 3;
-    string owner = 4;
-    string created_at = 5;
-    string updated_at = 6;
-    graph.Graph graph = 7;
-    repeated resource.Resource resources = 8;
+    graph.Graph graph = 3;
 }
 
 service ProjectService {
@@ -43,10 +26,7 @@ service ProjectService {
     rpc CreateProject(CreateProjectRequest) returns (CreateProjectResponse) {}
     rpc DeleteProject(DeleteProjectRequest) returns (DeleteProjectResponse) {}
 
-    rpc UpdateResource(UpdateResourceRequest) returns (UpdateResourceResponse) {}
-    rpc CreateResource(CreateResourceRequest) returns (CreateResourceResponse) {}
-    rpc GetResources(GetResourcesRequest) returns (GetResourcesResponse) {}
-    rpc DeleteResource(DeleteResourceRequest) returns (DeleteResourceResponse) {}
+    rpc EnumerateProviders(GetProvidersRequest) returns (GetProvidersResponse) {}
 
     rpc GetNodeInfo(GetNodeInfoRequest) returns (GetNodeInfoResponse) {}
 
@@ -88,13 +68,6 @@ message StopWorkflowRequest {
 }
 
 message StopWorkflowResponse {}
-
-message UpdateResourceRequest {
-    string project_id = 1;
-    resource.Resource resource = 2;
-}
-
-message UpdateResourceResponse {}
 
 message Chat {
     string id = 1;
@@ -156,13 +129,6 @@ message GetNodeInfoResponse {
     GRPCTypeInfo type_info = 2;
 }
 
-message DeleteResourceRequest {
-    string project_id = 1;
-    string resource_id = 2;
-}
-
-message DeleteResourceResponse {}
-
 message RuntimeData {
   string name = 1;
   repeated string calls = 2;
@@ -183,15 +149,6 @@ message RunWorkflowRequest {
 
 message Data {
     string value = 1;
-}
-
-message CreateResourceRequest {
-    string project_id = 1;
-    resource.Resource resource = 2;
-}
-
-message CreateResourceResponse {
-    string resource_id = 1;
 }
 
 message GetProjectRequest {
@@ -227,35 +184,34 @@ message DeleteProjectResponse {
     Project project = 1;
 }
 
-message GetResourcesRequest {
+message GetProvidersRequest {
     string project_id = 1;
 }
 
-message EnumeratedResource {
-    resource.Resource resource = 1;
+message EnumeratedProvider {
+    graph.Node provider = 1;
     repeated graph.Node nodes = 2;
-    ResourceInfo info = 3;
+    ProviderInfo info = 3;
 }
 
-message ResourceInfo {
-    ResourceState state = 1;
+message ProviderInfo {
+    ProviderState state = 1;
     string error = 2;
 }
 
-enum ResourceState {
+enum ProviderState {
     UNKNOWN = 0;
     READY = 1;
     ERROR = 2;
 }
 
-message GetResourcesResponse {
-    repeated EnumeratedResource resources = 1;
+message GetProvidersResponse {
+    repeated EnumeratedProvider providers = 1;
 }
 
 message SaveProjectRequest {
     string project_id = 1;
     graph.Graph graph = 2;
-    repeated resource.Resource resources = 3;
 }
 
 message SaveProjectResponse {

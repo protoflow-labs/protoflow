@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package grpc;
+option go_package = "grpc";
+
+message Method {
+  string package = 1;
+  string service = 2;
+  string method = 3;
+}
+
+message Server {
+  string host = 1;
+}
+
+message GRPC {
+  oneof type {
+    Method method = 1;
+    Server server = 2;
+  }
+}

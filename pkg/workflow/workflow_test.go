@@ -2,9 +2,9 @@ package workflow
 
 import (
 	"context"
+	"github.com/protoflow-labs/protoflow/pkg/node"
+	"github.com/protoflow-labs/protoflow/pkg/node/code"
 	"github.com/protoflow-labs/protoflow/pkg/workflow/graph"
-	"github.com/protoflow-labs/protoflow/pkg/workflow/node"
-	"github.com/protoflow-labs/protoflow/pkg/workflow/resource"
 	"github.com/reactivex/rxgo/v2"
 	"github.com/rs/zerolog/log"
 	"testing"
@@ -15,23 +15,22 @@ import (
 func TestRun(t *testing.T) {
 	// TODO breadchris start server to listen for localhost:8080?
 
-	r := resource.NewProto(&gen.Resource{
+	r := node.NewProto(&gen.Resource{
 		Type: &gen.Resource_LanguageService{
 			LanguageService: &gen.LanguageService{},
 		},
 	})
 
-	n1 := node.NewFunctionNode(
-		node.NewFunctionProto("test 1", r.Id),
-		node.WithFunction(node.InMemoryObserver("test 1")),
+	n1 := code.NewFunctionNode(
+		code.NewFunctionProto("test 1", r.Id),
+		code.WithFunction(code.InMemoryObserver("test 1")),
 	)
-	n2 := node.NewFunctionNode(
-		node.NewFunctionProto("test 2", r.Id),
-		node.WithFunction(node.InMemoryObserver("test 2")),
+	n2 := code.NewFunctionNode(
+		code.NewFunctionProto("test 2", r.Id),
+		code.WithFunction(code.InMemoryObserver("test 2")),
 	)
 
 	a, err := Default().
-		WithResource(r).
 		WithBuiltNodes(n1, n2).
 		WithBuiltEdges(graph.Edge{
 			From: n1,

@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+package storage;
+option go_package = "storage";
+
+// TODO breadchris add storage type that supports SQL
+
+message Collection {
+  string name = 1;
+}
+
+message Query {
+  string query = 1;
+}
+
+message Document {
+  oneof type {
+    Collection collection = 1;
+    Query query = 2;
+  }
+}
+
+message Folder {
+  string url = 1;
+}
+
+message File {
+  string path = 1;
+}
+
+message Storage {
+  oneof type {
+    Document document = 1;
+    Folder folder = 2;
+    File file = 3;
+  }
+}

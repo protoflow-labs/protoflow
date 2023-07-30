@@ -7,9 +7,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/gen"
+	"github.com/protoflow-labs/protoflow/pkg/node"
 	"github.com/protoflow-labs/protoflow/pkg/workflow/graph"
-	"github.com/protoflow-labs/protoflow/pkg/workflow/node"
-	"github.com/protoflow-labs/protoflow/pkg/workflow/resource"
 	"github.com/reactivex/rxgo/v2"
 	"github.com/rs/zerolog/log"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -20,7 +19,7 @@ const edgeIDKey = "id"
 type AdjMap map[string]map[string]graphlib.Edge[string]
 
 // TODO breadchris can this be a map[string]Resource?
-type Instances map[string]graph.Resource
+type Instances map[string]graph.Node
 
 // Workflow is a directed graph of nodes that represent a workflow. The builder interface is immutable allowing for extensions.
 type Workflow struct {
@@ -31,10 +30,9 @@ type Workflow struct {
 	NodeLookup map[string]graph.Node
 	AdjMap     AdjMap
 	PreMap     AdjMap
-	Resources  map[string]graph.Resource
 }
 
-type Builder[T graph.ProtoNode] func(message T) (graph.Node, error)
+type Builder[T graph.ProtoNode] func(message T) graph.Node
 
 type WorkflowBuilder[T graph.ProtoNode] struct {
 	w            *Workflow
@@ -45,7 +43,7 @@ type WorkflowBuilder[T graph.ProtoNode] struct {
 // TODO breadchris is a workflow builder type needed so that you separate the build and workflow steps?
 
 func Default() *WorkflowBuilder[*gen.Node] {
-	return NewBuilder[*gen.Node]().WithNodeTypes(&gen.Node{}, node.NewNode)
+	return NewBuilder[*gen.Node]().WithNodeTypes(&gen.Node{}, node.New)
 }
 
 func NewBuilder[T graph.ProtoNode]() *WorkflowBuilder[T] {
@@ -54,7 +52,6 @@ func NewBuilder[T graph.ProtoNode]() *WorkflowBuilder[T] {
 		w: &Workflow{
 			ProjectID: uuid.NewString(),
 			// TODO breadchris can reseources be replaced with a graph?
-			Resources:  graph.DependencyProvider{},
 			NodeLookup: map[string]graph.Node{},
 			Graph:      graphlib.New(graphlib.StringHash, graphlib.Directed(), graphlib.PreventCycles()),
 		},
@@ -74,7 +71,11 @@ func (w *WorkflowBuilder[T]) newNode(n T) (graph.Node, error) {
 	if !ok {
 		return nil, errors.Errorf("no builder found for node type %s", bn)
 	}
-	return nodeBuilder(n)
+	builtNode := nodeBuilder(n)
+	if builtNode == nil {
+		return nil, errors.Errorf("node builder for node type %+v returned nil", n)
+	}
+	return builtNode, nil
 }
 
 func (w *WorkflowBuilder[T]) WithNodeTypes(n T, builder Builder[T]) *WorkflowBuilder[T] {
@@ -123,16 +124,6 @@ func (w *WorkflowBuilder[T]) WithBuiltEdges(edges ...graph.Edge) *WorkflowBuilde
 	return &nw
 }
 
-func (w *WorkflowBuilder[T]) WithResource(r *gen.Resource) *WorkflowBuilder[T] {
-	nw := *w
-	err := nw.addResource(r)
-	if err != nil {
-		nw.err = errors.Wrapf(err, "error adding resource %s", r.Id)
-		return &nw
-	}
-	return &nw
-}
-
 func (w *WorkflowBuilder[T]) addNode(n T) error {
 	builtNode, err := w.newNode(n)
 	if err != nil {
@@ -151,29 +142,12 @@ func (w *WorkflowBuilder[T]) addBuiltNode(builtNode graph.Node) error {
 	}
 
 	w.w.NodeLookup[builtNode.ID()] = builtNode
-	r := w.w.Resources[builtNode.ResourceID()]
-	if r != nil {
-		r.AddNode(builtNode)
-	} else {
-		// TODO breadchris inputs do not have resources, but should they?
-		log.Warn().Str("node", builtNode.NormalizedName()).Msg("no resource found for node")
-	}
 	return nil
 }
 
 // TODO breadchris change to generic edge
 func (w *WorkflowBuilder[T]) addEdge(edge *gen.Edge) error {
 	return w.w.Graph.AddEdge(edge.From, edge.To, graphlib.EdgeAttribute(edgeIDKey, edge.Id))
-}
-
-// TODO breadchris change to generic resource
-func (w *WorkflowBuilder[T]) addResource(protoRes *gen.Resource) error {
-	r, err := resource.FromProto(protoRes)
-	if err != nil {
-		return errors.Wrapf(err, "error creating resource for node %s", protoRes.Id)
-	}
-	w.w.Resources[protoRes.Id] = r
-	return nil
 }
 
 func (w *WorkflowBuilder[T]) WithProtoProject(project graph.ProtoProject[T]) *WorkflowBuilder[T] {
@@ -184,14 +158,6 @@ func (w *WorkflowBuilder[T]) WithProtoProject(project graph.ProtoProject[T]) *Wo
 		return &nw
 	}
 	nw.w.ProjectID = project.GetId()
-
-	for _, protoRes := range project.GetResources() {
-		err := nw.addResource(protoRes)
-		if err != nil {
-			nw.err = errors.Wrapf(err, "error adding resource %s", protoRes.Id)
-			return &nw
-		}
-	}
 
 	for _, n := range g.GetNodes() {
 		err := nw.addNode(n)
@@ -214,11 +180,7 @@ func (w *WorkflowBuilder[T]) WithProtoProject(project graph.ProtoProject[T]) *Wo
 func (w *WorkflowBuilder[T]) Build() (*Workflow, error) {
 	nw := *w
 
-	for _, r := range nw.w.Resources {
-		if err := r.ResolveDependencies(nw.w.Resources); err != nil {
-			return nil, errors.Wrapf(err, "error resolving dependencies for resource %s", r.ID())
-		}
-	}
+	// TODO breadchris resolve dependencies
 
 	adjMap, err := nw.w.Graph.AdjacencyMap()
 	if err != nil {
@@ -247,16 +209,12 @@ func (w *Workflow) GetNode(id string) (graph.Node, error) {
 	return node, nil
 }
 
-func (w *Workflow) GetNodeResource(id string) (graph.Resource, error) {
-	node, err := w.GetNode(id)
+func (w *Workflow) GetNodeProvider(id string) (graph.Node, error) {
+	n, err := w.GetNode(id)
 	if err != nil {
 		return nil, err
 	}
-	r, ok := w.Resources[node.ResourceID()]
-	if !ok {
-		return nil, fmt.Errorf("resource %s not found", node.ResourceID())
-	}
-	return r, nil
+	return n.Provider()
 }
 
 // TODO breadchris nodeID should not be needed, the workflow should already be a slice of the graph that is configured to run
@@ -273,10 +231,10 @@ func (w *Workflow) WireNodes(ctx context.Context, nodeID string, input rxgo.Obse
 	// TODO breadchris make a slice of resources that are needed for the workflow
 	// TODO breadchris implement resource pool to avoid creating resources for every workflow
 	instances := Instances{}
-	for id, r := range w.Resources {
+	for id, r := range w.NodeLookup {
 		cleanup, err := r.Init()
 		if err != nil {
-			return nil, errors.Wrapf(err, "error creating resource %s", r.Name())
+			return nil, errors.Wrapf(err, "error creating resource %s", r.NormalizedName())
 		}
 		cleanupFuncs = append(cleanupFuncs, cleanup)
 		instances[id] = r
@@ -313,12 +271,6 @@ func (w *Workflow) wireWorkflow(
 	node, ok := w.NodeLookup[nodeID]
 	if !ok {
 		return nil, fmt.Errorf("vertex not found: %s", nodeID)
-	}
-
-	log.Debug().Str("node", node.NormalizedName()).Msg("injecting dependencies for node")
-	err := injectDepsForNode(instances, &input, node)
-	if err != nil {
-		return nil, errors.Wrapf(err, "error injecting dependencies for node %s", nodeID)
 	}
 
 	log.Debug().
@@ -379,16 +331,4 @@ func (w *Workflow) wireWorkflow(
 		}
 	}
 	return nil, nil
-}
-
-func injectDepsForNode(instances Instances, input *graph.Input, node graph.Node) error {
-	if node.ResourceID() == "" {
-		return nil
-	}
-	r, ok := instances[node.ResourceID()]
-	if !ok {
-		return fmt.Errorf("resource not found: %s", node.ResourceID())
-	}
-	input.Resource = r
-	return nil
 }

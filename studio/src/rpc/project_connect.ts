@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { CreateProjectRequest, CreateProjectResponse, CreateResourceRequest, CreateResourceResponse, DeleteProjectRequest, DeleteProjectResponse, DeleteResourceRequest, DeleteResourceResponse, ExportProjectRequest, ExportProjectResponse, GetNodeInfoRequest, GetNodeInfoResponse, GetProjectRequest, GetProjectResponse, GetProjectsRequest, GetProjectsResponse, GetProjectTypesRequest, GetResourcesRequest, GetResourcesResponse, GetWorkflowRunsRequest, GetWorkflowRunsResponse, LoadProjectRequest, LoadProjectResponse, NodeExecution, ProjectTypes, RunWorkflowRequest, SaveProjectRequest, SaveProjectResponse, SendChatRequest, SendChatResponse, StopWorkflowRequest, StopWorkflowResponse, UpdateResourceRequest, UpdateResourceResponse } from "./project_pb.js";
+import { CreateProjectRequest, CreateProjectResponse, DeleteProjectRequest, DeleteProjectResponse, ExportProjectRequest, ExportProjectResponse, GetNodeInfoRequest, GetNodeInfoResponse, GetProjectRequest, GetProjectResponse, GetProjectsRequest, GetProjectsResponse, GetProjectTypesRequest, GetProvidersRequest, GetProvidersResponse, GetWorkflowRunsRequest, GetWorkflowRunsResponse, LoadProjectRequest, LoadProjectResponse, NodeExecution, ProjectTypes, RunWorkflowRequest, SaveProjectRequest, SaveProjectResponse, SendChatRequest, SendChatResponse, StopWorkflowRequest, StopWorkflowResponse } from "./project_pb.js";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -88,39 +88,12 @@ export const ProjectService = {
       kind: MethodKind.Unary,
     },
     /**
-     * @generated from rpc project.ProjectService.UpdateResource
+     * @generated from rpc project.ProjectService.EnumerateProviders
      */
-    updateResource: {
-      name: "UpdateResource",
-      I: UpdateResourceRequest,
-      O: UpdateResourceResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * @generated from rpc project.ProjectService.CreateResource
-     */
-    createResource: {
-      name: "CreateResource",
-      I: CreateResourceRequest,
-      O: CreateResourceResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * @generated from rpc project.ProjectService.GetResources
-     */
-    getResources: {
-      name: "GetResources",
-      I: GetResourcesRequest,
-      O: GetResourcesResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * @generated from rpc project.ProjectService.DeleteResource
-     */
-    deleteResource: {
-      name: "DeleteResource",
-      I: DeleteResourceRequest,
-      O: DeleteResourceResponse,
+    enumerateProviders: {
+      name: "EnumerateProviders",
+      I: GetProvidersRequest,
+      O: GetProvidersResponse,
       kind: MethodKind.Unary,
     },
     /**

@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package data;
+option go_package = "data";
+
+message Input {
+  string value = 1;
+}
+
+// TODO breadchris do we need an explicit provider for config? probably
+message Config {
+  string value = 1;
+  // TODO breadchris configs could have a type
+  //google.protobuf.DescriptorProto type = 1;
+}
+
+message Data {
+  oneof type {
+    Input input = 1;
+    Config config = 2;
+  }
+}
