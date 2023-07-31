@@ -39,7 +39,7 @@ export const ActionBar: React.FC<ActionBarProps> = ({node}) => {
               className="flex flex-col gap-4"
             >
               <Card className={overrides.card}>
-                <NodeEditor node={node} />
+                {node ? <NodeEditor node={node} /> : null}
               </Card>
             </m.div>
           )}

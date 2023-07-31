@@ -13,6 +13,7 @@ message Project {
 }
 
 service ProjectService {
+    rpc NewNode(NewNodeRequest) returns (NewNodeResponse) {}
     rpc GetProjectTypes(GetProjectTypesRequest) returns (ProjectTypes) {}
     // TODO breadchris unfortunately this is needed because of the buf fetch transport not supporting streaming
     // the suggestion is to build a custom transport that uses websockets https://github.com/bufbuild/connect-es/issues/366
@@ -38,6 +39,15 @@ service ProjectService {
     rpc GetWorkflowRuns(GetWorkflowRunsRequest) returns (GetWorkflowRunsResponse) {}
 }
 
+message NewNodeRequest {
+    string project_id = 1;
+    graph.Node node = 2;
+}
+
+message NewNodeResponse {
+    graph.Node node = 1;
+}
+
 message ExportProjectRequest {
     string project_id = 1;
     string path = 2;
@@ -53,7 +63,9 @@ message LoadProjectResponse {
     Project project = 1;
 }
 
-message GetProjectTypesRequest {}
+message GetProjectTypesRequest {
+    string project_id = 1;
+}
 
 message ProjectTypes {
     google.protobuf.DescriptorProto node_type = 1;

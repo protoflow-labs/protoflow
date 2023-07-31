@@ -1,6 +1,8 @@
 package code
 
 import (
+	"github.com/google/uuid"
+	"github.com/protoflow-labs/protoflow/gen"
 	"github.com/protoflow-labs/protoflow/gen/code"
 	"github.com/protoflow-labs/protoflow/pkg/node/base"
 	"github.com/protoflow-labs/protoflow/pkg/workflow/graph"
@@ -14,5 +16,15 @@ func New(b *base.Node, node *code.Code) graph.Node {
 		return NewServer(b, t.Server)
 	default:
 		return nil
+	}
+}
+
+func NewProto(name string, c *code.Code) *gen.Node {
+	return &gen.Node{
+		Id:   uuid.NewString(),
+		Name: name,
+		Type: &gen.Node_Code{
+			Code: c,
+		},
 	}
 }

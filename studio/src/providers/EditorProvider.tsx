@@ -1,4 +1,3 @@
-import { useBlockTypes } from "@/hooks/useBlockTypes";
 import { configTypes } from "@/lib/configTypes";
 import {
   createContext,
@@ -23,6 +22,7 @@ import { v4 as uuid } from "uuid";
 import {useProjectContext} from "./ProjectProvider";
 import {Node as ProtoNode} from "@/rpc/graph_pb";
 import {generateUUID} from "@/util/uuid";
+import {StandardBlock} from "@/components/blocks/StandardBlock";
 
 type EditorContextType = {
   mode: Mode;
@@ -54,6 +54,10 @@ const EditorContext = createContext<EditorContextType>({} as any);
 
 export const useEditorContext = () => useContext(EditorContext);
 export const useEditorMode = () => useEditorContext().mode;
+
+const nodeTypes: Record<string, any> = {
+  'node': StandardBlock,
+};
 
 export function EditorProvider({ children }: { children: ReactNode }) {
   const { saveProject, nodeLookup } = useProjectContext();
@@ -88,10 +92,6 @@ export function EditorProvider({ children }: { children: ReactNode }) {
   );
 }
 
-const nodeToType = (node: ProtoNode) => {
-  return `protoflow.${node.config.case}`;
-}
-
 // todo: we want to make sure the incoming node has a distinction from the sidebar node vs the server type node
 // export type SidebarNode = Exclude<ProtoNode, { id: string }>
 
@@ -100,7 +100,7 @@ const useEditorProps = (draggedNode: ProtoNode | undefined, setDraggedNode: (nod
 
   const [nodes, setNodes] = useState<Node[]>(
     project?.graph?.nodes.map((n) => {
-      const config = configTypes.find((c) => n.config?.case === c.name);
+      const config = configTypes.find((c) => n.type?.case === c.name);
 
       return {
         id: n.id,
@@ -108,7 +108,7 @@ const useEditorProps = (draggedNode: ProtoNode | undefined, setDraggedNode: (nod
           node: n,
         },
         position: { x: n.x, y: n.y },
-        type: nodeToType(n),
+        type: 'node',
       };
     }) || []
   );
@@ -120,8 +120,6 @@ const useEditorProps = (draggedNode: ProtoNode | undefined, setDraggedNode: (nod
       target: e.to,
     })) || []
   );
-
-  const { nodeTypes } = useBlockTypes();
 
   const onConnect = useCallback((params: Connection) => {
     if (!params.source || !params.target) return;
@@ -136,7 +134,6 @@ const useEditorProps = (draggedNode: ProtoNode | undefined, setDraggedNode: (nod
     e.dataTransfer.dropEffect = "move";
   }, []);
 
-  // todo: figure out if this happens when we just move nodes
   const onDrop: DragEventHandler<HTMLDivElement>  = useCallback(
     (e) => {
       if (!draggedNode) {
@@ -146,7 +143,7 @@ const useEditorProps = (draggedNode: ProtoNode | undefined, setDraggedNode: (nod
 
       const newNode = {
         id: generateUUID(),
-        type: nodeToType(draggedNode),
+        type: 'node',
         position,
         data: {}
       };

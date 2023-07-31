@@ -99,7 +99,7 @@ func nodesFromFiles(u string) ([]*gen.Node, error) {
 
 // TODO breadchris this will be something that needs to be specified when someone is calling the API
 func enumerateProvidersFromNodes(nodes []*gen.Node) ([]*gen.EnumeratedProvider, error) {
-	var resources []*gen.EnumeratedProvider
+	var providers []*gen.EnumeratedProvider
 	for _, node := range nodes {
 		info := &gen.ProviderInfo{
 			State: gen.ProviderState_READY,
@@ -129,17 +129,21 @@ func enumerateProvidersFromNodes(nodes []*gen.Node) ([]*gen.EnumeratedProvider, 
 		default:
 			continue
 		}
+		if len(providedNodes) == 0 {
+			log.Warn().Msgf("no nodes provided by %s", node.Name)
+			continue
+		}
 		if err != nil {
 			info.State = gen.ProviderState_ERROR
 			info.Error = err.Error()
 		}
-		resources = append(resources, &gen.EnumeratedProvider{
+		providers = append(providers, &gen.EnumeratedProvider{
 			Provider: node,
 			Nodes:    providedNodes,
 			Info:     info,
 		})
 	}
-	return resources, nil
+	return providers, nil
 }
 
 func getProjectTypes() (*gen.ProjectTypes, error) {

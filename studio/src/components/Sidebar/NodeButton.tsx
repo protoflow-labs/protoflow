@@ -1,16 +1,12 @@
 import {useEditorContext} from "@/providers/EditorProvider";
 import {CardHeader, Text} from "@fluentui/react-components";
 import {BaseBlockCard} from "@/components/blocks/BaseBlockCard";
-import {blockTypes} from "@/components/blocks/blockTypes";
 import {Node as ProtoNode} from "@/rpc/graph_pb";
 import React from "react";
+import {BiClipboard} from "react-icons/bi";
 
 export const NodeButton: React.FC<{ node: ProtoNode }> = ({ node }) => {
     const { setDraggedNode } = useEditorContext();
-    const blockStaticInfo = blockTypes.find((block) => block.typeName === node.config.case);
-    if (!blockStaticInfo) {
-        return null;
-    }
     return (
         <div
             className="m-2"
@@ -22,8 +18,8 @@ export const NodeButton: React.FC<{ node: ProtoNode }> = ({ node }) => {
         >
             <BaseBlockCard selected={false} style={{ cursor: "grab" }}>
                 <CardHeader
-                    image={blockStaticInfo.image}
-                    header={<Text weight="semibold">{blockStaticInfo.label}</Text>}
+                    image={<BiClipboard className="h-5 w-5 bg-gray-800" />}
+                    header={<Text weight="semibold">{node.name}</Text>}
                 />
                 {node.name && <p style={{marginBottom: "0"}}>{node.name}</p>}
             </BaseBlockCard>

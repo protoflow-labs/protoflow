@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { CreateProjectRequest, CreateProjectResponse, DeleteProjectRequest, DeleteProjectResponse, ExportProjectRequest, ExportProjectResponse, GetNodeInfoRequest, GetNodeInfoResponse, GetProjectRequest, GetProjectResponse, GetProjectsRequest, GetProjectsResponse, GetProjectTypesRequest, GetProvidersRequest, GetProvidersResponse, GetWorkflowRunsRequest, GetWorkflowRunsResponse, LoadProjectRequest, LoadProjectResponse, NodeExecution, ProjectTypes, RunWorkflowRequest, SaveProjectRequest, SaveProjectResponse, SendChatRequest, SendChatResponse, StopWorkflowRequest, StopWorkflowResponse } from "./project_pb.js";
+import { CreateProjectRequest, CreateProjectResponse, DeleteProjectRequest, DeleteProjectResponse, ExportProjectRequest, ExportProjectResponse, GetNodeInfoRequest, GetNodeInfoResponse, GetProjectRequest, GetProjectResponse, GetProjectsRequest, GetProjectsResponse, GetProjectTypesRequest, GetProvidersRequest, GetProvidersResponse, GetWorkflowRunsRequest, GetWorkflowRunsResponse, LoadProjectRequest, LoadProjectResponse, NewNodeRequest, NewNodeResponse, NodeExecution, ProjectTypes, RunWorkflowRequest, SaveProjectRequest, SaveProjectResponse, SendChatRequest, SendChatResponse, StopWorkflowRequest, StopWorkflowResponse } from "./project_pb.js";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -12,6 +12,15 @@ import { MethodKind } from "@bufbuild/protobuf";
 export const ProjectService = {
   typeName: "project.ProjectService",
   methods: {
+    /**
+     * @generated from rpc project.ProjectService.NewNode
+     */
+    newNode: {
+      name: "NewNode",
+      I: NewNodeRequest,
+      O: NewNodeResponse,
+      kind: MethodKind.Unary,
+    },
     /**
      * @generated from rpc project.ProjectService.GetProjectTypes
      */

@@ -83,6 +83,86 @@ export class Project extends Message<Project> {
 }
 
 /**
+ * @generated from message project.NewNodeRequest
+ */
+export class NewNodeRequest extends Message<NewNodeRequest> {
+  /**
+   * @generated from field: string project_id = 1;
+   */
+  projectId = "";
+
+  /**
+   * @generated from field: graph.Node node = 2;
+   */
+  node?: Node;
+
+  constructor(data?: PartialMessage<NewNodeRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "project.NewNodeRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "project_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "node", kind: "message", T: Node },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): NewNodeRequest {
+    return new NewNodeRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): NewNodeRequest {
+    return new NewNodeRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): NewNodeRequest {
+    return new NewNodeRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: NewNodeRequest | PlainMessage<NewNodeRequest> | undefined, b: NewNodeRequest | PlainMessage<NewNodeRequest> | undefined): boolean {
+    return proto3.util.equals(NewNodeRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message project.NewNodeResponse
+ */
+export class NewNodeResponse extends Message<NewNodeResponse> {
+  /**
+   * @generated from field: graph.Node node = 1;
+   */
+  node?: Node;
+
+  constructor(data?: PartialMessage<NewNodeResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "project.NewNodeResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "node", kind: "message", T: Node },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): NewNodeResponse {
+    return new NewNodeResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): NewNodeResponse {
+    return new NewNodeResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): NewNodeResponse {
+    return new NewNodeResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: NewNodeResponse | PlainMessage<NewNodeResponse> | undefined, b: NewNodeResponse | PlainMessage<NewNodeResponse> | undefined): boolean {
+    return proto3.util.equals(NewNodeResponse, a, b);
+  }
+}
+
+/**
  * @generated from message project.ExportProjectRequest
  */
 export class ExportProjectRequest extends Message<ExportProjectRequest> {
@@ -234,6 +314,11 @@ export class LoadProjectResponse extends Message<LoadProjectResponse> {
  * @generated from message project.GetProjectTypesRequest
  */
 export class GetProjectTypesRequest extends Message<GetProjectTypesRequest> {
+  /**
+   * @generated from field: string project_id = 1;
+   */
+  projectId = "";
+
   constructor(data?: PartialMessage<GetProjectTypesRequest>) {
     super();
     proto3.util.initPartial(data, this);
@@ -242,6 +327,7 @@ export class GetProjectTypesRequest extends Message<GetProjectTypesRequest> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "project.GetProjectTypesRequest";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "project_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetProjectTypesRequest {

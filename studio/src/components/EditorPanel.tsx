@@ -3,17 +3,17 @@ import {useOnSelectionChange, useReactFlow} from "reactflow";
 import NodeProvider from "@/providers/NodeProvider";
 import {getNodeDataKey, useProjectContext} from "@/providers/ProjectProvider";
 import {ActionBar} from "@/components/ActionBar";
-import {ProtoViewer} from "@/components/blockEditors/ProtoViewer";
+import {ProtoViewer} from "@/components/ProtoViewer";
 import {EditorActions} from "@/components/EditorActions";
 import React, {useEffect, useState} from "react";
 import {useSelectedNodes} from "@/hooks/useSelectedNodes";
-import {GRPCInputFormProps, ProtobufInputForm} from "@/components/inputForms/ProtobufInputForm";
+import {GRPCInputFormProps, ProtobufInputForm} from "@/components/ProtobufInputForm";
 import { GRPCTypeInfo } from "@/rpc/project_pb";
 import {useForm} from "react-hook-form";
 
 export function EditorPanel() {
   const { projectTypes } = useProjectContext();
-  const { resources, activeNode, activeEdge, setActiveNodeId, setActiveEdgeId } = useProjectContext();
+  const { providers, activeNode, activeEdge, setActiveNodeId, setActiveEdgeId } = useProjectContext();
   const {watch, setValue, register, handleSubmit, control} = useForm({
     values: {
       from: activeEdge ? activeEdge.from : '',
@@ -38,18 +38,19 @@ export function EditorPanel() {
   });
 
   if (activeNode) {
-    const getResourceBadge = () => {
-      if (!resources) {
-        return null;
-      }
-      const res = resources.find((r) => {
-        return r.resource && activeNode.resourceId === r.resource.id
-      })
-      if (!res || !res.resource) {
-        return null;
-      }
-      return <Badge key={res.resource.id}>{res.resource.name}</Badge>
-    }
+    // TODO breadchris implement this
+    // const getResourceBadge = () => {
+    //   if (!providers) {
+    //     return null;
+    //   }
+    //   const res = providers.find((r) => {
+    //     return r.provider && activeNode.resourceId === r.resource.id
+    //   })
+    //   if (!res || !res.resource) {
+    //     return null;
+    //   }
+    //   return <Badge key={res.resource.id}>{res.resource.name}</Badge>
+    // }
 
     return (
         <NodeProvider nodeId={activeNode.id}>
@@ -57,7 +58,6 @@ export function EditorPanel() {
             <Card>
               <ProtoViewer />
               <Divider/>
-              {getResourceBadge()}
               <Divider/>
               <EditorActions/>
             </Card>

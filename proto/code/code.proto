@@ -17,7 +17,6 @@ message Function {
 message Server {
   Runtime runtime = 1;
   grpc.Server grpc = 2;
-  string path = 3;
   // string containerURI = 4;
 }
 

@@ -15,7 +15,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-func (s *Service) startWorkflow(
+func (s *Service) wireWorkflow(
 	ctx context.Context,
 	w *workflow.Workflow,
 	nodeID string,
@@ -47,13 +47,14 @@ func (s *Service) startWorkflow(
 		inputObs = rxgo.FromChannel(inputChan, rxgo.WithPublishStrategy())
 	}
 
-	obs, err := s.manager.ExecuteWorkflow(ctx, w, nodeID, inputObs)
+	obs, err := w.WireNodes(ctx, nodeID, inputObs)
 	if err != nil {
 		return nil, err
 	}
 
 	// TODO breadchris support streaming input
 	if !httpRequest {
+		// start workflow by sending the first input
 		inputChan <- rx.NewItem(workflowInput)
 		close(inputChan)
 	}
@@ -104,7 +105,7 @@ func (s *Service) RunWorkflow(ctx context.Context, c *connect.Request[gen.RunWor
 	}
 
 	for _, entrypoint := range entrypoints {
-		obs, err := s.startWorkflow(ctx, w, entrypoint, workflowInput, httpStream)
+		obs, err := s.wireWorkflow(ctx, w, entrypoint, workflowInput, httpStream)
 		if err != nil {
 			return errors.Wrapf(err, "failed to start workflow")
 		}

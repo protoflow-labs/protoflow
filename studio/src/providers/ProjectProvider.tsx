@@ -11,22 +11,20 @@ import {
 import {createContext, useCallback, useContext, useEffect, useState} from "react";
 import {HiExclamationCircle, HiPlus} from "react-icons/hi2";
 import {Edge, Node} from "reactflow";
-import {EnumeratedResource, GetNodeInfoResponse, Project, ProjectTypes} from "@/rpc/project_pb";
-import {useProjectResources} from "@/hooks/useProjectResources";
+import {EnumeratedProvider, GetNodeInfoResponse, Project, ProjectTypes} from "@/rpc/project_pb";
+import {useProjectProviders} from "@/hooks/useProjectProviders";
 import {toast} from "react-hot-toast";
 import {useErrorBoundary} from "react-error-boundary";
 import {getUpdatedProject} from "@/lib/project";
 import {Node as ProtoNode, Edge as ProtoEdge} from "@/rpc/graph_pb";
-import {notEmpty} from "@/util/predicates";
-import { Resource } from "@/rpc/resource_pb";
 
 type GetLookup = (lookup: Record<string, ProtoNode>) => Record<string, ProtoNode>;
 
 
 type ProjectContextType = {
     project: Project | undefined;
-    resources: EnumeratedResource[];
-    resourceLookup: Record<string, EnumeratedResource>;
+    providers: EnumeratedProvider[];
+    providerLookup: Record<string, EnumeratedProvider>;
     loadingResources: boolean;
     workflowOutput: string[] | null;
     setWorkflowOutput: (output: string[] | null) => void;
@@ -34,8 +32,6 @@ type ProjectContextType = {
     saveProject: (nodes: Node[], edges: Edge[]) => Promise<void>;
     runWorkflow: (node?: Node, startServer?: boolean) => Promise<any>;
     loadResources: () => Promise<void>;
-    deleteResource: (resourceId: string) => Promise<void>;
-    updateResource: (resource: Resource) => Promise<void>;
     loadNodeInfo: (nodeId: string) => Promise<GetNodeInfoResponse | undefined>;
     activeNode: ProtoNode | null;
     activeEdge: ProtoEdge | null;
@@ -67,7 +63,7 @@ export const useProjectContext = () => useContext(ProjectContext);
 // project provider holds things that are closer to the database, like information fetched from the database
 export default function ProjectProvider({children}: ProjectProviderProps) {
     const {project, loading, createDefault, projectTypes} = useDefaultProject();
-    const {resources, resourceLookup, loading: loadingResources, loadProjectResources} = useProjectResources();
+    const {providers, providerLookup, loading: loadingResources, loadProjectResources} = useProjectProviders();
     const {showBoundary} = useErrorBoundary();
     const [nodeLookup, setNodeLookup] = useState<Record<string, ProtoNode>>({});
     const [edgeLookup, setEdgeLookup] = useState<Record<string, ProtoEdge>>({});
@@ -109,9 +105,8 @@ export default function ProjectProvider({children}: ProjectProviderProps) {
         await projectService.saveProject({
             projectId: project.id,
             graph: updatedProject.graph,
-            resources: resources.map(r => r.resource).filter(notEmpty),
         });
-    }, [nodeLookup, resources]);
+    }, [nodeLookup]);
 
     const runWorkflow = useCallback(
         async (node?: Node, startServer?: boolean) => {
@@ -162,43 +157,7 @@ export default function ProjectProvider({children}: ProjectProviderProps) {
         [project, nodeLookup]
     );
 
-    const deleteResource = useCallback(
-        async (resourceId: string) => {
-            if (!project) return;
-
-            try {
-                const res = await projectService.deleteResource({
-                    projectId: project.id,
-                    resourceId,
-                });
-                toast.success('deleted resource');
-            } catch (e) {
-                // @ts-ignore
-                toast.error(e.toString());
-            }
-        },
-        [project]
-    );
-
-    const updateResource = useCallback(
-        async (resource: Resource) => {
-            if (!project) return;
-
-            try {
-                const res = await projectService.updateResource({
-                    projectId: project.id,
-                    resource,
-                });
-                toast.success('updated resource');
-            } catch (e) {
-                // @ts-ignore
-                toast.error(e.toString());
-            }
-        },
-        [project]
-    );
-
-    const loadResources = useCallback(async () => {
+    const loadProviders = useCallback(async () => {
         if (!project) return;
 
         await loadProjectResources(project.id);
@@ -221,7 +180,7 @@ export default function ProjectProvider({children}: ProjectProviderProps) {
 
     // TODO breadchris should this happen every time the project is changed?
     useEffect(() => {
-        void loadResources();
+        void loadProviders();
         if (project && project.graph) {
             const lookup = project.graph.nodes.reduce((acc, node) => {
                 acc[node.id] = node;
@@ -277,15 +236,13 @@ export default function ProjectProvider({children}: ProjectProviderProps) {
         <ProjectContext.Provider
             value={{
                 project,
-                resources,
-                resourceLookup,
+                providers,
+                providerLookup,
                 runWorkflow,
                 workflowOutput,
                 setWorkflowOutput,
                 saveProject,
-                deleteResource,
-                updateResource,
-                loadResources,
+                loadResources: loadProviders,
                 loadingResources,
                 loadNodeInfo,
                 setActiveNodeId,

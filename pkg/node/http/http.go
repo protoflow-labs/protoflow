@@ -74,7 +74,7 @@ func (r *Router) Wire(ctx context.Context, input graph.Input) (graph.Output, err
 //
 //func NewRestNode(node *gen.Node) *RESTNode {
 //	return &RESTNode{
-//		Node: NewNode(node),
+//		Node: NodeFromProto(node),
 //		REST:     node.GetRest(),
 //	}
 //}

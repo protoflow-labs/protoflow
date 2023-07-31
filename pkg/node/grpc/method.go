@@ -18,46 +18,6 @@ import (
 	"strings"
 )
 
-type Server struct {
-	*base.Node
-	*pgrpc.Server
-}
-
-func NewServer(b *base.Node, n *pgrpc.Server) *Server {
-	return &Server{
-		Node:   b,
-		Server: n,
-	}
-}
-
-func NewServerProto(host string) *pgrpc.GRPC {
-	return &pgrpc.GRPC{
-		Type: &pgrpc.GRPC_Server{
-			Server: &pgrpc.Server{
-				Host: host,
-			},
-		},
-	}
-}
-
-func (n *Server) Init() (func(), error) {
-	// TODO breadchris this is a hack to get the grpc server running, this is not ideal
-	if !strings.HasPrefix(n.Host, "http://") {
-		n.Host = "http://" + n.Host
-	}
-	//if err := ensureRunning(r.Host); err != nil {
-	//	// TODO breadchris ignore errors for now
-	//	// return nil, errors.Wrapf(err, "unable to get the %s grpc server running", r.Name())
-	//	return nil, nil
-	//}
-	return nil, nil
-}
-
-func (n *Server) Wire(ctx context.Context, input graph.Input) (graph.Output, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
 type Method struct {
 	*base.Node
 	*pgrpc.Method
@@ -72,7 +32,23 @@ func NewMethod(b *base.Node, n *pgrpc.Method) *Method {
 	}
 }
 
-func (n *Method) getMethodFromServer(r *Server, protocol bufcurl.ReflectProtocol) (protoreflect.MethodDescriptor, error) {
+func NewMethodProto(packageService, m string) *pgrpc.GRPC {
+	ps := strings.Split(packageService, ".")
+	if len(ps) != 2 {
+		return nil
+	}
+	return &pgrpc.GRPC{
+		Type: &pgrpc.GRPC_Method{
+			Method: &pgrpc.Method{
+				Package: ps[0],
+				Service: ps[1],
+				Method:  m,
+			},
+		},
+	}
+}
+
+func GetMethodFromServer(r *Server, n *Method, protocol bufcurl.ReflectProtocol) (protoreflect.MethodDescriptor, error) {
 	// TODO breadchris I think a grpc resource should have a host that has a protocol
 	m := manager.NewReflectionManager("http://"+r.Host, manager.WithProtocol(protocol))
 	cleanup, err := m.Init()
@@ -89,25 +65,11 @@ func (n *Method) getMethodFromServer(r *Server, protocol bufcurl.ReflectProtocol
 	return method, nil
 }
 
-func (n *Method) Info() (*graph.Info, error) {
-	// TODO breadchris what if we want to get the proto from a proto file?
-
-	var (
-		method protoreflect.MethodDescriptor
-		err    error
-	)
-	p, err := n.Provider()
-	if err != nil {
-		return nil, errors.Wrapf(err, "error getting provider")
-	}
-	gr, ok := p.(*Server)
-	if !ok {
-		return nil, errors.New("grpc resource is not supported")
-	}
-	method, err = n.getMethodFromServer(gr, bufcurl.ReflectProtocolGRPCV1Alpha)
+func GetMethodDescriptor(s *Server, n *Method) (*grpc.MethodDescriptor, error) {
+	method, err := GetMethodFromServer(s, n, bufcurl.ReflectProtocolGRPCV1Alpha)
 	if err != nil {
 		// TODO breadchris is there a cleaner way to determine if the server supports v1?
-		method, err = n.getMethodFromServer(gr, bufcurl.ReflectProtocolGRPCV1)
+		method, err = GetMethodFromServer(s, n, bufcurl.ReflectProtocolGRPCV1)
 		if err != nil {
 			return nil, errors.Wrapf(err, "error getting method from server")
 		}
@@ -117,6 +79,21 @@ func (n *Method) Info() (*graph.Info, error) {
 	if err != nil {
 		return nil, errors.Wrapf(err, "error creating method descriptor")
 	}
+	return md, nil
+}
+
+func (n *Method) Info() (*graph.Info, error) {
+	// TODO breadchris what if we want to get the proto from a proto file?
+
+	p, err := n.Provider()
+	if err != nil {
+		return nil, errors.Wrapf(err, "error getting provider")
+	}
+	gr, ok := p.(*Server)
+	if !ok {
+		return nil, fmt.Errorf("provider is not a grpc server")
+	}
+	md, err := GetMethodDescriptor(gr, n)
 	return &graph.Info{
 		Method: md,
 	}, nil

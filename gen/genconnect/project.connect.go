@@ -33,6 +33,8 @@ const (
 // reflection-formatted method names, remove the leading slash and convert the remaining slash to a
 // period.
 const (
+	// ProjectServiceNewNodeProcedure is the fully-qualified name of the ProjectService's NewNode RPC.
+	ProjectServiceNewNodeProcedure = "/project.ProjectService/NewNode"
 	// ProjectServiceGetProjectTypesProcedure is the fully-qualified name of the ProjectService's
 	// GetProjectTypes RPC.
 	ProjectServiceGetProjectTypesProcedure = "/project.ProjectService/GetProjectTypes"
@@ -78,6 +80,7 @@ const (
 
 // ProjectServiceClient is a client for the project.ProjectService service.
 type ProjectServiceClient interface {
+	NewNode(context.Context, *connect_go.Request[gen.NewNodeRequest]) (*connect_go.Response[gen.NewNodeResponse], error)
 	GetProjectTypes(context.Context, *connect_go.Request[gen.GetProjectTypesRequest]) (*connect_go.Response[gen.ProjectTypes], error)
 	// TODO breadchris unfortunately this is needed because of the buf fetch transport not supporting streaming
 	// the suggestion is to build a custom transport that uses websockets https://github.com/bufbuild/connect-es/issues/366
@@ -106,6 +109,11 @@ type ProjectServiceClient interface {
 func NewProjectServiceClient(httpClient connect_go.HTTPClient, baseURL string, opts ...connect_go.ClientOption) ProjectServiceClient {
 	baseURL = strings.TrimRight(baseURL, "/")
 	return &projectServiceClient{
+		newNode: connect_go.NewClient[gen.NewNodeRequest, gen.NewNodeResponse](
+			httpClient,
+			baseURL+ProjectServiceNewNodeProcedure,
+			opts...,
+		),
 		getProjectTypes: connect_go.NewClient[gen.GetProjectTypesRequest, gen.ProjectTypes](
 			httpClient,
 			baseURL+ProjectServiceGetProjectTypesProcedure,
@@ -181,6 +189,7 @@ func NewProjectServiceClient(httpClient connect_go.HTTPClient, baseURL string, o
 
 // projectServiceClient implements ProjectServiceClient.
 type projectServiceClient struct {
+	newNode            *connect_go.Client[gen.NewNodeRequest, gen.NewNodeResponse]
 	getProjectTypes    *connect_go.Client[gen.GetProjectTypesRequest, gen.ProjectTypes]
 	sendChat           *connect_go.Client[gen.SendChatRequest, gen.SendChatResponse]
 	exportProject      *connect_go.Client[gen.ExportProjectRequest, gen.ExportProjectResponse]
@@ -195,6 +204,11 @@ type projectServiceClient struct {
 	runWorkflow        *connect_go.Client[gen.RunWorkflowRequest, gen.NodeExecution]
 	stopWorkflow       *connect_go.Client[gen.StopWorkflowRequest, gen.StopWorkflowResponse]
 	getWorkflowRuns    *connect_go.Client[gen.GetWorkflowRunsRequest, gen.GetWorkflowRunsResponse]
+}
+
+// NewNode calls project.ProjectService.NewNode.
+func (c *projectServiceClient) NewNode(ctx context.Context, req *connect_go.Request[gen.NewNodeRequest]) (*connect_go.Response[gen.NewNodeResponse], error) {
+	return c.newNode.CallUnary(ctx, req)
 }
 
 // GetProjectTypes calls project.ProjectService.GetProjectTypes.
@@ -269,6 +283,7 @@ func (c *projectServiceClient) GetWorkflowRuns(ctx context.Context, req *connect
 
 // ProjectServiceHandler is an implementation of the project.ProjectService service.
 type ProjectServiceHandler interface {
+	NewNode(context.Context, *connect_go.Request[gen.NewNodeRequest]) (*connect_go.Response[gen.NewNodeResponse], error)
 	GetProjectTypes(context.Context, *connect_go.Request[gen.GetProjectTypesRequest]) (*connect_go.Response[gen.ProjectTypes], error)
 	// TODO breadchris unfortunately this is needed because of the buf fetch transport not supporting streaming
 	// the suggestion is to build a custom transport that uses websockets https://github.com/bufbuild/connect-es/issues/366
@@ -293,6 +308,11 @@ type ProjectServiceHandler interface {
 // By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
 // and JSON codecs. They also support gzip compression.
 func NewProjectServiceHandler(svc ProjectServiceHandler, opts ...connect_go.HandlerOption) (string, http.Handler) {
+	projectServiceNewNodeHandler := connect_go.NewUnaryHandler(
+		ProjectServiceNewNodeProcedure,
+		svc.NewNode,
+		opts...,
+	)
 	projectServiceGetProjectTypesHandler := connect_go.NewUnaryHandler(
 		ProjectServiceGetProjectTypesProcedure,
 		svc.GetProjectTypes,
@@ -365,6 +385,8 @@ func NewProjectServiceHandler(svc ProjectServiceHandler, opts ...connect_go.Hand
 	)
 	return "/project.ProjectService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
+		case ProjectServiceNewNodeProcedure:
+			projectServiceNewNodeHandler.ServeHTTP(w, r)
 		case ProjectServiceGetProjectTypesProcedure:
 			projectServiceGetProjectTypesHandler.ServeHTTP(w, r)
 		case ProjectServiceSendChatProcedure:
@@ -401,6 +423,10 @@ func NewProjectServiceHandler(svc ProjectServiceHandler, opts ...connect_go.Hand
 
 // UnimplementedProjectServiceHandler returns CodeUnimplemented from all methods.
 type UnimplementedProjectServiceHandler struct{}
+
+func (UnimplementedProjectServiceHandler) NewNode(context.Context, *connect_go.Request[gen.NewNodeRequest]) (*connect_go.Response[gen.NewNodeResponse], error) {
+	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("project.ProjectService.NewNode is not implemented"))
+}
 
 func (UnimplementedProjectServiceHandler) GetProjectTypes(context.Context, *connect_go.Request[gen.GetProjectTypesRequest]) (*connect_go.Response[gen.ProjectTypes], error) {
 	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("project.ProjectService.GetProjectTypes is not implemented"))

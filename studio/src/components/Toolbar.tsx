@@ -16,7 +16,6 @@ import {
 import {useCallback, useEffect, useRef, useState} from "react";
 import { toast } from "react-hot-toast";
 import { useHotkeys } from "react-hotkeys-hook";
-import {AddResourceDialog} from "@/components/AddResourceDialog";
 
 export function Toolbar() {
   const isApple = checkIsApple();
@@ -24,7 +23,6 @@ export function Toolbar() {
   const { save, props, setMode } = useEditorContext();
   const { selectedNodes } = useSelectedNodes();
   const prevNodeLength = useRef(0);
-  const [addResourceOpen, setAddResourceOpen] = useState(false);
 
   useHotkeys(isApple ? "meta+s" : "ctrl+s", (e) => {
     e.preventDefault();
@@ -42,12 +40,6 @@ export function Toolbar() {
     e.preventDefault();
     e.stopPropagation();
     onRun();
-  });
-
-  useHotkeys("ctrl+shift+a", (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    onAddResource();
   });
 
 
@@ -69,10 +61,6 @@ export function Toolbar() {
     }
     await runWorkflow(selectedNodes[0]);
   };
-
-  const onAddResource = async () => {
-    setAddResourceOpen(true);
-  }
 
   const onEditor = async () => {
     setMode("editor");
@@ -105,9 +93,6 @@ export function Toolbar() {
             </MenuItem>
             <MenuItem secondaryContent="Ctrl+Shift+E">
               Export
-            </MenuItem>
-            <MenuItem secondaryContent="Ctrl+Shift+A" onClick={onAddResource}>
-              Add Resource
             </MenuItem>
           </MenuList>
         </MenuPopover>
@@ -151,7 +136,6 @@ export function Toolbar() {
           </MenuList>
         </MenuPopover>
       </Menu>
-      <AddResourceDialog open={addResourceOpen} close={() => setAddResourceOpen(false)} />
     </div>
   );
 }

@@ -19,18 +19,14 @@ func (w *Workflow) GetNodeInfo(n graph.Node) (*graph.Info, error) {
 	var resp *graph.Info
 	switch n.(type) {
 	case *data.InputNode:
-		children := w.AdjMap[n.ID()]
+		children := n.Successors()
 		if len(children) != 1 {
 			// TODO breadchris support multiple children
 			return nil, errors.Errorf("input node should have 1 child, got %d", len(children))
 		}
 		// TODO breadchris only designed for 1 child
-		for child := range children {
-			n, err := w.GetNode(child)
-			if err != nil {
-				return nil, errors.Errorf("node %s not found", child)
-			}
-			return w.GetNodeInfo(n)
+		for _, child := range children {
+			return w.GetNodeInfo(child)
 		}
 	case *reason.PromptNode:
 		reqMsg := builder.NewMessage("Request")
@@ -58,9 +54,6 @@ func (w *Workflow) GetNodeInfo(n graph.Node) (*graph.Info, error) {
 			Method: mthd,
 		}
 	case *code.FunctionNode:
-		children := w.AdjMap[n.ID()]
-		parents := w.PreMap[n.ID()]
-
 		var (
 			childInputs     []protoreflect.MessageDescriptor
 			parentOutputs   []protoreflect.MessageDescriptor
@@ -68,19 +61,19 @@ func (w *Workflow) GetNodeInfo(n graph.Node) (*graph.Info, error) {
 			streamingParent bool
 		)
 
+		// TODO breadchris not a very good check, should be looking at edges
+		if len(n.Predecessors()) == 1 {
+			return n.Info()
+		}
+
 		// TODO breadchris if two function nodes are connected, you can't infer the type
 		// make sure an infinite loop doesn't happen
-		for child := range children {
-			n, err := w.GetNode(child)
-			if err != nil {
-				return nil, errors.Errorf("node %s not found", child)
-			}
-
+		for _, child := range n.Successors() {
 			switch n.(type) {
 			case *code.FunctionNode:
 				log.Warn().
-					Str("parent", n.ID()).
-					Str("child", child).
+					Str("parent", n.NormalizedName()).
+					Str("child", child.NormalizedName()).
 					Msg("function node connected to function node not supported yet")
 				continue
 			}
@@ -97,17 +90,12 @@ func (w *Workflow) GetNodeInfo(n graph.Node) (*graph.Info, error) {
 			}
 			childInputs = append(childInputs, childType.Method.MethodDesc.Input())
 		}
-		for parent := range parents {
-			n, err := w.GetNode(parent)
-			if err != nil {
-				return nil, errors.Errorf("node %s not found", parent)
-			}
-
+		for _, parent := range n.Predecessors() {
 			switch n.(type) {
 			case *code.FunctionNode:
 				log.Warn().
-					Str("parent", parent).
-					Str("child", n.ID()).
+					Str("parent", parent.NormalizedName()).
+					Str("child", n.NormalizedName()).
 					Msg("function node connected to function node not supported yet")
 				continue
 			}

@@ -22,6 +22,7 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ProjectServiceClient interface {
+	NewNode(ctx context.Context, in *NewNodeRequest, opts ...grpc.CallOption) (*NewNodeResponse, error)
 	GetProjectTypes(ctx context.Context, in *GetProjectTypesRequest, opts ...grpc.CallOption) (*ProjectTypes, error)
 	// TODO breadchris unfortunately this is needed because of the buf fetch transport not supporting streaming
 	// the suggestion is to build a custom transport that uses websockets https://github.com/bufbuild/connect-es/issues/366
@@ -46,6 +47,15 @@ type projectServiceClient struct {
 
 func NewProjectServiceClient(cc grpc.ClientConnInterface) ProjectServiceClient {
 	return &projectServiceClient{cc}
+}
+
+func (c *projectServiceClient) NewNode(ctx context.Context, in *NewNodeRequest, opts ...grpc.CallOption) (*NewNodeResponse, error) {
+	out := new(NewNodeResponse)
+	err := c.cc.Invoke(ctx, "/project.ProjectService/NewNode", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *projectServiceClient) GetProjectTypes(ctx context.Context, in *GetProjectTypesRequest, opts ...grpc.CallOption) (*ProjectTypes, error) {
@@ -224,6 +234,7 @@ func (c *projectServiceClient) GetWorkflowRuns(ctx context.Context, in *GetWorkf
 // All implementations should embed UnimplementedProjectServiceServer
 // for forward compatibility
 type ProjectServiceServer interface {
+	NewNode(context.Context, *NewNodeRequest) (*NewNodeResponse, error)
 	GetProjectTypes(context.Context, *GetProjectTypesRequest) (*ProjectTypes, error)
 	// TODO breadchris unfortunately this is needed because of the buf fetch transport not supporting streaming
 	// the suggestion is to build a custom transport that uses websockets https://github.com/bufbuild/connect-es/issues/366
@@ -246,6 +257,9 @@ type ProjectServiceServer interface {
 type UnimplementedProjectServiceServer struct {
 }
 
+func (UnimplementedProjectServiceServer) NewNode(context.Context, *NewNodeRequest) (*NewNodeResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method NewNode not implemented")
+}
 func (UnimplementedProjectServiceServer) GetProjectTypes(context.Context, *GetProjectTypesRequest) (*ProjectTypes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetProjectTypes not implemented")
 }
@@ -298,6 +312,24 @@ type UnsafeProjectServiceServer interface {
 
 func RegisterProjectServiceServer(s grpc.ServiceRegistrar, srv ProjectServiceServer) {
 	s.RegisterService(&ProjectService_ServiceDesc, srv)
+}
+
+func _ProjectService_NewNode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(NewNodeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProjectServiceServer).NewNode(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/project.ProjectService/NewNode",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProjectServiceServer).NewNode(ctx, req.(*NewNodeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _ProjectService_GetProjectTypes_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -565,6 +597,10 @@ var ProjectService_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "project.ProjectService",
 	HandlerType: (*ProjectServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "NewNode",
+			Handler:    _ProjectService_NewNode_Handler,
+		},
 		{
 			MethodName: "GetProjectTypes",
 			Handler:    _ProjectService_GetProjectTypes_Handler,

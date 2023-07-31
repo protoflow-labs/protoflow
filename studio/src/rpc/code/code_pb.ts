@@ -74,16 +74,11 @@ export class Server extends Message<Server> {
   runtime = Runtime.NODEJS;
 
   /**
+   * string containerURI = 4;
+   *
    * @generated from field: grpc.Server grpc = 2;
    */
   grpc?: Server$1;
-
-  /**
-   * string containerURI = 4;
-   *
-   * @generated from field: string path = 3;
-   */
-  path = "";
 
   constructor(data?: PartialMessage<Server>) {
     super();
@@ -95,7 +90,6 @@ export class Server extends Message<Server> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "runtime", kind: "enum", T: proto3.getEnumType(Runtime) },
     { no: 2, name: "grpc", kind: "message", T: Server$1 },
-    { no: 3, name: "path", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Server {

@@ -28,8 +28,6 @@ type Workflow struct {
 	Graph     graphlib.Graph[string, string]
 	// TODO breadchris this should be a deterministic value based on the workflow node slice
 	NodeLookup map[string]graph.Node
-	AdjMap     AdjMap
-	PreMap     AdjMap
 }
 
 type Builder[T graph.ProtoNode] func(message T) graph.Node
@@ -168,6 +166,10 @@ func (w *WorkflowBuilder[T]) WithProtoProject(project graph.ProtoProject[T]) *Wo
 	}
 
 	for _, edge := range g.GetEdges() {
+		if edge.From == "" || edge.To == "" {
+			nw.err = errors.Errorf("edge %s has empty from or to", edge.Id)
+			return &nw
+		}
 		err := nw.addEdge(edge)
 		if err != nil {
 			nw.err = errors.Wrapf(err, "error adding edge %s", edge.Id)
@@ -181,18 +183,31 @@ func (w *WorkflowBuilder[T]) Build() (*Workflow, error) {
 	nw := *w
 
 	// TODO breadchris resolve dependencies
+	// need to look at edge types nw.w.Graph.Edge
 
-	adjMap, err := nw.w.Graph.AdjacencyMap()
+	sucMap, err := nw.w.Graph.AdjacencyMap()
 	if err != nil {
 		return nil, errors.Wrapf(err, "error getting adjacency map")
 	}
-	nw.w.AdjMap = adjMap
+
+	for nodeID, sucs := range sucMap {
+		n := nw.w.NodeLookup[nodeID]
+		for sID := range sucs {
+			n.AddSuccessor(nw.w.NodeLookup[sID])
+		}
+	}
 
 	preMap, err := nw.w.Graph.PredecessorMap()
 	if err != nil {
 		return nil, errors.Wrapf(err, "error getting predecessor map")
 	}
-	nw.w.PreMap = preMap
+
+	for nodeID, pres := range preMap {
+		n := nw.w.NodeLookup[nodeID]
+		for pID := range pres {
+			n.AddPredecessor(nw.w.NodeLookup[pID])
+		}
+	}
 
 	nw.w.ID = uuid.NewString()
 	if nw.err != nil {
@@ -218,6 +233,7 @@ func (w *Workflow) GetNodeProvider(id string) (graph.Node, error) {
 }
 
 // TODO breadchris nodeID should not be needed, the workflow should already be a slice of the graph that is configured to run
+// WireNodes wires the nodes in the workflow together and returns an observable that can be subscribed to. Nodes are executed when an event is received on the input observable.
 func (w *Workflow) WireNodes(ctx context.Context, nodeID string, input rxgo.Observable) (rxgo.Observable, error) {
 	var cleanupFuncs []func()
 	defer func() {
@@ -240,17 +256,17 @@ func (w *Workflow) WireNodes(ctx context.Context, nodeID string, input rxgo.Obse
 		instances[id] = r
 	}
 
-	vert, err := w.Graph.Vertex(nodeID)
-	if err != nil {
-		return nil, errors.Wrapf(err, "error getting vertex %s", nodeID)
-	}
-
 	connector := NewConnector()
 	connector.Add(input)
 
 	// TODO breadchris use actual output from the workflow
 	// wire an input into the workflow so that data can flow between nodes
-	_, err = w.wireWorkflow(ctx, connector, instances, vert, graph.Input{
+	n, ok := w.NodeLookup[nodeID]
+	if !ok {
+		return nil, fmt.Errorf("vertex not found: %s", nodeID)
+	}
+
+	_, err := w.wireWorkflow(ctx, connector, instances, n, graph.Input{
 		Observable: input,
 	})
 	if err != nil {
@@ -265,25 +281,20 @@ func (w *Workflow) wireWorkflow(
 	ctx context.Context,
 	connector *Connector,
 	instances Instances,
-	nodeID string,
+	node graph.Node,
 	input graph.Input,
 ) (*graph.Output, error) {
-	node, ok := w.NodeLookup[nodeID]
-	if !ok {
-		return nil, fmt.Errorf("vertex not found: %s", nodeID)
-	}
-
 	log.Debug().
 		Str("node", node.NormalizedName()).
 		// Interface("resource", input.Resource.Name()).
 		Msg("wiring node IO")
 	output, err := node.Wire(ctx, input)
 	if err != nil {
-		return nil, errors.Wrapf(err, "error executing node: %s", nodeID)
+		return nil, errors.Wrapf(err, "error executing node: %s", node.NormalizedName())
 	}
 
 	if output.Observable == nil {
-		return nil, fmt.Errorf("node %s returned nil observable", nodeID)
+		return nil, fmt.Errorf("node %s returned nil observable", node.NormalizedName())
 	}
 
 	connector.Add(output.Observable)
@@ -292,10 +303,10 @@ func (w *Workflow) wireWorkflow(
 		Observable: output.Observable,
 	}
 
-	for neighbor := range w.AdjMap[nodeID] {
-		//e, err := w.Graph.Edge(nodeID, neighbor)
+	for _, child := range node.Successors() {
+		//e, err := w.Graph.Edge(nodeID, child)
 		//if err != nil {
-		//	return nil, errors.Wrapf(err, "error getting edge between %s and %s", nodeID, neighbor)
+		//	return nil, errors.Wrapf(err, "error getting edge between %s and %s", nodeID, child)
 		//}
 		//edgeID := e.Properties.Attributes[edgeIDKey]
 		//nextBlockInput.Observable = output.Observable.Map(func(c context.Context, i any) (any, error) {
@@ -321,13 +332,13 @@ func (w *Workflow) wireWorkflow(
 
 		log.Debug().
 			Str("node", node.NormalizedName()).
-			Str("neighbor", w.NodeLookup[neighbor].NormalizedName()).
+			Str("child", child.NormalizedName()).
 			Msg("traversing workflow")
 
 		// TODO breadchris what to do with the output here? Map over the output to turn into NodeExecution
-		_, err = w.wireWorkflow(ctx, connector, instances, neighbor, nextBlockInput)
+		_, err = w.wireWorkflow(ctx, connector, instances, child, nextBlockInput)
 		if err != nil {
-			return nil, errors.Wrapf(err, "error traversing workflow %s", neighbor)
+			return nil, errors.Wrapf(err, "error traversing workflow %s", child)
 		}
 	}
 	return nil, nil

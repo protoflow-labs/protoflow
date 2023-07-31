@@ -1,6 +1,6 @@
 import { ActionBar } from "@/components/ActionBar";
 import { ActionPanel } from "@/components/ActionPanel";
-import BlocksList from "@/components/newBlockSidebar/BlocksList";
+import BlocksList from "@/components/Sidebar/BlocksList";
 import { useEditorContext } from "@/providers/EditorProvider";
 import { useProjectContext } from "@/providers/ProjectProvider";
 import { Background, ReactFlow } from "reactflow";

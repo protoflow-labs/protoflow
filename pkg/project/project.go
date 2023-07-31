@@ -3,6 +3,7 @@ package project
 import (
 	"context"
 	"github.com/bufbuild/connect-go"
+	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/gen"
 	"github.com/protoflow-labs/protoflow/pkg/workflow"
@@ -85,4 +86,22 @@ func (s *Service) SaveProject(ctx context.Context, req *connect.Request[gen.Save
 	}
 
 	return connect.NewResponse(&gen.SaveProjectResponse{Project: project}), nil
+}
+
+func (s *Service) NewNode(ctx context.Context, c *connect.Request[gen.NewNodeRequest]) (*connect.Response[gen.NewNodeResponse], error) {
+	project, err := s.store.GetProject(c.Msg.ProjectId)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get project %s", c.Msg.ProjectId)
+	}
+
+	n := c.Msg.Node
+	n.Id = uuid.NewString()
+	project.Graph.Nodes = append(project.Graph.Nodes, n)
+
+	_, err = s.store.SaveProject(project)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to save project %s", project.Id)
+	}
+
+	return connect.NewResponse(&gen.NewNodeResponse{Node: n}), nil
 }

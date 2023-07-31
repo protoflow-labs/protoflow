@@ -18,7 +18,7 @@ func New(node *gen.Node) graph.Node {
 	if node.Id == "" {
 		node.Id = uuid.NewString()
 	}
-	b := base.NewNode(node)
+	b := base.NodeFromProto(node)
 	switch t := node.Type.(type) {
 	case *gen.Node_Data:
 		return data.New(b, t.Data)
@@ -34,5 +34,14 @@ func New(node *gen.Node) graph.Node {
 		return code.New(b, t.Code)
 	default:
 		return nil
+	}
+}
+
+// TODO breadchris find a better package for this
+func NewEdge(from, to string) *gen.Edge {
+	return &gen.Edge{
+		Id:   uuid.NewString(),
+		From: from,
+		To:   to,
 	}
 }

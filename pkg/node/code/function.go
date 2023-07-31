@@ -3,7 +3,6 @@ package code
 import (
 	"context"
 	"fmt"
-	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/gen/code"
 	pgrpc "github.com/protoflow-labs/protoflow/gen/grpc"
 	"github.com/protoflow-labs/protoflow/pkg/node/base"
@@ -11,10 +10,6 @@ import (
 	"github.com/protoflow-labs/protoflow/pkg/workflow/graph"
 	"github.com/reactivex/rxgo/v2"
 	"github.com/rs/zerolog/log"
-	"net"
-	"net/url"
-	"strings"
-	"time"
 )
 
 type FunctionNode struct {
@@ -68,6 +63,14 @@ func NewFunctionNode(b *base.Node, node *code.Function, ops ...FunctionNodeOptio
 	return f
 }
 
+func NewFunctionProto() *code.Code {
+	return &code.Code{
+		Type: &code.Code_Function{
+			Function: &code.Function{},
+		},
+	}
+}
+
 func (n *FunctionNode) Wire(ctx context.Context, input graph.Input) (graph.Output, error) {
 	log.Debug().
 		Str("name", n.NormalizedName()).
@@ -97,72 +100,26 @@ func (n *FunctionNode) Info() (*graph.Info, error) {
 		return nil, err
 	}
 	ls, ok := p.(*Server)
-	if ok {
-		return nil, errors.New("language service resource is not supported")
+	if !ok {
+		return nil, fmt.Errorf("error getting language server provider: %s", n.Name)
 	}
 	grpcNode := n.ToGRPC(ls)
 	// TODO breadchris we should know where the function node is located and should read/write from the proto
-	return grpcNode.Info()
+	md, err := grpc.GetMethodDescriptor(ls.GRPC, grpcNode)
+	if err != nil {
+		return nil, err
+	}
+	return &graph.Info{
+		Method: md,
+	}, nil
 }
 
 func (n *FunctionNode) ToGRPC(r *Server) *grpc.Method {
-	serviceName := strings.ToLower(r.Runtime.String()) + "Service"
+	// TODO breadchris fix
+	//serviceName := strings.ToLower(r.Runtime.String()) + "Service"
 	return grpc.NewMethod(n.Node, &pgrpc.Method{
-		Package: "protoflow",
-		Service: serviceName,
+		Package: "project",
+		Service: "ProjectService",
 		Method:  n.Name,
 	})
-}
-
-type Server struct {
-	*base.Node
-	*code.Server
-	GRPC *grpc.Server
-}
-
-var _ graph.Node = &Server{}
-
-func NewServer(b *base.Node, node *code.Server) *Server {
-	return &Server{
-		Node:   b,
-		Server: node,
-		// TODO breadchris maybe there is a graph relationship here between the server and the grpc resource
-		GRPC: grpc.NewServer(b, node.Grpc),
-	}
-}
-
-func (r *Server) Init() (func(), error) {
-	if r.Grpc != nil {
-		return r.GRPC.Init()
-	}
-	return nil, nil
-}
-
-func (r *Server) Wire(ctx context.Context, input graph.Input) (graph.Output, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func ensureRunning(host string) error {
-	maxRetries := 1
-	retryInterval := 2 * time.Second
-
-	u, err := url.Parse(host)
-	if err != nil {
-		return errors.Wrapf(err, "unable to parse url %s", host)
-	}
-
-	log.Debug().Str("host", host).Msg("waiting for host to come online")
-	for i := 1; i <= maxRetries; i++ {
-		conn, err := net.DialTimeout("tcp", u.Host, time.Second)
-		if err == nil {
-			conn.Close()
-			log.Debug().Str("host", host).Msg("host is not listening")
-			return nil
-		} else {
-			log.Debug().Err(err).Int("attempt", i).Int("max", maxRetries).Msg("error connecting to host")
-			time.Sleep(retryInterval)
-		}
-	}
-	return errors.New("host did not come online in time")
 }

@@ -1,6 +1,7 @@
 package base
 
 import (
+	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/gen"
 	"github.com/protoflow-labs/protoflow/pkg/util"
@@ -17,11 +18,18 @@ type Node struct {
 	successors   []graph.Node
 }
 
-// NewNode creates a new Node from a gen.Node, gen.Node cannot be embedded into Node because proto deserialization will fail on the type
-func NewNode(node *gen.Node) *Node {
+// NodeFromProto creates a new Node from a gen.Node, gen.Node cannot be embedded into Node because proto deserialization will fail on the type
+func NodeFromProto(node *gen.Node) *Node {
 	return &Node{
 		Name: util.ToTitleCase(node.Name),
 		id:   node.Id,
+	}
+}
+
+func NewNode(name string) *Node {
+	return &Node{
+		Name: name,
+		id:   uuid.NewString(),
 	}
 }
 
