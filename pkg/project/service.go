@@ -4,7 +4,6 @@ import (
 	"context"
 	"github.com/bufbuild/connect-go"
 	"github.com/google/wire"
-	"github.com/jhump/protoreflect/desc"
 	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/gen"
 	"github.com/protoflow-labs/protoflow/gen/code"
@@ -12,14 +11,12 @@ import (
 	pgrpc "github.com/protoflow-labs/protoflow/gen/grpc"
 	"github.com/protoflow-labs/protoflow/gen/storage"
 	"github.com/protoflow-labs/protoflow/pkg/bucket"
+	"github.com/protoflow-labs/protoflow/pkg/graph"
 	"github.com/protoflow-labs/protoflow/pkg/grpc"
 	openaiclient "github.com/protoflow-labs/protoflow/pkg/openai"
 	"github.com/protoflow-labs/protoflow/pkg/store"
 	"github.com/protoflow-labs/protoflow/pkg/workflow"
-	"github.com/protoflow-labs/protoflow/pkg/workflow/graph"
 	"github.com/rs/zerolog/log"
-	"google.golang.org/protobuf/reflect/protoreflect"
-	"google.golang.org/protobuf/types/descriptorpb"
 	"net/url"
 	"os"
 )
@@ -150,46 +147,28 @@ func getProjectTypes() (*gen.ProjectTypes, error) {
 	// TODO breadchris when types are bound to a project, this should be specific to a project
 	// return the rules for different layers
 	n := &gen.Node{}
-	nd, err := desc.WrapMessage(n.ProtoReflect().Descriptor())
+	nd, err := grpc.SerializeType(n)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to wrap message")
 	}
 	e := &gen.Edge{}
-	ed, err := desc.WrapMessage(e.ProtoReflect().Descriptor())
+	ed, err := grpc.SerializeType(e)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to wrap message")
 	}
 
 	// TODO breadchris cleanup this code, see blocks.go:76
-	descLookup := map[string]protoreflect.MessageDescriptor{}
-	enumLookup := map[string]protoreflect.EnumDescriptor{}
-	descLookup, enumLookup = grpc.ResolveTypeLookup(n.ProtoReflect().Descriptor(), descLookup, enumLookup)
-	descLookup, enumLookup = grpc.ResolveTypeLookup(e.ProtoReflect().Descriptor(), descLookup, enumLookup)
+	tr := grpc.NewTypeResolver()
+	tr = tr.ResolveLookup(n)
+	tr = tr.ResolveLookup(e)
 
-	dl := map[string]*descriptorpb.DescriptorProto{}
-	el := map[string]*descriptorpb.EnumDescriptorProto{}
+	sr := tr.Serialize()
 
-	for k, v := range descLookup {
-		m, err := desc.WrapMessage(v)
-		if err != nil {
-			log.Warn().Err(err).Msgf("unable to wrap message %s", k)
-			continue
-		}
-		dl[k] = m.AsDescriptorProto()
-	}
-	for k, v := range enumLookup {
-		e, err := desc.WrapEnum(v)
-		if err != nil {
-			log.Warn().Err(err).Msgf("unable to wrap enum %s", k)
-			continue
-		}
-		el[k] = e.AsEnumDescriptorProto()
-	}
 	return &gen.ProjectTypes{
 		NodeType:   nd.AsDescriptorProto(),
 		EdgeType:   ed.AsDescriptorProto(),
-		DescLookup: dl,
-		EnumLookup: el,
+		DescLookup: sr.DescLookup,
+		EnumLookup: sr.EnumLookup,
 	}, nil
 }
 

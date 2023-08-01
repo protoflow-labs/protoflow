@@ -6,8 +6,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/gen"
+	"github.com/protoflow-labs/protoflow/pkg/graph"
 	"github.com/protoflow-labs/protoflow/pkg/workflow"
-	"github.com/protoflow-labs/protoflow/pkg/workflow/graph"
 )
 
 type Project struct {

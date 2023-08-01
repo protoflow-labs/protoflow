@@ -118,6 +118,10 @@ const useEditorProps = (draggedNode: ProtoNode | undefined, setDraggedNode: (nod
       id: e.id,
       source: e.from,
       target: e.to,
+      label: e.type?.case,
+      markerEnd: {
+        type: "arrowclosed"
+      },
     })) || []
   );
 

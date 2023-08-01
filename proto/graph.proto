@@ -33,11 +33,12 @@ message Node {
 
 // TODO breadchris message NodeInstance { node_id, name, x, y } for displaying
 
-message CodeAdapter {
-  string code = 1;
+message Provides {
 }
 
-message Provides {}
+message PublishesTo {
+  string code_adapter = 1;
+}
 
 message Edge {
    string id = 1;
@@ -45,7 +46,7 @@ message Edge {
    string to = 3;
 
    oneof type {
-     CodeAdapter code_adapter = 4;
      Provides provides = 5;
+     PublishesTo publishes_to = 6;
    }
 }

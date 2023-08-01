@@ -7,7 +7,7 @@ import (
 	"github.com/google/wire"
 	"github.com/pkg/errors"
 	phttp "github.com/protoflow-labs/protoflow/gen/http"
-	nhttp "github.com/protoflow-labs/protoflow/pkg/node/http"
+	nhttp "github.com/protoflow-labs/protoflow/pkg/graph/node/http"
 	"github.com/protoflow-labs/protoflow/pkg/util/rx"
 	"github.com/protoflow-labs/protoflow/studio/public"
 	"github.com/rs/zerolog/log"

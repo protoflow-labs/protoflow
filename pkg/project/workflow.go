@@ -7,10 +7,10 @@ import (
 	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/gen"
 	phttp "github.com/protoflow-labs/protoflow/gen/http"
-	"github.com/protoflow-labs/protoflow/pkg/node/http"
+	"github.com/protoflow-labs/protoflow/pkg/graph"
+	http2 "github.com/protoflow-labs/protoflow/pkg/graph/node/http"
 	"github.com/protoflow-labs/protoflow/pkg/util/rx"
 	"github.com/protoflow-labs/protoflow/pkg/workflow"
-	"github.com/protoflow-labs/protoflow/pkg/workflow/graph"
 	"github.com/reactivex/rxgo/v2"
 	"github.com/rs/zerolog/log"
 )
@@ -21,7 +21,7 @@ func (s *Service) wireWorkflow(
 	nodeID string,
 	workflowInput any,
 	// TODO breadchris this should not be needed
-	httpStream *http.HTTPEventStream,
+	httpStream *http2.HTTPEventStream,
 ) (rxgo.Observable, error) {
 	log.Debug().
 		Str("workflow", w.ID).
@@ -39,7 +39,7 @@ func (s *Service) wireWorkflow(
 		httpRequest bool
 	)
 	switch n.(type) {
-	case *http.RouteNode:
+	case *http2.RouteNode:
 		inputObs = httpStream.RequestObs
 		httpRequest = true
 	default:
@@ -91,12 +91,12 @@ func (s *Service) RunWorkflow(ctx context.Context, c *connect.Request[gen.RunWor
 		observables []rxgo.Observable
 	)
 
-	httpStream := http.NewHTTPEventStream()
+	httpStream := http2.NewHTTPEventStream()
 
 	if c.Msg.StartServer {
 		for _, n := range w.NodeLookup {
 			switch n.(type) {
-			case *http.RouteNode:
+			case *http2.RouteNode:
 				entrypoints = append(entrypoints, n.ID())
 			}
 		}

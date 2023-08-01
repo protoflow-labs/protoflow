@@ -4,54 +4,30 @@ import (
 	"github.com/jhump/protoreflect/desc"
 	"github.com/jhump/protoreflect/desc/builder"
 	"github.com/pkg/errors"
+	"github.com/protoflow-labs/protoflow/pkg/graph"
+	"github.com/protoflow-labs/protoflow/pkg/graph/node/code"
+	"github.com/protoflow-labs/protoflow/pkg/graph/node/data"
 	"github.com/protoflow-labs/protoflow/pkg/grpc"
-	"github.com/protoflow-labs/protoflow/pkg/node/code"
-	"github.com/protoflow-labs/protoflow/pkg/node/data"
-	"github.com/protoflow-labs/protoflow/pkg/node/reason"
-	"github.com/protoflow-labs/protoflow/pkg/workflow/graph"
 	"github.com/rs/zerolog/log"
 	"github.com/samber/lo"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
 // TODO breadchris separate "infer" and "collect" type information
+// TODO breadchris node.Info should be passed workflow since a node's info can depend on other nodes
 func (w *Workflow) GetNodeInfo(n graph.Node) (*graph.Info, error) {
 	var resp *graph.Info
 	switch n.(type) {
 	case *data.InputNode:
-		children := n.Successors()
-		if len(children) != 1 {
-			// TODO breadchris support multiple children
-			return nil, errors.Errorf("input node should have 1 child, got %d", len(children))
+		listeners := n.Subscribers()
+		if len(listeners) != 1 {
+			// TODO breadchris support multiple listeners
+			return nil, errors.Errorf("input node should have 1 child, got %d", len(listeners))
 		}
 		// TODO breadchris only designed for 1 child
-		for _, child := range children {
+		for _, l := range listeners {
+			child := l.GetNode()
 			return w.GetNodeInfo(child)
-		}
-	case *reason.PromptNode:
-		reqMsg := builder.NewMessage("Request")
-		reqMsg = reqMsg.AddField(builder.NewField("message", builder.FieldTypeString()))
-		req := builder.RpcTypeMessage(reqMsg, true)
-
-		resMsg := builder.NewMessage("Response")
-		resMsg = resMsg.AddField(builder.NewField("result", builder.FieldTypeString()))
-		res := builder.RpcTypeMessage(resMsg, false)
-
-		s := builder.NewService("Service")
-		b := builder.NewMethod(n.NormalizedName(), req, res)
-		s.AddMethod(b)
-
-		m, err := b.Build()
-		if err != nil {
-			return nil, err
-		}
-
-		mthd, err := grpc.NewMethodDescriptor(m.UnwrapMethod())
-		if err != nil {
-			return nil, err
-		}
-		resp = &graph.Info{
-			Method: mthd,
 		}
 	case *code.FunctionNode:
 		var (
@@ -61,14 +37,15 @@ func (w *Workflow) GetNodeInfo(n graph.Node) (*graph.Info, error) {
 			streamingParent bool
 		)
 
-		// TODO breadchris not a very good check, should be looking at edges
-		if len(n.Predecessors()) == 1 {
+		// TODO breadchris if there is no publisher to determine the input type, try to see if the type already exists
+		if len(n.Publishers()) == 0 {
 			return n.Info()
 		}
 
 		// TODO breadchris if two function nodes are connected, you can't infer the type
 		// make sure an infinite loop doesn't happen
-		for _, child := range n.Successors() {
+		for _, listener := range n.Subscribers() {
+			child := listener.GetNode()
 			switch n.(type) {
 			case *code.FunctionNode:
 				log.Warn().
@@ -90,7 +67,7 @@ func (w *Workflow) GetNodeInfo(n graph.Node) (*graph.Info, error) {
 			}
 			childInputs = append(childInputs, childType.Method.MethodDesc.Input())
 		}
-		for _, parent := range n.Predecessors() {
+		for _, parent := range n.Publishers() {
 			switch n.(type) {
 			case *code.FunctionNode:
 				log.Warn().

@@ -2,40 +2,38 @@ package workflow
 
 import (
 	"context"
-	"github.com/protoflow-labs/protoflow/pkg/node"
-	"github.com/protoflow-labs/protoflow/pkg/node/code"
-	"github.com/protoflow-labs/protoflow/pkg/workflow/graph"
+	pcode "github.com/protoflow-labs/protoflow/gen/code"
+	"github.com/protoflow-labs/protoflow/pkg/graph/edge"
+	"github.com/protoflow-labs/protoflow/pkg/graph/node/base"
+	code2 "github.com/protoflow-labs/protoflow/pkg/graph/node/code"
 	"github.com/reactivex/rxgo/v2"
 	"github.com/rs/zerolog/log"
 	"testing"
-
-	"github.com/protoflow-labs/protoflow/gen"
 )
 
 func TestRun(t *testing.T) {
 	// TODO breadchris start server to listen for localhost:8080?
 
-	r := node.NewProto(&gen.Resource{
-		Type: &gen.Resource_LanguageService{
-			LanguageService: &gen.LanguageService{},
-		},
-	})
+	r := code2.NewServer(base.NewNode("test 1"), code2.NewServerProto(pcode.Runtime_NODEJS).GetServer())
 
-	n1 := code.NewFunctionNode(
-		code.NewFunctionProto("test 1", r.Id),
-		code.WithFunction(code.InMemoryObserver("test 1")),
+	n1 := code2.NewFunctionNode(
+		base.NewNode("test 2"),
+		code2.NewFunctionProto().GetFunction(),
+		code2.WithFunction(code2.InMemoryObserver("test 1")),
 	)
-	n2 := code.NewFunctionNode(
-		code.NewFunctionProto("test 2", r.Id),
-		code.WithFunction(code.InMemoryObserver("test 2")),
+	n2 := code2.NewFunctionNode(
+		base.NewNode("test 3"),
+		code2.NewFunctionProto().GetFunction(),
+		code2.WithFunction(code2.InMemoryObserver("test 2")),
 	)
 
 	a, err := Default().
 		WithBuiltNodes(n1, n2).
-		WithBuiltEdges(graph.Edge{
-			From: n1,
-			To:   n2,
-		}).
+		WithBuiltEdges(
+			edge.New(edge.NewProvidesProto(r.ID(), n1.ID())),
+			edge.New(edge.NewProvidesProto(r.ID(), n2.ID())),
+			edge.New(edge.NewPublishesToProto(n1.ID(), n2.ID())),
+		).
 		Build()
 	if err != nil {
 		t.Fatal(err)

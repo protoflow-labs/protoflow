@@ -7,8 +7,9 @@ import (
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/gen"
-	"github.com/protoflow-labs/protoflow/pkg/node"
-	"github.com/protoflow-labs/protoflow/pkg/workflow/graph"
+	"github.com/protoflow-labs/protoflow/pkg/graph"
+	"github.com/protoflow-labs/protoflow/pkg/graph/edge"
+	"github.com/protoflow-labs/protoflow/pkg/graph/node"
 	"github.com/reactivex/rxgo/v2"
 	"github.com/rs/zerolog/log"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -28,29 +29,34 @@ type Workflow struct {
 	Graph     graphlib.Graph[string, string]
 	// TODO breadchris this should be a deterministic value based on the workflow node slice
 	NodeLookup map[string]graph.Node
+	EdgeLookup map[string]graph.Edge
 }
 
-type Builder[T graph.ProtoNode] func(message T) graph.Node
+type NodeBuilder[T graph.ProtoNode] func(message T) graph.Node
+type EdgeBuilder[U graph.ProtoEdge] func(message U) graph.Edge
 
-type WorkflowBuilder[T graph.ProtoNode] struct {
+type WorkflowBuilder[T graph.ProtoNode, U graph.ProtoEdge] struct {
 	w            *Workflow
-	nodeBuilders map[protoreflect.FullName]Builder[T]
+	nodeBuilders map[protoreflect.FullName]NodeBuilder[T]
+	edgeBuilders map[protoreflect.FullName]EdgeBuilder[U]
 	err          error
 }
 
 // TODO breadchris is a workflow builder type needed so that you separate the build and workflow steps?
 
-func Default() *WorkflowBuilder[*gen.Node] {
-	return NewBuilder[*gen.Node]().WithNodeTypes(&gen.Node{}, node.New)
+func Default() *WorkflowBuilder[*gen.Node, *gen.Edge] {
+	return NewBuilder[*gen.Node, *gen.Edge]().
+		WithNodeTypes(&gen.Node{}, node.New).
+		WithEdgeTypes(&gen.Edge{}, edge.New)
 }
 
-func NewBuilder[T graph.ProtoNode]() *WorkflowBuilder[T] {
-	return &WorkflowBuilder[T]{
-		nodeBuilders: map[protoreflect.FullName]Builder[T]{},
+func NewBuilder[T graph.ProtoNode, U graph.ProtoEdge]() *WorkflowBuilder[T, U] {
+	return &WorkflowBuilder[T, U]{
+		nodeBuilders: map[protoreflect.FullName]NodeBuilder[T]{},
 		w: &Workflow{
-			ProjectID: uuid.NewString(),
-			// TODO breadchris can reseources be replaced with a graph?
+			ProjectID:  uuid.NewString(),
 			NodeLookup: map[string]graph.Node{},
+			EdgeLookup: map[string]graph.Edge{},
 			Graph:      graphlib.New(graphlib.StringHash, graphlib.Directed(), graphlib.PreventCycles()),
 		},
 	}
@@ -60,7 +66,7 @@ func builderName(n protoreflect.ProtoMessage) protoreflect.FullName {
 	return n.ProtoReflect().Descriptor().FullName()
 }
 
-func (w *WorkflowBuilder[T]) newNode(n T) (graph.Node, error) {
+func (w *WorkflowBuilder[T, U]) newNode(n T) (graph.Node, error) {
 	//configOneOf := n.ProtoReflect().Descriptor().Oneofs().Get(0)
 	//fd := n.ProtoReflect().WhichOneof(configOneOf)
 	//nodeType := fd.Message().FullName()
@@ -76,13 +82,32 @@ func (w *WorkflowBuilder[T]) newNode(n T) (graph.Node, error) {
 	return builtNode, nil
 }
 
-func (w *WorkflowBuilder[T]) WithNodeTypes(n T, builder Builder[T]) *WorkflowBuilder[T] {
+func (w *WorkflowBuilder[T, U]) newEdge(n U) (graph.Edge, error) {
+	bn := builderName(n)
+	edgeBuilder, ok := w.edgeBuilders[bn]
+	if !ok {
+		return nil, errors.Errorf("no builder found for edge type %s", bn)
+	}
+	builtEdge := edgeBuilder(n)
+	if builtEdge == nil {
+		return nil, errors.Errorf("edge builder for edge type %+v returned nil", n)
+	}
+	return builtEdge, nil
+}
+
+func (w *WorkflowBuilder[T, U]) WithNodeTypes(n T, builder NodeBuilder[T]) *WorkflowBuilder[T, U] {
 	nw := *w
 	nw.nodeBuilders[builderName(n)] = builder
 	return &nw
 }
 
-func (w *WorkflowBuilder[T]) WithNodes(nodes ...T) *WorkflowBuilder[T] {
+func (w *WorkflowBuilder[T, U]) WithEdgeTypes(n U, builder EdgeBuilder[U]) *WorkflowBuilder[T, U] {
+	nw := *w
+	nw.edgeBuilders[builderName(n)] = builder
+	return &nw
+}
+
+func (w *WorkflowBuilder[T, U]) WithNodes(nodes ...T) *WorkflowBuilder[T, U] {
 	nw := *w
 	for _, n := range nodes {
 		err := nw.addNode(n)
@@ -94,7 +119,7 @@ func (w *WorkflowBuilder[T]) WithNodes(nodes ...T) *WorkflowBuilder[T] {
 	return &nw
 }
 
-func (w *WorkflowBuilder[T]) WithBuiltNodes(nodes ...graph.Node) *WorkflowBuilder[T] {
+func (w *WorkflowBuilder[T, U]) WithBuiltNodes(nodes ...graph.Node) *WorkflowBuilder[T, U] {
 	nw := *w
 	for _, n := range nodes {
 		err := nw.addBuiltNode(n)
@@ -106,23 +131,19 @@ func (w *WorkflowBuilder[T]) WithBuiltNodes(nodes ...graph.Node) *WorkflowBuilde
 	return &nw
 }
 
-func (w *WorkflowBuilder[T]) WithBuiltEdges(edges ...graph.Edge) *WorkflowBuilder[T] {
+func (w *WorkflowBuilder[T, U]) WithBuiltEdges(edges ...graph.Edge) *WorkflowBuilder[T, U] {
 	nw := *w
 	for _, e := range edges {
-		err := nw.addEdge(&gen.Edge{
-			Id:   uuid.NewString(),
-			From: e.From.ID(),
-			To:   e.To.ID(),
-		})
+		err := nw.addBuiltEdge(e)
 		if err != nil {
-			nw.err = errors.Wrapf(err, "error adding edge from %s to %s", e.From.ID(), e.To.ID())
+			nw.err = errors.Wrapf(err, "error adding edge from %s to %s", e.From(), e.To())
 			return &nw
 		}
 	}
 	return &nw
 }
 
-func (w *WorkflowBuilder[T]) addNode(n T) error {
+func (w *WorkflowBuilder[T, U]) addNode(n T) error {
 	builtNode, err := w.newNode(n)
 	if err != nil {
 		return errors.Wrapf(err, "error creating block for node %s", n.GetId())
@@ -130,7 +151,7 @@ func (w *WorkflowBuilder[T]) addNode(n T) error {
 	return w.addBuiltNode(builtNode)
 }
 
-func (w *WorkflowBuilder[T]) addBuiltNode(builtNode graph.Node) error {
+func (w *WorkflowBuilder[T, U]) addBuiltNode(builtNode graph.Node) error {
 	if builtNode.ID() == "" {
 		return errors.New("node id cannot be empty")
 	}
@@ -143,12 +164,27 @@ func (w *WorkflowBuilder[T]) addBuiltNode(builtNode graph.Node) error {
 	return nil
 }
 
-// TODO breadchris change to generic edge
-func (w *WorkflowBuilder[T]) addEdge(edge *gen.Edge) error {
-	return w.w.Graph.AddEdge(edge.From, edge.To, graphlib.EdgeAttribute(edgeIDKey, edge.Id))
+func (w *WorkflowBuilder[T, U]) addEdge(edge U) error {
+	builtEdge, err := w.newEdge(edge)
+	if err != nil {
+		return errors.Wrapf(err, "error creating edge for edge %s", edge.GetId())
+	}
+	return w.addBuiltEdge(builtEdge)
 }
 
-func (w *WorkflowBuilder[T]) WithProtoProject(project graph.ProtoProject[T]) *WorkflowBuilder[T] {
+func (w *WorkflowBuilder[T, U]) addBuiltEdge(builtEdge graph.Edge) error {
+	if builtEdge.ID() == "" {
+		return errors.New("edge id cannot be empty")
+	}
+	err := w.w.Graph.AddEdge(builtEdge.From(), builtEdge.To(), graphlib.EdgeAttribute(edgeIDKey, builtEdge.ID()))
+	if err != nil {
+		return errors.Wrapf(err, "error adding edge %s", builtEdge.ID())
+	}
+	w.w.EdgeLookup[builtEdge.ID()] = builtEdge
+	return nil
+}
+
+func (w *WorkflowBuilder[T, U]) WithProtoProject(project graph.ProtoProject[T, U]) *WorkflowBuilder[T, U] {
 	nw := *w
 	var g = project.GetGraph()
 	if g == nil {
@@ -165,21 +201,21 @@ func (w *WorkflowBuilder[T]) WithProtoProject(project graph.ProtoProject[T]) *Wo
 		}
 	}
 
-	for _, edge := range g.GetEdges() {
-		if edge.From == "" || edge.To == "" {
-			nw.err = errors.Errorf("edge %s has empty from or to", edge.Id)
+	for _, e := range g.GetEdges() {
+		if e.GetFrom() == "" || e.GetTo() == "" {
+			nw.err = errors.Errorf("edge %s has empty from or to", e.GetId())
 			return &nw
 		}
-		err := nw.addEdge(edge)
+		err := nw.addEdge(e)
 		if err != nil {
-			nw.err = errors.Wrapf(err, "error adding edge %s", edge.Id)
+			nw.err = errors.Wrapf(err, "error adding edge %s", e.GetId())
 			return &nw
 		}
 	}
 	return &nw
 }
 
-func (w *WorkflowBuilder[T]) Build() (*Workflow, error) {
+func (w *WorkflowBuilder[T, U]) Build() (*Workflow, error) {
 	nw := *w
 
 	// TODO breadchris resolve dependencies
@@ -191,21 +227,17 @@ func (w *WorkflowBuilder[T]) Build() (*Workflow, error) {
 	}
 
 	for nodeID, sucs := range sucMap {
-		n := nw.w.NodeLookup[nodeID]
-		for sID := range sucs {
-			n.AddSuccessor(nw.w.NodeLookup[sID])
-		}
-	}
+		from, _ := nw.w.NodeLookup[nodeID]
+		for sID, e := range sucs {
+			to, _ := nw.w.NodeLookup[sID]
 
-	preMap, err := nw.w.Graph.PredecessorMap()
-	if err != nil {
-		return nil, errors.Wrapf(err, "error getting predecessor map")
-	}
+			eID := e.Properties.Attributes[edgeIDKey]
+			builtEdge, _ := w.w.EdgeLookup[eID]
 
-	for nodeID, pres := range preMap {
-		n := nw.w.NodeLookup[nodeID]
-		for pID := range pres {
-			n.AddPredecessor(nw.w.NodeLookup[pID])
+			err = builtEdge.Connect(from, to)
+			if err != nil {
+				return nil, errors.Wrapf(err, "error connecting edge %s", eID)
+			}
 		}
 	}
 
@@ -266,7 +298,7 @@ func (w *Workflow) WireNodes(ctx context.Context, nodeID string, input rxgo.Obse
 		return nil, fmt.Errorf("vertex not found: %s", nodeID)
 	}
 
-	_, err := w.wireWorkflow(ctx, connector, instances, n, graph.Input{
+	_, err := w.wireWorkflow(ctx, connector, instances, n, graph.IO{
 		Observable: input,
 	})
 	if err != nil {
@@ -282,53 +314,35 @@ func (w *Workflow) wireWorkflow(
 	connector *Connector,
 	instances Instances,
 	node graph.Node,
-	input graph.Input,
-) (*graph.Output, error) {
+	input graph.IO,
+) (*graph.IO, error) {
 	log.Debug().
 		Str("node", node.NormalizedName()).
 		// Interface("resource", input.Resource.Name()).
 		Msg("wiring node IO")
-	output, err := node.Wire(ctx, input)
+	nextInput, err := node.Wire(ctx, input)
 	if err != nil {
 		return nil, errors.Wrapf(err, "error executing node: %s", node.NormalizedName())
 	}
 
-	if output.Observable == nil {
+	if nextInput.Observable == nil {
 		return nil, fmt.Errorf("node %s returned nil observable", node.NormalizedName())
 	}
 
-	connector.Add(output.Observable)
+	connector.Add(nextInput.Observable)
 
-	nextBlockInput := graph.Input{
-		Observable: output.Observable,
-	}
+	for _, listener := range node.Subscribers() {
+		child := listener.GetNode()
 
-	for _, child := range node.Successors() {
-		//e, err := w.Graph.Edge(nodeID, child)
-		//if err != nil {
-		//	return nil, errors.Wrapf(err, "error getting edge between %s and %s", nodeID, child)
+		nextInput, err = listener.Transform(ctx, nextInput)
+		if err != nil {
+			return nil, errors.Wrapf(err, "error transforming input for node %s", child.NormalizedName())
+		}
+
+		// TODO breadchris for any publishers to this node, add the child as a subscriber
+		//for _, parent := range child.Publishers() {
+		//
 		//}
-		//edgeID := e.Properties.Attributes[edgeIDKey]
-		//nextBlockInput.Observable = output.Observable.Map(func(c context.Context, i any) (any, error) {
-		//	vm := otto.New()
-		//	vm.Set("input", i)
-		//	vm.Run(`input = input.message`)
-		//	v, err := vm.Get("input")
-		//	if err != nil {
-		//		log.Error().Err(err).Msg("error getting input")
-		//		return nil, err
-		//	}
-		//	o, err := v.Export()
-		//	if err != nil {
-		//		log.Error().Err(err).Msg("error exporting input")
-		//		return nil, err
-		//	}
-		//	switch o.(type) {
-		//	case map[string]any:
-		//		log.Debug().Interface("input", o).Msg("input is map")
-		//	}
-		//	return o, nil
-		//})
 
 		log.Debug().
 			Str("node", node.NormalizedName()).
@@ -336,7 +350,7 @@ func (w *Workflow) wireWorkflow(
 			Msg("traversing workflow")
 
 		// TODO breadchris what to do with the output here? Map over the output to turn into NodeExecution
-		_, err = w.wireWorkflow(ctx, connector, instances, child, nextBlockInput)
+		_, err = w.wireWorkflow(ctx, connector, instances, child, nextInput)
 		if err != nil {
 			return nil, errors.Wrapf(err, "error traversing workflow %s", child)
 		}

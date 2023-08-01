@@ -158,43 +158,6 @@ export class Node extends Message<Node> {
 }
 
 /**
- * @generated from message graph.CodeAdapter
- */
-export class CodeAdapter extends Message<CodeAdapter> {
-  /**
-   * @generated from field: string code = 1;
-   */
-  code = "";
-
-  constructor(data?: PartialMessage<CodeAdapter>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "graph.CodeAdapter";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "code", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CodeAdapter {
-    return new CodeAdapter().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): CodeAdapter {
-    return new CodeAdapter().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): CodeAdapter {
-    return new CodeAdapter().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: CodeAdapter | PlainMessage<CodeAdapter> | undefined, b: CodeAdapter | PlainMessage<CodeAdapter> | undefined): boolean {
-    return proto3.util.equals(CodeAdapter, a, b);
-  }
-}
-
-/**
  * @generated from message graph.Provides
  */
 export class Provides extends Message<Provides> {
@@ -226,6 +189,43 @@ export class Provides extends Message<Provides> {
 }
 
 /**
+ * @generated from message graph.PublishesTo
+ */
+export class PublishesTo extends Message<PublishesTo> {
+  /**
+   * @generated from field: string code_adapter = 1;
+   */
+  codeAdapter = "";
+
+  constructor(data?: PartialMessage<PublishesTo>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "graph.PublishesTo";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "code_adapter", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PublishesTo {
+    return new PublishesTo().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): PublishesTo {
+    return new PublishesTo().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): PublishesTo {
+    return new PublishesTo().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: PublishesTo | PlainMessage<PublishesTo> | undefined, b: PublishesTo | PlainMessage<PublishesTo> | undefined): boolean {
+    return proto3.util.equals(PublishesTo, a, b);
+  }
+}
+
+/**
  * @generated from message graph.Edge
  */
 export class Edge extends Message<Edge> {
@@ -249,16 +249,16 @@ export class Edge extends Message<Edge> {
    */
   type: {
     /**
-     * @generated from field: graph.CodeAdapter code_adapter = 4;
-     */
-    value: CodeAdapter;
-    case: "codeAdapter";
-  } | {
-    /**
      * @generated from field: graph.Provides provides = 5;
      */
     value: Provides;
     case: "provides";
+  } | {
+    /**
+     * @generated from field: graph.PublishesTo publishes_to = 6;
+     */
+    value: PublishesTo;
+    case: "publishesTo";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<Edge>) {
@@ -272,8 +272,8 @@ export class Edge extends Message<Edge> {
     { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "from", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 3, name: "to", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 4, name: "code_adapter", kind: "message", T: CodeAdapter, oneof: "type" },
     { no: 5, name: "provides", kind: "message", T: Provides, oneof: "type" },
+    { no: 6, name: "publishes_to", kind: "message", T: PublishesTo, oneof: "type" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Edge {

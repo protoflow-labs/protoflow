@@ -3,7 +3,7 @@ package generate
 import (
 	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/pkg/bucket"
-	"github.com/protoflow-labs/protoflow/pkg/node/code"
+	"github.com/protoflow-labs/protoflow/pkg/graph/node/code"
 )
 
 type GoManager struct {

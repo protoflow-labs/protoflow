@@ -2,12 +2,12 @@ package execute
 
 import (
 	"github.com/pkg/errors"
-	"github.com/protoflow-labs/protoflow/pkg/workflow/graph"
+	"github.com/protoflow-labs/protoflow/pkg/graph"
 	"go.temporal.io/sdk/workflow"
 )
 
 type Executor interface {
-	Execute(n graph.Node, input graph.Input) (*graph.Output, error)
+	Execute(n graph.Node, input graph.IO) (*graph.IO, error)
 }
 
 var _ Executor = &TemporalExecutor{}
@@ -22,8 +22,8 @@ func NewTemporalExecutor(ctx workflow.Context) *TemporalExecutor {
 	}
 }
 
-func (e *TemporalExecutor) Execute(n graph.Node, input graph.Input) (*graph.Output, error) {
-	var result graph.Output
+func (e *TemporalExecutor) Execute(n graph.Node, input graph.IO) (*graph.IO, error) {
+	var result graph.IO
 	// TODO breadchris n.WireNodes will not work here since n is a pointer and we are changing execution context, i think
 	err := workflow.ExecuteActivity(e.ctx, n.Wire, n, input).Get(e.ctx, &result)
 	if err != nil {
@@ -50,7 +50,7 @@ func NewMemoryExecutor(ctx *MemoryContext, opts ...MemoryExecutorOption) *Memory
 	return e
 }
 
-func (e *MemoryExecutor) Execute(n graph.Node, input graph.Input) (*graph.Output, error) {
+func (e *MemoryExecutor) Execute(n graph.Node, input graph.IO) (*graph.IO, error) {
 	res, err := n.Wire(e.ctx.Context, input)
 	if err != nil {
 		return nil, err

@@ -4,9 +4,9 @@ import (
 	"github.com/pkg/errors"
 	pcode "github.com/protoflow-labs/protoflow/gen/code"
 	"github.com/protoflow-labs/protoflow/pkg/bucket"
-	"github.com/protoflow-labs/protoflow/pkg/node/code"
+	"github.com/protoflow-labs/protoflow/pkg/graph"
+	"github.com/protoflow-labs/protoflow/pkg/graph/node/code"
 	"github.com/protoflow-labs/protoflow/pkg/project"
-	"github.com/protoflow-labs/protoflow/pkg/workflow/graph"
 	"github.com/rs/zerolog/log"
 	"os"
 	"path"
@@ -115,7 +115,7 @@ func (s *Generate) Generate(project *project.Project) error {
 					return errors.Wrap(err, "error creating nodejs manager")
 				}
 
-				for _, n := range r.Successors() {
+				for _, n := range r.Dependents() {
 					info, err := project.Workflow.GetNodeInfo(n)
 					if err != nil {
 						return errors.Wrapf(err, "error getting node info")

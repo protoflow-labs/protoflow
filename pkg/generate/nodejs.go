@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/pkg/bucket"
+	"github.com/protoflow-labs/protoflow/pkg/graph"
+	"github.com/protoflow-labs/protoflow/pkg/graph/node/code"
 	"github.com/protoflow-labs/protoflow/pkg/grpc"
-	"github.com/protoflow-labs/protoflow/pkg/node/code"
-	"github.com/protoflow-labs/protoflow/pkg/workflow/graph"
 	"github.com/protoflow-labs/protoflow/templates"
 	"path"
 	"strings"
@@ -116,7 +116,7 @@ func (s *NodeJSManager) generateServiceTemplate(r *code.Server) (*ServiceTemplat
 		Runtime: strings.ToLower(r.Runtime.String()),
 		Methods: []Method{},
 	}
-	for _, resNode := range r.Successors() {
+	for _, resNode := range r.Dependents() {
 		switch n := resNode.(type) {
 		case *code.FunctionNode:
 
