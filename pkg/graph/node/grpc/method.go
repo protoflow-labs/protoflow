@@ -110,23 +110,7 @@ func formatHost(host string) (string, error) {
 	return u.String(), nil
 }
 
-// TODO breadchris this should be workflow.Context, but for the memory executor it needs context.Context
-func (n *Method) Wire(ctx context.Context, input graph.IO) (graph.IO, error) {
-	log.Info().
-		Str("service", n.Service).
-		Str("method", n.Method.Method).
-		Msg("setting up grpc node")
-
-	p, err := n.Provider()
-	if err != nil {
-		return graph.IO{}, errors.Wrapf(err, "error getting provider")
-	}
-
-	g, ok := p.(*Server)
-	if !ok {
-		return graph.IO{}, fmt.Errorf("error getting GRPC resource: %s.%s", n.Service, n.Method)
-	}
-
+func WireMethod(ctx context.Context, g *Server, n *Method, obs rxgo.Observable) (graph.IO, error) {
 	serviceName := n.Service
 	if n.Package != "" {
 		serviceName = n.Package + "." + serviceName
@@ -155,7 +139,7 @@ func (n *Method) Wire(ctx context.Context, input graph.IO) (graph.IO, error) {
 	if !method.IsStreamingClient() {
 		// if the method is not a client stream, we need to send each input observable as a single request
 		// TODO breadchris type of this method should be inferred when the workflow is parsed
-		input.Observable.ForEach(func(item any) {
+		obs.ForEach(func(item any) {
 			log.Debug().
 				Str("name", n.NormalizedName()).
 				Interface("item", item).
@@ -180,7 +164,7 @@ func (n *Method) Wire(ctx context.Context, input graph.IO) (graph.IO, error) {
 				Str("name", n.NormalizedName()).
 				Msg("executing streaming grpc method")
 			defer close(outputStream)
-			err = manager.ExecuteMethod(ctx, method, input.Observable, outputStream)
+			err = manager.ExecuteMethod(ctx, method, obs, outputStream)
 			if err != nil {
 				outputStream <- rx.NewError(errors.Wrapf(err, "error calling grpc method: %s", host))
 			}
@@ -189,4 +173,23 @@ func (n *Method) Wire(ctx context.Context, input graph.IO) (graph.IO, error) {
 	return graph.IO{
 		Observable: rxgo.FromChannel(outputStream, rxgo.WithPublishStrategy()),
 	}, nil
+}
+
+// TODO breadchris this should be workflow.Context, but for the memory executor it needs context.Context
+func (n *Method) Wire(ctx context.Context, input graph.IO) (graph.IO, error) {
+	log.Info().
+		Str("service", n.Service).
+		Str("method", n.Method.Method).
+		Msg("setting up grpc node")
+
+	p, err := n.Provider()
+	if err != nil {
+		return graph.IO{}, errors.Wrapf(err, "error getting provider")
+	}
+
+	g, ok := p.(*Server)
+	if !ok {
+		return graph.IO{}, fmt.Errorf("provider is not a grpc server")
+	}
+	return WireMethod(ctx, g, n, input.Observable)
 }

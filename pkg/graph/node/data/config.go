@@ -6,6 +6,8 @@ import (
 	"github.com/protoflow-labs/protoflow/gen/data"
 	"github.com/protoflow-labs/protoflow/pkg/graph"
 	"github.com/protoflow-labs/protoflow/pkg/graph/node/base"
+	"github.com/reactivex/rxgo/v2"
+	"github.com/rs/zerolog/log"
 	"go.uber.org/config"
 	"gopkg.in/yaml.v3"
 )
@@ -23,6 +25,25 @@ func NewConfigNode(b *base.Node, node *data.Config) *ConfigNode {
 		Config: node,
 	}
 }
+
+func NewConfigProto(value any) *data.Data {
+	b, err := yaml.Marshal(value)
+	if err != nil {
+		log.Error().Err(err).Msg("failed to marshal config value")
+		return nil
+	}
+	return &data.Data{
+		Type: &data.Data_Config{
+			Config: &data.Config{
+				Value: string(b),
+			},
+		},
+	}
+}
+
+//func (c *ConfigNode) Info() (*graph.Info, error) {
+//	return graph.NewInfoFromType("config", &data.Config{})
+//}
 
 func (c *ConfigNode) NewConfigProvider(options ...config.YAMLOption) (config.Provider, error) {
 	opts := []config.YAMLOption{
@@ -47,10 +68,18 @@ func (c *ConfigNode) NewConfigProvider(options ...config.YAMLOption) (config.Pro
 	return conf, nil
 }
 
-func (c *ConfigNode) Represent() (string, error) {
-	return c.Config.Value, nil
-}
-
 func (c *ConfigNode) Wire(ctx context.Context, input graph.IO) (graph.IO, error) {
-	return graph.IO{}, errors.New("not implemented")
+	var u map[string]any
+	err := yaml.Unmarshal([]byte(c.Config.Value), &u)
+	if err != nil {
+		return graph.IO{}, errors.Wrapf(err, "failed to unmarshal config yaml")
+	}
+
+	obs := rxgo.Defer([]rxgo.Producer{func(ctx context.Context, next chan<- rxgo.Item) {
+		next <- rxgo.Of(u)
+		close(next)
+	}})
+	return graph.IO{
+		Observable: obs,
+	}, nil
 }

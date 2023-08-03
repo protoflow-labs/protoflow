@@ -6,17 +6,15 @@ export function getUpdatedProject(
   project: Project,
   nodes: Node[],
   edges: Edge[],
-  nodeLookup: Record<string, ProtoNode>
+  nodeLookup: Record<string, ProtoNode>,
+  edgeLookup: Record<string, ProtoEdge>
 ): Project {
+  console.log(nodes, edges)
   return new Project({
     id: project.id,
     graph: new Graph({
-      id: project.graph?.id || project.id,
-      name: project.graph?.name || project.name,
-      edges: edges.map((edge) => (new ProtoEdge({
-        id: edge.id,
-        from: edge.source,
-        to: edge.target,
+      edges: edges.filter(e => edgeLookup[e.id] !== undefined).map((edge) => (new ProtoEdge({
+        ...edgeLookup[edge.id],
       }))),
       nodes: nodes.map((node) => {
         return {

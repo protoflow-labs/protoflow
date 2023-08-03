@@ -81,6 +81,43 @@ export class Query extends Message<Query> {
 }
 
 /**
+ * @generated from message storage.Store
+ */
+export class Store extends Message<Store> {
+  /**
+   * @generated from field: string url = 1;
+   */
+  url = "";
+
+  constructor(data?: PartialMessage<Store>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "storage.Store";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "url", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Store {
+    return new Store().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Store {
+    return new Store().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Store {
+    return new Store().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: Store | PlainMessage<Store> | undefined, b: Store | PlainMessage<Store> | undefined): boolean {
+    return proto3.util.equals(Store, a, b);
+  }
+}
+
+/**
  * @generated from message storage.Document
  */
 export class Document extends Message<Document> {
@@ -99,6 +136,12 @@ export class Document extends Message<Document> {
      */
     value: Query;
     case: "query";
+  } | {
+    /**
+     * @generated from field: storage.Store store = 3;
+     */
+    value: Store;
+    case: "store";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<Document>) {
@@ -111,6 +154,7 @@ export class Document extends Message<Document> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "collection", kind: "message", T: Collection, oneof: "type" },
     { no: 2, name: "query", kind: "message", T: Query, oneof: "type" },
+    { no: 3, name: "store", kind: "message", T: Store, oneof: "type" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Document {

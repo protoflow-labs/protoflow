@@ -21,6 +21,14 @@ func NewInputNode(base *base.Node, input *data.Input) *InputNode {
 	}
 }
 
+func NewInputProto() *data.Data {
+	return &data.Data{
+		Type: &data.Data_Input{
+			Input: &data.Input{},
+		},
+	}
+}
+
 func (n *InputNode) Wire(ctx context.Context, input graph.IO) (graph.IO, error) {
 	return graph.IO{
 		Observable: input.Observable,

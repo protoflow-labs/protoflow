@@ -1,7 +1,6 @@
 package workflow
 
 import (
-	"github.com/jhump/protoreflect/desc"
 	"github.com/jhump/protoreflect/desc/builder"
 	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/pkg/graph"
@@ -9,7 +8,6 @@ import (
 	"github.com/protoflow-labs/protoflow/pkg/graph/node/data"
 	"github.com/protoflow-labs/protoflow/pkg/grpc"
 	"github.com/rs/zerolog/log"
-	"github.com/samber/lo"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
@@ -89,11 +87,11 @@ func (w *Workflow) GetNodeInfo(n graph.Node) (*graph.Info, error) {
 			}
 			parentOutputs = append(parentOutputs, parentType.Method.MethodDesc.Output())
 		}
-		inputType, err := messageFromTypes(n.NormalizedName()+"Request", parentOutputs)
+		inputType, err := graph.MessageFromTypes(n.NormalizedName()+"Request", parentOutputs)
 		if err != nil {
 			return nil, errors.Wrapf(err, "error building request message for %s", n.NormalizedName())
 		}
-		outputType, err := messageFromTypes(n.NormalizedName()+"Response", childInputs)
+		outputType, err := graph.MessageFromTypes(n.NormalizedName()+"Response", childInputs)
 		if err != nil {
 			return nil, errors.Wrapf(err, "error building response message for %s", n.NormalizedName())
 		}
@@ -176,36 +174,4 @@ func (w *Workflow) GetNodeInfo(n graph.Node) (*graph.Info, error) {
 		return n.Info()
 	}
 	return resp, nil
-}
-
-// TODO breadchris if there is only one field, set name of message to just the name of the one field.
-// this is canonical in grpc
-func messageFromTypes(name string, types []protoreflect.MessageDescriptor) (*desc.MessageDescriptor, error) {
-	if len(types) == 1 {
-		return desc.WrapMessage(types[0])
-	}
-	mb := builder.NewMessage(name)
-	if len(types) == 0 {
-		return mb.Build()
-	}
-	var addedFields []string
-	for _, t := range types {
-		wt, err := desc.WrapMessage(t)
-		if err != nil {
-			return nil, errors.Wrapf(err, "error wrapping message %s", name)
-		}
-		msgBuilder, err := builder.FromMessage(wt)
-		if err != nil {
-			return nil, errors.Wrapf(err, "error building message %s", name)
-		}
-		fm := builder.FieldTypeMessage(msgBuilder)
-
-		fieldName := string(t.Name())
-		if lo.Contains(addedFields, fieldName) {
-			return nil, errors.Errorf("duplicate field %s", name)
-		}
-
-		mb = mb.AddField(builder.NewField(fieldName, fm))
-	}
-	return mb.Build()
 }

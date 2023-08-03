@@ -51,11 +51,8 @@ func (n *Node) Info() (*graph.Info, error) {
 	log.Warn().
 		Str("node", n.Name).
 		Msg("Info() not implemented")
-	return nil, nil
-}
-
-func (n *Node) Represent() (string, error) {
-	return "", errors.New("not implemented")
+	// TODO breadchris this doesn't make node generic, figure out a way to make this generic
+	return graph.NewInfoFromType("node", &gen.Node{})
 }
 
 func (n *Node) Init() (func(), error) {

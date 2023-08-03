@@ -91,7 +91,7 @@ func (n *FunctionNode) Wire(ctx context.Context, input graph.IO) (graph.IO, erro
 	}
 
 	grpcNode := n.ToGRPC(g)
-	return grpcNode.Wire(ctx, input)
+	return grpc.WireMethod(ctx, g.GRPC, grpcNode, input.Observable)
 }
 
 func (n *FunctionNode) Info() (*graph.Info, error) {

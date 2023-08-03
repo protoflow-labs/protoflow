@@ -5,7 +5,7 @@ import {Node as ProtoNode} from "@/rpc/graph_pb";
 import React from "react";
 import {BiClipboard} from "react-icons/bi";
 
-export const NodeButton: React.FC<{ node: ProtoNode }> = ({ node }) => {
+export const NodeButton: React.FC<{ provider: ProtoNode, node: ProtoNode }> = ({ node, provider }) => {
     const { setDraggedNode } = useEditorContext();
     return (
         <div
@@ -13,7 +13,7 @@ export const NodeButton: React.FC<{ node: ProtoNode }> = ({ node }) => {
             style={{marginBottom: "10px"}}
             draggable
             onDragStart={(e) => {
-                setDraggedNode(node);
+                setDraggedNode({node, provider});
             }}
         >
             <BaseBlockCard selected={false} style={{ cursor: "grab" }}>

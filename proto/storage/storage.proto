@@ -13,10 +13,15 @@ message Query {
   string query = 1;
 }
 
+message Store {
+  string url = 1;
+}
+
 message Document {
   oneof type {
     Collection collection = 1;
     Query query = 2;
+    Store store = 3;
   }
 }
 

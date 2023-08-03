@@ -21,7 +21,6 @@ export default function Home() {
       <main className="flex">
         <div className="flex flex-1">
           <BlocksList />
-          <ChatPanel />
           <ReactFlow
             onInit={setInstance}
             proOptions={{ hideAttribution: true }}

@@ -36,7 +36,15 @@ message Node {
 message Provides {
 }
 
-message PublishesTo {
+message Map {
+  string code_adapter = 1;
+}
+
+message Filter {
+  string code_adapter = 1;
+}
+
+message Reduce {
   string code_adapter = 1;
 }
 
@@ -47,6 +55,8 @@ message Edge {
 
    oneof type {
      Provides provides = 5;
-     PublishesTo publishes_to = 6;
+     Map map = 6;
+     Filter filter = 7;
+     Reduce reduce = 8;
    }
 }

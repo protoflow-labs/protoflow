@@ -5,17 +5,24 @@ import (
 	"github.com/protoflow-labs/protoflow/gen"
 	pcode "github.com/protoflow-labs/protoflow/gen/code"
 	"github.com/protoflow-labs/protoflow/pkg/graph/edge"
-	code2 "github.com/protoflow-labs/protoflow/pkg/graph/node/code"
+	"github.com/protoflow-labs/protoflow/pkg/graph/node/code"
+	"github.com/protoflow-labs/protoflow/pkg/graph/node/data"
 )
 
+type ProjectConfig struct {
+	ID string
+}
+
 func getDefaultProject(name string, bucketDir string) *gen.Project {
-	p := code2.NewProto("protoflow", code2.NewServerProto(pcode.Runtime_GO))
-	n := code2.NewProto("NewNode", code2.NewFunctionProto())
+	pid := uuid.NewString()
+	p := code.NewProto("protoflow", code.NewServerProto(pcode.Runtime_GO))
+	n := code.NewProto("NewNode", code.NewFunctionProto())
+	c := data.NewProto("config", data.NewConfigProto(ProjectConfig{ID: pid}))
 	return &gen.Project{
-		Id:   uuid.NewString(),
+		Id:   pid,
 		Name: name,
 		Graph: &gen.Graph{
-			Nodes: []*gen.Node{p, n},
+			Nodes: []*gen.Node{p, n, c},
 			Edges: []*gen.Edge{edge.NewProvidesProto(p.Id, n.Id)},
 		},
 	}

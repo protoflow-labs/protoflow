@@ -7,11 +7,13 @@ import (
 	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/gen"
 	"github.com/protoflow-labs/protoflow/gen/code"
+	pdata "github.com/protoflow-labs/protoflow/gen/data"
 	"github.com/protoflow-labs/protoflow/gen/genconnect"
 	pgrpc "github.com/protoflow-labs/protoflow/gen/grpc"
 	"github.com/protoflow-labs/protoflow/gen/storage"
 	"github.com/protoflow-labs/protoflow/pkg/bucket"
 	"github.com/protoflow-labs/protoflow/pkg/graph"
+	"github.com/protoflow-labs/protoflow/pkg/graph/node/data"
 	"github.com/protoflow-labs/protoflow/pkg/grpc"
 	openaiclient "github.com/protoflow-labs/protoflow/pkg/openai"
 	"github.com/protoflow-labs/protoflow/pkg/store"
@@ -122,6 +124,11 @@ func enumerateProvidersFromNodes(nodes []*gen.Node) ([]*gen.EnumeratedProvider, 
 			switch u := t.Code.Type.(type) {
 			case *code.Code_Server:
 				providedNodes, err = grpc.EnumerateResourceBlocks(u.Server.Grpc, false)
+			}
+		case *gen.Node_Data:
+			switch t.Data.Type.(type) {
+			case *pdata.Data_Input:
+				providedNodes = []*gen.Node{data.NewProto("input", data.NewInputProto())}
 			}
 		default:
 			continue

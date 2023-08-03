@@ -189,39 +189,113 @@ export class Provides extends Message<Provides> {
 }
 
 /**
- * @generated from message graph.PublishesTo
+ * @generated from message graph.Map
  */
-export class PublishesTo extends Message<PublishesTo> {
+export class Map extends Message<Map> {
   /**
    * @generated from field: string code_adapter = 1;
    */
   codeAdapter = "";
 
-  constructor(data?: PartialMessage<PublishesTo>) {
+  constructor(data?: PartialMessage<Map>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "graph.PublishesTo";
+  static readonly typeName = "graph.Map";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "code_adapter", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PublishesTo {
-    return new PublishesTo().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Map {
+    return new Map().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): PublishesTo {
-    return new PublishesTo().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Map {
+    return new Map().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): PublishesTo {
-    return new PublishesTo().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Map {
+    return new Map().fromJsonString(jsonString, options);
   }
 
-  static equals(a: PublishesTo | PlainMessage<PublishesTo> | undefined, b: PublishesTo | PlainMessage<PublishesTo> | undefined): boolean {
-    return proto3.util.equals(PublishesTo, a, b);
+  static equals(a: Map | PlainMessage<Map> | undefined, b: Map | PlainMessage<Map> | undefined): boolean {
+    return proto3.util.equals(Map, a, b);
+  }
+}
+
+/**
+ * @generated from message graph.Filter
+ */
+export class Filter extends Message<Filter> {
+  /**
+   * @generated from field: string code_adapter = 1;
+   */
+  codeAdapter = "";
+
+  constructor(data?: PartialMessage<Filter>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "graph.Filter";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "code_adapter", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Filter {
+    return new Filter().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Filter {
+    return new Filter().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Filter {
+    return new Filter().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: Filter | PlainMessage<Filter> | undefined, b: Filter | PlainMessage<Filter> | undefined): boolean {
+    return proto3.util.equals(Filter, a, b);
+  }
+}
+
+/**
+ * @generated from message graph.Reduce
+ */
+export class Reduce extends Message<Reduce> {
+  /**
+   * @generated from field: string code_adapter = 1;
+   */
+  codeAdapter = "";
+
+  constructor(data?: PartialMessage<Reduce>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "graph.Reduce";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "code_adapter", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Reduce {
+    return new Reduce().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Reduce {
+    return new Reduce().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Reduce {
+    return new Reduce().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: Reduce | PlainMessage<Reduce> | undefined, b: Reduce | PlainMessage<Reduce> | undefined): boolean {
+    return proto3.util.equals(Reduce, a, b);
   }
 }
 
@@ -255,10 +329,22 @@ export class Edge extends Message<Edge> {
     case: "provides";
   } | {
     /**
-     * @generated from field: graph.PublishesTo publishes_to = 6;
+     * @generated from field: graph.Map map = 6;
      */
-    value: PublishesTo;
-    case: "publishesTo";
+    value: Map;
+    case: "map";
+  } | {
+    /**
+     * @generated from field: graph.Filter filter = 7;
+     */
+    value: Filter;
+    case: "filter";
+  } | {
+    /**
+     * @generated from field: graph.Reduce reduce = 8;
+     */
+    value: Reduce;
+    case: "reduce";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<Edge>) {
@@ -273,7 +359,9 @@ export class Edge extends Message<Edge> {
     { no: 2, name: "from", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 3, name: "to", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 5, name: "provides", kind: "message", T: Provides, oneof: "type" },
-    { no: 6, name: "publishes_to", kind: "message", T: PublishesTo, oneof: "type" },
+    { no: 6, name: "map", kind: "message", T: Map, oneof: "type" },
+    { no: 7, name: "filter", kind: "message", T: Filter, oneof: "type" },
+    { no: 8, name: "reduce", kind: "message", T: Reduce, oneof: "type" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Edge {

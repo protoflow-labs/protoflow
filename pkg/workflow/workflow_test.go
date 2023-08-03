@@ -32,7 +32,7 @@ func TestRun(t *testing.T) {
 		WithBuiltEdges(
 			edge.New(edge.NewProvidesProto(r.ID(), n1.ID())),
 			edge.New(edge.NewProvidesProto(r.ID(), n2.ID())),
-			edge.New(edge.NewPublishesToProto(n1.ID(), n2.ID())),
+			edge.New(edge.NewMapProto(n1.ID(), n2.ID())),
 		).
 		Build()
 	if err != nil {

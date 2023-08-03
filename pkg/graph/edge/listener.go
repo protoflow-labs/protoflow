@@ -7,25 +7,25 @@ import (
 	"github.com/robertkrimen/otto"
 )
 
-type PublishesToListener struct {
+type MapListener struct {
 	n graph.Node
-	e *PublishesTo
+	e *Map
 }
 
-var _ graph.Listener = (*PublishesToListener)(nil)
+var _ graph.Listener = (*MapListener)(nil)
 
-func NewPublishesToListener(n graph.Node, e *PublishesTo) *PublishesToListener {
-	return &PublishesToListener{
+func NewMapListener(n graph.Node, e *Map) *MapListener {
+	return &MapListener{
 		n: n,
 		e: e,
 	}
 }
 
-func (p *PublishesToListener) GetNode() graph.Node {
+func (p *MapListener) GetNode() graph.Node {
 	return p.n
 }
 
-func (p *PublishesToListener) Transform(ctx context.Context, input graph.IO) (graph.IO, error) {
+func (p *MapListener) Transform(ctx context.Context, input graph.IO) (graph.IO, error) {
 	if p.e.CodeAdapter != "" {
 		obs := input.Observable.Map(func(c context.Context, i any) (any, error) {
 			vm := otto.New()

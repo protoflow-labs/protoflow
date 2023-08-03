@@ -39,8 +39,12 @@ func NewSerializedTypeResolver() *SerializedTypeResolver {
 func (t *TypeResolver) ResolveLookup(m protoreflect.ProtoMessage) *TypeResolver {
 	nt := *t
 	dl, el := ResolveTypeLookup(m.ProtoReflect().Descriptor(), nt.DescLookup, nt.EnumLookup)
-	nt.DescLookup = dl
-	nt.EnumLookup = el
+	for k, v := range dl {
+		nt.DescLookup[k] = v
+	}
+	for k, v := range el {
+		nt.EnumLookup[k] = v
+	}
 	return &nt
 }
 

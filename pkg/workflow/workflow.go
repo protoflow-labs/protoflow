@@ -53,6 +53,7 @@ func Default() *WorkflowBuilder[*gen.Node, *gen.Edge] {
 func NewBuilder[T graph.ProtoNode, U graph.ProtoEdge]() *WorkflowBuilder[T, U] {
 	return &WorkflowBuilder[T, U]{
 		nodeBuilders: map[protoreflect.FullName]NodeBuilder[T]{},
+		edgeBuilders: map[protoreflect.FullName]EdgeBuilder[U]{},
 		w: &Workflow{
 			ProjectID:  uuid.NewString(),
 			NodeLookup: map[string]graph.Node{},
@@ -203,7 +204,7 @@ func (w *WorkflowBuilder[T, U]) WithProtoProject(project graph.ProtoProject[T, U
 
 	for _, e := range g.GetEdges() {
 		if e.GetFrom() == "" || e.GetTo() == "" {
-			nw.err = errors.Errorf("edge %s has empty from or to", e.GetId())
+			nw.err = errors.Errorf("edge %s has empty from (%s) or to (%s)", e.GetId(), e.GetFrom(), e.GetTo())
 			return &nw
 		}
 		err := nw.addEdge(e)

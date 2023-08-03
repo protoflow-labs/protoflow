@@ -19,7 +19,7 @@ import {getUpdatedProject} from "@/lib/project";
 import {Node as ProtoNode, Edge as ProtoEdge} from "@/rpc/graph_pb";
 
 type GetLookup = (lookup: Record<string, ProtoNode>) => Record<string, ProtoNode>;
-
+type GetEdgeLookup = (lookup: Record<string, ProtoEdge>) => Record<string, ProtoEdge>;
 
 type ProjectContextType = {
     project: Project | undefined;
@@ -42,6 +42,9 @@ type ProjectContextType = {
 
     setNodeLookup: (getLookup: GetLookup) => void;
     nodeLookup: Record<string, ProtoNode>;
+
+    setEdgeLookup: (getLookup: GetEdgeLookup) => void;
+    edgeLookup: Record<string, ProtoEdge>;
 };
 
 type ProjectProviderProps = {
@@ -94,7 +97,7 @@ export default function ProjectProvider({children}: ProjectProviderProps) {
     const saveProject = useCallback(async (nodes: Node[], edges: Edge[]) => {
         if (!project) return;
 
-        const updatedProject = getUpdatedProject(project, nodes, edges, nodeLookup);
+        const updatedProject = getUpdatedProject(project, nodes, edges, nodeLookup, edgeLookup);
         for (const node of updatedProject.graph?.nodes || []) {
             if (!node.name) {
                 toast.error("Please name all nodes before exporting");
@@ -252,6 +255,8 @@ export default function ProjectProvider({children}: ProjectProviderProps) {
                 activeEdge,
                 setNodeLookup,
                 nodeLookup,
+                setEdgeLookup,
+                edgeLookup,
             }}
         >
             {children}

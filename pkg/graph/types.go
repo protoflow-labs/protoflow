@@ -43,8 +43,6 @@ type Node interface {
 	NormalizedName() string
 	ID() string
 	Info() (*Info, error)
-	// Represent the node as a string
-	Represent() (string, error)
 	Init() (func(), error)
 
 	// Provider returns the node that this node depends on. (eg. a grpc method node will return the service node)

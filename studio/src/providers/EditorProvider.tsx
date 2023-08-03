@@ -8,21 +8,23 @@ import {
   useState,
 } from "react";
 import {
-  addEdge,
-  applyEdgeChanges,
-  applyNodeChanges,
-  Connection,
-  Edge,
-  Node,
-  OnEdgesChange,
-  OnNodesChange,
-  ReactFlowInstance,
+    addEdge,
+    applyEdgeChanges,
+    applyNodeChanges,
+    Connection,
+    Edge, MarkerType,
+    Node,
+    OnEdgesChange,
+    OnNodesChange,
+    ReactFlowInstance,
 } from "reactflow";
 import { v4 as uuid } from "uuid";
 import {useProjectContext} from "./ProjectProvider";
-import {Node as ProtoNode} from "@/rpc/graph_pb";
+import {Node as ProtoNode, Edge as ProtoEdge, Provides, Map} from "@/rpc/graph_pb";
 import {generateUUID} from "@/util/uuid";
 import {StandardBlock} from "@/components/blocks/StandardBlock";
+import {Simulate} from "react-dom/test-utils";
+import drag = Simulate.drag;
 
 type EditorContextType = {
   mode: Mode;
@@ -37,7 +39,7 @@ type EditorContextType = {
     onEdgesChange: OnEdgesChange;
     onNodesChange: OnNodesChange;
   };
-  setDraggedNode: (node: ProtoNode) => void;
+  setDraggedNode: (node: DraggedNode) => void;
   setInstance: (instance: ReactFlowInstance) => void;
   setMode: (mode: Mode) => void;
 };
@@ -59,9 +61,14 @@ const nodeTypes: Record<string, any> = {
   'node': StandardBlock,
 };
 
+export interface DraggedNode {
+  provider: ProtoNode;
+    node: ProtoNode;
+}
+
 export function EditorProvider({ children }: { children: ReactNode }) {
   const { saveProject, nodeLookup } = useProjectContext();
-  const [draggedNode, setDraggedNode] = useState<ProtoNode | undefined>(undefined);
+  const [draggedNode, setDraggedNode] = useState<DraggedNode | undefined>(undefined);
   const [instance, setInstance] = useState<ReactFlowInstance>();
   const [mode, setMode] = useState<Mode>("editor");
   const props = useEditorProps(
@@ -72,7 +79,7 @@ export function EditorProvider({ children }: { children: ReactNode }) {
 
   const save = useCallback(async () => {
     return await saveProject(props.nodes, props.edges);
-  }, [props]);
+  }, [props.nodes, props.edges]);
 
   useEffect(() => {
     void save();
@@ -95,8 +102,8 @@ export function EditorProvider({ children }: { children: ReactNode }) {
 // todo: we want to make sure the incoming node has a distinction from the sidebar node vs the server type node
 // export type SidebarNode = Exclude<ProtoNode, { id: string }>
 
-const useEditorProps = (draggedNode: ProtoNode | undefined, setDraggedNode: (node: ProtoNode) => void, reactFlowInstance?: ReactFlowInstance) => {
-  const { project, saveProject, setNodeLookup } = useProjectContext();
+const useEditorProps = (draggedNode: DraggedNode | undefined, setDraggedNode: (node: DraggedNode) => void, reactFlowInstance?: ReactFlowInstance) => {
+  const { project, saveProject, setNodeLookup, setEdgeLookup } = useProjectContext();
 
   const [nodes, setNodes] = useState<Node[]>(
     project?.graph?.nodes.map((n) => {
@@ -120,7 +127,7 @@ const useEditorProps = (draggedNode: ProtoNode | undefined, setDraggedNode: (nod
       target: e.to,
       label: e.type?.case,
       markerEnd: {
-        type: "arrowclosed"
+        type: MarkerType.ArrowClosed
       },
     })) || []
   );
@@ -128,9 +135,30 @@ const useEditorProps = (draggedNode: ProtoNode | undefined, setDraggedNode: (nod
   const onConnect = useCallback((params: Connection) => {
     if (!params.source || !params.target) return;
 
-    setEdges((eds) => {
-      return addEdge({ ...params, id: uuid() }, eds)
+    const newEdgeType: ProtoEdge = new ProtoEdge({
+      id: uuid(),
+      from: params.source,
+      to: params.target,
+      type: {
+          case: 'map',
+          value: new Map()
+      }
     });
+    const newEdge = {
+      id: newEdgeType.id,
+      source: newEdgeType.from,
+      target: newEdgeType.to,
+      label: newEdgeType.type.case,
+    }
+
+    setEdgeLookup((lookup) => {
+      return {
+          ...lookup,
+          [newEdgeType.id]: newEdgeType,
+      }
+    })
+
+    setEdges((eds) => [...eds, newEdge]);
   }, [nodes]);
 
   const onDragOver: DragEventHandler = useCallback((e) => {
@@ -151,15 +179,38 @@ const useEditorProps = (draggedNode: ProtoNode | undefined, setDraggedNode: (nod
         position,
         data: {}
       };
-      draggedNode.id = newNode.id;
+      draggedNode.node.id = newNode.id;
+
+      const newEdge = {
+        id: uuid(),
+        source: draggedNode.provider.id,
+        target: draggedNode.node.id,
+        label: "provides",
+      }
+      const newEdgeType: ProtoEdge = new ProtoEdge({
+        id: newEdge.id,
+        from: newEdge.source,
+        to: newEdge.target,
+        type: {
+            case: 'provides',
+            value: new Provides()
+        }
+      });
 
       setNodeLookup((lookup) => {
         return {
           ...lookup,
-          [newNode.id]: draggedNode
+          [newNode.id]: draggedNode.node
+        }
+      })
+      setEdgeLookup((lookup) => {
+        return {
+          ...lookup,
+          [newEdge.id]: newEdgeType,
         }
       })
       setNodes((nds) => [...nds, newNode]);
+      setEdges((eds) => [...eds, newEdge]);
     },
     [reactFlowInstance, draggedNode]
   );

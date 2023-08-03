@@ -242,7 +242,7 @@ export const ProtobufInputForm: FC<GRPCInputFormProps> = (props) => {
         }
     });
     return (
-        <Accordion>
+        <Accordion className={"overflow-y-auto"} style={{maxHeight: "20em"}}>
             {formattedFields.map((field) => {
                 return <AccordionField key={field.name} {...props} field={field} desc={desc} />
             })}

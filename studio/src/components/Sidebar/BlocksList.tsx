@@ -30,20 +30,20 @@ export default function BlocksList() {
       <div className="absolute flex flex-col gap-1 m-3 z-10 top-8" style={{marginTop: "40px"}}>
         <Accordion defaultOpenItems={"Built-in"} collapsible={true}>
           {providers.map((r) => {
-            if (!r.provider) {
+            const p = r.provider;
+            if (!p) {
                 return null;
             }
             const resError = r.info && r.info.state === ProviderState.ERROR;
-            const res = r.provider;
             return (
-                <AccordionItem key={res.id} value={res.name} disabled={resError}>
+                <AccordionItem key={p.id} value={p.name} disabled={resError}>
                   <AccordionHeader icon={resError ? <PlugDisconnected20Regular /> : null}>
-                    {res.name}
+                    {p.name}
                   </AccordionHeader>
                   <AccordionPanel className={"overflow-y-auto"} style={{maxHeight: "40em"}}>
                     {r.nodes.map((node) => {
                         return (
-                            <NodeButton key={node.id} node={node} />
+                            <NodeButton key={node.id} provider={p} node={node} />
                         );
                     })}
                   </AccordionPanel>

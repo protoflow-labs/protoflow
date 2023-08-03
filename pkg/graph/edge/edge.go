@@ -10,8 +10,8 @@ func New(edge *gen.Edge) graph.Edge {
 	switch t := edge.Type.(type) {
 	case *gen.Edge_Provides:
 		return NewProvides(edge, t.Provides)
-	case *gen.Edge_PublishesTo:
-		return NewPublishesTo(edge, t.PublishesTo)
+	case *gen.Edge_Map:
+		return NewMap(edge, t.Map)
 	default:
 		return nil
 	}
@@ -32,8 +32,8 @@ func NewProvidesProto(from, to string) *gen.Edge {
 	return e
 }
 
-func NewPublishesToProto(from, to string) *gen.Edge {
+func NewMapProto(from, to string) *gen.Edge {
 	e := NewEdgeProto(from, to)
-	e.Type = &gen.Edge_PublishesTo{}
+	e.Type = &gen.Edge_Map{}
 	return e
 }

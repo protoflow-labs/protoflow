@@ -38,31 +38,12 @@ export function EditorPanel() {
   });
 
   if (activeNode) {
-    // TODO breadchris implement this
-    // const getResourceBadge = () => {
-    //   if (!providers) {
-    //     return null;
-    //   }
-    //   const res = providers.find((r) => {
-    //     return r.provider && activeNode.resourceId === r.resource.id
-    //   })
-    //   if (!res || !res.resource) {
-    //     return null;
-    //   }
-    //   return <Badge key={res.resource.id}>{res.resource.name}</Badge>
-    // }
-
     return (
         <NodeProvider nodeId={activeNode.id}>
-          <div className="absolute top-0 right-0 m-4 z-10 overflow-auto">
-            <Card>
-              <ProtoViewer />
-              <Divider/>
-              <Divider/>
-              <EditorActions/>
-            </Card>
-          </div>
           <ActionBar node={activeNode} />
+          <Divider/>
+          <EditorActions/>
+          <ProtoViewer />
         </NodeProvider>
     );
   }
@@ -75,6 +56,8 @@ export function EditorPanel() {
     grpcInfo: new GRPCTypeInfo({
       input: projectTypes.edgeType,
       output: projectTypes.edgeType,
+      descLookup: projectTypes.descLookup,
+      enumLookup: projectTypes.enumLookup,
       packageName: '',
     }),
     // some random key to separate data from the form
