@@ -13,6 +13,10 @@ type Server struct {
 	*pgrpc.Server
 }
 
+type ServerProvider interface {
+	GetServer() *Server
+}
+
 func NewServer(b *base.Node, n *pgrpc.Server) *Server {
 	return &Server{
 		Node:   b,
@@ -28,6 +32,10 @@ func NewServerProto(host string) *pgrpc.GRPC {
 			},
 		},
 	}
+}
+
+func (n *Server) GetServer() *Server {
+	return n
 }
 
 func (n *Server) Init() (func(), error) {

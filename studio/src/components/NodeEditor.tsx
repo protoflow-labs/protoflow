@@ -2,9 +2,8 @@ import React from "react";
 import {Node as ProtoNode} from "@/rpc/graph_pb";
 import {useUnselect} from "@/components/EditorActions";
 import {useEditorContext} from "@/providers/EditorProvider";
-import {useNodeContext} from "@/providers/NodeProvider";
 import {useForm} from "react-hook-form";
-import {getNodeDataKey, useProjectContext} from "@/providers/ProjectProvider";
+import {useProjectContext} from "@/providers/ProjectProvider";
 import {toast} from "react-hot-toast";
 import {GRPCInputFormProps, ProtobufInputForm} from "@/components/ProtobufInputForm";
 import {Button, Divider, Field, Input} from "@fluentui/react-components";
@@ -17,17 +16,13 @@ export function NodeEditor(props: NodeEditorProps) {
     const {node} = props;
 
     const onCancel = useUnselect();
-    const {save} = useEditorContext();
+    const {save, nodeInfo} = useEditorContext();
     const { setNodeLookup } = useProjectContext();
-    const {nodeInfo} = useNodeContext();
-    const {watch, setValue, register, handleSubmit, control} = useForm({
+    const {register, handleSubmit, control} = useForm({
         values: {
-            name: node.name || "",
-            input: nodeInfo?.typeInfo?.input,
             data: node.toJson()?.valueOf(),
         },
     });
-    const values = watch();
 
     const onSubmit = async (data: any) => {
         setNodeLookup((lookup) => {

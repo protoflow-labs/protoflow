@@ -94,7 +94,7 @@ func (n *FunctionNode) Wire(ctx context.Context, input graph.IO) (graph.IO, erro
 	return grpc.WireMethod(ctx, g.GRPC, grpcNode, input.Observable)
 }
 
-func (n *FunctionNode) Info() (*graph.Info, error) {
+func (n *FunctionNode) Type() (*graph.Info, error) {
 	p, err := n.Provider()
 	if err != nil {
 		return nil, err

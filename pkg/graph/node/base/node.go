@@ -47,12 +47,19 @@ func (n *Node) ID() string {
 	return n.id
 }
 
-func (n *Node) Info() (*graph.Info, error) {
+func (n *Node) Type() (*graph.Info, error) {
 	log.Warn().
 		Str("node", n.Name).
-		Msg("Info() not implemented")
+		Msg("Type() not implemented")
 	// TODO breadchris this doesn't make node generic, figure out a way to make this generic
 	return graph.NewInfoFromType("node", &gen.Node{})
+}
+
+func (n *Node) Method() (*graph.Info, error) {
+	log.Warn().
+		Str("node", n.Name).
+		Msg("Method() not implemented")
+	return nil, errors.New("not implemented")
 }
 
 func (n *Node) Init() (func(), error) {

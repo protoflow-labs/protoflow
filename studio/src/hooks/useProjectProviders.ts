@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { projectService } from "@/lib/api";
-import {Resource} from "@/rpc/resource_pb";
 import {EnumeratedProvider} from "@/rpc/project_pb";
 
 export function useProjectProviders() {

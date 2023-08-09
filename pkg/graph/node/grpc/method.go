@@ -82,18 +82,18 @@ func GetMethodDescriptor(s *Server, n *Method) (*grpc.MethodDescriptor, error) {
 	return md, nil
 }
 
-func (n *Method) Info() (*graph.Info, error) {
+func (n *Method) Type() (*graph.Info, error) {
 	// TODO breadchris what if we want to get the proto from a proto file?
 
 	p, err := n.Provider()
 	if err != nil {
 		return nil, errors.Wrapf(err, "error getting provider")
 	}
-	gr, ok := p.(*Server)
+	gr, ok := p.(ServerProvider)
 	if !ok {
-		return nil, fmt.Errorf("provider is not a grpc server")
+		return nil, fmt.Errorf("provider does not have a grpc server")
 	}
-	md, err := GetMethodDescriptor(gr, n)
+	md, err := GetMethodDescriptor(gr.GetServer(), n)
 	return &graph.Info{
 		Method: md,
 	}, nil

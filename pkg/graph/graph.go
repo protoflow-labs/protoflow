@@ -42,7 +42,10 @@ type Listener interface {
 type Node interface {
 	NormalizedName() string
 	ID() string
-	Info() (*Info, error)
+	// TODO breadchris type should probably just return a message descriptor
+	Type() (*Info, error)
+	// Method returns the method descriptor for input and output of the node.
+	// Method() (*Info, error)
 	Init() (func(), error)
 
 	// Provider returns the node that this node depends on. (eg. a grpc method node will return the service node)

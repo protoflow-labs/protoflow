@@ -1,53 +1,28 @@
-import {Badge, Card, Divider} from "@fluentui/react-components";
-import {useOnSelectionChange, useReactFlow} from "reactflow";
-import NodeProvider from "@/providers/NodeProvider";
-import {getNodeDataKey, useProjectContext} from "@/providers/ProjectProvider";
-import {ActionBar} from "@/components/ActionBar";
+import {Badge, Button, Card, Divider} from "@fluentui/react-components";
+import {useProjectContext} from "@/providers/ProjectProvider";
 import {ProtoViewer} from "@/components/ProtoViewer";
 import {EditorActions} from "@/components/EditorActions";
 import React, {useEffect, useState} from "react";
-import {useSelectedNodes} from "@/hooks/useSelectedNodes";
 import {GRPCInputFormProps, ProtobufInputForm} from "@/components/ProtobufInputForm";
 import { GRPCTypeInfo } from "@/rpc/project_pb";
 import {useForm} from "react-hook-form";
+import {Node as ProtoNode, Edge as ProtoEdge} from "@/rpc/graph_pb";
+import {NodeEditor} from "@/components/NodeEditor";
+import {useEditorContext} from "@/providers/EditorProvider";
+import {toast} from "react-hot-toast";
 
-export function EditorPanel() {
-  const { projectTypes } = useProjectContext();
-  const { providers, activeNode, activeEdge, setActiveNodeId, setActiveEdgeId } = useProjectContext();
-  const {watch, setValue, register, handleSubmit, control} = useForm({
+interface EdgeEditorProps {
+  edge: ProtoEdge;
+}
+
+const ActiveEdgeEditor: React.FC<EdgeEditorProps> = ({edge}) => {
+  const { projectTypes , setEdgeLookup} = useProjectContext();
+  const {save} = useEditorContext();
+  const { register, control, handleSubmit} = useForm({
     values: {
-      from: activeEdge ? activeEdge.from : '',
-      to: activeEdge ? activeEdge.to : '',
+      data: edge.toJson()?.valueOf() || {}
     },
   });
-  const values = watch();
-
-  useOnSelectionChange({
-    onChange: ({ nodes, edges }) => {
-      if (nodes.length !== 1) {
-        setActiveNodeId(null);
-      } else {
-        setActiveNodeId(nodes[0].id);
-      }
-      if (edges.length !== 1) {
-        setActiveEdgeId(null);
-      } else {
-        setActiveEdgeId(edges[0].id);
-      }
-    },
-  });
-
-  if (activeNode) {
-    return (
-        <NodeProvider nodeId={activeNode.id}>
-          <ActionBar node={activeNode} />
-          <Divider/>
-          <EditorActions/>
-          <ProtoViewer />
-        </NodeProvider>
-    );
-  }
-
   if (!projectTypes || !projectTypes.edgeType) {
     return null;
   }
@@ -70,15 +45,55 @@ export function EditorPanel() {
     fieldPath: '',
   }
 
-  if (activeEdge) {
-    const a = projectTypes && projectTypes.edgeType
-    return (
-      <div className="absolute top-0 right-0 m-4 z-10 overflow-auto">
-        <Card>
-          <ProtobufInputForm {...inputFormProps} />
-        </Card>
+  const onSubmit = async (data: any) => {
+    setEdgeLookup((lookup) => {
+      return {
+        ...lookup,
+        [edge.id]: ProtoEdge.fromJson(data.data),
+      }
+    })
+    await save();
+    toast.success('Saved!');
+  };
+
+  return (
+      <div className="flex flex-col gap-2 p-3">
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <div className="flex flex-col gap-2 p-3">
+            <ProtobufInputForm {...inputFormProps} />
+          </div>
+          <div className="flex items-center">
+            <Button appearance="primary" type="submit">
+              Save
+            </Button>
+          </div>
+        </form>
       </div>
-    );
+  );
+}
+
+interface NodeEditorProps {
+  node: ProtoNode;
+}
+
+const ActiveNodeEditor: React.FC<NodeEditorProps> = ({node}) => {
+  return (
+      <>
+        <NodeEditor node={node} />
+        <Divider/>
+        <EditorActions/>
+        <ProtoViewer />
+      </>
+  );
+}
+
+export function EditorPanel() {
+  const { selectedNodes, selectedEdges } = useEditorContext();
+
+  if (selectedNodes.length > 0) {
+    return <ActiveNodeEditor node={selectedNodes[0]} />;
+  } else if (selectedEdges.length > 0) {
+    return <ActiveEdgeEditor edge={selectedEdges[0]} />;
   }
   return null;
 }

@@ -9,7 +9,6 @@ export function getUpdatedProject(
   nodeLookup: Record<string, ProtoNode>,
   edgeLookup: Record<string, ProtoEdge>
 ): Project {
-  console.log(nodes, edges)
   return new Project({
     id: project.id,
     graph: new Graph({

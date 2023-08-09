@@ -41,7 +41,7 @@ func NewConfigProto(value any) *data.Data {
 	}
 }
 
-//func (c *ConfigNode) Info() (*graph.Info, error) {
+//func (c *ConfigNode) Type() (*graph.Type, error) {
 //	return graph.NewInfoFromType("config", &data.Config{})
 //}
 

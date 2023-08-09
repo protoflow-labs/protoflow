@@ -20,6 +20,7 @@ type Server struct {
 }
 
 var _ graph.Node = &Server{}
+var _ grpc.ServerProvider = &Server{}
 
 func NewServer(b *base.Node, node *code.Server) *Server {
 	return &Server{
@@ -41,6 +42,10 @@ func NewServerProto(runtime code.Runtime) *code.Code {
 	}
 }
 
+func (r *Server) GetServer() *grpc.Server {
+	return r.GRPC
+}
+
 func (r *Server) Init() (func(), error) {
 	if r.Grpc != nil {
 		return r.GRPC.Init()
@@ -48,7 +53,7 @@ func (r *Server) Init() (func(), error) {
 	return nil, nil
 }
 
-func (r *Server) Info() (*graph.Info, error) {
+func (r *Server) Type() (*graph.Info, error) {
 	return nil, errors.New("implement me")
 }
 

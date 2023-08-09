@@ -70,7 +70,7 @@ func TemporalRun(ctx workflow.Context, w *Workflow, nodeID string, input string)
 	//// Adding context to a workflow
 	//// ctx = workflow.WithValue(ctx, AccountIDContextKey, dslWorkflow.AccountID)
 	//
-	//logger.Info("Starting workflow", "workflowID", workflow.GetInfo(ctx).WorkflowExecution.ID, "nodeID", nodeID)
+	//logger.Type("Starting workflow", "workflowID", workflow.GetInfo(ctx).WorkflowExecution.ID, "nodeID", nodeID)
 	//
 	//return w.WireNodes(context.Background(), logger, executor, nodeID, input)
 	return nil, nil

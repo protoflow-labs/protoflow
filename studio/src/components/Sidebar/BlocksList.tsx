@@ -3,25 +3,11 @@ import {
   AccordionHeader,
   AccordionItem,
   AccordionPanel,
-  Button,
-  Popover, Select,
-  Tooltip
 } from "@fluentui/react-components";
 import { useProjectContext } from "@/providers/ProjectProvider";
-import {GRPC, Function, Input, Collection, Bucket, Prompt, Config, Query, Template, Route} from "@/rpc/block_pb";
-import {Node} from "@/rpc/graph_pb";
-import {Resource} from "@/rpc/resource_pb";
 import {NodeButton} from "@/components/Sidebar/NodeButton";
 import { ProviderState } from "@/rpc/project_pb";
 import { PlugDisconnected20Regular } from "@fluentui/react-icons";
-import {useState} from "react";
-import { Data } from "@/rpc/data/data_pb";
-import {StandardBlock} from "@/components/blocks/StandardBlock";
-
-interface NodeBlock {
-  type: string
-  name: string
-}
 
 export default function BlocksList() {
   const { providers } = useProjectContext();

@@ -10,7 +10,7 @@ import {
 } from "@fluentui/react-components";
 import {createContext, useCallback, useContext, useEffect, useState} from "react";
 import {HiExclamationCircle, HiPlus} from "react-icons/hi2";
-import {Edge, Node} from "reactflow";
+import {Edge, Node, useOnSelectionChange} from "reactflow";
 import {EnumeratedProvider, GetNodeInfoResponse, Project, ProjectTypes} from "@/rpc/project_pb";
 import {useProjectProviders} from "@/hooks/useProjectProviders";
 import {toast} from "react-hot-toast";
@@ -30,13 +30,8 @@ type ProjectContextType = {
     setWorkflowOutput: (output: string[] | null) => void;
 
     saveProject: (nodes: Node[], edges: Edge[]) => Promise<void>;
-    runWorkflow: (node?: Node, startServer?: boolean) => Promise<any>;
+    runWorkflow: (node?: ProtoNode, input?: Object, startServer?: boolean) => Promise<any>;
     loadResources: () => Promise<void>;
-    loadNodeInfo: (nodeId: string) => Promise<GetNodeInfoResponse | undefined>;
-    activeNode: ProtoNode | null;
-    activeEdge: ProtoEdge | null;
-    setActiveNodeId: (nodeId: string | null) => void;
-    setActiveEdgeId: (edgeId: string | null) => void;
 
     projectTypes?: ProjectTypes;
 
@@ -51,14 +46,6 @@ type ProjectProviderProps = {
     children: React.ReactNode;
 };
 
-export function getNodeDataKey(node: ProtoNode) {
-    return `${node.id}-sampleData`;
-}
-
-export function getDataFromNode(node: ProtoNode) {
-    return localStorage.getItem(getNodeDataKey(node));
-}
-
 const ProjectContext = createContext<ProjectContextType>({} as any);
 
 export const useProjectContext = () => useContext(ProjectContext);
@@ -70,29 +57,7 @@ export default function ProjectProvider({children}: ProjectProviderProps) {
     const {showBoundary} = useErrorBoundary();
     const [nodeLookup, setNodeLookup] = useState<Record<string, ProtoNode>>({});
     const [edgeLookup, setEdgeLookup] = useState<Record<string, ProtoEdge>>({});
-    const [activeNode, setActiveNode] = useState<ProtoNode | null>(null);
-    const [activeEdge, setActiveEdge] = useState<ProtoEdge | null>(null);
     const [workflowOutput, setWorkflowOutput] = useState<string[] | null>(null);
-
-    const setActiveNodeId = (nodeId: string | null) => {
-        if (!nodeId) {
-            setActiveNode(null);
-            return;
-        }
-
-        // TODO breadchris catch error
-        setActiveNode(nodeLookup[nodeId]);
-    }
-
-    const setActiveEdgeId = (edgeId: string | null) => {
-        if (!edgeId) {
-            setActiveEdge(null);
-            return;
-        }
-
-        // TODO breadchris catch error
-        setActiveEdge(edgeLookup[edgeId]);
-    }
 
     const saveProject = useCallback(async (nodes: Node[], edges: Edge[]) => {
         if (!project) return;
@@ -109,10 +74,10 @@ export default function ProjectProvider({children}: ProjectProviderProps) {
             projectId: project.id,
             graph: updatedProject.graph,
         });
-    }, [nodeLookup]);
+    }, [nodeLookup, edgeLookup]);
 
     const runWorkflow = useCallback(
-        async (node?: Node, startServer?: boolean) => {
+        async (node?: ProtoNode, input?: Object, startServer?: boolean) => {
             if (!project) return;
 
             // TODO breadchris cleanup
@@ -134,18 +99,13 @@ export default function ProjectProvider({children}: ProjectProviderProps) {
                 return;
             }
 
-            const graphNode = nodeLookup[node.id];
-            if (!graphNode) {
-                toast.error(`Could not find node: ${node.id}`);
-                return;
-            }
             try {
                 setWorkflowOutput(null);
                 const res = await projectService.runWorkflow({
                     nodeId: node.id,
                     projectId: project.id,
                     // TODO breadchris this is garbo, we need a better data structure to represent data input
-                    input: getDataFromNode(graphNode) || '',
+                    input: JSON.stringify(input) || '',
                     startServer,
                 });
                 for await (const exec of res) {
@@ -164,21 +124,6 @@ export default function ProjectProvider({children}: ProjectProviderProps) {
         if (!project) return;
 
         await loadProjectResources(project.id);
-    }, [project]);
-
-    const loadNodeInfo = useCallback(async (nodeId: string): Promise<GetNodeInfoResponse | undefined> => {
-        if (!project) return undefined;
-
-        try {
-            return await projectService.getNodeInfo({
-                nodeId: nodeId,
-                projectId: project.id,
-            });
-        } catch (e) {
-            // this is ok if we error, the node might not exist yet
-            console.warn(e);
-        }
-        return undefined;
     }, [project]);
 
     // TODO breadchris should this happen every time the project is changed?
@@ -247,12 +192,7 @@ export default function ProjectProvider({children}: ProjectProviderProps) {
                 saveProject,
                 loadResources: loadProviders,
                 loadingResources,
-                loadNodeInfo,
-                setActiveNodeId,
-                setActiveEdgeId,
                 projectTypes,
-                activeNode,
-                activeEdge,
                 setNodeLookup,
                 nodeLookup,
                 setEdgeLookup,

@@ -1,4 +1,3 @@
-import { useSelectedNodes } from "@/hooks/useSelectedNodes";
 import { generateService, projectService } from "@/lib/api";
 import { checkIsApple } from "@/lib/checkIsApple";
 
@@ -21,7 +20,6 @@ export function Toolbar() {
   const isApple = checkIsApple();
   const { project, runWorkflow } = useProjectContext();
   const { save, props, setMode } = useEditorContext();
-  const { selectedNodes } = useSelectedNodes();
   const prevNodeLength = useRef(0);
 
   useHotkeys(isApple ? "meta+s" : "ctrl+s", (e) => {
@@ -39,7 +37,6 @@ export function Toolbar() {
   useHotkeys("shift+enter", (e) => {
     e.preventDefault();
     e.stopPropagation();
-    onRun();
   });
 
 
@@ -54,28 +51,9 @@ export function Toolbar() {
     toast.success("Project built");
   };
 
-  const onRun = async () => {
-    if (selectedNodes.length !== 1) {
-      toast.error("Please select a node to run");
-      return;
-    }
-    await runWorkflow(selectedNodes[0]);
-  };
-
   const onEditor = async () => {
     setMode("editor");
   }
-
-  useEffect(() => {
-    if (
-      selectedNodes.length === 0 &&
-      selectedNodes.length !== prevNodeLength.current
-    ) {
-      onSave();
-    }
-
-    prevNodeLength.current = selectedNodes.length;
-  }, [selectedNodes, onSave]);
 
   return (
     <div className="px-1 py-1 absolute z-10 top-0">
@@ -127,8 +105,6 @@ export function Toolbar() {
           <MenuList>
             <MenuItem
               secondaryContent="Ctrl+R"
-              disabled={selectedNodes.length !== 1}
-              onClick={onRun}
             >
               Run Workflow
             </MenuItem>

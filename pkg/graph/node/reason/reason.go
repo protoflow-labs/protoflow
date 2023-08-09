@@ -32,7 +32,7 @@ func NewPromptNode(b *base.Node, node *reason.Prompt) *PromptNode {
 	}
 }
 
-func (n *PromptNode) Info() (*graph.Info, error) {
+func (n *PromptNode) Type() (*graph.Info, error) {
 	reqMsg := builder.NewMessage("Request")
 	reqMsg = reqMsg.AddField(builder.NewField("message", builder.FieldTypeString()))
 	req := builder.RpcTypeMessage(reqMsg, true)
