@@ -10,9 +10,13 @@ import (
 	"github.com/protoflow-labs/protoflow/pkg/graph"
 	"github.com/protoflow-labs/protoflow/pkg/graph/edge"
 	"github.com/protoflow-labs/protoflow/pkg/graph/node"
+	"github.com/protoflow-labs/protoflow/pkg/graph/node/base"
+	"github.com/protoflow-labs/protoflow/pkg/graph/node/data"
+	"github.com/protoflow-labs/protoflow/pkg/util"
 	"github.com/reactivex/rxgo/v2"
 	"github.com/rs/zerolog/log"
 	"google.golang.org/protobuf/reflect/protoreflect"
+	"strings"
 )
 
 const edgeIDKey = "id"
@@ -265,7 +269,6 @@ func (w *Workflow) GetNodeProvider(id string) (graph.Node, error) {
 	return n.Provider()
 }
 
-// TODO breadchris nodeID should not be needed, the workflow should already be a slice of the graph that is configured to run
 // WireNodes wires the nodes in the workflow together and returns an observable that can be subscribed to. Nodes are executed when an event is received on the input observable.
 func (w *Workflow) WireNodes(ctx context.Context, nodeID string, input rxgo.Observable) (rxgo.Observable, error) {
 	var cleanupFuncs []func()
@@ -277,35 +280,107 @@ func (w *Workflow) WireNodes(ctx context.Context, nodeID string, input rxgo.Obse
 		}
 	}()
 
-	// TODO breadchris make a slice of resources that are needed for the workflow
 	// TODO breadchris implement resource pool to avoid creating resources for every workflow
-	instances := Instances{}
-	for id, r := range w.NodeLookup {
+	for _, r := range w.NodeLookup {
 		cleanup, err := r.Init()
 		if err != nil {
 			return nil, errors.Wrapf(err, "error creating resource %s", r.NormalizedName())
 		}
 		cleanupFuncs = append(cleanupFuncs, cleanup)
-		instances[id] = r
 	}
 
 	connector := NewConnector()
-	connector.Add(input)
 
-	// TODO breadchris use actual output from the workflow
-	// wire an input into the workflow so that data can flow between nodes
-	n, ok := w.NodeLookup[nodeID]
-	if !ok {
-		return nil, fmt.Errorf("vertex not found: %s", nodeID)
+	getEdge := func(from, to string) (graph.Edge, error) {
+		e, err := w.Graph.Edge(from, to)
+		if err != nil {
+			return nil, errors.Wrapf(err, "error getting edge from %s to %s", from, to)
+		}
+		eID := e.Properties.Attributes[edgeIDKey]
+		builtEdge, ok := w.EdgeLookup[eID]
+		if !ok {
+			log.Error().Msgf("edge %s not found", eID)
+			return nil, errors.Errorf("edge %s not found", eID)
+		}
+		return builtEdge, nil
 	}
 
-	_, err := w.wireWorkflow(ctx, connector, instances, n, graph.IO{
+	// TODO breadchris I like the idea of this, but needs to be cleaned up, should probably be closer to the creation of the workflow?
+	in := data.NewInputNode(base.NewNode("input"), data.NewInputProto().GetInput(), data.WithObservable(&graph.IO{
 		Observable: input,
+	}))
+	w.NodeLookup[in.ID()] = in
+
+	e := edge.New(edge.NewMapProto(in.ID(), nodeID))
+	w.EdgeLookup[e.ID()] = e
+
+	n := w.NodeLookup[nodeID]
+	err := e.Connect(in, n)
+	if err != nil {
+		return nil, errors.Wrapf(err, "error connecting edge %s", e.ID())
+	}
+
+	// TODO breadchris move workflow slicing into its own function
+	subgraph := graphlib.New(graphlib.StringHash, graphlib.Directed(), graphlib.PreventCycles())
+	_ = subgraph.AddVertex(in.ID())
+	_ = subgraph.AddEdge(in.ID(), nodeID)
+	err = util.BFS(w.Graph, nodeID, true, func(from, to string) bool {
+		e, err := getEdge(from, to)
+		if err != nil {
+			log.Error().Err(err).Msgf("error getting edge from %s to %s", from, to)
+			return false
+		}
+		if !e.CanWire() {
+			return false
+		}
+		_ = subgraph.AddVertex(from)
+		_ = subgraph.AddVertex(to)
+		_ = subgraph.AddEdge(from, to)
+		return false
 	})
 	if err != nil {
-		log.Error().Err(err).Msgf("failed to traverse workflow")
-		return nil, err
+		return nil, errors.Wrapf(err, "error traversing graph forward")
 	}
+	err = util.BFS(w.Graph, nodeID, false, func(to, from string) bool {
+		e, err := getEdge(from, to)
+		if err != nil {
+			log.Error().Err(err).Msgf("error getting edge from %s to %s", from, to)
+			return false
+		}
+		if !e.CanWire() {
+			return false
+		}
+		_ = subgraph.AddVertex(from)
+		_ = subgraph.AddVertex(to)
+		_ = subgraph.AddEdge(from, to)
+		return false
+	})
+	if err != nil {
+		return nil, errors.Wrapf(err, "error traversing graph backward")
+	}
+
+	depList, err := graphlib.TopologicalSort(subgraph)
+	if err != nil {
+		return nil, errors.Wrapf(err, "error sorting graph")
+	}
+
+	var deps []string
+	for _, nID := range depList {
+		n := w.NodeLookup[nID]
+		deps = append(deps, n.NormalizedName())
+	}
+	log.Debug().Msgf("sorted nodes: %s", strings.Join(deps, ", "))
+
+	// since the graph is sorted topologically, we can wire the nodes in order
+	for _, nID := range depList {
+		n := w.NodeLookup[nID]
+		err = w.wireWorkflow(ctx, connector, n)
+		if err != nil {
+			log.Error().Err(err).Msgf("failed to traverse workflow")
+			return nil, err
+		}
+	}
+
 	// TODO breadchris this is returning a trace, not the actual output
 	return connector.Connect(ctx), nil
 }
@@ -313,48 +388,51 @@ func (w *Workflow) WireNodes(ctx context.Context, nodeID string, input rxgo.Obse
 func (w *Workflow) wireWorkflow(
 	ctx context.Context,
 	connector *Connector,
-	instances Instances,
 	node graph.Node,
-	input graph.IO,
-) (*graph.IO, error) {
+) error {
+	// TODO breadchris should be able to skip this if there is only one publisher
+	var inputObs []rxgo.Observable
+	for _, publisher := range node.Publishers() {
+		io, ok := connector.Get(publisher.GetNode().ID())
+		if !ok {
+			return fmt.Errorf("publisher %s not found", publisher.GetNode().ID())
+		}
+
+		var err error
+		io, err = publisher.Transform(ctx, io)
+		if err != nil {
+			return errors.Wrapf(err, "error transforming publisher %s", publisher.GetNode().ID())
+		}
+		inputObs = append(inputObs, io.Observable)
+	}
+	i := rxgo.CombineLatest(func(i ...any) any {
+		combined := map[string]any{}
+		for _, j := range i {
+			switch t := j.(type) {
+			case map[string]any:
+				combined = util.Merge(combined, t)
+			default:
+				log.Warn().Msgf("unexpected type %T when merging inputs", t)
+			}
+		}
+		return combined
+	}, inputObs)
+	input := graph.IO{
+		Observable: i,
+	}
+
 	log.Debug().
 		Str("node", node.NormalizedName()).
-		// Interface("resource", input.Resource.Name()).
 		Msg("wiring node IO")
-	nextInput, err := node.Wire(ctx, input)
+	output, err := node.Wire(ctx, input)
 	if err != nil {
-		return nil, errors.Wrapf(err, "error executing node: %s", node.NormalizedName())
+		return errors.Wrapf(err, "error executing node: %s", node.NormalizedName())
 	}
 
-	if nextInput.Observable == nil {
-		return nil, fmt.Errorf("node %s returned nil observable", node.NormalizedName())
+	if output.Observable == nil {
+		return fmt.Errorf("node %s returned nil observable", node.NormalizedName())
 	}
 
-	connector.Add(nextInput.Observable)
-
-	for _, listener := range node.Subscribers() {
-		child := listener.GetNode()
-
-		nextInput, err = listener.Transform(ctx, nextInput)
-		if err != nil {
-			return nil, errors.Wrapf(err, "error transforming input for node %s", child.NormalizedName())
-		}
-
-		// TODO breadchris for any publishers to this node, add the child as a subscriber
-		//for _, parent := range child.Publishers() {
-		//
-		//}
-
-		log.Debug().
-			Str("node", node.NormalizedName()).
-			Str("child", child.NormalizedName()).
-			Msg("traversing workflow")
-
-		// TODO breadchris what to do with the output here? Map over the output to turn into NodeExecution
-		_, err = w.wireWorkflow(ctx, connector, instances, child, nextInput)
-		if err != nil {
-			return nil, errors.Wrapf(err, "error traversing workflow %s", child)
-		}
-	}
-	return nil, nil
+	connector.Add(node.ID(), &output)
+	return nil
 }

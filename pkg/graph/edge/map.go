@@ -19,6 +19,6 @@ func NewMap(edge *gen.Edge, p *gen.Map) graph.Edge {
 
 func (p *Map) Connect(from, to graph.Node) error {
 	from.AddSubscriber(NewMapListener(to, p))
-	to.AddPublishers(from)
+	to.AddPublishers(NewMapListener(from, p))
 	return nil
 }

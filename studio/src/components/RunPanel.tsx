@@ -124,7 +124,7 @@ export default function RunPanel() {
             ) }
             <form onSubmit={handleSubmit(onRun)}>
                 {currentNode && form()}
-                <Button onClick={onRun} type={'submit'}>
+                <Button type={'submit'}>
                     Run Workflow
                 </Button>
             </form>

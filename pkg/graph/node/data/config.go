@@ -75,11 +75,7 @@ func (c *ConfigNode) Wire(ctx context.Context, input graph.IO) (graph.IO, error)
 		return graph.IO{}, errors.Wrapf(err, "failed to unmarshal config yaml")
 	}
 
-	obs := rxgo.Defer([]rxgo.Producer{func(ctx context.Context, next chan<- rxgo.Item) {
-		next <- rxgo.Of(u)
-		close(next)
-	}})
 	return graph.IO{
-		Observable: obs,
+		Observable: rxgo.Just(u)(),
 	}, nil
 }

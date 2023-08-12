@@ -95,6 +95,9 @@ func (s *Service) NewNode(ctx context.Context, c *connect.Request[gen.NewNodeReq
 	}
 
 	n := c.Msg.Node
+	if n == nil {
+		return nil, errors.New("node is nil")
+	}
 	n.Id = uuid.NewString()
 	project.Graph.Nodes = append(project.Graph.Nodes, n)
 

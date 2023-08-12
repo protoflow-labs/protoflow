@@ -13,7 +13,7 @@ export function ActionPanel() {
     };
 
     useEffect(() => {
-        setActiveTab('edit')
+        setActiveTab('run')
     }, [activelyEditing]);
 
     return (

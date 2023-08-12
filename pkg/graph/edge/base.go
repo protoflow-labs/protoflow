@@ -20,6 +20,10 @@ func (b *Base) ID() string {
 	return b.Edge.Id
 }
 
+func (b *Base) CanWire() bool {
+	return true
+}
+
 func NewBase(edge *gen.Edge) *Base {
 	return &Base{
 		Edge: edge,

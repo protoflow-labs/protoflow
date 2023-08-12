@@ -25,7 +25,7 @@ func (p *MapListener) GetNode() graph.Node {
 	return p.n
 }
 
-func (p *MapListener) Transform(ctx context.Context, input graph.IO) (graph.IO, error) {
+func (p *MapListener) Transform(ctx context.Context, input *graph.IO) (*graph.IO, error) {
 	if p.e.CodeAdapter != "" {
 		obs := input.Observable.Map(func(c context.Context, i any) (any, error) {
 			vm := otto.New()
@@ -41,11 +41,11 @@ func (p *MapListener) Transform(ctx context.Context, input graph.IO) (graph.IO, 
 			return o, nil
 		})
 
-		return graph.IO{
+		return &graph.IO{
 			Observable: obs,
 		}, nil
 	}
-	return graph.IO{
+	return &graph.IO{
 		Observable: input.Observable,
 	}, nil
 }

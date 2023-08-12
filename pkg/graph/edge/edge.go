@@ -34,6 +34,8 @@ func NewProvidesProto(from, to string) *gen.Edge {
 
 func NewMapProto(from, to string) *gen.Edge {
 	e := NewEdgeProto(from, to)
-	e.Type = &gen.Edge_Map{}
+	e.Type = &gen.Edge_Map{
+		Map: &gen.Map{},
+	}
 	return e
 }

@@ -17,7 +17,7 @@ type Node struct {
 	provider    graph.Node
 	dependents  []graph.Node
 	subscribers []graph.Listener
-	publishers  []graph.Node
+	publishers  []graph.Listener
 }
 
 // NodeFromProto creates a new Node from a gen.Node, gen.Node cannot be embedded into Node because proto deserialization will fail on the type
@@ -98,10 +98,10 @@ func (n *Node) AddSubscriber(p graph.Listener) {
 	n.subscribers = append(n.subscribers, p)
 }
 
-func (n *Node) Publishers() []graph.Node {
+func (n *Node) Publishers() []graph.Listener {
 	return n.publishers
 }
 
-func (n *Node) AddPublishers(p graph.Node) {
+func (n *Node) AddPublishers(p graph.Listener) {
 	n.publishers = append(n.publishers, p)
 }

@@ -36,7 +36,7 @@ type IOFunc func(ctx context.Context, input IO) (IO, error)
 // TODO breadchris better name?
 type Listener interface {
 	GetNode() Node
-	Transform(ctx context.Context, input IO) (IO, error)
+	Transform(ctx context.Context, input *IO) (*IO, error)
 }
 
 type Node interface {
@@ -64,8 +64,8 @@ type Node interface {
 	AddSubscriber(n Listener)
 
 	// Publishers returns the nodes that this node subscribes to.
-	Publishers() []Node
-	AddPublishers(n Node)
+	Publishers() []Listener
+	AddPublishers(n Listener)
 
 	//DeploymentInfo() (*DeploymentInfo, error)
 }
@@ -75,4 +75,5 @@ type Edge interface {
 	From() string
 	To() string
 	Connect(from, to Node) error
+	CanWire() bool
 }
