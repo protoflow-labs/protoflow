@@ -193,9 +193,9 @@ export class Provides extends Message<Provides> {
  */
 export class Map extends Message<Map> {
   /**
-   * @generated from field: string code_adapter = 1;
+   * @generated from field: string adapter = 1;
    */
-  codeAdapter = "";
+  adapter = "";
 
   constructor(data?: PartialMessage<Map>) {
     super();
@@ -205,7 +205,7 @@ export class Map extends Message<Map> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "graph.Map";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "code_adapter", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 1, name: "adapter", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Map {
@@ -230,9 +230,9 @@ export class Map extends Message<Map> {
  */
 export class Filter extends Message<Filter> {
   /**
-   * @generated from field: string code_adapter = 1;
+   * @generated from field: string adapter = 1;
    */
-  codeAdapter = "";
+  adapter = "";
 
   constructor(data?: PartialMessage<Filter>) {
     super();
@@ -242,7 +242,7 @@ export class Filter extends Message<Filter> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "graph.Filter";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "code_adapter", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 1, name: "adapter", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Filter {
@@ -267,9 +267,9 @@ export class Filter extends Message<Filter> {
  */
 export class Reduce extends Message<Reduce> {
   /**
-   * @generated from field: string code_adapter = 1;
+   * @generated from field: string adapter = 1;
    */
-  codeAdapter = "";
+  adapter = "";
 
   constructor(data?: PartialMessage<Reduce>) {
     super();
@@ -279,7 +279,7 @@ export class Reduce extends Message<Reduce> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "graph.Reduce";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "code_adapter", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 1, name: "adapter", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Reduce {

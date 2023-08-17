@@ -9,17 +9,17 @@ import (
 func New(b *base.Node, node *storage.Storage) graph.Node {
 	switch t := node.Type.(type) {
 	case *storage.Storage_Document:
-		return NewDocumentNode(b, t.Document)
-		//case *storage.Storage_File:
-		//	return NewFileNode(b, t.File)
-		//case *storage.Storage_Folder:
-		//	return NewFolderNode(b, t.Folder)
+		return NewDocument(b, t.Document)
+	case *storage.Storage_File:
+		return NewFile(b, t.File)
+	case *storage.Storage_Folder:
+		return NewFolder(b, t.Folder)
 	default:
 		return nil
 	}
 }
 
-func NewDocumentNode(b *base.Node, node *storage.Document) graph.Node {
+func NewDocument(b *base.Node, node *storage.Document) graph.Node {
 	switch t := node.Type.(type) {
 	case *storage.Document_Store:
 		return NewStore(b, t.Store)

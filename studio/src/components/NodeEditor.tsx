@@ -18,7 +18,7 @@ export function NodeEditor(props: NodeEditorProps) {
     const onCancel = useUnselect();
     const {save, nodeInfo} = useEditorContext();
     const { setNodeLookup } = useProjectContext();
-    const {register, handleSubmit, control} = useForm({
+    const {register, handleSubmit, control, setValue} = useForm({
         values: {
             data: node.toJson()?.valueOf(),
         },
@@ -26,12 +26,12 @@ export function NodeEditor(props: NodeEditorProps) {
 
     const onSubmit = async (data: any) => {
         setNodeLookup((lookup) => {
+            console.log(ProtoNode.fromJson(data.data))
             return {
                 ...lookup,
                 [node.id]: ProtoNode.fromJson(data.data),
             }
         })
-        await save();
         toast.success('Saved!');
     };
 
@@ -45,6 +45,7 @@ export function NodeEditor(props: NodeEditorProps) {
             baseFieldName: 'data',
             //@ts-ignore
             register,
+            setValue,
             // TODO breadchris without this ignore, my computer wants to take flight https://github.com/react-hook-form/react-hook-form/issues/6679
             //@ts-ignore
             control,

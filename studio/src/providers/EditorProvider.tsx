@@ -16,13 +16,11 @@ import {useProjectContext} from "./ProjectProvider";
 import {Edge as ProtoEdge, Map, Node as ProtoNode, Provides} from "@/rpc/graph_pb";
 import {generateUUID} from "@/util/uuid";
 import {StandardBlock} from "@/components/blocks/StandardBlock";
-import {Simulate} from "react-dom/test-utils";
 import {projectService} from "@/lib/api";
 import { GetNodeInfoResponse } from "@/rpc/project_pb";
 
 type EditorContextType = {
     mode: Mode;
-    save: () => Promise<void>;
     props: {
         edges: Edge[];
         nodes: Node[];
@@ -36,6 +34,7 @@ type EditorContextType = {
     setDraggedNode: (node: DraggedNode) => void;
     setInstance: (instance: ReactFlowInstance) => void;
     setMode: (mode: Mode) => void;
+    save: () => void;
 
     selectedNodes: ProtoNode[];
     selectedEdges: ProtoEdge[];
@@ -111,7 +110,7 @@ export function EditorProvider({children}: { children: ReactNode }) {
 
     const save = useCallback(async () => {
         return await saveProject(props.nodes, props.edges);
-    }, [props.nodes, props.edges]);
+    }, [props.nodes, props.edges, saveProject]);
 
     useEffect(() => {
         void save();
@@ -121,9 +120,9 @@ export function EditorProvider({children}: { children: ReactNode }) {
         <EditorContext.Provider value={{
             props,
             mode,
+            save,
             setMode,
             setInstance,
-            save,
             setDraggedNode,
             selectedNodes,
             selectedEdges,
@@ -144,7 +143,7 @@ const useEditorProps = (
     setSelectedEdges: (edges: ProtoEdge[]) => void,
     reactFlowInstance?: ReactFlowInstance,
 ) => {
-    const {project, saveProject, setNodeLookup, setEdgeLookup, edgeLookup, nodeLookup} = useProjectContext();
+    const {project, setNodeLookup, setEdgeLookup, edgeLookup, nodeLookup} = useProjectContext();
 
     const [nodes, setNodes] = useState<Node[]>(
         project?.graph?.nodes.map((n) => {

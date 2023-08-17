@@ -147,6 +147,9 @@ func (s *Service) RunWorkflow(ctx context.Context, c *connect.Request[gen.RunWor
 			Str("node", c.Msg.NodeId).
 			Msg("workflow finished")
 	})
+	if obsErr != nil {
+		log.Error().Err(obsErr).Msg("workflow error")
+	}
 	return obsErr
 }
 

@@ -37,15 +37,15 @@ message Provides {
 }
 
 message Map {
-  string code_adapter = 1;
+  string adapter = 1;
 }
 
 message Filter {
-  string code_adapter = 1;
+  string adapter = 1;
 }
 
 message Reduce {
-  string code_adapter = 1;
+  string adapter = 1;
 }
 
 message Edge {

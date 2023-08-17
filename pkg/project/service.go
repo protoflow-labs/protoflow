@@ -10,10 +10,12 @@ import (
 	pdata "github.com/protoflow-labs/protoflow/gen/data"
 	"github.com/protoflow-labs/protoflow/gen/genconnect"
 	pgrpc "github.com/protoflow-labs/protoflow/gen/grpc"
+	preason "github.com/protoflow-labs/protoflow/gen/reason"
 	"github.com/protoflow-labs/protoflow/gen/storage"
 	"github.com/protoflow-labs/protoflow/pkg/bucket"
 	"github.com/protoflow-labs/protoflow/pkg/graph"
 	"github.com/protoflow-labs/protoflow/pkg/graph/node/data"
+	"github.com/protoflow-labs/protoflow/pkg/graph/node/reason"
 	"github.com/protoflow-labs/protoflow/pkg/grpc"
 	openaiclient "github.com/protoflow-labs/protoflow/pkg/openai"
 	"github.com/protoflow-labs/protoflow/pkg/store"
@@ -129,6 +131,11 @@ func enumerateProvidersFromNodes(nodes []*gen.Node) ([]*gen.EnumeratedProvider, 
 			switch t.Data.Type.(type) {
 			case *pdata.Data_Input:
 				providedNodes = []*gen.Node{data.NewProto("input", data.NewInputProto())}
+			}
+		case *gen.Node_Reason:
+			switch t.Reason.Type.(type) {
+			case *preason.Reason_Engine:
+				providedNodes = []*gen.Node{reason.NewProto("prompt", reason.NewPromptProto())}
 			}
 		default:
 			continue

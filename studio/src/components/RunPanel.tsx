@@ -33,7 +33,7 @@ export default function RunPanel() {
     const {nodeInfo} = useEditorContext();
     const currentNode = useCurrentNode();
 
-    const {watch, setValue, register, handleSubmit, control} = useForm({
+    const {setValue, register, handleSubmit, control} = useForm({
         values: {
             data: currentNode ? getDataFromNode(currentNode) : JSON.parse('{}'),
         },
@@ -72,6 +72,14 @@ export default function RunPanel() {
         await runWorkflow(currentNode, data.data);
     };
 
+    const clearInput = () => {
+        if (!currentNode) {
+            toast.error('Please select a node to run');
+            return;
+        }
+        setDataForNode(currentNode, {});
+    }
+
     const onStartServer = async () => {
         if (!project) return;
         await runWorkflow(undefined, true);
@@ -87,6 +95,7 @@ export default function RunPanel() {
             baseFieldName: 'data',
             //@ts-ignore
             register,
+            setValue,
             // TODO breadchris without this ignore, my computer wants to take flight https://github.com/react-hook-form/react-hook-form/issues/6679
             //@ts-ignore
             control,
@@ -128,6 +137,9 @@ export default function RunPanel() {
                     Run Workflow
                 </Button>
             </form>
+            <Button onClick={clearInput}>
+                Clear
+            </Button>
             <Button onClick={onStartServer}>
                 Start Server
             </Button>

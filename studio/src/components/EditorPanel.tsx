@@ -16,9 +16,9 @@ interface EdgeEditorProps {
 }
 
 const ActiveEdgeEditor: React.FC<EdgeEditorProps> = ({edge}) => {
+  console.log(edge.toJson()?.valueOf())
   const { projectTypes , setEdgeLookup} = useProjectContext();
-  const {save} = useEditorContext();
-  const { register, control, handleSubmit} = useForm({
+  const { register, control, handleSubmit, setValue} = useForm({
     values: {
       data: edge.toJson()?.valueOf() || {}
     },
@@ -39,6 +39,7 @@ const ActiveEdgeEditor: React.FC<EdgeEditorProps> = ({edge}) => {
     baseFieldName: 'data',
     //@ts-ignore
     register,
+    setValue,
     // TODO breadchris without this ignore, my computer wants to take flight https://github.com/react-hook-form/react-hook-form/issues/6679
     //@ts-ignore
     control,
@@ -47,12 +48,12 @@ const ActiveEdgeEditor: React.FC<EdgeEditorProps> = ({edge}) => {
 
   const onSubmit = async (data: any) => {
     setEdgeLookup((lookup) => {
+      const edge = ProtoEdge.fromJson(data.data);
       return {
         ...lookup,
-        [edge.id]: ProtoEdge.fromJson(data.data),
+        [edge.id]: edge,
       }
     })
-    await save();
     toast.success('Saved!');
   };
 

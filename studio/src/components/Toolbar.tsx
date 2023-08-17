@@ -10,7 +10,6 @@ import {
   MenuList,
   MenuPopover,
   MenuTrigger,
-  Dialog
 } from "@fluentui/react-components";
 import {useCallback, useEffect, useRef, useState} from "react";
 import { toast } from "react-hot-toast";
@@ -18,9 +17,8 @@ import { useHotkeys } from "react-hotkeys-hook";
 
 export function Toolbar() {
   const isApple = checkIsApple();
-  const { project, runWorkflow } = useProjectContext();
+  const { project } = useProjectContext();
   const { save, props, setMode } = useEditorContext();
-  const prevNodeLength = useRef(0);
 
   useHotkeys(isApple ? "meta+s" : "ctrl+s", (e) => {
     e.preventDefault();

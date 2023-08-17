@@ -56,6 +56,7 @@ const InputFormContents: FC<InputFormContentsProps> = (props) => {
         control,
         index,
         fieldPath,
+        setValue,
     } = props;
     const [visibleTypes, setVisibleTypes] = useState<string[]>([]);
 
@@ -67,6 +68,11 @@ const InputFormContents: FC<InputFormContentsProps> = (props) => {
         name: fieldFormName,
         defaultValue: '',
     });
+
+    const useType = (typeName: string) => {
+        setValue(fieldFormName, {});
+        setVisibleTypes([...visibleTypes, typeName]);
+    }
 
     if (field.typeName) {
         // field.typeName == .name.othername, remove the leading dot
@@ -91,7 +97,7 @@ const InputFormContents: FC<InputFormContentsProps> = (props) => {
                             }}>Close</Button>
                         </>
                     ) : (
-                        <Button onClick={() => setVisibleTypes([...visibleTypes, typeName])}>{typeName}</Button>
+                        <Button onClick={() => useType(typeName)}>{typeName}</Button>
                     )}
                 </div>
             )
@@ -134,6 +140,7 @@ export interface GRPCInputFormProps {
     control: Control
     fieldPath: string
     baseFieldName?: string
+    setValue: (name: any, value: any) => void
 }
 
 interface GRPCInputFormContentsProps extends GRPCInputFormProps {

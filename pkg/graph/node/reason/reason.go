@@ -32,6 +32,14 @@ func NewPromptNode(b *base.Node, node *reason.Prompt) *PromptNode {
 	}
 }
 
+func NewPromptProto() *reason.Reason {
+	return &reason.Reason{
+		Type: &reason.Reason_Prompt{
+			Prompt: &reason.Prompt{},
+		},
+	}
+}
+
 func (n *PromptNode) Type() (*graph.Info, error) {
 	reqMsg := builder.NewMessage("Request")
 	reqMsg = reqMsg.AddField(builder.NewField("message", builder.FieldTypeString()))

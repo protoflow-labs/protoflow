@@ -26,17 +26,17 @@ func (p *MapListener) GetNode() graph.Node {
 }
 
 func (p *MapListener) Transform(ctx context.Context, input *graph.IO) (*graph.IO, error) {
-	if p.e.CodeAdapter != "" {
+	if p.e.Adapter != "" {
 		obs := input.Observable.Map(func(c context.Context, i any) (any, error) {
 			vm := otto.New()
 			err := vm.Set("input", i)
-			v, err := vm.Run(p.e.CodeAdapter)
+			v, err := vm.Object(p.e.Adapter)
 			if err != nil {
-				return nil, errors.Wrapf(err, "error running code adapter")
+				return nil, errors.Wrapf(err, "error running code adapter: %s", p.e.Adapter)
 			}
-			o, err := v.Export()
+			o, err := v.Value().Export()
 			if err != nil {
-				return nil, errors.Wrapf(err, "error exporting input from vm")
+				return nil, errors.Wrapf(err, "error exporting input from vm: %s", p.e.Adapter)
 			}
 			return o, nil
 		})

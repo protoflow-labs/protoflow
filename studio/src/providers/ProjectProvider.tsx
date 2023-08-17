@@ -99,6 +99,8 @@ export default function ProjectProvider({children}: ProjectProviderProps) {
                 return;
             }
 
+            console.log('executing node', node.name, input)
+
             try {
                 setWorkflowOutput(null);
                 const res = await projectService.runWorkflow({
