@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/pkg/errors"
+	"github.com/protoflow-labs/protoflow/gen"
 	"github.com/protoflow-labs/protoflow/gen/storage"
 	"github.com/protoflow-labs/protoflow/pkg/graph"
 	"github.com/protoflow-labs/protoflow/pkg/graph/node/base"
@@ -13,8 +14,61 @@ import (
 	"github.com/rs/zerolog/log"
 	"gocloud.dev/blob"
 	"net/url"
+	"os"
 	"path"
 )
+
+type File struct {
+	*base.Node
+	*storage.File
+}
+
+var _ graph.Node = &File{}
+
+func NewFile(b *base.Node, node *storage.File) *File {
+	return &File{
+		Node: b,
+		File: node,
+	}
+}
+
+func NewFileProto(path string) *storage.Storage {
+	return &storage.Storage{
+		Type: &storage.Storage_File{
+			File: &storage.File{
+				Path: path,
+			},
+		},
+	}
+}
+
+func (n *File) Wire(ctx context.Context, input graph.IO) (graph.IO, error) {
+	p, err := n.Provider()
+	if err != nil {
+		return graph.IO{}, errors.Wrapf(err, "error getting provider")
+	}
+
+	f, ok := p.(*Folder)
+	if !ok {
+		return graph.IO{}, errors.Wrapf(err, "error getting folder")
+	}
+	u, err := url.Parse(f.Url)
+	if err != nil {
+		return graph.IO{}, errors.Wrapf(err, "error parsing filestore url")
+	}
+	filepath := path.Join(u.Path, n.File.Path)
+
+	// TODO breadchris verify file exists?
+	obs := rxgo.Defer([]rxgo.Producer{func(ctx context.Context, next chan<- rxgo.Item) {
+		// TODO breadchris this should be a static type. This is a brittle type that maps to workflow.go:133
+		next <- rx.NewItem(map[string]any{
+			"path": filepath,
+		})
+	}})
+	return graph.IO{
+		Observable: obs,
+	}, nil
+}
 
 type Folder struct {
 	*base.Node
@@ -30,8 +84,14 @@ func NewFolder(b *base.Node, node *storage.Folder) *Folder {
 	}
 }
 
-func (r *Folder) Init() (func(), error) {
-	return nil, nil
+func NewFolderProto(url string) *storage.Storage {
+	return &storage.Storage{
+		Type: &storage.Storage_Folder{
+			Folder: &storage.Folder{
+				Url: url,
+			},
+		},
+	}
 }
 
 func (r *Folder) Wire(ctx context.Context, input graph.IO) (graph.IO, error) {
@@ -89,44 +149,25 @@ func (r *Folder) WithPath(path string) (*blob.Bucket, func(), error) {
 	}, nil
 }
 
-type File struct {
-	*base.Node
-	*storage.File
+func nodesFromFiles(u string) ([]*gen.Node, error) {
+	parsedUrl, err := url.Parse(u)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to parse url %s", u)
+	}
+	// TODO breadchris support recursive enumeration
+	files, err := os.ReadDir(parsedUrl.Path)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to read dir %s", parsedUrl.Path)
+	}
+
+	var nodes []*gen.Node
+	for _, file := range files {
+		// TODO breadchris need to collapse this instantiation
+		nodes = append(nodes, NewProto(file.Name(), NewFileProto(file.Name())))
+	}
+	return nodes, nil
 }
 
-var _ graph.Node = &File{}
-
-func NewFile(b *base.Node, node *storage.File) *File {
-	return &File{
-		Node: b,
-		File: node,
-	}
-}
-
-func (n *File) Wire(ctx context.Context, input graph.IO) (graph.IO, error) {
-	p, err := n.Provider()
-	if err != nil {
-		return graph.IO{}, errors.Wrapf(err, "error getting provider")
-	}
-
-	f, ok := p.(*Folder)
-	if !ok {
-		return graph.IO{}, errors.Wrapf(err, "error getting folder")
-	}
-	u, err := url.Parse(f.Url)
-	if err != nil {
-		return graph.IO{}, errors.Wrapf(err, "error parsing filestore url")
-	}
-	filepath := path.Join(u.Path, n.File.Path)
-
-	// TODO breadchris verify file exists?
-	obs := rxgo.Defer([]rxgo.Producer{func(ctx context.Context, next chan<- rxgo.Item) {
-		// TODO breadchris this should be a static type. This is a brittle type that maps to workflow.go:133
-		next <- rx.NewItem(map[string]any{
-			"path": filepath,
-		})
-	}})
-	return graph.IO{
-		Observable: obs,
-	}, nil
+func (r *Folder) Provide() ([]*gen.Node, error) {
+	return nodesFromFiles(r.Folder.Url)
 }

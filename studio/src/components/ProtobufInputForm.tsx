@@ -148,6 +148,18 @@ interface GRPCInputFormContentsProps extends GRPCInputFormProps {
     desc: DescriptorProto
 }
 
+function removeByStringPath(obj: any, path: string) {
+    if (!obj || !path) return;
+
+    const keys = path.split('.');
+    let current = obj;
+    for (let i = 0; i < keys.length - 1; i++) {
+        if (!current[keys[i]]) return;
+        current = current[keys[i]];
+    }
+    delete current[keys[keys.length - 1]];
+}
+
 const AccordionField: FC<GRPCInputFormContentsProps> = (props) => {
     const {
         control,
@@ -155,6 +167,7 @@ const AccordionField: FC<GRPCInputFormContentsProps> = (props) => {
         field,
         fieldPath,
         desc,
+        setValue,
     } = props;
 
     const {fields: formFields, append, prepend, remove, swap, move, insert} = useFieldArray({
@@ -184,7 +197,11 @@ const AccordionField: FC<GRPCInputFormContentsProps> = (props) => {
                 </div>
             )
         }
-        return <InputFormContents {...inputProps} />
+        return (
+            <>
+                <InputFormContents {...inputProps} />
+            </>
+        )
     }
 
     const panelContents = () => {
@@ -249,7 +266,7 @@ export const ProtobufInputForm: FC<GRPCInputFormProps> = (props) => {
         }
     });
     return (
-        <Accordion className={"overflow-y-auto"} style={{maxHeight: "20em"}}>
+        <Accordion className={"overflow-y-auto"} style={{maxHeight: "40em"}}>
             {formattedFields.map((field) => {
                 return <AccordionField key={field.name} {...props} field={field} desc={desc} />
             })}

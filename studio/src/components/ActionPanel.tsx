@@ -17,13 +17,13 @@ export function ActionPanel() {
     }, [activelyEditing]);
 
     return (
-        <div className="absolute top-0 right-0 m-4 z-10 overflow-auto h-full">
-            <Card>
-                <TabList onTabSelect={tabSelect} vertical={true}>
-                    <Tab value='run'>Run</Tab>
-                    <Tab value='edit'>Edit</Tab>
-                </TabList>
+        <div className="absolute top-0 right-0 m-4 z-10 overflow-auto h-screen">
+            <Card className="h-screen max-w-sm">
                 <Stack>
+                    <TabList onTabSelect={tabSelect} vertical={true}>
+                        <Tab value='run'>Run</Tab>
+                        <Tab value='edit'>Edit</Tab>
+                    </TabList>
                     {activeTab === 'run' ? <RunPanel/> : <EditorPanel/>}
                 </Stack>
             </Card>

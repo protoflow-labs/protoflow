@@ -22,11 +22,12 @@ export default function BlocksList() {
             }
             const resError = r.info && r.info.state === ProviderState.ERROR;
             return (
-                <AccordionItem key={p.id} value={p.name} disabled={resError}>
+                <AccordionItem key={p.id} value={p.name}>
                   <AccordionHeader icon={resError ? <PlugDisconnected20Regular /> : null}>
                     {p.name}
                   </AccordionHeader>
                   <AccordionPanel className={"overflow-y-auto"} style={{maxHeight: "40em"}}>
+                    {resError ? <p className={"text-red-500"}>Error: {r.info?.error}</p> : null}
                     {r.nodes.map((node) => {
                         return (
                             <NodeButton key={node.id} provider={p} node={node} />

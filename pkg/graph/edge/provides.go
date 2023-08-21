@@ -17,10 +17,6 @@ func NewProvides(edge *gen.Edge, p *gen.Provides) graph.Edge {
 	}
 }
 
-func (p *Provides) CanWire() bool {
-	return false
-}
-
 func (p *Provides) Connect(from, to graph.Node) error {
 	return to.SetProvider(from)
 }

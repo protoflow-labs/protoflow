@@ -1,4 +1,4 @@
-import {Badge, Button, Card, Divider} from "@fluentui/react-components";
+import {Badge, Button, Card, Divider, Textarea} from "@fluentui/react-components";
 import {useProjectContext} from "@/providers/ProjectProvider";
 import {ProtoViewer} from "@/components/ProtoViewer";
 import {EditorActions} from "@/components/EditorActions";
@@ -7,7 +7,6 @@ import {GRPCInputFormProps, ProtobufInputForm} from "@/components/ProtobufInputF
 import { GRPCTypeInfo } from "@/rpc/project_pb";
 import {useForm} from "react-hook-form";
 import {Node as ProtoNode, Edge as ProtoEdge} from "@/rpc/graph_pb";
-import {NodeEditor} from "@/components/NodeEditor";
 import {useEditorContext} from "@/providers/EditorProvider";
 import {toast} from "react-hot-toast";
 
@@ -16,8 +15,8 @@ interface EdgeEditorProps {
 }
 
 const ActiveEdgeEditor: React.FC<EdgeEditorProps> = ({edge}) => {
-  console.log(edge.toJson()?.valueOf())
   const { projectTypes , setEdgeLookup} = useProjectContext();
+  const [config, setConfig] = useState<string>(JSON.stringify(edge.toJson()?.valueOf() || {}, null, 2));
   const { register, control, handleSubmit, setValue} = useForm({
     values: {
       data: edge.toJson()?.valueOf() || {}
@@ -57,6 +56,17 @@ const ActiveEdgeEditor: React.FC<EdgeEditorProps> = ({edge}) => {
     toast.success('Saved!');
   };
 
+  const saveConfig = () => {
+    setEdgeLookup((lookup) => {
+      const edge = ProtoEdge.fromJson(JSON.parse(config));
+      return {
+        ...lookup,
+        [edge.id]: edge,
+      }
+    })
+    toast.success('Saved!');
+  }
+
   return (
       <div className="flex flex-col gap-2 p-3">
         <form onSubmit={handleSubmit(onSubmit)}>
@@ -68,6 +78,9 @@ const ActiveEdgeEditor: React.FC<EdgeEditorProps> = ({edge}) => {
               Save
             </Button>
           </div>
+          <Divider/>
+          <Textarea value={config} onChange={(e) => setConfig(e.target.value)} />
+          <Button onClick={saveConfig}>Save</Button>
         </form>
       </div>
   );
@@ -77,10 +90,83 @@ interface NodeEditorProps {
   node: ProtoNode;
 }
 
+// TODO breadchris mostly an exact duplicate of ActiveEdgeEditor, should be refactored
+const HackyNodeEditor: React.FC<NodeEditorProps> = ({node}) => {
+  const { projectTypes , setNodeLookup} = useProjectContext();
+  const [config, setConfig] = useState<string>(JSON.stringify(node.toJson()?.valueOf() || {}, null, 2));
+  const { register, control, handleSubmit, setValue} = useForm({
+    values: {
+      data: node.toJson()?.valueOf() || {}
+    },
+  });
+  if (!projectTypes || !projectTypes.edgeType) {
+    return null;
+  }
+
+  const inputFormProps: GRPCInputFormProps = {
+    grpcInfo: new GRPCTypeInfo({
+      input: projectTypes.nodeType,
+      output: projectTypes.nodeType,
+      descLookup: projectTypes.descLookup,
+      enumLookup: projectTypes.enumLookup,
+      packageName: '',
+    }),
+    // some random key to separate data from the form
+    baseFieldName: 'data',
+    //@ts-ignore
+    register,
+    setValue,
+    // TODO breadchris without this ignore, my computer wants to take flight https://github.com/react-hook-form/react-hook-form/issues/6679
+    //@ts-ignore
+    control,
+    fieldPath: '',
+  }
+
+  const onSubmit = async (data: any) => {
+    setNodeLookup((lookup) => {
+      const node = ProtoNode.fromJson(data.data);
+      return {
+        ...lookup,
+        [node.id]: node,
+      }
+    })
+    toast.success('Saved!');
+  };
+
+  const saveConfig = () => {
+    setNodeLookup((lookup) => {
+      const node = ProtoNode.fromJson(JSON.parse(config));
+      return {
+        ...lookup,
+        [node.id]: node,
+      }
+    })
+    toast.success('Saved!');
+  }
+
+  return (
+      <div className="flex flex-col gap-2 p-3">
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <div className="flex flex-col gap-2 p-3">
+            <ProtobufInputForm {...inputFormProps} />
+          </div>
+          <div className="flex items-center">
+            <Button appearance="primary" type="submit">
+              Save
+            </Button>
+          </div>
+          <Divider/>
+          <Textarea value={config} onChange={(e) => setConfig(e.target.value)} />
+          <Button onClick={saveConfig}>Save</Button>
+        </form>
+      </div>
+  );
+}
+
 const ActiveNodeEditor: React.FC<NodeEditorProps> = ({node}) => {
   return (
       <>
-        <NodeEditor node={node} />
+        <HackyNodeEditor node={node} />
         <Divider/>
         <EditorActions/>
         <ProtoViewer />

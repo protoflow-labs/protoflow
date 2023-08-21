@@ -18,6 +18,7 @@ import {generateUUID} from "@/util/uuid";
 import {StandardBlock} from "@/components/blocks/StandardBlock";
 import {projectService} from "@/lib/api";
 import { GetNodeInfoResponse } from "@/rpc/project_pb";
+import useAutoLayout from "@/hooks/useAutoLayout";
 
 type EditorContextType = {
     mode: Mode;
@@ -82,9 +83,16 @@ export function EditorProvider({children}: { children: ReactNode }) {
     const [selectedEdges, setSelectedEdges] = useState<ProtoEdge[]>([]);
     const [nodeInfo, setNodeInfo] = useState<GetNodeInfoResponse | undefined>(undefined);
 
+    //useAutoLayout({direction: 'TB'})
+
     useEffect(() => {
         if (!project || selectedNodes.length !== 1) return;
         const selectedNode = selectedNodes[0];
+        if (!selectedNode) {
+            setNodeInfo(undefined);
+            console.error(`selected node is undefined`)
+            return;
+        }
 
         (async () => {
             try {
@@ -276,7 +284,7 @@ const useEditorProps = (
             }
         }
         setEdges((eds) => applyEdgeChanges(changes, eds));
-    }, []);
+    }, [edgeLookup]);
 
     const onNodesChange: OnNodesChange = useCallback((changes) => {
         let newSelectedNodes: ProtoNode[] = [];
@@ -299,7 +307,7 @@ const useEditorProps = (
             }
         }
         setNodes((nds) => applyNodeChanges(changes, nds));
-    }, []);
+    }, [nodeLookup]);
 
     return {
         edges,

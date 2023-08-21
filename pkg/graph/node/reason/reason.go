@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"github.com/jhump/protoreflect/desc/builder"
 	"github.com/pkg/errors"
+	"github.com/protoflow-labs/protoflow/gen"
 	"github.com/protoflow-labs/protoflow/gen/reason"
 	"github.com/protoflow-labs/protoflow/pkg/graph"
 	"github.com/protoflow-labs/protoflow/pkg/graph/node/base"
@@ -115,7 +116,7 @@ func (n *PromptNode) Wire(ctx context.Context, input graph.IO) (graph.IO, error)
 			Content: normalizedItem,
 		})
 
-		s, err := r.QAClient.Ask(c)
+		s, err := r.QAClient.Ask(c, int(n.MinTokenCount))
 		if err != nil {
 			outputStream <- rx.NewError(errors.Wrapf(err, "error executing prompt: %s", n.NormalizedName()))
 		}
@@ -149,7 +150,7 @@ func NewEngineNode(b *base.Node, node *reason.Engine) *Engine {
 	}
 }
 
-func (n *Engine) Init() (func(), error) {
+func (n *Engine) Wire(ctx context.Context, input graph.IO) (graph.IO, error) {
 	// TODO breadchris replace with some type of dependency injection capability
 	var (
 		configProvider config.Provider
@@ -160,32 +161,32 @@ func (n *Engine) Init() (func(), error) {
 	}
 	p, err := n.Provider()
 	if err != nil {
-		return nil, err
+		return graph.IO{}, err
 	}
 	t, ok := p.(*data.ConfigNode)
 	if !ok {
-		return nil, errors.New("error getting config node resource")
+		return graph.IO{}, errors.New("error getting config node resource")
 	}
 
 	// TODO breadchris how do we handle resources that need to be initialized before others?
 	configProvider, err = t.NewConfigProvider(config.Static(staticConfig))
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to build config provider")
+		return graph.IO{}, errors.Wrapf(err, "failed to build config provider")
 	}
 
 	if configProvider == nil {
-		return nil, errors.New("config provider not found")
+		return graph.IO{}, errors.New("config provider not found")
 	}
 	c, err := openaiclient.Wire(configProvider)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to initialize openai client")
+		return graph.IO{}, errors.Wrapf(err, "failed to initialize openai client")
 	}
 	n.QAClient = c
-	return nil, nil
-}
-
-func (n *Engine) Wire(ctx context.Context, input graph.IO) (graph.IO, error) {
 	return graph.IO{
 		Observable: input.Observable,
 	}, nil
+}
+
+func (n *Engine) Provide() ([]*gen.Node, error) {
+	return []*gen.Node{NewProto("prompt", NewPromptProto())}, nil
 }

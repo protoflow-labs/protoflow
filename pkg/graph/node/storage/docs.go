@@ -34,10 +34,6 @@ func NewStore(b *base.Node, n *storage.Store) *Store {
 	}
 }
 
-func (r *Store) Init() (func(), error) {
-	return nil, nil
-}
-
 func (r *Store) Wire(ctx context.Context, input graph.IO) (graph.IO, error) {
 	//TODO implement me
 	panic("implement me")
@@ -104,26 +100,22 @@ func NewCollection(b *base.Node, n *storage.Collection) *Collection {
 	}
 }
 
-func (n *Collection) Init() (func(), error) {
+func (n *Collection) Wire(ctx context.Context, input graph.IO) (graph.IO, error) {
 	p, err := n.Provider()
 	if err != nil {
-		return nil, errors.Wrapf(err, "error getting provider")
+		return graph.IO{}, errors.Wrapf(err, "error getting provider")
 	}
 	d, ok := p.(*Store)
 	if !ok {
-		return nil, errors.New("error provider is not a docstore")
+		return graph.IO{}, errors.New("error provider is not a docstore")
 	}
 
 	collection, cleanup, err := d.WithCollection(n.Collection.Name)
 	if err != nil {
-		return nil, errors.Wrapf(err, "error connecting to collection")
+		return graph.IO{}, errors.Wrapf(err, "error connecting to collection")
 	}
 	n.collection = collection
 
-	return cleanup, nil
-}
-
-func (n *Collection) Wire(ctx context.Context, input graph.IO) (graph.IO, error) {
 	insertWithID := func(record map[string]any) (string, error) {
 		if record["id"] == nil {
 			record["id"] = uuid.NewString()
@@ -168,6 +160,7 @@ func (n *Collection) Wire(ctx context.Context, input graph.IO) (graph.IO, error)
 		output <- rx.NewError(err)
 	}, func() {
 		close(output)
+		cleanup()
 	})
 
 	return graph.IO{

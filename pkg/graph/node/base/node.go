@@ -62,8 +62,8 @@ func (n *Node) Method() (*graph.Info, error) {
 	return nil, errors.New("not implemented")
 }
 
-func (n *Node) Init() (func(), error) {
-	return func() {}, nil
+func (n *Node) Provide() ([]*gen.Node, error) {
+	return []*gen.Node{}, nil
 }
 
 // TODO breadchris this should be more robust and take into consideration type types of edges into the node

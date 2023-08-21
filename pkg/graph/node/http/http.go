@@ -48,16 +48,13 @@ type Router struct {
 var _ graph.Node = &Router{}
 
 func NewRouterNode(b *base.Node, node *http.Router) *Router {
-	return &Router{
+	r := &Router{
 		Node:   b,
 		Router: node,
 	}
-}
-
-func (r *Router) Init() (func(), error) {
 	// TODO breadchris proper dependency injection will need to be figured out to make this work
 	r.HTTPStream = NewHTTPEventStream()
-	return nil, nil
+	return r
 }
 
 func (r *Router) Wire(ctx context.Context, input graph.IO) (graph.IO, error) {

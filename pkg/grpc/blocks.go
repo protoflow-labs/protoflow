@@ -14,6 +14,7 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/descriptorpb"
+	"net/url"
 )
 
 func EnumerateResourceBlocks(server *pgrpc.Server, isLangService bool) ([]*gen.Node, error) {
@@ -21,7 +22,12 @@ func EnumerateResourceBlocks(server *pgrpc.Server, isLangService bool) ([]*gen.N
 		return nil, errors.New("host is required")
 	}
 
-	conn, err := grpc.Dial(server.Host, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	u, err := url.Parse(server.Host)
+	if err != nil {
+		return nil, errors.Wrapf(err, "unable to parse host %s", server.Host)
+	}
+
+	conn, err := grpc.Dial(u.Host, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return nil, errors.Wrapf(err, "unable to connect to python server at %s", server.Host)
 	}

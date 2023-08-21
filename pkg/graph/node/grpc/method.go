@@ -50,7 +50,7 @@ func NewMethodProto(packageService, m string) *pgrpc.GRPC {
 
 func GetMethodFromServer(r *Server, n *Method, protocol bufcurl.ReflectProtocol) (protoreflect.MethodDescriptor, error) {
 	// TODO breadchris I think a grpc resource should have a host that has a protocol
-	m := manager.NewReflectionManager("http://"+r.Host, manager.WithProtocol(protocol))
+	m := manager.NewReflectionManager(r.Host, manager.WithProtocol(protocol))
 	cleanup, err := m.Init()
 	if err != nil {
 		return nil, errors.Wrapf(err, "error initializing reflection manager")

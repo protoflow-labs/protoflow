@@ -2,6 +2,9 @@ package workflow
 
 import (
 	"context"
+	"encoding/json"
+	"github.com/pkg/errors"
+	"github.com/protoflow-labs/protoflow/gen"
 	"github.com/protoflow-labs/protoflow/pkg/graph"
 	"github.com/reactivex/rxgo/v2"
 )
@@ -27,8 +30,17 @@ func (c *Connector) Add(nodeID string, o *graph.IO) {
 
 func (c *Connector) Connect(ctx context.Context) rxgo.Observable {
 	var obsSlice []rxgo.Observable
-	for _, o := range c.observers {
-		obsSlice = append(obsSlice, o.Observable)
+	for nodeID, o := range c.observers {
+		obsSlice = append(obsSlice, o.Observable.Map(func(ctx context.Context, i any) (any, error) {
+			output, err := json.Marshal(i)
+			if err != nil {
+				return nil, errors.Wrapf(err, "error marshalling output")
+			}
+			return &gen.NodeExecution{
+				NodeId: nodeID,
+				Output: string(output),
+			}, nil
+		}))
 	}
 	o := rxgo.Merge(obsSlice, rxgo.WithPublishStrategy())
 

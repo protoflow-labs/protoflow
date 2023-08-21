@@ -3,6 +3,7 @@ package graph
 import (
 	"context"
 	"github.com/pkg/errors"
+	"github.com/protoflow-labs/protoflow/gen"
 	"github.com/protoflow-labs/protoflow/pkg/grpc"
 	"github.com/protoflow-labs/protoflow/pkg/grpc/manager"
 	"github.com/reactivex/rxgo/v2"
@@ -44,9 +45,8 @@ type Node interface {
 	ID() string
 	// TODO breadchris type should probably just return a message descriptor
 	Type() (*Info, error)
-	// Method returns the method descriptor for input and output of the node.
-	// Method() (*Info, error)
-	Init() (func(), error)
+
+	Provide() ([]*gen.Node, error)
 
 	// Provider returns the node that this node depends on. (eg. a grpc method node will return the service node)
 	Provider() (Node, error)
@@ -75,5 +75,4 @@ type Edge interface {
 	From() string
 	To() string
 	Connect(from, to Node) error
-	CanWire() bool
 }

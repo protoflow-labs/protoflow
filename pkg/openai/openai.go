@@ -43,7 +43,7 @@ var ProviderSet = wire.NewSet(
 )
 
 type QAClient interface {
-	Ask(chatCtx []openai.ChatCompletionMessage) (string, error)
+	Ask(chatCtx []openai.ChatCompletionMessage, minTokenCount int) (string, error)
 	StreamResponse(chatCtx []openai.ChatCompletionMessage) (rxgo.Observable, error)
 }
 
@@ -74,22 +74,39 @@ type OpenAIQAClient struct {
 
 var _ QAClient = &OpenAIQAClient{}
 
-func (c *OpenAIQAClient) Ask(chatCtx []openai.ChatCompletionMessage) (string, error) {
-	// TODO breadchris figure out how to handle the context being too large
-	respTokenCount, err := validateChatCtx(chatCtx, c.modelDetails)
+func (c *OpenAIQAClient) fillContext(respSize int, chatCtx []openai.ChatCompletionMessage) ([]openai.ChatCompletionMessage, int, error) {
+	tokenCount := respSize
+	var newChatCtx []openai.ChatCompletionMessage
+	for _, msg := range chatCtx {
+		s, err := fillMessageContext(tokenCount, msg, c.modelDetails)
+		if err != nil {
+			return nil, 0, err
+		}
+		newChatCtx = append(newChatCtx, s.Msg)
+		tokenCount += s.TokenCount
+		if s.Rest != "" {
+			log.Warn().Int("token count", tokenCount).Msg("context too large, truncating")
+			break
+		}
+	}
+	return newChatCtx, tokenCount, nil
+}
+
+func (c *OpenAIQAClient) Ask(chatCtx []openai.ChatCompletionMessage, minTokenCount int) (string, error) {
+	newCtx, tokenCount, err := c.fillContext(minTokenCount, chatCtx)
 	if err != nil {
-		return "", err
+		return "", errors.Wrapf(err, "failed to fill context")
 	}
 
 	log.Debug().
-		Int("respTokenCount", respTokenCount).
+		Int("token count", tokenCount).
 		Msg("Sending request to OpenAI")
 
 	req := openai.ChatCompletionRequest{
 		Model:       c.model,
 		Temperature: float32(0),
-		MaxTokens:   respTokenCount - 200,
-		Messages:    chatCtx,
+		MaxTokens:   tokenCount,
+		Messages:    newCtx,
 	}
 
 	// TODO breadchris loading the timeout from the config was not working, debug this
@@ -108,21 +125,21 @@ func (c *OpenAIQAClient) Ask(chatCtx []openai.ChatCompletionMessage) (string, er
 }
 
 func (c *OpenAIQAClient) StreamResponse(chatCtx []openai.ChatCompletionMessage) (rxgo.Observable, error) {
-	respTokenCount, err := validateChatCtx(chatCtx, c.modelDetails)
+	minRespSize := 100
+	newCtx, tokenCount, err := c.fillContext(minRespSize, chatCtx)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrapf(err, "failed to fill context")
 	}
-
 	log.Debug().
-		Int("respTokenCount", respTokenCount).
+		Int("respTokenCount", tokenCount).
 		Msg("Sending request to OpenAI")
 
 	req := openai.ChatCompletionRequest{
 		Model:       c.model,
 		Temperature: float32(0),
-		MaxTokens:   respTokenCount - 200,
+		MaxTokens:   tokenCount - 200,
 		Stream:      true,
-		Messages:    chatCtx,
+		Messages:    newCtx,
 		// TODO breadchris need to validate the context size here
 		Functions: []openai.FunctionDefinition{{
 			Name:        "test",

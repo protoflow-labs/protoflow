@@ -115,8 +115,7 @@ message WorkflowRun {
 
 message NodeExecution {
     string node_id = 1;
-    string input = 2;
-    string output = 3;
+    string output = 2;
 }
 
 message GetNodeInfoRequest {

@@ -9,15 +9,17 @@ message Header {
 }
 
 message Request {
-  string method = 1;
-  string url = 2;
-  repeated Header headers = 3;
-  bytes body = 4;
+  string id = 1;
+  string method = 2;
+  string url = 3;
+  repeated Header headers = 4;
+  bytes body = 5;
 }
 
 message Response {
-  repeated Header headers = 1;
-  bytes body = 2;
+  string id = 1;
+  repeated Header headers = 2;
+  bytes body = 3;
 }
 
 message Route {
@@ -25,8 +27,12 @@ message Route {
   string method = 2;
 }
 
+message TemplateFS {
+  string path = 1;
+}
+
 message Template {
-  string template = 1;
+  string name = 1;
 }
 
 message Router {
@@ -37,6 +43,8 @@ message HTTP {
   oneof type {
     Route route = 9;
     Template template = 10;
-    Router router = 11;
+    TemplateFS template_fs = 11;
+    Router router = 12;
+    Response response = 13;
   }
 }

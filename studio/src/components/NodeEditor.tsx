@@ -1,12 +1,11 @@
 import React from "react";
 import {Node as ProtoNode} from "@/rpc/graph_pb";
-import {useUnselect} from "@/components/EditorActions";
 import {useEditorContext} from "@/providers/EditorProvider";
 import {useForm} from "react-hook-form";
 import {useProjectContext} from "@/providers/ProjectProvider";
 import {toast} from "react-hot-toast";
 import {GRPCInputFormProps, ProtobufInputForm} from "@/components/ProtobufInputForm";
-import {Button, Divider, Field, Input} from "@fluentui/react-components";
+import {Button} from "@fluentui/react-components";
 
 type NodeEditorProps = {
     node: ProtoNode;
@@ -15,8 +14,8 @@ type NodeEditorProps = {
 export function NodeEditor(props: NodeEditorProps) {
     const {node} = props;
 
-    const onCancel = useUnselect();
-    const {save, nodeInfo} = useEditorContext();
+    const {nodeInfo} = useEditorContext();
+    const {projectTypes} = useProjectContext();
     const { setNodeLookup } = useProjectContext();
     const {register, handleSubmit, control, setValue} = useForm({
         values: {

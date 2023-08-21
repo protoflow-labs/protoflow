@@ -54,22 +54,27 @@ export class Header extends Message<Header> {
  */
 export class Request extends Message<Request> {
   /**
-   * @generated from field: string method = 1;
+   * @generated from field: string id = 1;
+   */
+  id = "";
+
+  /**
+   * @generated from field: string method = 2;
    */
   method = "";
 
   /**
-   * @generated from field: string url = 2;
+   * @generated from field: string url = 3;
    */
   url = "";
 
   /**
-   * @generated from field: repeated http.Header headers = 3;
+   * @generated from field: repeated http.Header headers = 4;
    */
   headers: Header[] = [];
 
   /**
-   * @generated from field: bytes body = 4;
+   * @generated from field: bytes body = 5;
    */
   body = new Uint8Array(0);
 
@@ -81,10 +86,11 @@ export class Request extends Message<Request> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "http.Request";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "method", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "url", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 3, name: "headers", kind: "message", T: Header, repeated: true },
-    { no: 4, name: "body", kind: "scalar", T: 12 /* ScalarType.BYTES */ },
+    { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "method", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "url", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "headers", kind: "message", T: Header, repeated: true },
+    { no: 5, name: "body", kind: "scalar", T: 12 /* ScalarType.BYTES */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Request {
@@ -109,12 +115,17 @@ export class Request extends Message<Request> {
  */
 export class Response extends Message<Response> {
   /**
-   * @generated from field: repeated http.Header headers = 1;
+   * @generated from field: string id = 1;
+   */
+  id = "";
+
+  /**
+   * @generated from field: repeated http.Header headers = 2;
    */
   headers: Header[] = [];
 
   /**
-   * @generated from field: bytes body = 2;
+   * @generated from field: bytes body = 3;
    */
   body = new Uint8Array(0);
 
@@ -126,8 +137,9 @@ export class Response extends Message<Response> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "http.Response";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "headers", kind: "message", T: Header, repeated: true },
-    { no: 2, name: "body", kind: "scalar", T: 12 /* ScalarType.BYTES */ },
+    { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "headers", kind: "message", T: Header, repeated: true },
+    { no: 3, name: "body", kind: "scalar", T: 12 /* ScalarType.BYTES */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Response {
@@ -191,13 +203,50 @@ export class Route extends Message<Route> {
 }
 
 /**
+ * @generated from message http.TemplateFS
+ */
+export class TemplateFS extends Message<TemplateFS> {
+  /**
+   * @generated from field: string path = 1;
+   */
+  path = "";
+
+  constructor(data?: PartialMessage<TemplateFS>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "http.TemplateFS";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "path", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TemplateFS {
+    return new TemplateFS().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): TemplateFS {
+    return new TemplateFS().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): TemplateFS {
+    return new TemplateFS().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: TemplateFS | PlainMessage<TemplateFS> | undefined, b: TemplateFS | PlainMessage<TemplateFS> | undefined): boolean {
+    return proto3.util.equals(TemplateFS, a, b);
+  }
+}
+
+/**
  * @generated from message http.Template
  */
 export class Template extends Message<Template> {
   /**
-   * @generated from field: string template = 1;
+   * @generated from field: string name = 1;
    */
-  template = "";
+  name = "";
 
   constructor(data?: PartialMessage<Template>) {
     super();
@@ -207,7 +256,7 @@ export class Template extends Message<Template> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "http.Template";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "template", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 1, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Template {
@@ -285,10 +334,22 @@ export class HTTP extends Message<HTTP> {
     case: "template";
   } | {
     /**
-     * @generated from field: http.Router router = 11;
+     * @generated from field: http.TemplateFS template_fs = 11;
+     */
+    value: TemplateFS;
+    case: "templateFs";
+  } | {
+    /**
+     * @generated from field: http.Router router = 12;
      */
     value: Router;
     case: "router";
+  } | {
+    /**
+     * @generated from field: http.Response response = 13;
+     */
+    value: Response;
+    case: "response";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<HTTP>) {
@@ -301,7 +362,9 @@ export class HTTP extends Message<HTTP> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 9, name: "route", kind: "message", T: Route, oneof: "type" },
     { no: 10, name: "template", kind: "message", T: Template, oneof: "type" },
-    { no: 11, name: "router", kind: "message", T: Router, oneof: "type" },
+    { no: 11, name: "template_fs", kind: "message", T: TemplateFS, oneof: "type" },
+    { no: 12, name: "router", kind: "message", T: Router, oneof: "type" },
+    { no: 13, name: "response", kind: "message", T: Response, oneof: "type" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): HTTP {

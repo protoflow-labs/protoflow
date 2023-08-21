@@ -3,6 +3,7 @@ package http
 import (
 	"context"
 	"fmt"
+	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/gen/http"
 	"github.com/protoflow-labs/protoflow/pkg/graph"
@@ -56,6 +57,7 @@ func (n *RouteNode) Wire(ctx context.Context, input graph.IO) (graph.IO, error) 
 		if u.Path != n.Path(routerResource) || r.Method != n.Route.Method {
 			return
 		}
+		r.Id = uuid.NewString()
 		output <- rx.NewItem(r)
 	}, func(err error) {
 		output <- rx.NewError(err)

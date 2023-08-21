@@ -271,24 +271,6 @@ func (w *Workflow) GetNodeProvider(id string) (graph.Node, error) {
 
 // WireNodes wires the nodes in the workflow together and returns an observable that can be subscribed to. Nodes are executed when an event is received on the input observable.
 func (w *Workflow) WireNodes(ctx context.Context, nodeID string, input rxgo.Observable) (rxgo.Observable, error) {
-	var cleanupFuncs []func()
-	defer func() {
-		for _, cleanup := range cleanupFuncs {
-			if cleanup != nil {
-				cleanup()
-			}
-		}
-	}()
-
-	// TODO breadchris implement resource pool to avoid creating resources for every workflow
-	for _, r := range w.NodeLookup {
-		cleanup, err := r.Init()
-		if err != nil {
-			return nil, errors.Wrapf(err, "error creating resource %s", r.NormalizedName())
-		}
-		cleanupFuncs = append(cleanupFuncs, cleanup)
-	}
-
 	connector := NewConnector()
 
 	getEdge := func(from, to string) (graph.Edge, error) {
@@ -321,42 +303,52 @@ func (w *Workflow) WireNodes(ctx context.Context, nodeID string, input rxgo.Obse
 	}
 
 	// TODO breadchris move workflow slicing into its own function
+	// search forward and backward in the graph to create a subgraph of nodes that are connected to the node we want to wire
 	subgraph := graphlib.New(graphlib.StringHash, graphlib.Directed(), graphlib.PreventCycles())
 	_ = subgraph.AddVertex(in.ID())
 	_ = subgraph.AddEdge(in.ID(), nodeID)
+
+	discovered := []string{nodeID}
 	err = util.BFS(w.Graph, nodeID, true, func(from, to string) bool {
 		e, err := getEdge(from, to)
 		if err != nil {
 			log.Error().Err(err).Msgf("error getting edge from %s to %s", from, to)
 			return false
 		}
-		if !e.CanWire() {
-			return false
-		}
+		log.Debug().
+			Str("from", w.NodeLookup[from].NormalizedName()).
+			Str("to", w.NodeLookup[to].NormalizedName()).
+			Str("edge", e.ID()).
+			Msg("workflow forward bfs")
 		_ = subgraph.AddVertex(from)
 		_ = subgraph.AddVertex(to)
 		_ = subgraph.AddEdge(from, to)
+		discovered = append(discovered, to)
 		return false
 	})
 	if err != nil {
 		return nil, errors.Wrapf(err, "error traversing graph forward")
 	}
-	err = util.BFS(w.Graph, nodeID, false, func(to, from string) bool {
-		e, err := getEdge(from, to)
+	for _, discID := range discovered {
+		err = util.BFS(w.Graph, discID, false, func(to, from string) bool {
+			e, err := getEdge(from, to)
+			if err != nil {
+				log.Error().Err(err).Msgf("error getting edge from %s to %s", from, to)
+				return false
+			}
+			log.Debug().
+				Str("from", w.NodeLookup[from].NormalizedName()).
+				Str("to", w.NodeLookup[to].NormalizedName()).
+				Str("edge", e.ID()).
+				Msg("workflow backward bfs")
+			_ = subgraph.AddVertex(from)
+			_ = subgraph.AddVertex(to)
+			_ = subgraph.AddEdge(from, to)
+			return false
+		})
 		if err != nil {
-			log.Error().Err(err).Msgf("error getting edge from %s to %s", from, to)
-			return false
+			return nil, errors.Wrapf(err, "error traversing graph backward")
 		}
-		if !e.CanWire() {
-			return false
-		}
-		_ = subgraph.AddVertex(from)
-		_ = subgraph.AddVertex(to)
-		_ = subgraph.AddEdge(from, to)
-		return false
-	})
-	if err != nil {
-		return nil, errors.Wrapf(err, "error traversing graph backward")
 	}
 
 	depList, err := graphlib.TopologicalSort(subgraph)
@@ -374,6 +366,7 @@ func (w *Workflow) WireNodes(ctx context.Context, nodeID string, input rxgo.Obse
 	// since the graph is sorted topologically, we can wire the nodes in order
 	for _, nID := range depList {
 		n := w.NodeLookup[nID]
+		// TODO breadchris how do we handle lifecycle of nodes? cleaning up resources,
 		err = w.wireWorkflow(ctx, connector, n)
 		if err != nil {
 			log.Error().Err(err).Msgf("failed to traverse workflow")

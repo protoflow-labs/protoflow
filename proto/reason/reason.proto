@@ -5,6 +5,7 @@ option go_package = "reason";
 
 message Prompt {
   string prompt = 1;
+  uint64 min_token_count = 2;
 }
 
 message Engine {

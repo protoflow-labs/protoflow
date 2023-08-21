@@ -4,7 +4,7 @@
 // @ts-nocheck
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
-import { Message, proto3 } from "@bufbuild/protobuf";
+import { Message, proto3, protoInt64 } from "@bufbuild/protobuf";
 
 /**
  * @generated from message reason.Prompt
@@ -15,6 +15,11 @@ export class Prompt extends Message<Prompt> {
    */
   prompt = "";
 
+  /**
+   * @generated from field: uint64 min_token_count = 2;
+   */
+  minTokenCount = protoInt64.zero;
+
   constructor(data?: PartialMessage<Prompt>) {
     super();
     proto3.util.initPartial(data, this);
@@ -24,6 +29,7 @@ export class Prompt extends Message<Prompt> {
   static readonly typeName = "reason.Prompt";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "prompt", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "min_token_count", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Prompt {

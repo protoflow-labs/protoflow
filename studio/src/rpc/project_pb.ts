@@ -769,12 +769,7 @@ export class NodeExecution extends Message<NodeExecution> {
   nodeId = "";
 
   /**
-   * @generated from field: string input = 2;
-   */
-  input = "";
-
-  /**
-   * @generated from field: string output = 3;
+   * @generated from field: string output = 2;
    */
   output = "";
 
@@ -787,8 +782,7 @@ export class NodeExecution extends Message<NodeExecution> {
   static readonly typeName = "project.NodeExecution";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "node_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "input", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 3, name: "output", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "output", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): NodeExecution {

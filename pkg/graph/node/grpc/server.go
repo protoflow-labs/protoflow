@@ -2,9 +2,11 @@ package grpc
 
 import (
 	"context"
+	"github.com/protoflow-labs/protoflow/gen"
 	pgrpc "github.com/protoflow-labs/protoflow/gen/grpc"
 	"github.com/protoflow-labs/protoflow/pkg/graph"
 	"github.com/protoflow-labs/protoflow/pkg/graph/node/base"
+	"github.com/protoflow-labs/protoflow/pkg/grpc"
 	"strings"
 )
 
@@ -18,6 +20,10 @@ type ServerProvider interface {
 }
 
 func NewServer(b *base.Node, n *pgrpc.Server) *Server {
+	// TODO breadchris this shouldn't be here
+	if !strings.HasPrefix(n.Host, "http://") {
+		n.Host = "http://" + n.Host
+	}
 	return &Server{
 		Node:   b,
 		Server: n,
@@ -38,20 +44,10 @@ func (n *Server) GetServer() *Server {
 	return n
 }
 
-func (n *Server) Init() (func(), error) {
-	// TODO breadchris this is a hack to get the grpc server running, this is not ideal
-	if !strings.HasPrefix(n.Host, "http://") {
-		n.Host = "http://" + n.Host
-	}
-	//if err := ensureRunning(r.Host); err != nil {
-	//	// TODO breadchris ignore errors for now
-	//	// return nil, errors.Wrapf(err, "unable to get the %s grpc server running", r.Name())
-	//	return nil, nil
-	//}
-	return nil, nil
+func (n *Server) Wire(ctx context.Context, input graph.IO) (graph.IO, error) {
+	return input, nil
 }
 
-func (n *Server) Wire(ctx context.Context, input graph.IO) (graph.IO, error) {
-	//TODO implement me
-	panic("implement me")
+func (n *Server) Provide() ([]*gen.Node, error) {
+	return grpc.EnumerateResourceBlocks(n.Server, false)
 }
