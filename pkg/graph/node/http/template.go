@@ -92,7 +92,7 @@ func (n *TemplateFSNode) templates(name string) (*template.Template, error) {
 
 type TemplateNode struct {
 	*base.Node
-	*http.Template
+	template *http.Template
 }
 
 var _ graph.Node = &TemplateNode{}
@@ -100,7 +100,7 @@ var _ graph.Node = &TemplateNode{}
 func NewTemplateNode(b *base.Node, node *http.Template) *TemplateNode {
 	return &TemplateNode{
 		Node:     b,
-		Template: node,
+		template: node,
 	}
 }
 
@@ -125,19 +125,30 @@ func (n *TemplateNode) Wire(ctx context.Context, input graph.IO) (graph.IO, erro
 	if !ok {
 		return graph.IO{}, errors.Wrapf(err, "error getting folder")
 	}
-	tmpls, err := t.templates(n.Template.Name)
-	if err != nil {
-		return graph.IO{}, errors.Wrapf(err, "error getting templates")
-	}
 
 	input.Observable.ForEach(func(item any) {
 		b := &bytes.Buffer{}
+		tmpls, err := t.templates(n.template.Name)
+		if err != nil {
+			output <- rx.NewError(err)
+			return
+		}
+
 		err = tmpls.Execute(b, item)
 		if err != nil {
 			output <- rx.NewError(err)
 			return
 		}
+		// TODO breadchris this is not going to work if there are more nodes in between
+		// the template node and the route node
+		id := ""
+		req, ok := item.(*http.Request)
+		if ok {
+			id = req.Id
+		}
+
 		resp := &http.Response{
+			Id:      id,
 			Headers: []*http.Header{},
 			Body:    b.Bytes(),
 		}

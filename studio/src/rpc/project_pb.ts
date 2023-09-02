@@ -5,7 +5,7 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { DescriptorProto, EnumDescriptorProto, Message, MethodDescriptorProto, proto3 } from "@bufbuild/protobuf";
-import { Graph, Node } from "./graph_pb.js";
+import { Graph, Node, NodeDetails } from "./graph_pb.js";
 
 /**
  * @generated from enum project.ProviderState
@@ -79,6 +79,80 @@ export class Project extends Message<Project> {
 
   static equals(a: Project | PlainMessage<Project> | undefined, b: Project | PlainMessage<Project> | undefined): boolean {
     return proto3.util.equals(Project, a, b);
+  }
+}
+
+/**
+ * @generated from message project.GetRunningWorkflowsRequest
+ */
+export class GetRunningWorkflowsRequest extends Message<GetRunningWorkflowsRequest> {
+  /**
+   * @generated from field: string project_id = 1;
+   */
+  projectId = "";
+
+  constructor(data?: PartialMessage<GetRunningWorkflowsRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "project.GetRunningWorkflowsRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "project_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetRunningWorkflowsRequest {
+    return new GetRunningWorkflowsRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetRunningWorkflowsRequest {
+    return new GetRunningWorkflowsRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetRunningWorkflowsRequest {
+    return new GetRunningWorkflowsRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetRunningWorkflowsRequest | PlainMessage<GetRunningWorkflowsRequest> | undefined, b: GetRunningWorkflowsRequest | PlainMessage<GetRunningWorkflowsRequest> | undefined): boolean {
+    return proto3.util.equals(GetRunningWorkflowsRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message project.GetRunningWorkflowResponse
+ */
+export class GetRunningWorkflowResponse extends Message<GetRunningWorkflowResponse> {
+  /**
+   * @generated from field: repeated project.WorkflowTrace traces = 1;
+   */
+  traces: WorkflowTrace[] = [];
+
+  constructor(data?: PartialMessage<GetRunningWorkflowResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "project.GetRunningWorkflowResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "traces", kind: "message", T: WorkflowTrace, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetRunningWorkflowResponse {
+    return new GetRunningWorkflowResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetRunningWorkflowResponse {
+    return new GetRunningWorkflowResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetRunningWorkflowResponse {
+    return new GetRunningWorkflowResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetRunningWorkflowResponse | PlainMessage<GetRunningWorkflowResponse> | undefined, b: GetRunningWorkflowResponse | PlainMessage<GetRunningWorkflowResponse> | undefined): boolean {
+    return proto3.util.equals(GetRunningWorkflowResponse, a, b);
   }
 }
 
@@ -678,9 +752,9 @@ export class GetWorkflowRunsRequest extends Message<GetWorkflowRunsRequest> {
  */
 export class GetWorkflowRunsResponse extends Message<GetWorkflowRunsResponse> {
   /**
-   * @generated from field: repeated project.WorkflowRun runs = 1;
+   * @generated from field: repeated project.WorkflowTrace runs = 1;
    */
-  runs: WorkflowRun[] = [];
+  runs: WorkflowTrace[] = [];
 
   constructor(data?: PartialMessage<GetWorkflowRunsResponse>) {
     super();
@@ -690,7 +764,7 @@ export class GetWorkflowRunsResponse extends Message<GetWorkflowRunsResponse> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "project.GetWorkflowRunsResponse";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "runs", kind: "message", T: WorkflowRun, repeated: true },
+    { no: 1, name: "runs", kind: "message", T: WorkflowTrace, repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetWorkflowRunsResponse {
@@ -711,9 +785,9 @@ export class GetWorkflowRunsResponse extends Message<GetWorkflowRunsResponse> {
 }
 
 /**
- * @generated from message project.WorkflowRun
+ * @generated from message project.WorkflowTrace
  */
-export class WorkflowRun extends Message<WorkflowRun> {
+export class WorkflowTrace extends Message<WorkflowTrace> {
   /**
    * @generated from field: string id = 1;
    */
@@ -729,33 +803,33 @@ export class WorkflowRun extends Message<WorkflowRun> {
    */
   nodeExecs: NodeExecution[] = [];
 
-  constructor(data?: PartialMessage<WorkflowRun>) {
+  constructor(data?: PartialMessage<WorkflowTrace>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "project.WorkflowRun";
+  static readonly typeName = "project.WorkflowTrace";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "request", kind: "message", T: RunWorkflowRequest },
     { no: 3, name: "node_execs", kind: "message", T: NodeExecution, repeated: true },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): WorkflowRun {
-    return new WorkflowRun().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): WorkflowTrace {
+    return new WorkflowTrace().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): WorkflowRun {
-    return new WorkflowRun().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): WorkflowTrace {
+    return new WorkflowTrace().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): WorkflowRun {
-    return new WorkflowRun().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): WorkflowTrace {
+    return new WorkflowTrace().fromJsonString(jsonString, options);
   }
 
-  static equals(a: WorkflowRun | PlainMessage<WorkflowRun> | undefined, b: WorkflowRun | PlainMessage<WorkflowRun> | undefined): boolean {
-    return proto3.util.equals(WorkflowRun, a, b);
+  static equals(a: WorkflowTrace | PlainMessage<WorkflowTrace> | undefined, b: WorkflowTrace | PlainMessage<WorkflowTrace> | undefined): boolean {
+    return proto3.util.equals(WorkflowTrace, a, b);
   }
 }
 
@@ -1489,9 +1563,9 @@ export class GetProvidersRequest extends Message<GetProvidersRequest> {
  */
 export class EnumeratedProvider extends Message<EnumeratedProvider> {
   /**
-   * @generated from field: graph.Node provider = 1;
+   * @generated from field: graph.NodeDetails provider = 1;
    */
-  provider?: Node;
+  provider?: NodeDetails;
 
   /**
    * @generated from field: repeated graph.Node nodes = 2;
@@ -1511,7 +1585,7 @@ export class EnumeratedProvider extends Message<EnumeratedProvider> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "project.EnumeratedProvider";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "provider", kind: "message", T: Node },
+    { no: 1, name: "provider", kind: "message", T: NodeDetails },
     { no: 2, name: "nodes", kind: "message", T: Node, repeated: true },
     { no: 3, name: "info", kind: "message", T: ProviderInfo },
   ]);

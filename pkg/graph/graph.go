@@ -12,6 +12,7 @@ import (
 
 type IO struct {
 	Observable rxgo.Observable
+	Cleanup    func()
 }
 
 type DependencyProvider map[string]Node
@@ -41,8 +42,9 @@ type Listener interface {
 }
 
 type Node interface {
-	NormalizedName() string
 	ID() string
+	Name() string
+	NormalizedName() string
 	// TODO breadchris type should probably just return a message descriptor
 	Type() (*Info, error)
 

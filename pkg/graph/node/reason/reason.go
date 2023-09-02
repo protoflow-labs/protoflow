@@ -79,7 +79,7 @@ func (n *PromptNode) Wire(ctx context.Context, input graph.IO) (graph.IO, error)
 	}
 
 	log.Info().
-		Str("name", n.Name).
+		Str("name", n.Name()).
 		Msg("setting up prompt node")
 
 	outputStream := make(chan rxgo.Item)

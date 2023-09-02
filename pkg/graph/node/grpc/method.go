@@ -156,6 +156,7 @@ func WireMethod(ctx context.Context, g *Server, n *Method, obs rxgo.Observable) 
 		}, func(err error) {
 			outputStream <- rx.NewError(err)
 		}, func() {
+			log.Debug().Msg("closing grpc method output stream")
 			close(outputStream)
 		})
 	} else {

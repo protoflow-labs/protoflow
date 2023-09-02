@@ -1,4 +1,4 @@
-import {BaseBlockCard} from "./BaseBlockCard";
+import {BaseNodeCard} from "./BaseNodeCard";
 import {Caption1, CardHeader, Text} from "@fluentui/react-components";
 import {Handle, NodeProps, Position} from "reactflow";
 import {ReactNode} from "react";
@@ -25,7 +25,8 @@ function nodeIsOffline(node: ProtoNode, nodeLookup: Record<string, ProtoNode>, p
     return edges.some(e => nodeIsOffline(nodeLookup[e.from], nodeLookup, providerLookup, edgeLookup));
 }
 
-export function StandardBlock(props: StandardBlockNodeProps) {
+export function BaseNode(props: StandardBlockNodeProps) {
+    // @ts-ignore
     const { description, image, selected, id } = props;
 
     const {nodeLookup, providerLookup, edgeLookup} = useProjectContext();
@@ -35,7 +36,7 @@ export function StandardBlock(props: StandardBlockNodeProps) {
 
     return (
         <>
-            <BaseBlockCard selected={selected} appearance={isOffline ? 'outline' : 'filled'}>
+            <BaseNodeCard selected={selected} appearance={isOffline ? 'outline' : 'filled'}>
                 <CardHeader
                     image={image}
                     header={
@@ -43,7 +44,7 @@ export function StandardBlock(props: StandardBlockNodeProps) {
                     }
                     description={<Caption1>{description}</Caption1>}
                 />
-            </BaseBlockCard>
+            </BaseNodeCard>
             <Handle type="source" position={Position.Bottom} className="z-10" />
             <Handle type="target" position={Position.Top} className="z-10" />
         </>

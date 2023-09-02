@@ -47,14 +47,6 @@ func Wire(cacheConfig bucket.Config, defaultProject *gen.Project) (*Protoflow, e
 	if err != nil {
 		return nil, err
 	}
-	workflowConfig, err := workflow.NewConfig(provider)
-	if err != nil {
-		return nil, err
-	}
-	manager, err := workflow.NewManager(workflowConfig, provider, projectStore)
-	if err != nil {
-		return nil, err
-	}
 	openaiConfig, err := openai.NewConfig(provider)
 	if err != nil {
 		return nil, err
@@ -64,7 +56,9 @@ func Wire(cacheConfig bucket.Config, defaultProject *gen.Project) (*Protoflow, e
 		return nil, err
 	}
 	chatServer := openai.NewChat(openAIQAClient)
-	service, err := project.NewService(projectStore, manager, localBucket, chatServer, defaultProject)
+	workflowManager := workflow.NewWorkflowManager()
+	managerBuilder := workflow.NewManagerBuilder(workflowManager)
+	service, err := project.NewService(projectStore, localBucket, chatServer, defaultProject, managerBuilder, workflowManager)
 	if err != nil {
 		return nil, err
 	}

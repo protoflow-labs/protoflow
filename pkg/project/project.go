@@ -15,17 +15,10 @@ type Project struct {
 	Workflow *workflow.Workflow
 }
 
-func FromProto(project *gen.Project) (*Project, error) {
-	w, err := workflow.Default().
+func FromProto(project *gen.Project) (*workflow.Workflow, error) {
+	return workflow.Default().
 		WithProtoProject(graph.ConvertProto(project)).
 		Build()
-	if err != nil {
-		return nil, err
-	}
-	return &Project{
-		Base:     project,
-		Workflow: w,
-	}, nil
 }
 
 func (s *Service) GetProject(context.Context, *connect.Request[gen.GetProjectRequest]) (*connect.Response[gen.GetProjectResponse], error) {
@@ -100,6 +93,12 @@ func (s *Service) NewNode(ctx context.Context, c *connect.Request[gen.NewNodeReq
 	}
 	n.Id = uuid.NewString()
 	project.Graph.Nodes = append(project.Graph.Nodes, n)
+
+	// validate that the graph is still valid
+	_, err = FromProto(project)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to convert project %s", c.Msg.ProjectId)
+	}
 
 	_, err = s.store.SaveProject(project)
 	if err != nil {

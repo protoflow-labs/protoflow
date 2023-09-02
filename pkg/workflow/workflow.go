@@ -21,11 +21,6 @@ import (
 
 const edgeIDKey = "id"
 
-type AdjMap map[string]map[string]graphlib.Edge[string]
-
-// TODO breadchris can this be a map[string]Resource?
-type Instances map[string]graph.Node
-
 // Workflow is a directed graph of nodes that represent a workflow. The builder interface is immutable allowing for extensions.
 type Workflow struct {
 	ID        string
@@ -36,9 +31,13 @@ type Workflow struct {
 	EdgeLookup map[string]graph.Edge
 }
 
+// NodeBuilder is a function that builds a node from a proto message.
 type NodeBuilder[T graph.ProtoNode] func(message T) graph.Node
+
+// EdgeBuilder is a function that builds an edge from a proto message.
 type EdgeBuilder[U graph.ProtoEdge] func(message U) graph.Edge
 
+// WorkflowBuilder is a builder for a workflow. It is immutable allowing for extensions.
 type WorkflowBuilder[T graph.ProtoNode, U graph.ProtoEdge] struct {
 	w            *Workflow
 	nodeBuilders map[protoreflect.FullName]NodeBuilder[T]
@@ -223,9 +222,6 @@ func (w *WorkflowBuilder[T, U]) WithProtoProject(project graph.ProtoProject[T, U
 func (w *WorkflowBuilder[T, U]) Build() (*Workflow, error) {
 	nw := *w
 
-	// TODO breadchris resolve dependencies
-	// need to look at edge types nw.w.Graph.Edge
-
 	sucMap, err := nw.w.Graph.AdjacencyMap()
 	if err != nil {
 		return nil, errors.Wrapf(err, "error getting adjacency map")
@@ -253,12 +249,46 @@ func (w *WorkflowBuilder[T, U]) Build() (*Workflow, error) {
 	return nw.w, nil
 }
 
+func (w *Workflow) EnumerateProviders() []*gen.EnumeratedProvider {
+	var providers []*gen.EnumeratedProvider
+	for _, n := range w.NodeLookup {
+		info := &gen.ProviderInfo{
+			State: gen.ProviderState_READY,
+			Error: "",
+		}
+		nl, ok := w.NodeLookup[n.ID()]
+		if !ok {
+			info.State = gen.ProviderState_ERROR
+			info.Error = "node not found"
+		}
+
+		providedNodes, err := nl.Provide()
+		if len(providedNodes) == 0 && err == nil {
+			continue
+		}
+
+		if err != nil {
+			info.State = gen.ProviderState_ERROR
+			info.Error = err.Error()
+		}
+		providers = append(providers, &gen.EnumeratedProvider{
+			Provider: &gen.NodeDetails{
+				Id:   nl.ID(),
+				Name: nl.Name(),
+			},
+			Nodes: providedNodes,
+			Info:  info,
+		})
+	}
+	return providers
+}
+
 func (w *Workflow) GetNode(id string) (graph.Node, error) {
-	node, ok := w.NodeLookup[id]
+	nl, ok := w.NodeLookup[id]
 	if !ok {
 		return nil, fmt.Errorf("node with id %s not found", id)
 	}
-	return node, nil
+	return nl, nil
 }
 
 func (w *Workflow) GetNodeProvider(id string) (graph.Node, error) {
@@ -270,9 +300,12 @@ func (w *Workflow) GetNodeProvider(id string) (graph.Node, error) {
 }
 
 // WireNodes wires the nodes in the workflow together and returns an observable that can be subscribed to. Nodes are executed when an event is received on the input observable.
-func (w *Workflow) WireNodes(ctx context.Context, nodeID string, input rxgo.Observable) (rxgo.Observable, error) {
-	connector := NewConnector()
-
+func (w *Workflow) WireNodes(
+	ctx context.Context,
+	nodeID string,
+	input rxgo.Observable,
+	manager *Manager,
+) (*graph.IO, error) {
 	getEdge := func(from, to string) (graph.Edge, error) {
 		e, err := w.Graph.Edge(from, to)
 		if err != nil {
@@ -363,6 +396,8 @@ func (w *Workflow) WireNodes(ctx context.Context, nodeID string, input rxgo.Obse
 	}
 	log.Debug().Msgf("sorted nodes: %s", strings.Join(deps, ", "))
 
+	ctx, connector := manager.Start(ctx)
+
 	// since the graph is sorted topologically, we can wire the nodes in order
 	for _, nID := range depList {
 		n := w.NodeLookup[nID]
@@ -373,9 +408,24 @@ func (w *Workflow) WireNodes(ctx context.Context, nodeID string, input rxgo.Obse
 			return nil, err
 		}
 	}
+	obs := connector.Connect(ctx)
+	obs.ForEach(func(item any) {}, func(err error) {
+		e := manager.Stop()
+		if e != nil {
+			log.Error().Err(e).Msgf("error, manager is stopping workflow")
+		}
+	}, func() {
+		log.Debug().Msgf("completed, manager is stopping workflow")
+		err = manager.Stop()
+		if err != nil {
+			log.Error().Err(err).Msgf("error stopping manager")
+		}
+	})
 
 	// TODO breadchris this is returning a trace, not the actual output
-	return connector.Connect(ctx), nil
+	return &graph.IO{
+		Observable: connector.Connect(ctx),
+	}, nil
 }
 
 func (w *Workflow) wireWorkflow(
@@ -398,6 +448,8 @@ func (w *Workflow) wireWorkflow(
 		}
 		inputObs = append(inputObs, io.Observable)
 	}
+
+	// TODO breadchris probably want to know what nodes are being combined
 	i := rxgo.CombineLatest(func(i ...any) any {
 		combined := map[string]any{}
 		for _, j := range i {
@@ -405,7 +457,21 @@ func (w *Workflow) wireWorkflow(
 			case map[string]any:
 				combined = util.Merge(combined, t)
 			default:
+				// TODO breadchris how can inputs be merged
 				log.Warn().Msgf("unexpected type %T when merging inputs", t)
+				return j
+				//b, err := json.Marshal(t)
+				//if err != nil {
+				//	log.Error().Err(err).Msgf("error marshalling input %T", t)
+				//	continue
+				//}
+				//var m map[string]any
+				//err = json.Unmarshal(b, &m)
+				//if err != nil {
+				//	log.Error().Err(err).Msgf("error unmarshalling input %T", t)
+				//	continue
+				//}
+				//combined = util.Merge(combined, m)
 			}
 		}
 		return combined
@@ -423,7 +489,8 @@ func (w *Workflow) wireWorkflow(
 	}
 
 	if output.Observable == nil {
-		return fmt.Errorf("node %s returned nil observable", node.NormalizedName())
+		log.Warn().Msgf("node %s returned nil observable", node.NormalizedName())
+		return nil
 	}
 
 	connector.Add(node.ID(), &output)

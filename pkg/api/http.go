@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/bufbuild/connect-go"
+	"github.com/google/uuid"
 	"github.com/google/wire"
 	"github.com/pkg/errors"
 	phttp "github.com/protoflow-labs/protoflow/gen/http"
@@ -59,6 +60,7 @@ func ParseHttpRequest(r *http.Request) (*phttp.Request, error) {
 			h = append(h, &phttp.Header{Name: name, Value: hValue})
 		}
 	}
+	req.Id = uuid.NewString()
 	req.Method = r.Method
 	req.Url = r.URL.String()
 	req.Headers = h
@@ -133,8 +135,26 @@ func NewHTTPServer(
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
+			log.Debug().Interface("request", req).Msg("ui request")
+
 			httpStream.Requests <- rx.NewItem(req)
-			resp := <-httpStream.Responses
+			i, err := httpStream.ResponseObs.Filter(func(item any) bool {
+				r, ok := item.(*phttp.Response)
+				if !ok {
+					return false
+				}
+				return r.Id == req.Id
+			}).First().Get()
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+
+			resp, ok := i.V.(*phttp.Response)
+			if !ok {
+				http.Error(w, "failed casting response", http.StatusInternalServerError)
+				return
+			}
 			for _, h := range resp.Headers {
 				w.Header().Set(h.Name, h.Value)
 			}

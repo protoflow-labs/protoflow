@@ -4,14 +4,14 @@ import {useEditorContext} from "@/providers/EditorProvider";
 import {useForm} from "react-hook-form";
 import {useProjectContext} from "@/providers/ProjectProvider";
 import {toast} from "react-hot-toast";
-import {GRPCInputFormProps, ProtobufInputForm} from "@/components/ProtobufInputForm";
+import {GRPCInputFormProps, ProtobufInputForm} from "@/components/ProtobufForm/ProtobufInputForm";
 import {Button} from "@fluentui/react-components";
 
 type NodeEditorProps = {
     node: ProtoNode;
 };
 
-export function NodeEditor(props: NodeEditorProps) {
+export function ActiveNodeEditor(props: NodeEditorProps) {
     const {node} = props;
 
     const {nodeInfo} = useEditorContext();

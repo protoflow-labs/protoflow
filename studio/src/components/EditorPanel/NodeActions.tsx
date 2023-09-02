@@ -4,11 +4,7 @@ import {generateService} from "@/lib/api";
 import {useProjectContext} from "@/providers/ProjectProvider";
 import {useActivelyEditing, useCurrentNode, useEditorContext} from "@/providers/EditorProvider";
 
-const selectResetSelectedElements = (state: ReactFlowState) =>
-    state.resetSelectedElements;
-export const useUnselect = () => useStore(selectResetSelectedElements);
-
-export function EditorActions() {
+export function NodeActions() {
     const {project} = useProjectContext();
     const activeNode = useCurrentNode();
 

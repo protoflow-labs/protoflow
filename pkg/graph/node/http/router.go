@@ -2,7 +2,7 @@ package http
 
 import (
 	"context"
-	"github.com/pkg/errors"
+	"github.com/protoflow-labs/protoflow/gen"
 	"github.com/protoflow-labs/protoflow/gen/http"
 	"github.com/protoflow-labs/protoflow/pkg/graph"
 	"github.com/protoflow-labs/protoflow/pkg/graph/node/base"
@@ -16,9 +16,10 @@ var (
 )
 
 type HTTPEventStream struct {
-	Requests   chan rxgo.Item
-	Responses  chan *http.Response
-	RequestObs rxgo.Observable
+	Requests    chan rxgo.Item
+	Responses   chan rxgo.Item
+	RequestObs  rxgo.Observable
+	ResponseObs rxgo.Observable
 }
 
 // TODO breadchris proper dependency injection will need to be figured out to make this work
@@ -28,12 +29,14 @@ func NewHTTPEventStream() *HTTPEventStream {
 		// I was thinking of bypassing the need for this altogether and
 		// dispatching a workflow job to a workflow service, maybe the executor?
 		requestChan := make(chan rxgo.Item)
-		responseChan := make(chan *http.Response)
+		responseChan := make(chan rxgo.Item)
 		requestObs := rxgo.FromChannel(requestChan)
+		responseObs := rxgo.FromChannel(responseChan)
 		httpStream = &HTTPEventStream{
-			Requests:   requestChan,
-			Responses:  responseChan,
-			RequestObs: requestObs,
+			Requests:    requestChan,
+			Responses:   responseChan,
+			RequestObs:  requestObs,
+			ResponseObs: responseObs,
 		}
 	})
 	return httpStream
@@ -58,7 +61,14 @@ func NewRouterNode(b *base.Node, node *http.Router) *Router {
 }
 
 func (r *Router) Wire(ctx context.Context, input graph.IO) (graph.IO, error) {
-	return graph.IO{}, errors.New("cannot wire router node")
+	return graph.IO{}, nil
+}
+
+func (r *Router) Provide() ([]*gen.Node, error) {
+	return []*gen.Node{
+		NewProto("route", NewRouteProto()),
+		NewProto("response", NewResponseProto()),
+	}, nil
 }
 
 //

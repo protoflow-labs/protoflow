@@ -19,7 +19,7 @@ import (
 
 type WorkflowRunJSON struct {
 	// TODO breadchris couldn't figure out how to make this generic, there is a problem with protojson.Unmarshal/Marshal
-	Data *gen.WorkflowRun
+	Data *gen.WorkflowTrace
 }
 
 // Value return json value, implement driver.Valuer interface
@@ -55,7 +55,7 @@ func (j *WorkflowRunJSON) UnmarshalJSON(data []byte) error {
 	unmarshaler := protojson.UnmarshalOptions{DiscardUnknown: true}
 
 	if j.Data == nil {
-		j.Data = &gen.WorkflowRun{}
+		j.Data = &gen.WorkflowTrace{}
 	}
 
 	if err := unmarshaler.Unmarshal(data, j.Data); err != nil {

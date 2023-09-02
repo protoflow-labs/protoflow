@@ -3,13 +3,13 @@ package http
 import (
 	"context"
 	"fmt"
-	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/gen/http"
 	"github.com/protoflow-labs/protoflow/pkg/graph"
 	"github.com/protoflow-labs/protoflow/pkg/graph/node/base"
 	"github.com/protoflow-labs/protoflow/pkg/util/rx"
 	"github.com/reactivex/rxgo/v2"
+	"github.com/rs/zerolog/log"
 	"net/url"
 	"path"
 )
@@ -28,6 +28,14 @@ func NewRouteNode(b *base.Node, node *http.Route) *RouteNode {
 	}
 }
 
+func NewRouteProto() *http.HTTP {
+	return &http.HTTP{
+		Type: &http.HTTP_Route{
+			Route: &http.Route{},
+		},
+	}
+}
+
 func (n *RouteNode) Path(r *Router) string {
 	return path.Join(r.Root, n.Route.Path)
 }
@@ -42,6 +50,8 @@ func (n *RouteNode) Wire(ctx context.Context, input graph.IO) (graph.IO, error) 
 		return graph.IO{}, fmt.Errorf("error getting http router resource: %s", n.Route.Path)
 	}
 
+	// TODO breadchris log what path is being listened to
+
 	output := make(chan rxgo.Item)
 	input.Observable.ForEach(func(item any) {
 		r, ok := item.(*http.Request)
@@ -55,9 +65,9 @@ func (n *RouteNode) Wire(ctx context.Context, input graph.IO) (graph.IO, error) 
 			return
 		}
 		if u.Path != n.Path(routerResource) || r.Method != n.Route.Method {
+			log.Debug().Msgf("skipping request %s != %s || %s != %s", u.Path, n.Path(routerResource), r.Method, n.Route.Method)
 			return
 		}
-		r.Id = uuid.NewString()
 		output <- rx.NewItem(r)
 	}, func(err error) {
 		output <- rx.NewError(err)

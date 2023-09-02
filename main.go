@@ -5,10 +5,10 @@ package main
 
 import (
 	"encoding/gob"
+	"github.com/protoflow-labs/protoflow/pkg/cli"
 	"os"
 
 	"github.com/protoflow-labs/protoflow/pkg/bucket"
-	"github.com/protoflow-labs/protoflow/pkg/cli"
 	"github.com/rs/zerolog/log"
 )
 

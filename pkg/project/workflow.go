@@ -6,7 +6,6 @@ import (
 	"github.com/bufbuild/connect-go"
 	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/gen"
-	phttp "github.com/protoflow-labs/protoflow/gen/http"
 	"github.com/protoflow-labs/protoflow/pkg/graph"
 	http2 "github.com/protoflow-labs/protoflow/pkg/graph/node/http"
 	"github.com/protoflow-labs/protoflow/pkg/util/rx"
@@ -22,7 +21,8 @@ func (s *Service) wireWorkflow(
 	workflowInput any,
 	// TODO breadchris this should not be needed
 	httpStream *http2.HTTPEventStream,
-) (rxgo.Observable, error) {
+	req *gen.RunWorkflowRequest,
+) (*graph.IO, error) {
 	log.Debug().
 		Str("workflow", w.ID).
 		Str("node", nodeID).
@@ -47,7 +47,11 @@ func (s *Service) wireWorkflow(
 		inputObs = rxgo.FromChannel(inputChan, rxgo.WithPublishStrategy())
 	}
 
-	obs, err := w.WireNodes(ctx, nodeID, inputObs)
+	m, err := s.manager.WithReq(req).Build()
+	if err != nil {
+		return nil, err
+	}
+	io, err := w.WireNodes(ctx, nodeID, inputObs, m)
 	if err != nil {
 		return nil, err
 	}
@@ -58,7 +62,7 @@ func (s *Service) wireWorkflow(
 		inputChan <- rx.NewItem(workflowInput)
 		close(inputChan)
 	}
-	return obs, nil
+	return io, nil
 }
 
 func (s *Service) RunWorkflow(ctx context.Context, c *connect.Request[gen.RunWorkflowRequest], c2 *connect.ServerStream[gen.NodeExecution]) error {
@@ -67,9 +71,7 @@ func (s *Service) RunWorkflow(ctx context.Context, c *connect.Request[gen.RunWor
 		return errors.Wrapf(err, "failed to get project %s", c.Msg.ProjectId)
 	}
 
-	w, err := workflow.Default().
-		WithProtoProject(graph.ConvertProto(project)).
-		Build()
+	w, err := FromProto(project)
 	if err != nil {
 		return err
 	}
@@ -105,12 +107,20 @@ func (s *Service) RunWorkflow(ctx context.Context, c *connect.Request[gen.RunWor
 	}
 
 	for _, entrypoint := range entrypoints {
-		obs, err := s.wireWorkflow(ctx, w, entrypoint, workflowInput, httpStream)
+		io, err := s.wireWorkflow(ctx, w, entrypoint, workflowInput, httpStream, c.Msg)
 		if err != nil {
 			return errors.Wrapf(err, "failed to start workflow")
 		}
-		observables = append(observables, obs)
+		observables = append(observables, io.Observable)
+
+		// TODO breadchris is there a better way to do this?
+		// when the request context is cancelled, we want to cleanup the workflow
+		//go func(io *graph.IO) {
+		//	<-ctx.Done()
+		//	io.Cleanup()
+		//}(io)
 	}
+	log.Debug().Msg("done wiring workflows")
 
 	obs := rxgo.Merge(observables)
 
@@ -118,12 +128,6 @@ func (s *Service) RunWorkflow(ctx context.Context, c *connect.Request[gen.RunWor
 		obsErr error
 	)
 	<-obs.ForEach(func(item any) {
-		switch t := item.(type) {
-		case *phttp.Response:
-			httpStream.Responses <- t
-			log.Debug().Msg("sent http response")
-		}
-
 		log.Debug().Interface("item", item).Msg("workflow item")
 		out, err := json.Marshal(item)
 		if err != nil {
@@ -131,7 +135,7 @@ func (s *Service) RunWorkflow(ctx context.Context, c *connect.Request[gen.RunWor
 			return
 		}
 
-		// TODO breadchris node executions should be passed to the observable with the node id, input, and output
+		// TODO breadchris node executions should be passed to the observable with the node wID, input, and output
 		err = c2.Send(&gen.NodeExecution{
 			Output: string(out),
 		})
@@ -146,6 +150,10 @@ func (s *Service) RunWorkflow(ctx context.Context, c *connect.Request[gen.RunWor
 			Str("workflow", w.ID).
 			Str("node", c.Msg.NodeId).
 			Msg("workflow finished")
+		if err != nil {
+			obsErr = errors.Wrapf(err, "failed to stop workflow")
+			return
+		}
 	})
 	if obsErr != nil {
 		log.Error().Err(obsErr).Msg("workflow error")
@@ -153,12 +161,17 @@ func (s *Service) RunWorkflow(ctx context.Context, c *connect.Request[gen.RunWor
 	return obsErr
 }
 
+func (s *Service) GetRunningWorkflows(ctx context.Context, c *connect.Request[gen.GetRunningWorkflowsRequest]) (*connect.Response[gen.GetRunningWorkflowResponse], error) {
+	return connect.NewResponse(&gen.GetRunningWorkflowResponse{Traces: s.workflowManager.Traces()}), nil
+}
+
 func (s *Service) StopWorkflow(ctx context.Context, c *connect.Request[gen.StopWorkflowRequest]) (*connect.Response[gen.StopWorkflowResponse], error) {
-	//TODO implement me
-	panic("implement me")
+	err := s.workflowManager.Stop(c.Msg.WorkflowId)
+	return connect.NewResponse(&gen.StopWorkflowResponse{}), err
 }
 
 func (s *Service) GetWorkflowRuns(ctx context.Context, c *connect.Request[gen.GetWorkflowRunsRequest]) (*connect.Response[gen.GetWorkflowRunsResponse], error) {
+	// TODO breadchris this should also consider running workflows
 	runs, err := s.store.GetWorkflowRunsForProject(c.Msg.ProjectId)
 	if err != nil {
 		return nil, err

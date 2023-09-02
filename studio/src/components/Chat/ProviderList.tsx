@@ -1,19 +1,45 @@
 import {
-  Accordion,
-  AccordionHeader,
-  AccordionItem,
-  AccordionPanel,
+    Accordion,
+    AccordionHeader,
+    AccordionItem,
+    AccordionPanel, CardHeader, Text,
 } from "@fluentui/react-components";
 import { useProjectContext } from "@/providers/ProjectProvider";
-import {NodeButton} from "@/components/Sidebar/NodeButton";
 import { ProviderState } from "@/rpc/project_pb";
 import { PlugDisconnected20Regular } from "@fluentui/react-icons";
+import React from "react";
+import {useEditorContext} from "@/providers/EditorProvider";
+import {BaseNodeCard} from "@/components/BaseNodeCard";
+import {BiClipboard} from "react-icons/bi";
+import {Node as ProtoNode, NodeDetails} from "@/rpc/graph_pb";
 
-export default function BlocksList() {
+const NodeButton: React.FC<{ provider: NodeDetails, node: ProtoNode }> = ({ node, provider }) => {
+    const { setDraggedNode } = useEditorContext();
+    return (
+        <div
+            className="m-2"
+            style={{marginBottom: "10px"}}
+            draggable
+            onDragStart={(e) => {
+                setDraggedNode({node, provider});
+            }}
+        >
+            <BaseNodeCard selected={false} style={{ cursor: "grab" }}>
+                <CardHeader
+                    image={<BiClipboard className="h-5 w-5 bg-gray-800" />}
+                    header={<Text weight="semibold">{node.name}</Text>}
+                />
+                {node.name && <p style={{marginBottom: "0"}}>{node.name}</p>}
+            </BaseNodeCard>
+        </div>
+    );
+}
+
+export default function ProviderList() {
   const { providers } = useProjectContext();
 
   return (
-      <div className="absolute flex flex-col gap-1 m-3 z-10 top-8" style={{marginTop: "40px"}}>
+      <div>
         <Accordion defaultOpenItems={"Built-in"} collapsible={true}>
           {providers.map((r) => {
             const p = r.provider;

@@ -8,7 +8,6 @@ import (
 	"github.com/protoflow-labs/protoflow/gen"
 	"github.com/protoflow-labs/protoflow/gen/genconnect"
 	"github.com/protoflow-labs/protoflow/pkg/bucket"
-	"github.com/protoflow-labs/protoflow/pkg/graph"
 	"github.com/protoflow-labs/protoflow/pkg/grpc"
 	openaiclient "github.com/protoflow-labs/protoflow/pkg/openai"
 	"github.com/protoflow-labs/protoflow/pkg/store"
@@ -21,13 +20,16 @@ type Service struct {
 	cache          bucket.Bucket
 	chat           *openaiclient.ChatServer
 	defaultProject *gen.Project
+	manager        *workflow.ManagerBuilder
+	// TODO breadchris rename this to something that is more relevant
+	workflowManager *workflow.WorkflowManager
 }
 
 var ProviderSet = wire.NewSet(
 	store.ProviderSet,
-	workflow.ProviderSet,
 	openaiclient.ChatProviderSet,
 	NewService,
+	workflow.ProviderSet,
 	wire.Bind(new(genconnect.ProjectServiceHandler), new(*Service)),
 )
 
@@ -47,13 +49,33 @@ func NewService(
 	cache bucket.Bucket,
 	chat *openaiclient.ChatServer,
 	defaultProject *gen.Project,
+	manager *workflow.ManagerBuilder,
+	workflowManager *workflow.WorkflowManager,
 ) (*Service, error) {
 	return &Service{
-		store:          store,
-		cache:          cache,
-		chat:           chat,
-		defaultProject: defaultProject,
+		store:           store,
+		cache:           cache,
+		chat:            chat,
+		defaultProject:  defaultProject,
+		manager:         manager,
+		workflowManager: workflowManager,
 	}, nil
+}
+
+func (s *Service) EnumerateProviders(ctx context.Context, c *connect.Request[gen.GetProvidersRequest]) (*connect.Response[gen.GetProvidersResponse], error) {
+	project, err := s.store.GetProject(c.Msg.ProjectId)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get project %s", c.Msg.ProjectId)
+	}
+
+	w, err := FromProto(project)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get project %s", c.Msg.ProjectId)
+	}
+
+	return connect.NewResponse(&gen.GetProvidersResponse{
+		Providers: w.EnumerateProviders(),
+	}), nil
 }
 
 func getProjectTypes() (*gen.ProjectTypes, error) {
@@ -160,9 +182,7 @@ func (s *Service) GetNodeInfo(ctx context.Context, c *connect.Request[gen.GetNod
 		return nil, errors.Wrapf(err, "failed to get project %s", c.Msg.ProjectId)
 	}
 
-	w, err := workflow.Default().
-		WithProtoProject(graph.ConvertProto(project)).
-		Build()
+	w, err := FromProto(project)
 	if err != nil {
 		return nil, err
 	}

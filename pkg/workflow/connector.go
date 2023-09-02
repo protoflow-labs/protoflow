@@ -11,6 +11,7 @@ import (
 
 type Connector struct {
 	observers map[string]*graph.IO
+	cleanup   []func()
 }
 
 func NewConnector() *Connector {
@@ -44,12 +45,19 @@ func (c *Connector) Connect(ctx context.Context) rxgo.Observable {
 	}
 	o := rxgo.Merge(obsSlice, rxgo.WithPublishStrategy())
 
-	// TODO breadchris figure out what to do with disposed and cancel
-	// disposed, cancel := output.RequestObs.Connect(ctx)
-
 	for _, obs := range c.observers {
-		obs.Observable.Connect(ctx)
+		_, dispose := obs.Observable.Connect(ctx)
+		obs.Observable.DoOnCompleted(func() {
+			dispose()
+		})
+		c.cleanup = append(c.cleanup, dispose)
 	}
-	o.Connect(ctx)
+	_, _ = o.Connect(ctx)
 	return o
+}
+
+func (c *Connector) Dispose() {
+	for _, c := range c.cleanup {
+		c()
+	}
 }

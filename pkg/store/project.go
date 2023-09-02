@@ -17,9 +17,9 @@ type Project interface {
 	SaveProject(w *gen.Project) (string, error)
 	GetProject(projectID string) (*gen.Project, error)
 	ListProjects() ([]*gen.Project, error)
-	CreateWorkflowRun(run *gen.WorkflowRun) (string, error)
+	CreateWorkflowRun(run *gen.WorkflowTrace) (string, error)
 	SaveNodeExecution(workflowRunID string, nodeExecution *gen.NodeExecution) (string, error)
-	GetWorkflowRunsForProject(project string) ([]*gen.WorkflowRun, error)
+	GetWorkflowRunsForProject(project string) ([]*gen.WorkflowTrace, error)
 }
 
 var _ Project = (*ProjectStore)(nil)
@@ -119,7 +119,7 @@ func (s *ProjectStore) ListProjects() ([]*gen.Project, error) {
 	return result, nil
 }
 
-func (s *ProjectStore) CreateWorkflowRun(run *gen.WorkflowRun) (string, error) {
+func (s *ProjectStore) CreateWorkflowRun(run *gen.WorkflowTrace) (string, error) {
 	w := model.WorkflowRun{
 		UUID: model.UUID{
 			ID: uuid.MustParse(run.Id),
@@ -157,14 +157,14 @@ func (s *ProjectStore) SaveNodeExecution(workflowRunID string, nodeExecution *ge
 	return w.ID.String(), nil
 }
 
-func (s *ProjectStore) GetWorkflowRunsForProject(projectID string) ([]*gen.WorkflowRun, error) {
+func (s *ProjectStore) GetWorkflowRunsForProject(projectID string) ([]*gen.WorkflowTrace, error) {
 	var runs []*model.WorkflowRun
 	res := s.db.Find(&runs, "project_id = ?", projectID)
 	if res.Error != nil {
 		return nil, res.Error
 	}
 
-	var result []*gen.WorkflowRun
+	var result []*gen.WorkflowTrace
 	for _, r := range runs {
 		var execs []*model.NodeExecution
 		res := s.db.Find(&execs, "workflow_run_id = ?", r.ID)

@@ -25,7 +25,7 @@ const useOverrides = makeStyles({
   },
 });
 
-export const BaseBlockCard: React.FC<BaseBlockCardProps> = ({ selected, ...props }) => {
+export const BaseNodeCard: React.FC<BaseBlockCardProps> = ({ selected, ...props }) => {
   const overrides = useOverrides();
   const classes = mergeClasses(overrides.card, selected && overrides.selected);
 

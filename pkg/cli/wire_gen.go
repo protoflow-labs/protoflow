@@ -31,10 +31,6 @@ func Wire(cacheConfig bucket.Config) (*cli.App, error) {
 	if err != nil {
 		return nil, err
 	}
-	logConfig, err := log.NewConfig(provider)
-	if err != nil {
-		return nil, err
-	}
 	apiConfig, err := api.NewConfig(provider)
 	if err != nil {
 		return nil, err
@@ -51,14 +47,6 @@ func Wire(cacheConfig bucket.Config) (*cli.App, error) {
 	if err != nil {
 		return nil, err
 	}
-	workflowConfig, err := workflow.NewConfig(provider)
-	if err != nil {
-		return nil, err
-	}
-	manager, err := workflow.NewManager(workflowConfig, provider, projectStore)
-	if err != nil {
-		return nil, err
-	}
 	openaiConfig, err := openai.NewConfig(provider)
 	if err != nil {
 		return nil, err
@@ -72,7 +60,9 @@ func Wire(cacheConfig bucket.Config) (*cli.App, error) {
 	if err != nil {
 		return nil, err
 	}
-	service, err := project.NewService(projectStore, manager, localBucket, chatServer, genProject)
+	workflowManager := workflow.NewWorkflowManager()
+	managerBuilder := workflow.NewManagerBuilder(workflowManager)
+	service, err := project.NewService(projectStore, localBucket, chatServer, genProject, managerBuilder, workflowManager)
 	if err != nil {
 		return nil, err
 	}
@@ -88,6 +78,11 @@ func Wire(cacheConfig bucket.Config) (*cli.App, error) {
 	if err != nil {
 		return nil, err
 	}
-	app := New(logConfig, httpServer, service, provider)
+	logConfig, err := log.NewConfig(provider)
+	if err != nil {
+		return nil, err
+	}
+	logLog := log.NewLog(logConfig)
+	app := New(httpServer, service, logLog)
 	return app, nil
 }

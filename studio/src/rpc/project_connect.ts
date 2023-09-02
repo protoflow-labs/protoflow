@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { CreateProjectRequest, CreateProjectResponse, DeleteProjectRequest, DeleteProjectResponse, ExportProjectRequest, ExportProjectResponse, GetNodeInfoRequest, GetNodeInfoResponse, GetProjectRequest, GetProjectResponse, GetProjectsRequest, GetProjectsResponse, GetProjectTypesRequest, GetProvidersRequest, GetProvidersResponse, GetWorkflowRunsRequest, GetWorkflowRunsResponse, LoadProjectRequest, LoadProjectResponse, NewNodeRequest, NewNodeResponse, NodeExecution, ProjectTypes, RunWorkflowRequest, SaveProjectRequest, SaveProjectResponse, SendChatRequest, SendChatResponse, StopWorkflowRequest, StopWorkflowResponse } from "./project_pb.js";
+import { CreateProjectRequest, CreateProjectResponse, DeleteProjectRequest, DeleteProjectResponse, ExportProjectRequest, ExportProjectResponse, GetNodeInfoRequest, GetNodeInfoResponse, GetProjectRequest, GetProjectResponse, GetProjectsRequest, GetProjectsResponse, GetProjectTypesRequest, GetProvidersRequest, GetProvidersResponse, GetRunningWorkflowResponse, GetRunningWorkflowsRequest, GetWorkflowRunsRequest, GetWorkflowRunsResponse, LoadProjectRequest, LoadProjectResponse, NewNodeRequest, NewNodeResponse, NodeExecution, ProjectTypes, RunWorkflowRequest, SaveProjectRequest, SaveProjectResponse, SendChatRequest, SendChatResponse, StopWorkflowRequest, StopWorkflowResponse } from "./project_pb.js";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -148,6 +148,15 @@ export const ProjectService = {
       name: "GetWorkflowRuns",
       I: GetWorkflowRunsRequest,
       O: GetWorkflowRunsResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc project.ProjectService.GetRunningWorkflows
+     */
+    getRunningWorkflows: {
+      name: "GetRunningWorkflows",
+      I: GetRunningWorkflowsRequest,
+      O: GetRunningWorkflowResponse,
       kind: MethodKind.Unary,
     },
   }

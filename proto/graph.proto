@@ -15,6 +15,11 @@ message Graph {
   repeated Edge edges = 2;
 }
 
+message NodeDetails {
+  string id = 1;
+  string name = 2;
+}
+
 message Node {
   string id = 1;
   string name = 2;

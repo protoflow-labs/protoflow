@@ -24,6 +24,14 @@ func NewResponse(b *base.Node, node *http.Response) *Response {
 	}
 }
 
+func NewResponseProto() *http.HTTP {
+	return &http.HTTP{
+		Type: &http.HTTP_Response{
+			Response: &http.Response{},
+		},
+	}
+}
+
 func (n *Response) Wire(ctx context.Context, input graph.IO) (graph.IO, error) {
 	output := make(chan rxgo.Item)
 	p, err := n.Provider()
@@ -41,7 +49,7 @@ func (n *Response) Wire(ctx context.Context, input graph.IO) (graph.IO, error) {
 			output <- rx.NewError(fmt.Errorf("error getting http request from stream"))
 			return
 		}
-		routerResource.HTTPStream.Responses <- r
+		routerResource.HTTPStream.Responses <- rxgo.Of(r)
 		output <- rx.NewItem(r)
 	}, func(err error) {
 		output <- rx.NewError(err)

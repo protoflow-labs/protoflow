@@ -52,7 +52,6 @@
     "autoprefixer": "^10.4.14",
     "csstype": "^3.0.10",
     "esbuild": "^0.17.18",
-    "esbuild-sass-plugin": "^2.9.0",
     "google-protobuf": "^3.13.0",
     "postcss": "^8.4.23",
     "protoc-gen-ts": "^0.8.6",

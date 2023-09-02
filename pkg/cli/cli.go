@@ -2,66 +2,39 @@ package cli
 
 import (
 	"github.com/bufbuild/connect-go"
+	"github.com/google/wire"
 	"github.com/protoflow-labs/protoflow/gen"
+	"github.com/protoflow-labs/protoflow/pkg/config"
+	"github.com/protoflow-labs/protoflow/pkg/generate"
 	"github.com/protoflow-labs/protoflow/pkg/util/reload"
-	"os"
-
-	"github.com/protoflow-labs/protoflow/pkg/temporal"
-	"github.com/protoflow-labs/protoflow/pkg/workflow"
-	"go.uber.org/config"
 
 	"github.com/protoflow-labs/protoflow/pkg/api"
-	logcfg "github.com/protoflow-labs/protoflow/pkg/log"
+	logd "github.com/protoflow-labs/protoflow/pkg/log"
 	"github.com/protoflow-labs/protoflow/pkg/project"
-	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/urfave/cli/v2"
 )
 
-// TODO breadchris this should be a provided dependency
-func setupLogging(level string) {
-	logLevel := zerolog.InfoLevel
-	if level == "debug" {
-		logLevel = zerolog.DebugLevel
-	}
-	log.Logger = log.With().Caller().Logger().Output(zerolog.ConsoleWriter{Out: os.Stderr}).Level(logLevel)
-}
-
-func liveReload() error {
-	// TODO breadchris makes this a config that can be set
-	c := reload.Config{
-		Cmd: []string{"go", "run", "main.go", "studio"},
-		// TODO breadchris the patterns and ignores are not quite working
-		// ideally we use tilt here
-		Patterns: []string{"pkg/**/*.go", "templates/**"},
-		Ignores:  []string{"studio/**", "node_modules/**", ".git/**"},
-	}
-	return reload.Reload(c)
-}
+var ProviderSet = wire.NewSet(
+	New,
+	project.NewDefaultProject,
+	logd.ProviderSet,
+	config.ProviderSet,
+	project.ProviderSet,
+	generate.ProviderSet,
+	api.ProviderSet,
+)
 
 func New(
-	logConfig logcfg.Config,
 	httpHandler *api.HTTPServer,
 	project *project.Service,
-	provider config.Provider,
+	l *logd.Log,
 ) *cli.App {
-	setupLogging(logConfig.Level)
 	return &cli.App{
 		Name:        "protoflow",
 		Description: "Coding as easy as playing with legos.",
 		Flags:       []cli.Flag{},
 		Commands: []*cli.Command{
-			// TODO breadchris how can you provide a command through wire?
-			{
-				Name: "worker",
-				Action: func(ctx *cli.Context) error {
-					client, err := temporal.Wire(provider)
-					if err != nil {
-						return err
-					}
-					return workflow.NewWorker(client).Run()
-				},
-			},
 			{
 				Name: "studio",
 				Flags: []cli.Flag{
@@ -106,4 +79,17 @@ func New(
 			},
 		},
 	}
+}
+
+func liveReload() error {
+	// TODO breadchris makes this a config that can be set
+	c := reload.Config{
+		Cmd: []string{"go", "run", "main.go", "studio"},
+		// TODO breadchris the patterns and ignores are not quite working
+		// ideally we use tilt here
+		Patterns: []string{"pkg/**/*.go", "templates/**"},
+		Ignores:  []string{"studio/**", "node_modules/**", ".git/**", "examples/**"},
+	}
+	// TODO breadchris this code needs to be refactored to use observability
+	return reload.Reload(c)
 }

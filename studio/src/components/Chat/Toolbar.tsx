@@ -16,9 +16,9 @@ import { toast } from "react-hot-toast";
 import { useHotkeys } from "react-hotkeys-hook";
 
 export function Toolbar() {
-  const isApple = checkIsApple();
   const { project } = useProjectContext();
   const { save, props, setMode } = useEditorContext();
+  const isApple = checkIsApple();
 
   useHotkeys(isApple ? "meta+s" : "ctrl+s", (e) => {
     e.preventDefault();

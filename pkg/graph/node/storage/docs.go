@@ -89,14 +89,14 @@ func (r *Store) WithCollection(name string) (*docstore.Collection, func(), error
 
 type Collection struct {
 	*base.Node
-	*storage.Collection
+	c          *storage.Collection
 	collection *docstore.Collection
 }
 
 func NewCollection(b *base.Node, n *storage.Collection) *Collection {
 	return &Collection{
-		Node:       b,
-		Collection: n,
+		Node: b,
+		c:    n,
 	}
 }
 
@@ -110,7 +110,7 @@ func (n *Collection) Wire(ctx context.Context, input graph.IO) (graph.IO, error)
 		return graph.IO{}, errors.New("error provider is not a docstore")
 	}
 
-	collection, cleanup, err := d.WithCollection(n.Collection.Name)
+	collection, cleanup, err := d.WithCollection(n.c.Name)
 	if err != nil {
 		return graph.IO{}, errors.Wrapf(err, "error connecting to collection")
 	}

@@ -37,7 +37,7 @@ func (s *Service) generatorAndProject(projectID string) (*Generate, *project.Pro
 		return nil, nil, err
 	}
 
-	p, err := project.FromProto(projProto)
+	w, err := project.FromProto(projProto)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -46,7 +46,10 @@ func (s *Service) generatorAndProject(projectID string) (*Generate, *project.Pro
 	if err != nil {
 		return nil, nil, err
 	}
-	return generator, p, nil
+	return generator, &project.Project{
+		Base:     projProto,
+		Workflow: w,
+	}, nil
 }
 
 func (s *Service) GenerateImplementation(ctx context.Context, c *connect.Request[gen.GenerateImplementationRequest]) (*connect.Response[gen.GenerateImplementationResponse], error) {

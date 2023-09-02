@@ -3,27 +3,39 @@ module github.com/protoflow-labs/protoflow
 go 1.20
 
 require (
+	github.com/alecthomas/jsonschema v0.0.0-20220216202328-9eeeec9d044b
 	github.com/bmatcuk/doublestar v1.3.4
 	github.com/bufbuild/buf v1.17.0
 	github.com/bufbuild/connect-go v1.7.0
 	github.com/bufbuild/connect-grpcreflect-go v1.0.0
 	github.com/docker/cli v23.0.2+incompatible
 	github.com/dominikbraun/graph v0.18.0
+	github.com/envoyproxy/protoc-gen-validate v1.0.2
+	github.com/fatih/camelcase v1.0.0
 	github.com/fsnotify/fsnotify v1.6.0
 	github.com/fullstorydev/grpcurl v1.8.7
 	github.com/glebarez/sqlite v1.8.0
+	github.com/go-chi/chi/v5 v5.0.10
+	github.com/go-chi/httplog v0.3.1
 	github.com/golang/protobuf v1.5.3
 	github.com/google/uuid v1.3.0
 	github.com/google/wire v0.5.0
+	github.com/iancoleman/orderedmap v0.2.0
+	github.com/iancoleman/strcase v0.2.0
 	github.com/jhump/protoreflect v1.15.1
 	github.com/lib/pq v1.10.8
 	github.com/mattn/go-sqlite3 v1.14.16
 	github.com/pkg/errors v0.9.1
 	github.com/reactivex/rxgo/v2 v2.5.0
+	github.com/robertkrimen/otto v0.2.1
 	github.com/rs/zerolog v1.30.0
+	github.com/samber/go-gpt-3-encoder v0.3.1
 	github.com/samber/lo v1.38.1
+	github.com/sashabaranov/go-openai v1.12.0
+	github.com/sirupsen/logrus v1.9.0
 	github.com/stretchr/testify v1.8.4
 	github.com/urfave/cli/v2 v2.25.1
+	github.com/xeipuuv/gojsonschema v1.2.0
 	go.temporal.io/sdk v1.22.1
 	go.uber.org/atomic v1.10.0
 	go.uber.org/config v1.4.0
@@ -46,7 +58,6 @@ require (
 	github.com/Azure/go-ansiterm v0.0.0-20230124172434-306776ec8161 // indirect
 	github.com/BurntSushi/toml v1.2.1 // indirect
 	github.com/Microsoft/go-winio v0.6.0 // indirect
-	github.com/alecthomas/jsonschema v0.0.0-20220216202328-9eeeec9d044b // indirect
 	github.com/bufbuild/protocompile v0.5.1 // indirect
 	github.com/cenkalti/backoff/v4 v4.2.1 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
@@ -60,13 +71,9 @@ require (
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/emicklei/go-restful/v3 v3.10.2 // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
-	github.com/envoyproxy/protoc-gen-validate v1.0.2 // indirect
 	github.com/facebookgo/clock v0.0.0-20150410010913-600d898af40a // indirect
-	github.com/fatih/camelcase v1.0.0 // indirect
 	github.com/felixge/fgprof v0.9.3 // indirect
 	github.com/glebarez/go-sqlite v1.21.1 // indirect
-	github.com/go-chi/chi/v5 v5.0.10 // indirect
-	github.com/go-chi/httplog v0.3.1 // indirect
 	github.com/go-logr/logr v1.2.4 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-openapi/jsonpointer v0.19.6 // indirect
@@ -88,8 +95,6 @@ require (
 	github.com/google/subcommands v1.2.0 // indirect
 	github.com/googleapis/gax-go/v2 v2.8.0 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.4.0 // indirect
-	github.com/iancoleman/orderedmap v0.2.0 // indirect
-	github.com/iancoleman/strcase v0.2.0 // indirect
 	github.com/imdario/mergo v0.3.16 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
@@ -118,14 +123,10 @@ require (
 	github.com/pkg/profile v1.7.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
-	github.com/robertkrimen/otto v0.2.1 // indirect
 	github.com/robfig/cron v1.2.0 // indirect
 	github.com/rogpeppe/go-internal v1.10.1-0.20230508101108-a4f6fabd84c5 // indirect
 	github.com/rs/cors v1.8.3 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
-	github.com/samber/go-gpt-3-encoder v0.3.1 // indirect
-	github.com/sashabaranov/go-openai v1.12.0 // indirect
-	github.com/sirupsen/logrus v1.9.0 // indirect
 	github.com/spf13/cobra v1.7.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/stretchr/objx v0.5.0 // indirect
@@ -133,7 +134,6 @@ require (
 	github.com/tetratelabs/wazero v1.0.1 // indirect
 	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
-	github.com/xeipuuv/gojsonschema v1.2.0 // indirect
 	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	go.opentelemetry.io/otel v1.14.0 // indirect

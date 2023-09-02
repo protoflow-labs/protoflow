@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"github.com/fsnotify/fsnotify"
+	zlog "github.com/rs/zerolog/log"
 	"golang.org/x/xerrors"
 )
 
@@ -52,6 +53,7 @@ func Reload(config Config) error {
 		return errors.Errorf("invalid signal: %q", sigstr)
 	}
 
+	zlog.Debug().Interface("targets", config.Targets).Interface("patterns", config.Patterns).Interface("ignores", config.Ignores).Msg("Reload")
 	modC, errC, err := watcher(config.Targets, config.Patterns, config.Ignores)
 	if err != nil {
 		return errors.Wrapf(err, "watcher")

@@ -11,12 +11,11 @@ import {
 import {createContext, useCallback, useContext, useEffect, useState} from "react";
 import {HiExclamationCircle, HiPlus} from "react-icons/hi2";
 import {Edge, Node, useOnSelectionChange} from "reactflow";
-import {EnumeratedProvider, GetNodeInfoResponse, Project, ProjectTypes} from "@/rpc/project_pb";
+import {EnumeratedProvider, GetNodeInfoResponse, Project, ProjectTypes, WorkflowTrace} from "@/rpc/project_pb";
 import {useProjectProviders} from "@/hooks/useProjectProviders";
 import {toast} from "react-hot-toast";
 import {useErrorBoundary} from "react-error-boundary";
-import {getUpdatedProject} from "@/lib/project";
-import {Node as ProtoNode, Edge as ProtoEdge} from "@/rpc/graph_pb";
+import {Node as ProtoNode, Edge as ProtoEdge, Graph} from "@/rpc/graph_pb";
 
 type GetLookup = (lookup: Record<string, ProtoNode>) => Record<string, ProtoNode>;
 type GetEdgeLookup = (lookup: Record<string, ProtoEdge>) => Record<string, ProtoEdge>;
@@ -31,7 +30,7 @@ type ProjectContextType = {
 
     saveProject: (nodes: Node[], edges: Edge[]) => Promise<void>;
     runWorkflow: (node?: ProtoNode, input?: Object, startServer?: boolean) => Promise<any>;
-    loadResources: () => Promise<void>;
+    loadProviders: () => Promise<void>;
 
     projectTypes?: ProjectTypes;
 
@@ -40,6 +39,10 @@ type ProjectContextType = {
 
     setEdgeLookup: (getLookup: GetEdgeLookup) => void;
     edgeLookup: Record<string, ProtoEdge>;
+
+    runningWorkflows: WorkflowTrace[];
+    loadRunningWorkflows: () => Promise<void>;
+    stopWorkflow: (workflowID: string) => Promise<void>;
 };
 
 type ProjectProviderProps = {
@@ -50,6 +53,30 @@ const ProjectContext = createContext<ProjectContextType>({} as any);
 
 export const useProjectContext = () => useContext(ProjectContext);
 
+function getUpdatedProject(
+    project: Project,
+    nodes: Node[],
+    edges: Edge[],
+    nodeLookup: Record<string, ProtoNode>,
+    edgeLookup: Record<string, ProtoEdge>
+): Project {
+    return new Project({
+        id: project.id,
+        graph: new Graph({
+            edges: edges.filter(e => edgeLookup[e.id] !== undefined).map((edge) => (new ProtoEdge({
+                ...edgeLookup[edge.id],
+            }))),
+            nodes: nodes.map((node) => {
+                return {
+                    ...nodeLookup[node.id],
+                    x: node.position.x,
+                    y: node.position.y
+                }
+            }),
+        }),
+    });
+}
+
 // project provider holds things that are closer to the database, like information fetched from the database
 export default function ProjectProvider({children}: ProjectProviderProps) {
     const {project, loading, createDefault, projectTypes} = useDefaultProject();
@@ -58,6 +85,25 @@ export default function ProjectProvider({children}: ProjectProviderProps) {
     const [nodeLookup, setNodeLookup] = useState<Record<string, ProtoNode>>({});
     const [edgeLookup, setEdgeLookup] = useState<Record<string, ProtoEdge>>({});
     const [workflowOutput, setWorkflowOutput] = useState<string[] | null>(null);
+    const [runningWorkflows, setRunningWorkflows] = useState<WorkflowTrace[]>([]);
+
+    const loadRunningWorkflows = useCallback(async () => {
+        try {
+            const { traces } = await projectService.getRunningWorkflows({});
+            setRunningWorkflows(traces);
+        } catch (e) {
+            console.error(e);
+        }
+    }, [setRunningWorkflows]);
+
+    const stopWorkflow = useCallback(async (workflowID: string) => {
+        try {
+            await projectService.stopWorkflow({ workflowId: workflowID });
+            await loadRunningWorkflows();
+        } catch (e) {
+            console.error(e);
+        }
+    }, [loadRunningWorkflows]);
 
     const saveProject = useCallback(async (nodes: Node[], edges: Edge[]) => {
         if (!project) return;
@@ -192,13 +238,16 @@ export default function ProjectProvider({children}: ProjectProviderProps) {
                 workflowOutput,
                 setWorkflowOutput,
                 saveProject,
-                loadResources: loadProviders,
+                loadProviders,
                 loadingResources,
                 projectTypes,
                 setNodeLookup,
                 nodeLookup,
                 setEdgeLookup,
                 edgeLookup,
+                runningWorkflows,
+                loadRunningWorkflows,
+                stopWorkflow,
             }}
         >
             {children}

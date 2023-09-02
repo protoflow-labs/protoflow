@@ -120,6 +120,6 @@ func (n *FunctionNode) ToGRPC(r *Server) *grpc.Method {
 	return grpc.NewMethod(n.Node, &pgrpc.Method{
 		Package: "project",
 		Service: "ProjectService",
-		Method:  n.Name,
+		Method:  n.Name(),
 	})
 }

@@ -12,6 +12,8 @@ func New(b *base.Node, node *http.HTTP) graph.Node {
 	switch t := node.Type.(type) {
 	case *http.HTTP_Route:
 		return NewRouteNode(b, t.Route)
+	case *http.HTTP_Response:
+		return NewResponse(b, t.Response)
 	case *http.HTTP_Router:
 		return NewRouterNode(b, t.Router)
 	case *http.HTTP_Template:

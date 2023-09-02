@@ -11,8 +11,8 @@ import (
 )
 
 type Node struct {
-	Name string
 	id   string
+	name string
 
 	provider    graph.Node
 	dependents  []graph.Node
@@ -23,20 +23,24 @@ type Node struct {
 // NodeFromProto creates a new Node from a gen.Node, gen.Node cannot be embedded into Node because proto deserialization will fail on the type
 func NodeFromProto(node *gen.Node) *Node {
 	return &Node{
-		Name: util.ToTitleCase(node.Name),
+		name: node.Name,
 		id:   node.Id,
 	}
 }
 
 func NewNode(name string) *Node {
 	return &Node{
-		Name: name,
+		name: name,
 		id:   uuid.NewString(),
 	}
 }
 
+func (n *Node) Name() string {
+	return n.name
+}
+
 func (n *Node) NormalizedName() string {
-	name := util.ToTitleCase(n.Name)
+	name := util.ToTitleCase(n.name)
 	if strings.Contains(name, ".") {
 		name = strings.Split(name, ".")[1]
 	}
@@ -49,7 +53,7 @@ func (n *Node) ID() string {
 
 func (n *Node) Type() (*graph.Info, error) {
 	log.Warn().
-		Str("node", n.Name).
+		Str("node", n.name).
 		Msg("Type() not implemented")
 	// TODO breadchris this doesn't make node generic, figure out a way to make this generic
 	return graph.NewInfoFromType("node", &gen.Node{})
@@ -57,7 +61,7 @@ func (n *Node) Type() (*graph.Info, error) {
 
 func (n *Node) Method() (*graph.Info, error) {
 	log.Warn().
-		Str("node", n.Name).
+		Str("node", n.name).
 		Msg("Method() not implemented")
 	return nil, errors.New("not implemented")
 }

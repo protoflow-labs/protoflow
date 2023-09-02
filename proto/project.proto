@@ -37,6 +37,15 @@ service ProjectService {
     rpc StopWorkflow(StopWorkflowRequest) returns (StopWorkflowResponse) {}
 
     rpc GetWorkflowRuns(GetWorkflowRunsRequest) returns (GetWorkflowRunsResponse) {}
+    rpc GetRunningWorkflows(GetRunningWorkflowsRequest) returns (GetRunningWorkflowResponse) {}
+}
+
+message GetRunningWorkflowsRequest {
+    string project_id = 1;
+}
+
+message GetRunningWorkflowResponse {
+    repeated WorkflowTrace traces = 1;
 }
 
 message NewNodeRequest {
@@ -104,10 +113,10 @@ message GetWorkflowRunsRequest {
 }
 
 message GetWorkflowRunsResponse {
-    repeated WorkflowRun runs = 1;
+    repeated WorkflowTrace runs = 1;
 }
 
-message WorkflowRun {
+message WorkflowTrace {
     string id = 1;
     RunWorkflowRequest request = 2;
     repeated NodeExecution node_execs = 3;
@@ -200,7 +209,7 @@ message GetProvidersRequest {
 }
 
 message EnumeratedProvider {
-    graph.Node provider = 1;
+    graph.NodeDetails provider = 1;
     repeated graph.Node nodes = 2;
     ProviderInfo info = 3;
 }

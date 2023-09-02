@@ -39,6 +39,7 @@ type ProjectServiceClient interface {
 	RunWorkflow(ctx context.Context, in *RunWorkflowRequest, opts ...grpc.CallOption) (ProjectService_RunWorkflowClient, error)
 	StopWorkflow(ctx context.Context, in *StopWorkflowRequest, opts ...grpc.CallOption) (*StopWorkflowResponse, error)
 	GetWorkflowRuns(ctx context.Context, in *GetWorkflowRunsRequest, opts ...grpc.CallOption) (*GetWorkflowRunsResponse, error)
+	GetRunningWorkflows(ctx context.Context, in *GetRunningWorkflowsRequest, opts ...grpc.CallOption) (*GetRunningWorkflowResponse, error)
 }
 
 type projectServiceClient struct {
@@ -230,6 +231,15 @@ func (c *projectServiceClient) GetWorkflowRuns(ctx context.Context, in *GetWorkf
 	return out, nil
 }
 
+func (c *projectServiceClient) GetRunningWorkflows(ctx context.Context, in *GetRunningWorkflowsRequest, opts ...grpc.CallOption) (*GetRunningWorkflowResponse, error) {
+	out := new(GetRunningWorkflowResponse)
+	err := c.cc.Invoke(ctx, "/project.ProjectService/GetRunningWorkflows", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ProjectServiceServer is the server API for ProjectService service.
 // All implementations should embed UnimplementedProjectServiceServer
 // for forward compatibility
@@ -251,6 +261,7 @@ type ProjectServiceServer interface {
 	RunWorkflow(*RunWorkflowRequest, ProjectService_RunWorkflowServer) error
 	StopWorkflow(context.Context, *StopWorkflowRequest) (*StopWorkflowResponse, error)
 	GetWorkflowRuns(context.Context, *GetWorkflowRunsRequest) (*GetWorkflowRunsResponse, error)
+	GetRunningWorkflows(context.Context, *GetRunningWorkflowsRequest) (*GetRunningWorkflowResponse, error)
 }
 
 // UnimplementedProjectServiceServer should be embedded to have forward compatible implementations.
@@ -301,6 +312,9 @@ func (UnimplementedProjectServiceServer) StopWorkflow(context.Context, *StopWork
 }
 func (UnimplementedProjectServiceServer) GetWorkflowRuns(context.Context, *GetWorkflowRunsRequest) (*GetWorkflowRunsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetWorkflowRuns not implemented")
+}
+func (UnimplementedProjectServiceServer) GetRunningWorkflows(context.Context, *GetRunningWorkflowsRequest) (*GetRunningWorkflowResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetRunningWorkflows not implemented")
 }
 
 // UnsafeProjectServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -590,6 +604,24 @@ func _ProjectService_GetWorkflowRuns_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ProjectService_GetRunningWorkflows_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetRunningWorkflowsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProjectServiceServer).GetRunningWorkflows(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/project.ProjectService/GetRunningWorkflows",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProjectServiceServer).GetRunningWorkflows(ctx, req.(*GetRunningWorkflowsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ProjectService_ServiceDesc is the grpc.ServiceDesc for ProjectService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -648,6 +680,10 @@ var ProjectService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetWorkflowRuns",
 			Handler:    _ProjectService_GetWorkflowRuns_Handler,
+		},
+		{
+			MethodName: "GetRunningWorkflows",
+			Handler:    _ProjectService_GetRunningWorkflows_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{
