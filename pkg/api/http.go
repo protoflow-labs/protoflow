@@ -204,9 +204,12 @@ func NewHTTPServer(
 	}, nil
 }
 
-func (h *HTTPServer) Serve(port int) error {
+func (h *HTTPServer) Start() error {
+	log.Debug().
+		Int("port", h.config.Port).
+		Msg("starting http server")
 	return http.ListenAndServe(
-		fmt.Sprintf(":%d", port),
+		fmt.Sprintf(":%d", h.config.Port),
 		h2c.NewHandler(corsMiddleware(h.mux), &http2.Server{}),
 	)
 }

@@ -9,7 +9,6 @@ import (
 	"github.com/reactivex/rxgo/v2"
 	"github.com/rs/zerolog/log"
 	"github.com/sashabaranov/go-openai"
-	"github.com/sashabaranov/go-openai/jsonschema"
 	"io"
 	"strings"
 	"time"
@@ -137,34 +136,34 @@ func (c *OpenAIQAClient) StreamResponse(chatCtx []openai.ChatCompletionMessage) 
 	req := openai.ChatCompletionRequest{
 		Model:       c.model,
 		Temperature: float32(0),
-		MaxTokens:   tokenCount - 200,
+		MaxTokens:   tokenCount,
 		Stream:      true,
 		Messages:    newCtx,
 		// TODO breadchris need to validate the context size here
-		Functions: []openai.FunctionDefinition{{
-			Name:        "test",
-			Description: "This is a test function",
-			Parameters: &jsonschema.Definition{
-				Type: jsonschema.Object,
-				Properties: map[string]jsonschema.Definition{
-					"count": {
-						Type:        jsonschema.Number,
-						Description: "total number of words in sentence",
-					},
-					"words": {
-						Type:        jsonschema.Array,
-						Description: "list of words in sentence",
-						Items: &jsonschema.Definition{
-							Type: jsonschema.String,
-						},
-					},
-					"enumTest": {
-						Type: jsonschema.String,
-						Enum: []string{"hello", "world"},
-					},
-				},
-			},
-		}},
+		//Functions: []openai.FunctionDefinition{{
+		//	Name:        "test",
+		//	Description: "This is a test function",
+		//	Parameters: &jsonschema.Definition{
+		//		Type: jsonschema.Object,
+		//		Properties: map[string]jsonschema.Definition{
+		//			"count": {
+		//				Type:        jsonschema.Number,
+		//				Description: "total number of words in sentence",
+		//			},
+		//			"words": {
+		//				Type:        jsonschema.Array,
+		//				Description: "list of words in sentence",
+		//				Items: &jsonschema.Definition{
+		//					Type: jsonschema.String,
+		//				},
+		//			},
+		//			"enumTest": {
+		//				Type: jsonschema.String,
+		//				Enum: []string{"hello", "world"},
+		//			},
+		//		},
+		//	},
+		//}},
 	}
 
 	// TODO breadchris loading the timeout from the config was not working, debug this

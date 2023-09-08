@@ -38,10 +38,6 @@ func New(
 			{
 				Name: "studio",
 				Flags: []cli.Flag{
-					&cli.IntFlag{
-						Name:  "http",
-						Usage: "Port for the studio",
-					},
 					&cli.BoolFlag{
 						Name:  "dev",
 						Usage: "Start server in dev mode",
@@ -53,15 +49,9 @@ func New(
 						return liveReload()
 					}
 
-					httpPort := ctx.Int("http")
-					if httpPort == 0 {
-						httpPort = 8080
-					}
-
 					// TODO breadchris for local dev, add live reload into command https://github.com/makiuchi-d/RELOAD/blob/master/RELOAD.go
 
-					log.Info().Int("port", httpPort).Msg("starting http server")
-					return httpHandler.Serve(httpPort)
+					return httpHandler.Start()
 				},
 			},
 			{

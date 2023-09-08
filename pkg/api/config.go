@@ -8,6 +8,7 @@ import (
 const ConfigurationKey = "api"
 
 type Config struct {
+	Port        int    `yaml:"port"`
 	StudioProxy string `yaml:"studio_proxy"`
 }
 
@@ -15,6 +16,7 @@ type Config struct {
 func NewDefaultConfig(studioProxy string) Config {
 	return Config{
 		StudioProxy: studioProxy,
+		Port:        8080,
 	}
 }
 

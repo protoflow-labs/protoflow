@@ -2,6 +2,7 @@ package openai
 
 import (
 	"github.com/pkg/errors"
+	"github.com/rs/zerolog/log"
 	tokenizer "github.com/samber/go-gpt-3-encoder"
 	"github.com/sashabaranov/go-openai"
 	"strings"
@@ -23,10 +24,15 @@ func fillMessageContext(baseTokenCount int, msg openai.ChatCompletionMessage, mo
 		return nil, errors.Wrapf(err, "failed to encode prompt data")
 	}
 	if baseTokenCount+calcTokenCount < modelDetails.MaxTokens {
+		log.Debug().
+			Int("base token count", baseTokenCount).
+			Int("token count", calcTokenCount).
+			Int("max", modelDetails.MaxTokens).
+			Msg("context is small enough")
 		return &SplitMessage{
 			Msg:        msg,
 			Rest:       "",
-			TokenCount: baseTokenCount + calcTokenCount,
+			TokenCount: calcTokenCount,
 		}, nil
 	}
 
