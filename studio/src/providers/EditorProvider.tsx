@@ -30,6 +30,7 @@ type EditorContextType = {
     setMode: (mode: Mode) => void;
     save: () => void;
 
+    setSelectedNodes: (nodes: ProtoNode[]) => void;
     selectedNodes: ProtoNode[];
     selectedEdges: ProtoEdge[];
     nodeInfo: GetNodeInfoResponse | undefined;
@@ -119,6 +120,7 @@ export function EditorProvider({children}: { children: ReactNode }) {
             selectedNodes,
             selectedEdges,
             nodeInfo,
+            setSelectedNodes,
         }}>
             {children}
         </EditorContext.Provider>

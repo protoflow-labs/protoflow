@@ -13,7 +13,6 @@ import (
 	"github.com/protoflow-labs/protoflow/pkg/db"
 	"github.com/protoflow-labs/protoflow/pkg/generate"
 	"github.com/protoflow-labs/protoflow/pkg/log"
-	"github.com/protoflow-labs/protoflow/pkg/openai"
 	"github.com/protoflow-labs/protoflow/pkg/project"
 	"github.com/protoflow-labs/protoflow/pkg/store"
 	"github.com/protoflow-labs/protoflow/pkg/workflow"
@@ -47,22 +46,13 @@ func Wire(cacheConfig bucket.Config) (*cli.App, error) {
 	if err != nil {
 		return nil, err
 	}
-	openaiConfig, err := openai.NewConfig(provider)
-	if err != nil {
-		return nil, err
-	}
-	openAIQAClient, err := openai.NewOpenAIQAClient(openaiConfig)
-	if err != nil {
-		return nil, err
-	}
-	chatServer := openai.NewChat(openAIQAClient)
 	genProject, err := project.NewDefaultProject(localBucket)
 	if err != nil {
 		return nil, err
 	}
 	workflowManager := workflow.NewWorkflowManager()
 	managerBuilder := workflow.NewManagerBuilder(workflowManager)
-	service, err := project.NewService(projectStore, localBucket, chatServer, genProject, managerBuilder, workflowManager)
+	service, err := project.NewService(projectStore, localBucket, genProject, managerBuilder, workflowManager)
 	if err != nil {
 		return nil, err
 	}

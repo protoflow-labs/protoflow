@@ -29,7 +29,6 @@ require (
 	github.com/reactivex/rxgo/v2 v2.5.0
 	github.com/robertkrimen/otto v0.2.1
 	github.com/rs/zerolog v1.30.0
-	github.com/samber/go-gpt-3-encoder v0.3.1
 	github.com/samber/lo v1.38.1
 	github.com/sashabaranov/go-openai v1.12.0
 	github.com/sirupsen/logrus v1.9.0
@@ -62,7 +61,6 @@ require (
 	github.com/cenkalti/backoff/v4 v4.2.1 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/dlclark/regexp2 v1.10.0 // indirect
 	github.com/docker/distribution v2.8.1+incompatible // indirect
 	github.com/docker/docker v23.0.2+incompatible // indirect
 	github.com/docker/docker-credential-helpers v0.7.0 // indirect

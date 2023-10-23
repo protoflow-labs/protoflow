@@ -9,7 +9,6 @@ import (
 	"github.com/protoflow-labs/protoflow/gen/genconnect"
 	"github.com/protoflow-labs/protoflow/pkg/bucket"
 	"github.com/protoflow-labs/protoflow/pkg/grpc"
-	openaiclient "github.com/protoflow-labs/protoflow/pkg/openai"
 	"github.com/protoflow-labs/protoflow/pkg/store"
 	"github.com/protoflow-labs/protoflow/pkg/workflow"
 	"github.com/rs/zerolog/log"
@@ -18,7 +17,6 @@ import (
 type Service struct {
 	store          store.Project
 	cache          bucket.Bucket
-	chat           *openaiclient.ChatServer
 	defaultProject *gen.Project
 	manager        *workflow.ManagerBuilder
 	// TODO breadchris rename this to something that is more relevant
@@ -27,7 +25,6 @@ type Service struct {
 
 var ProviderSet = wire.NewSet(
 	store.ProviderSet,
-	openaiclient.ChatProviderSet,
 	NewService,
 	workflow.ProviderSet,
 	wire.Bind(new(genconnect.ProjectServiceHandler), new(*Service)),
@@ -47,7 +44,6 @@ func NewDefaultProject(cache bucket.Bucket) (*gen.Project, error) {
 func NewService(
 	store store.Project,
 	cache bucket.Bucket,
-	chat *openaiclient.ChatServer,
 	defaultProject *gen.Project,
 	manager *workflow.ManagerBuilder,
 	workflowManager *workflow.WorkflowManager,
@@ -55,7 +51,6 @@ func NewService(
 	return &Service{
 		store:           store,
 		cache:           cache,
-		chat:            chat,
 		defaultProject:  defaultProject,
 		manager:         manager,
 		workflowManager: workflowManager,
@@ -146,34 +141,6 @@ func (s *Service) GetProjectTypes(ctx context.Context, c *connect.Request[gen.Ge
 	return &connect.Response[gen.ProjectTypes]{
 		Msg: projectTypes,
 	}, err
-}
-
-func (s *Service) SendChat(ctx context.Context, c *connect.Request[gen.SendChatRequest], c2 *connect.ServerStream[gen.SendChatResponse]) error {
-	obs, err := s.chat.Send(c.Msg)
-	if err != nil {
-		return errors.Wrapf(err, "failed to create ai chat")
-	}
-	msgChan := obs.Observe()
-	for {
-		select {
-		case item := <-msgChan:
-			if item.Error() {
-				return errors.Wrapf(item.E, "failed to get message")
-			}
-			if item.V == nil {
-				return nil
-			}
-			msg, ok := item.V.(string)
-			if !ok {
-				return errors.Errorf("invalid message type: %T", item.V)
-			}
-			if err := c2.Send(&gen.SendChatResponse{Message: msg}); err != nil {
-				return errors.Wrapf(err, "failed to send message")
-			}
-		case <-ctx.Done():
-			return nil
-		}
-	}
 }
 
 func (s *Service) GetNodeInfo(ctx context.Context, c *connect.Request[gen.GetNodeInfoRequest]) (*connect.Response[gen.GetNodeInfoResponse], error) {

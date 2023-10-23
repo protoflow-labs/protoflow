@@ -6,6 +6,7 @@ import {useProjectContext} from "@/providers/ProjectProvider";
 import {toast} from "react-hot-toast";
 import {GRPCInputFormProps, ProtobufInputForm} from "@/components/ProtobufForm/ProtobufInputForm";
 import {Button} from "@fluentui/react-components";
+import {ProtobufInputFormSimple} from "@/components/ProtobufFormSimple/ProtobufInputForm";
 
 type NodeEditorProps = {
     node: ProtoNode;
@@ -51,7 +52,7 @@ export function ActiveNodeEditor(props: NodeEditorProps) {
             fieldPath: nodeInfo?.typeInfo?.packageName || '',
         }
         return (
-            <ProtobufInputForm {...inputFormProps} />
+            <ProtobufInputFormSimple {...inputFormProps} />
         )
     }
 

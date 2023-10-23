@@ -24,9 +24,6 @@ const _ = grpc.SupportPackageIsVersion7
 type ProjectServiceClient interface {
 	NewNode(ctx context.Context, in *NewNodeRequest, opts ...grpc.CallOption) (*NewNodeResponse, error)
 	GetProjectTypes(ctx context.Context, in *GetProjectTypesRequest, opts ...grpc.CallOption) (*ProjectTypes, error)
-	// TODO breadchris unfortunately this is needed because of the buf fetch transport not supporting streaming
-	// the suggestion is to build a custom transport that uses websockets https://github.com/bufbuild/connect-es/issues/366
-	SendChat(ctx context.Context, in *SendChatRequest, opts ...grpc.CallOption) (ProjectService_SendChatClient, error)
 	ExportProject(ctx context.Context, in *ExportProjectRequest, opts ...grpc.CallOption) (*ExportProjectResponse, error)
 	LoadProject(ctx context.Context, in *LoadProjectRequest, opts ...grpc.CallOption) (*LoadProjectResponse, error)
 	GetProject(ctx context.Context, in *GetProjectRequest, opts ...grpc.CallOption) (*GetProjectResponse, error)
@@ -66,38 +63,6 @@ func (c *projectServiceClient) GetProjectTypes(ctx context.Context, in *GetProje
 		return nil, err
 	}
 	return out, nil
-}
-
-func (c *projectServiceClient) SendChat(ctx context.Context, in *SendChatRequest, opts ...grpc.CallOption) (ProjectService_SendChatClient, error) {
-	stream, err := c.cc.NewStream(ctx, &ProjectService_ServiceDesc.Streams[0], "/project.ProjectService/SendChat", opts...)
-	if err != nil {
-		return nil, err
-	}
-	x := &projectServiceSendChatClient{stream}
-	if err := x.ClientStream.SendMsg(in); err != nil {
-		return nil, err
-	}
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
-	return x, nil
-}
-
-type ProjectService_SendChatClient interface {
-	Recv() (*SendChatResponse, error)
-	grpc.ClientStream
-}
-
-type projectServiceSendChatClient struct {
-	grpc.ClientStream
-}
-
-func (x *projectServiceSendChatClient) Recv() (*SendChatResponse, error) {
-	m := new(SendChatResponse)
-	if err := x.ClientStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
 }
 
 func (c *projectServiceClient) ExportProject(ctx context.Context, in *ExportProjectRequest, opts ...grpc.CallOption) (*ExportProjectResponse, error) {
@@ -182,7 +147,7 @@ func (c *projectServiceClient) SaveProject(ctx context.Context, in *SaveProjectR
 }
 
 func (c *projectServiceClient) RunWorkflow(ctx context.Context, in *RunWorkflowRequest, opts ...grpc.CallOption) (ProjectService_RunWorkflowClient, error) {
-	stream, err := c.cc.NewStream(ctx, &ProjectService_ServiceDesc.Streams[1], "/project.ProjectService/RunWorkflow", opts...)
+	stream, err := c.cc.NewStream(ctx, &ProjectService_ServiceDesc.Streams[0], "/project.ProjectService/RunWorkflow", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -246,9 +211,6 @@ func (c *projectServiceClient) GetRunningWorkflows(ctx context.Context, in *GetR
 type ProjectServiceServer interface {
 	NewNode(context.Context, *NewNodeRequest) (*NewNodeResponse, error)
 	GetProjectTypes(context.Context, *GetProjectTypesRequest) (*ProjectTypes, error)
-	// TODO breadchris unfortunately this is needed because of the buf fetch transport not supporting streaming
-	// the suggestion is to build a custom transport that uses websockets https://github.com/bufbuild/connect-es/issues/366
-	SendChat(*SendChatRequest, ProjectService_SendChatServer) error
 	ExportProject(context.Context, *ExportProjectRequest) (*ExportProjectResponse, error)
 	LoadProject(context.Context, *LoadProjectRequest) (*LoadProjectResponse, error)
 	GetProject(context.Context, *GetProjectRequest) (*GetProjectResponse, error)
@@ -273,9 +235,6 @@ func (UnimplementedProjectServiceServer) NewNode(context.Context, *NewNodeReques
 }
 func (UnimplementedProjectServiceServer) GetProjectTypes(context.Context, *GetProjectTypesRequest) (*ProjectTypes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetProjectTypes not implemented")
-}
-func (UnimplementedProjectServiceServer) SendChat(*SendChatRequest, ProjectService_SendChatServer) error {
-	return status.Errorf(codes.Unimplemented, "method SendChat not implemented")
 }
 func (UnimplementedProjectServiceServer) ExportProject(context.Context, *ExportProjectRequest) (*ExportProjectResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ExportProject not implemented")
@@ -362,27 +321,6 @@ func _ProjectService_GetProjectTypes_Handler(srv interface{}, ctx context.Contex
 		return srv.(ProjectServiceServer).GetProjectTypes(ctx, req.(*GetProjectTypesRequest))
 	}
 	return interceptor(ctx, in, info, handler)
-}
-
-func _ProjectService_SendChat_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(SendChatRequest)
-	if err := stream.RecvMsg(m); err != nil {
-		return err
-	}
-	return srv.(ProjectServiceServer).SendChat(m, &projectServiceSendChatServer{stream})
-}
-
-type ProjectService_SendChatServer interface {
-	Send(*SendChatResponse) error
-	grpc.ServerStream
-}
-
-type projectServiceSendChatServer struct {
-	grpc.ServerStream
-}
-
-func (x *projectServiceSendChatServer) Send(m *SendChatResponse) error {
-	return x.ServerStream.SendMsg(m)
 }
 
 func _ProjectService_ExportProject_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -687,11 +625,6 @@ var ProjectService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams: []grpc.StreamDesc{
-		{
-			StreamName:    "SendChat",
-			Handler:       _ProjectService_SendChat_Handler,
-			ServerStreams: true,
-		},
 		{
 			StreamName:    "RunWorkflow",
 			Handler:       _ProjectService_RunWorkflow_Handler,

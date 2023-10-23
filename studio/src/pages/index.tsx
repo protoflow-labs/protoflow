@@ -2,6 +2,7 @@ import { useProjectContext } from "@/providers/ProjectProvider";
 
 import "reactflow/dist/style.css";
 import {ChatPage} from "@/components/Chat/Chat";
+import {Builder} from "@/components/Builder/Builder";
 
 export default function Home() {
   const { project } = useProjectContext();
@@ -13,6 +14,7 @@ export default function Home() {
   return (
     <main className="flex">
       <ChatPage />
+      {/*<Builder />*/}
     </main>
   );
 }

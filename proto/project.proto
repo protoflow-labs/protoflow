@@ -15,9 +15,6 @@ message Project {
 service ProjectService {
     rpc NewNode(NewNodeRequest) returns (NewNodeResponse) {}
     rpc GetProjectTypes(GetProjectTypesRequest) returns (ProjectTypes) {}
-    // TODO breadchris unfortunately this is needed because of the buf fetch transport not supporting streaming
-    // the suggestion is to build a custom transport that uses websockets https://github.com/bufbuild/connect-es/issues/366
-    rpc SendChat(SendChatRequest) returns (stream SendChatResponse) {}
 
     rpc ExportProject(ExportProjectRequest) returns (ExportProjectResponse) {}
     rpc LoadProject(LoadProjectRequest) returns (LoadProjectResponse) {}
@@ -89,24 +86,6 @@ message StopWorkflowRequest {
 }
 
 message StopWorkflowResponse {}
-
-message Chat {
-    string id = 1;
-}
-
-message ChatMessage {
-    string role = 1;
-    string message = 2;
-}
-
-message SendChatRequest {
-    Chat chat = 1;
-    string message = 2;
-}
-
-message SendChatResponse {
-    string message = 1;
-}
 
 message GetWorkflowRunsRequest {
     string project_id = 1;

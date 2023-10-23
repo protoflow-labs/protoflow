@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"fmt"
 	"github.com/bufbuild/connect-go"
 	"github.com/google/wire"
 	"github.com/protoflow-labs/protoflow/gen"
@@ -42,16 +43,18 @@ func New(
 						Name:  "dev",
 						Usage: "Start server in dev mode",
 					},
+					&cli.IntFlag{
+						Name:  "port",
+						Usage: "Port to start the server",
+					},
 				},
 				Action: func(ctx *cli.Context) error {
 					dev := ctx.Bool("dev")
+					port := ctx.Int("port")
 					if dev {
-						return liveReload()
+						return liveReload(port)
 					}
-
-					// TODO breadchris for local dev, add live reload into command https://github.com/makiuchi-d/RELOAD/blob/master/RELOAD.go
-
-					return httpHandler.Start()
+					return httpHandler.Start(port)
 				},
 			},
 			{
@@ -71,14 +74,12 @@ func New(
 	}
 }
 
-func liveReload() error {
+func liveReload(port int) error {
 	// TODO breadchris makes this a config that can be set
 	c := reload.Config{
-		Cmd: []string{"go", "run", "main.go", "studio"},
-		// TODO breadchris the patterns and ignores are not quite working
-		// ideally we use tilt here
-		Patterns: []string{"pkg/**/*.go", "templates/**"},
-		Ignores:  []string{"studio/**", "node_modules/**", ".git/**", "examples/**"},
+		Cmd:      []string{"go", "run", "main.go", "studio", "--port", fmt.Sprintf("%d", port)},
+		Targets:  []string{"pkg", "gen"},
+		Patterns: []string{"**/*.go"},
 	}
 	// TODO breadchris this code needs to be refactored to use observability
 	return reload.Reload(c)

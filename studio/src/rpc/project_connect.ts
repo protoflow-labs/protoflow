@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { CreateProjectRequest, CreateProjectResponse, DeleteProjectRequest, DeleteProjectResponse, ExportProjectRequest, ExportProjectResponse, GetNodeInfoRequest, GetNodeInfoResponse, GetProjectRequest, GetProjectResponse, GetProjectsRequest, GetProjectsResponse, GetProjectTypesRequest, GetProvidersRequest, GetProvidersResponse, GetRunningWorkflowResponse, GetRunningWorkflowsRequest, GetWorkflowRunsRequest, GetWorkflowRunsResponse, LoadProjectRequest, LoadProjectResponse, NewNodeRequest, NewNodeResponse, NodeExecution, ProjectTypes, RunWorkflowRequest, SaveProjectRequest, SaveProjectResponse, SendChatRequest, SendChatResponse, StopWorkflowRequest, StopWorkflowResponse } from "./project_pb.js";
+import { CreateProjectRequest, CreateProjectResponse, DeleteProjectRequest, DeleteProjectResponse, ExportProjectRequest, ExportProjectResponse, GetNodeInfoRequest, GetNodeInfoResponse, GetProjectRequest, GetProjectResponse, GetProjectsRequest, GetProjectsResponse, GetProjectTypesRequest, GetProvidersRequest, GetProvidersResponse, GetRunningWorkflowResponse, GetRunningWorkflowsRequest, GetWorkflowRunsRequest, GetWorkflowRunsResponse, LoadProjectRequest, LoadProjectResponse, NewNodeRequest, NewNodeResponse, NodeExecution, ProjectTypes, RunWorkflowRequest, SaveProjectRequest, SaveProjectResponse, StopWorkflowRequest, StopWorkflowResponse } from "./project_pb.js";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -29,18 +29,6 @@ export const ProjectService = {
       I: GetProjectTypesRequest,
       O: ProjectTypes,
       kind: MethodKind.Unary,
-    },
-    /**
-     * TODO breadchris unfortunately this is needed because of the buf fetch transport not supporting streaming
-     * the suggestion is to build a custom transport that uses websockets https://github.com/bufbuild/connect-es/issues/366
-     *
-     * @generated from rpc project.ProjectService.SendChat
-     */
-    sendChat: {
-      name: "SendChat",
-      I: SendChatRequest,
-      O: SendChatResponse,
-      kind: MethodKind.ServerStreaming,
     },
     /**
      * @generated from rpc project.ProjectService.ExportProject
