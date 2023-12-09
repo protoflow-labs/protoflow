@@ -8,6 +8,7 @@ import (
 	"io"
 	"os"
 	"path"
+	"path/filepath"
 	"strings"
 )
 
@@ -21,7 +22,7 @@ func FileContentsFromMap(files map[string]string) protoparse.FileAccessor {
 	}
 }
 
-func ParseProtoDir(dir string) ([]*desc.FileDescriptor, error) {
+func ParseProtoDir(dir, protofile string) ([]*desc.FileDescriptor, error) {
 	protoFiles, err := os.ReadDir(dir)
 	if err != nil {
 		return nil, errors.Wrapf(err, "error reading proto directory")
@@ -53,25 +54,43 @@ func ParseProtoDir(dir string) ([]*desc.FileDescriptor, error) {
 		ErrorReporter:                   nil,
 		WarningReporter:                 nil,
 	}
-	return parser.ParseFiles("nodejs.proto")
+	// TODO breadchris these files should be read from proto dir
+	return parser.ParseFiles(protofile)
 }
 
 func protoflowProtoMap() (map[string]string, error) {
 	protoMap := map[string]string{}
 
-	protoFiles, err := proto.Proto.ReadDir(".")
-	if err != nil {
-		return nil, errors.Wrapf(err, "error reading proto directory")
-	}
-	for _, protoFile := range protoFiles {
-		if strings.HasSuffix(protoFile.Name(), ".proto") {
-			content, err := proto.Proto.ReadFile(protoFile.Name())
-			if err != nil {
-				return nil, errors.Wrapf(err, "error reading file %s", protoFile.Name())
-			}
-			protoMap[protoFile.Name()] = string(content)
+	var processFiles func(string) error
+	processFiles = func(path string) error {
+		protoFiles, err := proto.Proto.ReadDir(path)
+		if err != nil {
+			return errors.Wrapf(err, "error reading proto directory")
 		}
+
+		for _, protoFile := range protoFiles {
+			fullPath := filepath.Join(path, protoFile.Name())
+
+			if protoFile.IsDir() {
+				if err := processFiles(fullPath); err != nil {
+					return err
+				}
+			} else if strings.HasSuffix(protoFile.Name(), ".proto") {
+				content, err := proto.Proto.ReadFile(fullPath)
+				if err != nil {
+					return errors.Wrapf(err, "error reading file %s", fullPath)
+				}
+				protoMap[fullPath] = string(content)
+			}
+		}
+		return nil
 	}
+
+	err := processFiles(".")
+	if err != nil {
+		return nil, err
+	}
+
 	return protoMap, nil
 }
 

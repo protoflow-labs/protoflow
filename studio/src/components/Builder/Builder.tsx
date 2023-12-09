@@ -3,12 +3,13 @@ import {PlugDisconnected20Regular} from "@fluentui/react-icons";
 import React from "react";
 import { ProviderState } from "@/rpc/project_pb";
 import { NodeButton } from "@/components/Chat/ProviderList";
-import {Manipulation} from "@/components/Builder/Test";
+import {Manipulation} from "@/components/Builder/Manipulation";
 import {Stack} from "@fluentui/react";
 import {Textarea} from "@fluentui/react-components";
 import {EditorPanel} from "@/components/EditorPanel/EditorPanel";
-import {ActiveNodeEditor} from "@/components/EditorPanel/ActiveNodeEditor";
+import {MethodInputForm} from "@/components/Builder/MethodInputForm";
 import {useEditorContext} from "@/providers/EditorProvider";
+import {ServiceSelector} from "@/components/Builder/ServiceSelector";
 
 export function Builder() {
     const { project, providers } = useProjectContext();
@@ -17,6 +18,8 @@ export function Builder() {
     if (!project) {
         return null;
     }
+
+    console.log(selectedNodes)
 
     return (
         <main className="flex">
@@ -27,14 +30,7 @@ export function Builder() {
                 <Stack.Item>
                     <Stack horizontal>
                         <Stack.Item>
-                            <Manipulation />
-                        </Stack.Item>
-                        <Stack.Item>
-                            {selectedNodes.map((node) => {
-                                return (
-                                    <ActiveNodeEditor key={node.id} node={node} />
-                                )
-                            })}
+                            <ServiceSelector />
                         </Stack.Item>
                     </Stack>
                 </Stack.Item>

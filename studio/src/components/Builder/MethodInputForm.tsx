@@ -4,60 +4,47 @@ import {useEditorContext} from "@/providers/EditorProvider";
 import {useForm} from "react-hook-form";
 import {useProjectContext} from "@/providers/ProjectProvider";
 import {toast} from "react-hot-toast";
-import {GRPCInputFormProps, ProtobufInputForm} from "@/components/ProtobufForm/ProtobufInputForm";
 import {Button} from "@fluentui/react-components";
-import {ProtobufInputFormSimple} from "@/components/ProtobufFormSimple/ProtobufInputForm";
+import {GRPCInputFormProps, ProtoForm} from "@/components/ProtoForm/ProtoForm";
+import { GRPCTypeInfo } from "@/rpc/project_pb";
 
 type NodeEditorProps = {
-    node: ProtoNode;
+    typeInfo: GRPCTypeInfo;
+    onSubmit: (data: any) => void;
 };
 
-export function ActiveNodeEditor(props: NodeEditorProps) {
-    const {node} = props;
+export function MethodInputForm(props: NodeEditorProps) {
+    const {typeInfo, onSubmit} = props;
 
-    const {nodeInfo} = useEditorContext();
-    const {projectTypes} = useProjectContext();
-    const { setNodeLookup } = useProjectContext();
-    const {register, handleSubmit, control, setValue} = useForm({
+    const {resetField, register, handleSubmit, control, setValue} = useForm({
         values: {
-            data: node.toJson()?.valueOf(),
+            data: {},
         },
     });
 
-    const onSubmit = async (data: any) => {
-        setNodeLookup((lookup) => {
-            console.log(ProtoNode.fromJson(data.data))
-            return {
-                ...lookup,
-                [node.id]: ProtoNode.fromJson(data.data),
-            }
-        })
-        toast.success('Saved!');
-    };
-
     const form = () => {
-        if (!nodeInfo || !nodeInfo.typeInfo) return (<></>);
-
-        //@ts-ignore
         const inputFormProps: GRPCInputFormProps = {
-            grpcInfo: nodeInfo.typeInfo,
+            grpcInfo: typeInfo,
             // some random key to separate data from the form
             baseFieldName: 'data',
             //@ts-ignore
             register,
             setValue,
+            resetField,
             // TODO breadchris without this ignore, my computer wants to take flight https://github.com/react-hook-form/react-hook-form/issues/6679
             //@ts-ignore
             control,
-            fieldPath: nodeInfo?.typeInfo?.packageName || '',
+            fieldPath: typeInfo?.packageName || '',
         }
         return (
-            <ProtobufInputFormSimple {...inputFormProps} />
+            <ProtoForm {...inputFormProps} />
         )
     }
 
     return (
-        <form onSubmit={handleSubmit(onSubmit)}>
+        <form onSubmit={handleSubmit((data: any) => {
+            onSubmit(data.data);
+        })}>
             <div className="flex flex-col gap-2 p-3">
                 {form()}
             </div>

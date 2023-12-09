@@ -13,8 +13,8 @@ export default function Home() {
 
   return (
     <main className="flex">
-      <ChatPage />
-      {/*<Builder />*/}
+      {/*<ChatPage />*/}
+      <Builder />
     </main>
   );
 }

@@ -10,7 +10,7 @@ import (
 	phttp "github.com/protoflow-labs/protoflow/gen/http"
 	nhttp "github.com/protoflow-labs/protoflow/pkg/graph/node/http"
 	"github.com/protoflow-labs/protoflow/pkg/util/rx"
-	"github.com/protoflow-labs/protoflow/studio/public"
+	"github.com/protoflow-labs/protoflow/studio/dist/site"
 	"github.com/rs/zerolog/log"
 	"io"
 	"net/http"
@@ -106,8 +106,8 @@ func NewHTTPServer(
 	// most servers should mount both handlers.
 	apiMux.Handle(grpcreflect.NewHandlerV1Alpha(reflector, connect.WithRecover(recoverCall)))
 
-	assets := public.Assets
-	fs := http.FS(public.Assets)
+	assets := site.Assets
+	fs := http.FS(site.Assets)
 	httpFileServer := http.FileServer(fs)
 
 	// TODO breadchris break this up into a separate function

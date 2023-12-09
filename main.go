@@ -2,6 +2,7 @@ package main
 
 //go:generate npx buf generate proto
 //go:generate go run github.com/google/wire/cmd/wire ./...
+//go:generate protoc --jsonschema_out=pkg/llm/schemas --proto_path=proto proto/ai.proto
 
 import (
 	"encoding/gob"

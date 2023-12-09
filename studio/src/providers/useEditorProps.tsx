@@ -95,6 +95,7 @@ export const useEditorProps = (
             }
             const position = reactFlowInstance!.project({x: e.clientX, y: e.clientY});
 
+            // TODO breadchris what is going on in this code?
             const newNode = {
                 id: generateUUID(),
                 type: 'node',

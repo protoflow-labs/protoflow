@@ -6,7 +6,6 @@ import (
 	"github.com/bufbuild/connect-go"
 	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/pkg/grpc/bufcurl"
-	"github.com/protoflow-labs/protoflow/pkg/grpc/bufcurl/protoencoding"
 	"github.com/protoflow-labs/protoflow/pkg/grpc/bufcurl/reflect"
 	"github.com/protoflow-labs/protoflow/pkg/util/rx"
 	"github.com/reactivex/rxgo/v2"
@@ -23,7 +22,7 @@ type ReflectionManager struct {
 	Protocol string
 	Headers  []string
 
-	resolver       protoencoding.Resolver
+	resolver       *bufcurl.ReflectionResolver
 	requestHeaders http.Header
 	httpClient     connect.HTTPClient
 	reflectOps     ReflectionOptions
@@ -107,7 +106,11 @@ func (s *ReflectionManager) ExecuteMethod(
 	return invoker.Invoke(ctx, input, s.requestHeaders)
 }
 
-func (s *ReflectionManager) ResolveMethod(service, methodName string) (protoreflect.MethodDescriptor, error) {
+func (s *ReflectionManager) ResolveServices() ([]protoreflect.ServiceDescriptor, error) {
+	return s.resolver.GetServices()
+}
+
+func (s *ReflectionManager) ResolveService(service string) (protoreflect.ServiceDescriptor, error) {
 	descriptor, err := s.resolver.FindDescriptorByName(protoreflect.FullName(service))
 	if err == protoregistry.NotFound {
 		return nil, errors.Wrapf(err, "failed to find service in schema")
@@ -118,7 +121,14 @@ func (s *ReflectionManager) ResolveMethod(service, methodName string) (protorefl
 	if !ok {
 		return nil, errors.Wrapf(err, "failed to find methodName")
 	}
+	return serviceDescriptor, nil
+}
 
+func (s *ReflectionManager) ResolveMethod(service, methodName string) (protoreflect.MethodDescriptor, error) {
+	serviceDescriptor, err := s.ResolveService(service)
+	if err != nil {
+		return nil, err
+	}
 	methodDescriptor := serviceDescriptor.Methods().ByName(protoreflect.Name(methodName))
 	if methodDescriptor == nil {
 

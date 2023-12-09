@@ -15,7 +15,6 @@ import (
 	"github.com/rs/zerolog/log"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"net/url"
-	"strings"
 )
 
 type Method struct {
@@ -32,17 +31,13 @@ func NewMethod(b *base.Node, n *pgrpc.Method) *Method {
 	}
 }
 
-func NewMethodProto(packageService, m string) *pgrpc.GRPC {
-	ps := strings.Split(packageService, ".")
-	if len(ps) != 2 {
-		return nil
-	}
+func NewMethodProto(pack, service, method string) *pgrpc.GRPC {
 	return &pgrpc.GRPC{
 		Type: &pgrpc.GRPC_Method{
 			Method: &pgrpc.Method{
-				Package: ps[0],
-				Service: ps[1],
-				Method:  m,
+				Package: pack,
+				Service: service,
+				Method:  method,
 			},
 		},
 	}

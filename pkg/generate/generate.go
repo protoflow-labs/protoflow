@@ -7,7 +7,9 @@ import (
 	"github.com/protoflow-labs/protoflow/pkg/graph"
 	"github.com/protoflow-labs/protoflow/pkg/graph/node/code"
 	"github.com/protoflow-labs/protoflow/pkg/project"
+	"github.com/protoflow-labs/protoflow/templates"
 	"github.com/rs/zerolog/log"
+	"io"
 	"os"
 	"path"
 )
@@ -46,25 +48,82 @@ func NewGenerate(config Config) (*Generate, error) {
 	}, nil
 }
 
+func copyFile() {
+
+}
+
+func (s *Generate) Init(project *project.Project) error {
+	// TODO breadchris what does the wire frame look like?
+
+	t := templates.Templates
+	// TODO breadchris someone has done this already https://github.com/leaanthony/debme
+	pPath := "proto"
+	entries, err := t.ReadDir(pPath)
+	if err != nil {
+		return err
+	}
+	dPath, err := s.bucket.GetFolder(pPath)
+	if err != nil {
+		return err
+	}
+	for _, e := range entries {
+		f, err := t.Open(path.Join(pPath, e.Name()))
+		if err != nil {
+			return err
+		}
+		df, err := os.Create(path.Join(dPath, e.Name()))
+		_, err = io.Copy(df, f)
+		if err != nil {
+			return err
+		}
+	}
+	bufFile := "buf.gen.yaml"
+	tf, err := t.Open(bufFile)
+	if err != nil {
+		return err
+	}
+	b, err := s.bucket.GetFile(bufFile)
+	if err != nil {
+		return err
+	}
+	df, err := os.Create(b)
+	if err != nil {
+		return err
+	}
+	_, err = io.Copy(df, tf)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *Generate) Service(project *project.Project, n graph.Node) error {
+	return nil
+}
+
+func (s *Generate) Method(project *project.Project, n graph.Node) error {
+	return nil
+}
+
 func (s *Generate) GenerateImplementation(project *project.Project, n graph.Node) error {
 	r, err := n.Provider()
 	if err != nil {
 		return errors.Wrapf(err, "error getting node provider")
 	}
 
-	switch r := r.(type) {
+	switch c := r.(type) {
 	case *code.Server:
-		if r.Runtime == pcode.Runtime_NODEJS {
+		if c.Runtime == pcode.Runtime_NODEJS {
 			jsManager, err := NewNodeJSManager(s.bucket)
 			if err != nil {
 				return errors.Wrap(err, "error creating nodejs manager")
 			}
 
-			err = jsManager.GenerateFunctionImpl(r, n)
+			err = jsManager.GenerateFunctionImpl(c, n)
 			if err != nil {
 				log.Error().Err(err).Msg("error generating function implementation")
 			}
-			err = jsManager.GenerateGRPCService(r)
+			err = jsManager.GenerateGRPCService(c)
 			if err != nil {
 				log.Error().Err(err).Msg("error generating service files")
 			}

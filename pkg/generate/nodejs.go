@@ -12,15 +12,9 @@ import (
 	"strings"
 )
 
-type LanguageManager interface {
-	GenerateGRPCService(r *code.Server) error
-}
-
 type NodeJSManager struct {
 	codeRoot bucket.Bucket
 }
-
-var _ LanguageManager = &NodeJSManager{}
 
 func NewNodeJSManager(c bucket.Bucket) (*NodeJSManager, error) {
 	codeRoot, err := c.WithDir("nodejs")
@@ -71,7 +65,7 @@ func (s *NodeJSManager) UpdateNodeType(n graph.Node, nodeInfo *graph.Info) error
 	if err != nil {
 		return errors.Wrapf(err, "error getting protos dir")
 	}
-	fileDescs, err := grpc.ParseProtoDir(funcDirPath)
+	fileDescs, err := grpc.ParseProtoDir(funcDirPath, "nodejs.proto")
 	if err != nil {
 		return errors.Wrapf(err, "error parsing protos")
 	}

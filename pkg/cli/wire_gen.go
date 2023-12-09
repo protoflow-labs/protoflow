@@ -12,6 +12,7 @@ import (
 	"github.com/protoflow-labs/protoflow/pkg/config"
 	"github.com/protoflow-labs/protoflow/pkg/db"
 	"github.com/protoflow-labs/protoflow/pkg/generate"
+	"github.com/protoflow-labs/protoflow/pkg/llm"
 	"github.com/protoflow-labs/protoflow/pkg/log"
 	"github.com/protoflow-labs/protoflow/pkg/project"
 	"github.com/protoflow-labs/protoflow/pkg/store"
@@ -52,7 +53,15 @@ func Wire(cacheConfig bucket.Config) (*cli.App, error) {
 	}
 	workflowManager := workflow.NewWorkflowManager()
 	managerBuilder := workflow.NewManagerBuilder(workflowManager)
-	service, err := project.NewService(projectStore, localBucket, genProject, managerBuilder, workflowManager)
+	llmConfig, err := llm.NewConfig(provider)
+	if err != nil {
+		return nil, err
+	}
+	agent, err := llm.NewAgent(llmConfig)
+	if err != nil {
+		return nil, err
+	}
+	service, err := project.NewService(projectStore, localBucket, genProject, managerBuilder, workflowManager, agent)
 	if err != nil {
 		return nil, err
 	}

@@ -9,6 +9,10 @@ const ConfigurationKey = "bucket"
 
 type Config struct {
 	Name string `yaml:"name"`
+
+	// TODO breadchris use builder
+	LocalName string
+	Path      string
 }
 
 func NewDefaultConfig() Config {

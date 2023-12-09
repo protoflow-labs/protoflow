@@ -1,218 +1,222 @@
 syntax = "proto3";
-
+package project;
 import "google/protobuf/descriptor.proto";
 import "graph.proto";
-
-package project;
 option go_package = "project";
-
-message Project {
-    string id = 1;
-    string name = 2;
-    graph.Graph graph = 3;
+message AddMethodRequest {
+  string file = 1;
+  string package = 2;
+  string service = 3;
+  string method = 4;
 }
-
-service ProjectService {
-    rpc NewNode(NewNodeRequest) returns (NewNodeResponse) {}
-    rpc GetProjectTypes(GetProjectTypesRequest) returns (ProjectTypes) {}
-
-    rpc ExportProject(ExportProjectRequest) returns (ExportProjectResponse) {}
-    rpc LoadProject(LoadProjectRequest) returns (LoadProjectResponse) {}
-
-    rpc GetProject(GetProjectRequest) returns (GetProjectResponse) {}
-    rpc GetProjects(GetProjectsRequest) returns (GetProjectsResponse) {}
-    rpc CreateProject(CreateProjectRequest) returns (CreateProjectResponse) {}
-    rpc DeleteProject(DeleteProjectRequest) returns (DeleteProjectResponse) {}
-
-    rpc EnumerateProviders(GetProvidersRequest) returns (GetProvidersResponse) {}
-
-    rpc GetNodeInfo(GetNodeInfoRequest) returns (GetNodeInfoResponse) {}
-
-    rpc SaveProject(SaveProjectRequest) returns (SaveProjectResponse) {}
-
-    rpc RunWorkflow(RunWorkflowRequest) returns (stream NodeExecution) {}
-    rpc StopWorkflow(StopWorkflowRequest) returns (StopWorkflowResponse) {}
-
-    rpc GetWorkflowRuns(GetWorkflowRunsRequest) returns (GetWorkflowRunsResponse) {}
-    rpc GetRunningWorkflows(GetRunningWorkflowsRequest) returns (GetRunningWorkflowResponse) {}
+message AddMethodResponse {
 }
-
-message GetRunningWorkflowsRequest {
-    string project_id = 1;
+message CreateProjectRequest {
+  string name = 1;
 }
-
-message GetRunningWorkflowResponse {
-    repeated WorkflowTrace traces = 1;
+message CreateProjectResponse {
+  Project project = 1;
 }
-
-message NewNodeRequest {
-    string project_id = 1;
-    graph.Node node = 2;
+message Data {
+  string value = 1;
 }
-
-message NewNodeResponse {
-    graph.Node node = 1;
+message DeleteProjectRequest {
+  string id = 1;
 }
-
+message DeleteProjectResponse {
+  Project project = 1;
+}
+message EnumeratedProvider {
+  graph.NodeDetails provider = 1;
+  repeated graph.Node nodes = 2;
+  ProviderInfo info = 3;
+}
 message ExportProjectRequest {
-    string project_id = 1;
-    string path = 2;
+  string project_id = 1;
+  string path = 2;
 }
-
-message ExportProjectResponse {}
-
-message LoadProjectRequest {
-    string path = 1;
+message ExportProjectResponse {
 }
-
-message LoadProjectResponse {
-    Project project = 1;
+message GRPCMethod {
+  string name = 1;
+  GRPCTypeInfo type_info = 2;
 }
-
-message GetProjectTypesRequest {
-    string project_id = 1;
+message GRPCService {
+  string package = 1;
+  string name = 2;
+  repeated GRPCMethod methods = 3;
+  string file = 4;
 }
-
-message ProjectTypes {
-    google.protobuf.DescriptorProto node_type = 1;
-    google.protobuf.DescriptorProto edge_type = 2;
-    map<string, google.protobuf.DescriptorProto> desc_lookup = 3;
-    map<string, google.protobuf.EnumDescriptorProto> enum_lookup = 4;
-}
-
-message StopWorkflowRequest {
-    string project_id = 1;
-    string workflow_id = 2;
-}
-
-message StopWorkflowResponse {}
-
-message GetWorkflowRunsRequest {
-    string project_id = 1;
-}
-
-message GetWorkflowRunsResponse {
-    repeated WorkflowTrace runs = 1;
-}
-
-message WorkflowTrace {
-    string id = 1;
-    RunWorkflowRequest request = 2;
-    repeated NodeExecution node_execs = 3;
-}
-
-message NodeExecution {
-    string node_id = 1;
-    string output = 2;
-}
-
-message GetNodeInfoRequest {
-    string project_id = 1;
-    string node_id = 2;
-}
-
-// TODO breadchris a file desc contains all this information it would be simpler to use
 message GRPCTypeInfo {
-    google.protobuf.DescriptorProto input = 1;
-    google.protobuf.DescriptorProto output = 2;
-    map<string, google.protobuf.DescriptorProto> desc_lookup = 3;
-    map<string, google.protobuf.EnumDescriptorProto> enum_lookup = 4;
-    google.protobuf.MethodDescriptorProto method_desc = 5;
-    string package_name = 6;
+  google.protobuf.DescriptorProto input = 1;
+  google.protobuf.DescriptorProto output = 2;
+  map<string, google.protobuf.DescriptorProto> desc_lookup = 3;
+  map<string, google.protobuf.EnumDescriptorProto> enum_lookup = 4;
+  google.protobuf.MethodDescriptorProto method_desc = 5;
+  string package_name = 6;
 }
-
+message GenerateAIStubRequest {
+  string prompt = 1;
+}
+message GenerateAIStubResponse {
+  string result = 1;
+}
+message GetGRPCServerInfoRequest {
+  string host = 1;
+}
+message GetGRPCServerInfoResponse {
+  repeated GRPCService services = 1;
+}
+message GetNodeInfoRequest {
+  string project_id = 1;
+  string node_id = 2;
+}
 message GetNodeInfoResponse {
-    // A compiled view of the method
-    string method_proto = 1;
-    // Type information for the input and output
-    GRPCTypeInfo type_info = 2;
+  string method_proto = 1;
+  GRPCTypeInfo type_info = 2;
 }
-
+message GetProjectRequest {
+  string id = 1;
+}
+message GetProjectResponse {
+  Project project = 1;
+  ProjectTypes types = 2;
+}
+message GetProjectTypesRequest {
+  string project_id = 1;
+}
+message GetProjectsRequest {
+  string name = 1;
+}
+message GetProjectsResponse {
+  repeated GetProjectResponse projects = 1;
+}
+message GetProvidersRequest {
+  string project_id = 1;
+}
+message GetProvidersResponse {
+  repeated EnumeratedProvider providers = 1;
+}
+message GetRunningWorkflowResponse {
+  repeated WorkflowTrace traces = 1;
+}
+message GetRunningWorkflowsRequest {
+  string project_id = 1;
+}
+message GetWorkflowRunsRequest {
+  string project_id = 1;
+}
+message GetWorkflowRunsResponse {
+  repeated WorkflowTrace runs = 1;
+}
+message GraphData {
+  float x = 1;
+  float y = 2;
+}
+message LoadProjectRequest {
+  string path = 1;
+}
+message LoadProjectResponse {
+  Project project = 1;
+}
+message NewNodeRequest {
+  string project_id = 1;
+  graph.Node node = 2;
+}
+message NewNodeResponse {
+  graph.Node node = 1;
+}
+message NodeExecution {
+  string node_id = 1;
+  string output = 2;
+}
+message Project {
+  string id = 1;
+  string name = 2;
+  graph.Graph graph = 3;
+}
+message ProjectTypes {
+  google.protobuf.DescriptorProto node_type = 1;
+  google.protobuf.DescriptorProto edge_type = 2;
+  map<string, google.protobuf.DescriptorProto> desc_lookup = 3;
+  map<string, google.protobuf.EnumDescriptorProto> enum_lookup = 4;
+}
+message ProviderInfo {
+  ProviderState state = 1;
+  string error = 2;
+}
+message RunGRPCMethodRequest {
+  string host = 1;
+  string service = 2;
+  string method = 3;
+  string input = 4;
+  string package = 5;
+}
+message RunGRPCMethodResponse {
+  string output = 1;
+}
+message RunWorkflowRequest {
+  string project_id = 1;
+  string node_id = 2;
+  string input = 3;
+  bool start_server = 4;
+}
 message RuntimeData {
   string name = 1;
   repeated string calls = 2;
   GraphData graph = 3;
 }
-
-message GraphData {
-  float x = 1;
-  float y = 2;
-}
-
-message RunWorkflowRequest {
-    string project_id = 1;
-    string node_id = 2;
-    string input = 3;
-    bool start_server = 4;
-}
-
-message Data {
-    string value = 1;
-}
-
-message GetProjectRequest {
-    string id = 1;
-}
-
-message GetProjectResponse {
-    Project project = 1;
-    ProjectTypes types = 2;
-}
-
-message GetProjectsRequest {
-    string name = 1;
-}
-
-message GetProjectsResponse {
-    repeated GetProjectResponse projects = 1;
-}
-
-message CreateProjectRequest {
-    string name = 1;
-}
-
-message CreateProjectResponse {
-    Project project = 1;
-}
-
-message DeleteProjectRequest {
-    string id = 1;
-}
-
-message DeleteProjectResponse {
-    Project project = 1;
-}
-
-message GetProvidersRequest {
-    string project_id = 1;
-}
-
-message EnumeratedProvider {
-    graph.NodeDetails provider = 1;
-    repeated graph.Node nodes = 2;
-    ProviderInfo info = 3;
-}
-
-message ProviderInfo {
-    ProviderState state = 1;
-    string error = 2;
-}
-
-enum ProviderState {
-    UNKNOWN = 0;
-    READY = 1;
-    ERROR = 2;
-}
-
-message GetProvidersResponse {
-    repeated EnumeratedProvider providers = 1;
-}
-
 message SaveProjectRequest {
-    string project_id = 1;
-    graph.Graph graph = 2;
+  string project_id = 1;
+  graph.Graph graph = 2;
 }
-
 message SaveProjectResponse {
-    Project project = 1;
+  Project project = 1;
+}
+message StopWorkflowRequest {
+  string project_id = 1;
+  string workflow_id = 2;
+}
+message StopWorkflowResponse {
+}
+message Test3Request {
+  string message = 1;
+}
+message Test3Response {
+  string result = 1;
+}
+message WorkflowTrace {
+  string id = 1;
+  RunWorkflowRequest request = 2;
+  repeated NodeExecution node_execs = 3;
+}
+enum ProviderState {
+  UNKNOWN = 0;
+  READY = 1;
+  ERROR = 2;
+}
+service ProjectService {
+  option (handler_path) = "pkg/project/service.go";
+  rpc AddMethod ( AddMethodRequest ) returns ( AddMethodResponse );
+  rpc CreateProject ( CreateProjectRequest ) returns ( CreateProjectResponse );
+  rpc DeleteProject ( DeleteProjectRequest ) returns ( DeleteProjectResponse );
+  rpc EnumerateProviders ( GetProvidersRequest ) returns ( GetProvidersResponse );
+  rpc ExportProject ( ExportProjectRequest ) returns ( ExportProjectResponse );
+  rpc GenerateAIStub ( GenerateAIStubRequest ) returns ( GenerateAIStubResponse );
+  rpc GetGRPCServerInfo ( GetGRPCServerInfoRequest ) returns ( GetGRPCServerInfoResponse );
+  rpc GetNodeInfo ( GetNodeInfoRequest ) returns ( GetNodeInfoResponse );
+  rpc GetProject ( GetProjectRequest ) returns ( GetProjectResponse );
+  rpc GetProjectTypes ( GetProjectTypesRequest ) returns ( ProjectTypes );
+  rpc GetProjects ( GetProjectsRequest ) returns ( GetProjectsResponse );
+  rpc GetRunningWorkflows ( GetRunningWorkflowsRequest ) returns ( GetRunningWorkflowResponse );
+  rpc GetWorkflowRuns ( GetWorkflowRunsRequest ) returns ( GetWorkflowRunsResponse );
+  rpc LoadProject ( LoadProjectRequest ) returns ( LoadProjectResponse );
+  rpc NewNode ( NewNodeRequest ) returns ( NewNodeResponse );
+  rpc RunGRPCMethod ( RunGRPCMethodRequest ) returns ( stream NodeExecution );
+  rpc RunWorkflow ( RunWorkflowRequest ) returns ( stream NodeExecution );
+  rpc SaveProject ( SaveProjectRequest ) returns ( SaveProjectResponse );
+  rpc StopWorkflow ( StopWorkflowRequest ) returns ( StopWorkflowResponse );
+}
+extend google.protobuf.ServiceOptions {
+  string handler_path = 50000;
 }

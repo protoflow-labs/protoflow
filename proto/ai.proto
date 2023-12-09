@@ -1,0 +1,6 @@
+syntax = "proto3";
+
+message GeneratedCode {
+  // Code that has been generated.
+  string code = 1;
+}

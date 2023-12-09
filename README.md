@@ -38,7 +38,7 @@ npm install
 npm run dev
 ```
 
-Starts the studio frontend at http://localhost:8000.
+Starts the studio frontend at http://localhost:8001.
 
 ### Haphazard notes
 - "a framework to easily build small/modular grpc services" -> yes, i want to make it so you bring your code:  

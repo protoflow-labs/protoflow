@@ -9,6 +9,8 @@ import (
 	"github.com/protoflow-labs/protoflow/gen"
 	"github.com/protoflow-labs/protoflow/gen/code"
 	pgrpc "github.com/protoflow-labs/protoflow/gen/grpc"
+	"github.com/protoflow-labs/protoflow/pkg/grpc/bufcurl"
+	"github.com/protoflow-labs/protoflow/pkg/grpc/manager"
 	"github.com/rs/zerolog/log"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -16,6 +18,55 @@ import (
 	"google.golang.org/protobuf/types/descriptorpb"
 	"net/url"
 )
+
+func GetGRPCTypeInfo(host string) ([]*gen.GRPCService, error) {
+	m := manager.NewReflectionManager(host, manager.WithProtocol(bufcurl.ReflectProtocolGRPCV1Alpha))
+	cleanup, err := m.Init()
+	if err != nil {
+		return nil, errors.Wrapf(err, "error initializing reflection manager")
+	}
+	defer cleanup()
+
+	services, err := m.ResolveServices()
+	if err != nil {
+		return nil, errors.Wrapf(err, "error resolving services")
+	}
+
+	var blocks []*gen.GRPCService
+	seen := map[protoreflect.FullName]struct{}{}
+	for _, sd := range services {
+		if _, ok := seen[sd.FullName()]; ok {
+			continue
+		}
+		seen[sd.FullName()] = struct{}{}
+
+		var methods []*gen.GRPCMethod
+		for i := 0; i < sd.Methods().Len(); i++ {
+			m := sd.Methods().Get(i)
+			md, err := NewMethodDescriptor(m)
+			if err != nil {
+				return nil, errors.Wrapf(err, "error creating method descriptor")
+			}
+			ti, err := md.Proto()
+			if err != nil {
+				return nil, errors.Wrapf(err, "error getting proto")
+			}
+			methods = append(methods, &gen.GRPCMethod{
+				Name:     string(m.Name()),
+				TypeInfo: ti,
+			})
+		}
+		blocks = append(blocks, &gen.GRPCService{
+			Name:    string(sd.Name()),
+			Package: string(sd.ParentFile().Package()),
+			Methods: methods,
+			// TODO breadchris what are the cases where passing the file path here is not correct?
+			// for example, the path is not absolute, it is relative to the proto directory.
+			File: sd.ParentFile().Path(),
+		})
+	}
+	return blocks, nil
+}
 
 func EnumerateResourceBlocks(server *pgrpc.Server, isLangService bool) ([]*gen.Node, error) {
 	if server.Host == "" {
@@ -33,10 +84,12 @@ func EnumerateResourceBlocks(server *pgrpc.Server, isLangService bool) ([]*gen.N
 	}
 
 	// TODO breadchris there is some repeat code, the grpc package has some code from Buf that does reflection already
-	methodDesc, err := allMethodsViaReflection(context.Background(), conn)
+	svcDesc, err := allMethodsViaReflection(context.Background(), conn)
 	if err != nil {
 		return nil, errors.Wrapf(err, "unable to get all methods via reflection")
 	}
+
+	methodDesc := AllMethodsForServices(svcDesc)
 
 	log.Debug().Str("server", server.Host).Msgf("found %d methods", len(methodDesc))
 
