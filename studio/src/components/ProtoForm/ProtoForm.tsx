@@ -64,10 +64,6 @@ export const ProtoForm: FC<GRPCInputFormProps> = (props) => {
                     {/*    <th>{desc.name}</th>*/}
                     {/*</tr>*/}
                     {formattedFields.map((f) => {
-                        // TODO breadchris hidden fields should be controlled by props
-                        if (f.name === 'id' || f.name === 'x' || f.name === 'y') {
-                            return null;
-                        }
                         return (
                             <tr key={f.name} className={"message_field"}>
                                 <td className={"name"}>

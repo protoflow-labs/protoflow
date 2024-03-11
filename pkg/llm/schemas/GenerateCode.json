@@ -1,8 +1,8 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema#",
-    "$ref": "#/definitions/GeneratedCode",
+    "$ref": "#/definitions/GenerateCode",
     "definitions": {
-        "GeneratedCode": {
+        "GenerateCode": {
             "properties": {
                 "code": {
                     "type": "string",
@@ -11,7 +11,7 @@
             },
             "additionalProperties": true,
             "type": "object",
-            "title": "Generated Code"
+            "title": "Generate Code"
         }
     }
 }

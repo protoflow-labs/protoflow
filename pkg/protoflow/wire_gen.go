@@ -8,13 +8,13 @@ package protoflow
 
 import (
 	"github.com/protoflow-labs/protoflow/gen"
-	"github.com/protoflow-labs/protoflow/pkg/api"
 	"github.com/protoflow-labs/protoflow/pkg/bucket"
 	"github.com/protoflow-labs/protoflow/pkg/config"
 	"github.com/protoflow-labs/protoflow/pkg/db"
 	"github.com/protoflow-labs/protoflow/pkg/generate"
 	"github.com/protoflow-labs/protoflow/pkg/llm"
 	"github.com/protoflow-labs/protoflow/pkg/project"
+	"github.com/protoflow-labs/protoflow/pkg/server"
 	"github.com/protoflow-labs/protoflow/pkg/store"
 	"github.com/protoflow-labs/protoflow/pkg/workflow"
 )
@@ -31,7 +31,7 @@ func Wire(cacheConfig bucket.Config, defaultProject *gen.Project) (*Protoflow, e
 	if err != nil {
 		return nil, err
 	}
-	apiConfig, err := api.NewConfig(provider)
+	serverConfig, err := server.NewConfig(provider)
 	if err != nil {
 		return nil, err
 	}
@@ -69,7 +69,7 @@ func Wire(cacheConfig bucket.Config, defaultProject *gen.Project) (*Protoflow, e
 	if err != nil {
 		return nil, err
 	}
-	httpServer, err := api.NewHTTPServer(apiConfig, service, generateService)
+	httpServer, err := server.NewHTTPServer(serverConfig, service, generateService)
 	if err != nil {
 		return nil, err
 	}

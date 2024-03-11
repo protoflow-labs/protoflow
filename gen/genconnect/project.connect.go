@@ -98,7 +98,7 @@ type ProjectServiceClient interface {
 	DeleteProject(context.Context, *connect_go.Request[gen.DeleteProjectRequest]) (*connect_go.Response[gen.DeleteProjectResponse], error)
 	EnumerateProviders(context.Context, *connect_go.Request[gen.GetProvidersRequest]) (*connect_go.Response[gen.GetProvidersResponse], error)
 	ExportProject(context.Context, *connect_go.Request[gen.ExportProjectRequest]) (*connect_go.Response[gen.ExportProjectResponse], error)
-	GenerateAIStub(context.Context, *connect_go.Request[gen.GenerateAIStubRequest]) (*connect_go.Response[gen.GenerateAIStubResponse], error)
+	GenerateAIStub(context.Context, *connect_go.Request[gen.GenerateAIStubRequest]) (*connect_go.Response[gen.GenerateCode], error)
 	GetGRPCServerInfo(context.Context, *connect_go.Request[gen.GetGRPCServerInfoRequest]) (*connect_go.Response[gen.GetGRPCServerInfoResponse], error)
 	GetNodeInfo(context.Context, *connect_go.Request[gen.GetNodeInfoRequest]) (*connect_go.Response[gen.GetNodeInfoResponse], error)
 	GetProject(context.Context, *connect_go.Request[gen.GetProjectRequest]) (*connect_go.Response[gen.GetProjectResponse], error)
@@ -149,7 +149,7 @@ func NewProjectServiceClient(httpClient connect_go.HTTPClient, baseURL string, o
 			baseURL+ProjectServiceExportProjectProcedure,
 			opts...,
 		),
-		generateAIStub: connect_go.NewClient[gen.GenerateAIStubRequest, gen.GenerateAIStubResponse](
+		generateAIStub: connect_go.NewClient[gen.GenerateAIStubRequest, gen.GenerateCode](
 			httpClient,
 			baseURL+ProjectServiceGenerateAIStubProcedure,
 			opts...,
@@ -229,7 +229,7 @@ type projectServiceClient struct {
 	deleteProject       *connect_go.Client[gen.DeleteProjectRequest, gen.DeleteProjectResponse]
 	enumerateProviders  *connect_go.Client[gen.GetProvidersRequest, gen.GetProvidersResponse]
 	exportProject       *connect_go.Client[gen.ExportProjectRequest, gen.ExportProjectResponse]
-	generateAIStub      *connect_go.Client[gen.GenerateAIStubRequest, gen.GenerateAIStubResponse]
+	generateAIStub      *connect_go.Client[gen.GenerateAIStubRequest, gen.GenerateCode]
 	getGRPCServerInfo   *connect_go.Client[gen.GetGRPCServerInfoRequest, gen.GetGRPCServerInfoResponse]
 	getNodeInfo         *connect_go.Client[gen.GetNodeInfoRequest, gen.GetNodeInfoResponse]
 	getProject          *connect_go.Client[gen.GetProjectRequest, gen.GetProjectResponse]
@@ -271,7 +271,7 @@ func (c *projectServiceClient) ExportProject(ctx context.Context, req *connect_g
 }
 
 // GenerateAIStub calls project.ProjectService.GenerateAIStub.
-func (c *projectServiceClient) GenerateAIStub(ctx context.Context, req *connect_go.Request[gen.GenerateAIStubRequest]) (*connect_go.Response[gen.GenerateAIStubResponse], error) {
+func (c *projectServiceClient) GenerateAIStub(ctx context.Context, req *connect_go.Request[gen.GenerateAIStubRequest]) (*connect_go.Response[gen.GenerateCode], error) {
 	return c.generateAIStub.CallUnary(ctx, req)
 }
 
@@ -347,7 +347,7 @@ type ProjectServiceHandler interface {
 	DeleteProject(context.Context, *connect_go.Request[gen.DeleteProjectRequest]) (*connect_go.Response[gen.DeleteProjectResponse], error)
 	EnumerateProviders(context.Context, *connect_go.Request[gen.GetProvidersRequest]) (*connect_go.Response[gen.GetProvidersResponse], error)
 	ExportProject(context.Context, *connect_go.Request[gen.ExportProjectRequest]) (*connect_go.Response[gen.ExportProjectResponse], error)
-	GenerateAIStub(context.Context, *connect_go.Request[gen.GenerateAIStubRequest]) (*connect_go.Response[gen.GenerateAIStubResponse], error)
+	GenerateAIStub(context.Context, *connect_go.Request[gen.GenerateAIStubRequest]) (*connect_go.Response[gen.GenerateCode], error)
 	GetGRPCServerInfo(context.Context, *connect_go.Request[gen.GetGRPCServerInfoRequest]) (*connect_go.Response[gen.GetGRPCServerInfoResponse], error)
 	GetNodeInfo(context.Context, *connect_go.Request[gen.GetNodeInfoRequest]) (*connect_go.Response[gen.GetNodeInfoResponse], error)
 	GetProject(context.Context, *connect_go.Request[gen.GetProjectRequest]) (*connect_go.Response[gen.GetProjectResponse], error)
@@ -533,7 +533,7 @@ func (UnimplementedProjectServiceHandler) ExportProject(context.Context, *connec
 	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("project.ProjectService.ExportProject is not implemented"))
 }
 
-func (UnimplementedProjectServiceHandler) GenerateAIStub(context.Context, *connect_go.Request[gen.GenerateAIStubRequest]) (*connect_go.Response[gen.GenerateAIStubResponse], error) {
+func (UnimplementedProjectServiceHandler) GenerateAIStub(context.Context, *connect_go.Request[gen.GenerateAIStubRequest]) (*connect_go.Response[gen.GenerateCode], error) {
 	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("project.ProjectService.GenerateAIStub is not implemented"))
 }
 

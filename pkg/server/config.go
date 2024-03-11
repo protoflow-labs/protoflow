@@ -1,11 +1,9 @@
-package api
+package server
 
 import (
 	"github.com/rs/zerolog/log"
 	"go.uber.org/config"
 )
-
-const ConfigurationKey = "api"
 
 type Config struct {
 	Port        int    `yaml:"port"`
@@ -13,15 +11,15 @@ type Config struct {
 }
 
 // TODO breadchris studio proxy should not be set by default only turn on when in dev mode
-func NewDefaultConfig(studioProxy string) Config {
+func NewDefaultConfig() Config {
 	return Config{
-		StudioProxy: studioProxy,
-		Port:        8080,
+		StudioProxy: "",
+		Port:        8000,
 	}
 }
 
 func NewConfig(config config.Provider) (cfg Config, err error) {
-	err = config.Get(ConfigurationKey).Populate(&cfg)
+	err = config.Get("server").Populate(&cfg)
 	if err != nil {
 		log.Error().Err(err).Msg("failed loading config")
 		return

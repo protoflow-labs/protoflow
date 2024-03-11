@@ -1,4 +1,4 @@
-package api
+package server
 
 import (
 	"context"
@@ -102,7 +102,7 @@ func NewHTTPServer(
 		// reference userv1.UserServiceName and groupv1.GroupServiceName.
 	)
 	apiMux.Handle(grpcreflect.NewHandlerV1(reflector, connect.WithRecover(recoverCall)))
-	// Many tools still expect the older version of the server reflection API, so
+	// Many tools still expect the older version of the server reflection Server, so
 	// most servers should mount both handlers.
 	apiMux.Handle(grpcreflect.NewHandlerV1Alpha(reflector, connect.WithRecover(recoverCall)))
 

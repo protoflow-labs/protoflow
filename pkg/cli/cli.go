@@ -8,9 +8,9 @@ import (
 	"github.com/protoflow-labs/protoflow/pkg/bucket"
 	"github.com/protoflow-labs/protoflow/pkg/config"
 	"github.com/protoflow-labs/protoflow/pkg/generate"
+	"github.com/protoflow-labs/protoflow/pkg/server"
 	"github.com/protoflow-labs/protoflow/pkg/util/reload"
 
-	"github.com/protoflow-labs/protoflow/pkg/api"
 	logd "github.com/protoflow-labs/protoflow/pkg/log"
 	"github.com/protoflow-labs/protoflow/pkg/project"
 	"github.com/rs/zerolog/log"
@@ -24,11 +24,11 @@ var ProviderSet = wire.NewSet(
 	config.ProviderSet,
 	project.ProviderSet,
 	generate.ProviderSet,
-	api.ProviderSet,
+	server.ProviderSet,
 )
 
 func New(
-	httpHandler *api.HTTPServer,
+	httpHandler *server.HTTPServer,
 	p *project.Service,
 	l *logd.Log,
 ) *cli.App {

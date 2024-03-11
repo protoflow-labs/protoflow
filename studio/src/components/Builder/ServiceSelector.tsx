@@ -18,7 +18,7 @@ export function ServiceSelector() {
 
     const [methodName, setMethodName] = useState<string>('');
 
-    const [host, setHost] = useState<string>('http://localhost:8080');
+    const [host, setHost] = useState<string>('http://localhost:8000');
     const [services, setServices] = useState<GRPCService[]>([]);
 
     const getTypeInfo = () => {

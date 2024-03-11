@@ -156,6 +156,7 @@ func (c *Agent) Call(
 	if err != nil {
 		return nil, err
 	}
+	slog.Info("openai response", "completion", completion)
 	return completion.FunctionCall, nil
 }
 

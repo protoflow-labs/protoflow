@@ -16,6 +16,7 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/descriptorpb"
+	"log/slog"
 	"net/url"
 )
 
@@ -188,6 +189,11 @@ func ResolveTypeLookup(
 				oneOfFields := oneOf.Fields()
 				for j := 0; j < oneOfFields.Len(); j++ {
 					c := oneOfFields.Get(j)
+					if c == nil || c.Message() == nil {
+						// TODO breadchris should this return an error?
+						slog.Warn("oneof field is nil", "err", err)
+						continue
+					}
 					// TODO breadchris replace with m.FileBuilder.GetMessage
 					msgName := string(c.Message().FullName())
 					if _, ok := descLookup[msgName]; ok {

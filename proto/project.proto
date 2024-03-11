@@ -2,6 +2,7 @@ syntax = "proto3";
 package project;
 import "google/protobuf/descriptor.proto";
 import "graph.proto";
+import "ai.proto";
 option go_package = "project";
 message AddMethodRequest {
   string file = 1;
@@ -56,10 +57,8 @@ message GRPCTypeInfo {
   string package_name = 6;
 }
 message GenerateAIStubRequest {
-  string prompt = 1;
-}
-message GenerateAIStubResponse {
-  string result = 1;
+  string language = 1;
+  string description = 2;
 }
 message GetGRPCServerInfoRequest {
   string host = 1;
@@ -202,7 +201,7 @@ service ProjectService {
   rpc DeleteProject ( DeleteProjectRequest ) returns ( DeleteProjectResponse );
   rpc EnumerateProviders ( GetProvidersRequest ) returns ( GetProvidersResponse );
   rpc ExportProject ( ExportProjectRequest ) returns ( ExportProjectResponse );
-  rpc GenerateAIStub ( GenerateAIStubRequest ) returns ( GenerateAIStubResponse );
+  rpc GenerateAIStub ( GenerateAIStubRequest ) returns ( ai.GenerateCode );
   rpc GetGRPCServerInfo ( GetGRPCServerInfoRequest ) returns ( GetGRPCServerInfoResponse );
   rpc GetNodeInfo ( GetNodeInfoRequest ) returns ( GetNodeInfoResponse );
   rpc GetProject ( GetProjectRequest ) returns ( GetProjectResponse );

@@ -408,20 +408,21 @@ func (w *Workflow) WireNodes(
 			return nil, err
 		}
 	}
-	obs := connector.Connect(ctx)
-	obs.ForEach(func(item any) {}, func(err error) {
-		e := manager.Stop()
-		if e != nil {
-			log.Error().Err(e).Msgf("error, manager is stopping workflow")
-		}
-	}, func() {
-		log.Debug().Msgf("completed, manager is stopping workflow")
-		err = manager.Stop()
-		if err != nil {
-			log.Error().Err(err).Msgf("error stopping manager")
-		}
-	})
+	//obs := connector.Connect(ctx)
+	//obs.ForEach(func(item any) {}, func(err error) {
+	//	e := manager.Stop()
+	//	if e != nil {
+	//		log.Error().Err(e).Msgf("error, manager is stopping workflow")
+	//	}
+	//}, func() {
+	//	log.Debug().Msgf("completed, manager is stopping workflow")
+	//	err = manager.Stop()
+	//	if err != nil {
+	//		log.Error().Err(err).Msgf("error stopping manager")
+	//	}
+	//})
 
+	// TODO breadchris this observable is not being closed when the workflow input has stopped sending data
 	// TODO breadchris this is returning a trace, not the actual output
 	return &graph.IO{
 		Observable: connector.Connect(ctx),

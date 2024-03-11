@@ -1,9 +1,9 @@
 package config
 
 import (
-	"github.com/protoflow-labs/protoflow/pkg/api"
 	"github.com/protoflow-labs/protoflow/pkg/generate"
 	"github.com/protoflow-labs/protoflow/pkg/llm"
+	"github.com/protoflow-labs/protoflow/pkg/server"
 	"os"
 	"path"
 
@@ -26,7 +26,7 @@ type BaseConfig struct {
 	Workflow workflow.Config `yaml:"workflow"`
 	DB       db.Config       `yaml:"db"`
 	Temporal temporal.Config `yaml:"temporal"`
-	API      api.Config      `yaml:"api"`
+	Server   server.Config   `yaml:"server"`
 	Generate generate.Config `yaml:"generate"`
 	LLM      llm.Config      `yaml:"llm"`
 }
@@ -37,7 +37,7 @@ func NewDefaultConfig() BaseConfig {
 		Workflow: workflow.NewDefaultConfig(),
 		DB:       db.NewDefaultConfig(),
 		Temporal: temporal.NewDefaultConfig(),
-		API:      api.NewDefaultConfig(studioProxy),
+		Server:   server.NewDefaultConfig(),
 		Generate: generate.NewDefaultConfig(),
 		LLM:      llm.NewDefaultConfig(),
 	}

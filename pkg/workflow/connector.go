@@ -47,9 +47,9 @@ func (c *Connector) Connect(ctx context.Context) rxgo.Observable {
 
 	for _, obs := range c.observers {
 		_, dispose := obs.Observable.Connect(ctx)
-		obs.Observable.DoOnCompleted(func() {
-			dispose()
-		})
+		//obs.Observable.DoOnCompleted(func() {
+		//	dispose()
+		//})
 		c.cleanup = append(c.cleanup, dispose)
 	}
 	_, _ = o.Connect(ctx)

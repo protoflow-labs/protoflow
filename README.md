@@ -30,7 +30,7 @@ protoflow studio
 go run main.go studio --dev
 ```
 
-Backend will proxy to the frontend, so you can just open http://localhost:8080 to see the frontend.
+Backend will proxy to the frontend, so you can just open http://localhost:8000 to see the frontend.
 
 ### Studio
 ```shell

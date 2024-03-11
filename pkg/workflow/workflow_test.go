@@ -12,7 +12,7 @@ import (
 )
 
 func TestRun(t *testing.T) {
-	// TODO breadchris start server to listen for localhost:8080?
+	// TODO breadchris start server to listen for localhost:8000?
 
 	r := code2.NewServer(base.NewNode("test 1"), code2.NewServerProto(pcode.Runtime_NODEJS).GetServer())
 

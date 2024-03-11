@@ -150,10 +150,6 @@ func (s *Service) RunWorkflow(ctx context.Context, c *connect.Request[gen.RunWor
 			Str("workflow", w.ID).
 			Str("node", c.Msg.NodeId).
 			Msg("workflow finished")
-		if err != nil {
-			obsErr = errors.Wrapf(err, "failed to stop workflow")
-			return
-		}
 	})
 	if obsErr != nil {
 		log.Error().Err(obsErr).Msg("workflow error")

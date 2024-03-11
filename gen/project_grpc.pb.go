@@ -27,7 +27,7 @@ type ProjectServiceClient interface {
 	DeleteProject(ctx context.Context, in *DeleteProjectRequest, opts ...grpc.CallOption) (*DeleteProjectResponse, error)
 	EnumerateProviders(ctx context.Context, in *GetProvidersRequest, opts ...grpc.CallOption) (*GetProvidersResponse, error)
 	ExportProject(ctx context.Context, in *ExportProjectRequest, opts ...grpc.CallOption) (*ExportProjectResponse, error)
-	GenerateAIStub(ctx context.Context, in *GenerateAIStubRequest, opts ...grpc.CallOption) (*GenerateAIStubResponse, error)
+	GenerateAIStub(ctx context.Context, in *GenerateAIStubRequest, opts ...grpc.CallOption) (*GenerateCode, error)
 	GetGRPCServerInfo(ctx context.Context, in *GetGRPCServerInfoRequest, opts ...grpc.CallOption) (*GetGRPCServerInfoResponse, error)
 	GetNodeInfo(ctx context.Context, in *GetNodeInfoRequest, opts ...grpc.CallOption) (*GetNodeInfoResponse, error)
 	GetProject(ctx context.Context, in *GetProjectRequest, opts ...grpc.CallOption) (*GetProjectResponse, error)
@@ -96,8 +96,8 @@ func (c *projectServiceClient) ExportProject(ctx context.Context, in *ExportProj
 	return out, nil
 }
 
-func (c *projectServiceClient) GenerateAIStub(ctx context.Context, in *GenerateAIStubRequest, opts ...grpc.CallOption) (*GenerateAIStubResponse, error) {
-	out := new(GenerateAIStubResponse)
+func (c *projectServiceClient) GenerateAIStub(ctx context.Context, in *GenerateAIStubRequest, opts ...grpc.CallOption) (*GenerateCode, error) {
+	out := new(GenerateCode)
 	err := c.cc.Invoke(ctx, "/project.ProjectService/GenerateAIStub", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -277,7 +277,7 @@ type ProjectServiceServer interface {
 	DeleteProject(context.Context, *DeleteProjectRequest) (*DeleteProjectResponse, error)
 	EnumerateProviders(context.Context, *GetProvidersRequest) (*GetProvidersResponse, error)
 	ExportProject(context.Context, *ExportProjectRequest) (*ExportProjectResponse, error)
-	GenerateAIStub(context.Context, *GenerateAIStubRequest) (*GenerateAIStubResponse, error)
+	GenerateAIStub(context.Context, *GenerateAIStubRequest) (*GenerateCode, error)
 	GetGRPCServerInfo(context.Context, *GetGRPCServerInfoRequest) (*GetGRPCServerInfoResponse, error)
 	GetNodeInfo(context.Context, *GetNodeInfoRequest) (*GetNodeInfoResponse, error)
 	GetProject(context.Context, *GetProjectRequest) (*GetProjectResponse, error)
@@ -312,7 +312,7 @@ func (UnimplementedProjectServiceServer) EnumerateProviders(context.Context, *Ge
 func (UnimplementedProjectServiceServer) ExportProject(context.Context, *ExportProjectRequest) (*ExportProjectResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ExportProject not implemented")
 }
-func (UnimplementedProjectServiceServer) GenerateAIStub(context.Context, *GenerateAIStubRequest) (*GenerateAIStubResponse, error) {
+func (UnimplementedProjectServiceServer) GenerateAIStub(context.Context, *GenerateAIStubRequest) (*GenerateCode, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GenerateAIStub not implemented")
 }
 func (UnimplementedProjectServiceServer) GetGRPCServerInfo(context.Context, *GetGRPCServerInfoRequest) (*GetGRPCServerInfoResponse, error) {

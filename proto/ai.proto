@@ -1,6 +1,8 @@
 syntax = "proto3";
 
-message GeneratedCode {
+package ai;
+
+message GenerateCode {
   // Code that has been generated.
   string code = 1;
 }

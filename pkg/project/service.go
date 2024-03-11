@@ -287,17 +287,19 @@ func (s *Service) GetNodeInfo(ctx context.Context, c *connect.Request[gen.GetNod
 	}), nil
 }
 
-func (s *Service) GenerateAIStub(ctx context.Context, c *connect.Request[gen.GenerateAIStubRequest]) (*connect.Response[gen.GenerateAIStubResponse], error) {
-	t := &gen.GeneratedCode{}
+func (s *Service) GenerateAIStub(ctx context.Context, c *connect.Request[gen.GenerateAIStubRequest]) (*connect.Response[gen.GenerateCode], error) {
+	t := &gen.GenerateCode{}
 
 	jd, err := schemas.Schemas.ReadFile(fmt.Sprintf("%s.json", t.ProtoReflect().Descriptor().Name()))
 	if err != nil {
 		return nil, err
 	}
 
-	err = s.llm.PromptToProto(ctx, c.Msg.Prompt, t, jd)
+	basePrompt := fmt.Sprintf("Generate a %s function that %s", c.Msg.Language, c.Msg.Description)
+
+	err = s.llm.PromptToProto(ctx, basePrompt, t, jd)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to prompt to proto")
 	}
-	return connect.NewResponse(&gen.GenerateAIStubResponse{}), nil
+	return connect.NewResponse(t), nil
 }

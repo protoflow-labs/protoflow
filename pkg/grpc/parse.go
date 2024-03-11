@@ -6,6 +6,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/protoflow-labs/protoflow/proto"
 	"io"
+	"io/fs"
 	"os"
 	"path"
 	"path/filepath"
@@ -23,23 +24,9 @@ func FileContentsFromMap(files map[string]string) protoparse.FileAccessor {
 }
 
 func ParseProtoDir(dir, protofile string) ([]*desc.FileDescriptor, error) {
-	protoFiles, err := os.ReadDir(dir)
+	protoMap, err := protoflowProtoMap(dir, os.ReadDir, os.ReadFile)
 	if err != nil {
 		return nil, errors.Wrapf(err, "error reading proto directory")
-	}
-	protoMap, err := protoflowProtoMap()
-	if err != nil {
-		return nil, errors.Wrapf(err, "error reading proto directory")
-	}
-
-	for _, protoFile := range protoFiles {
-		if strings.HasSuffix(protoFile.Name(), ".proto") {
-			content, err := os.ReadFile(path.Join(dir, protoFile.Name()))
-			if err != nil {
-				return nil, errors.Wrapf(err, "error reading file %s", protoFile.Name())
-			}
-			protoMap[protoFile.Name()] = string(content)
-		}
 	}
 	parser := protoparse.Parser{
 		ImportPaths:       nil,
@@ -58,25 +45,29 @@ func ParseProtoDir(dir, protofile string) ([]*desc.FileDescriptor, error) {
 	return parser.ParseFiles(protofile)
 }
 
-func protoflowProtoMap() (map[string]string, error) {
+func protoflowProtoMap(
+	dir string,
+	readDir func(dir string) ([]fs.DirEntry, error),
+	readFile func(name string) ([]byte, error),
+) (map[string]string, error) {
 	protoMap := map[string]string{}
 
 	var processFiles func(string) error
-	processFiles = func(path string) error {
-		protoFiles, err := proto.Proto.ReadDir(path)
+	processFiles = func(p string) error {
+		protoFiles, err := readDir(p)
 		if err != nil {
 			return errors.Wrapf(err, "error reading proto directory")
 		}
 
 		for _, protoFile := range protoFiles {
-			fullPath := filepath.Join(path, protoFile.Name())
+			fullPath := filepath.Join(p, protoFile.Name())
 
 			if protoFile.IsDir() {
-				if err := processFiles(fullPath); err != nil {
+				if err := processFiles(p); err != nil {
 					return err
 				}
 			} else if strings.HasSuffix(protoFile.Name(), ".proto") {
-				content, err := proto.Proto.ReadFile(fullPath)
+				content, err := readFile(fullPath)
 				if err != nil {
 					return errors.Wrapf(err, "error reading file %s", fullPath)
 				}
@@ -86,7 +77,7 @@ func protoflowProtoMap() (map[string]string, error) {
 		return nil
 	}
 
-	err := processFiles(".")
+	err := processFiles(dir)
 	if err != nil {
 		return nil, err
 	}
@@ -102,7 +93,7 @@ func ParseProto(file string) ([]*desc.FileDescriptor, error) {
 	// split filename from path
 	_, filename := path.Split(file)
 
-	protoMap, err := protoflowProtoMap()
+	protoMap, err := protoflowProtoMap(".", proto.Proto.ReadDir, proto.Proto.ReadFile)
 	if err != nil {
 		return nil, errors.Wrapf(err, "error reading proto directory")
 	}

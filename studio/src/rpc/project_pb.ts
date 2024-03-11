@@ -597,9 +597,14 @@ export class GRPCTypeInfo extends Message<GRPCTypeInfo> {
  */
 export class GenerateAIStubRequest extends Message<GenerateAIStubRequest> {
   /**
-   * @generated from field: string prompt = 1;
+   * @generated from field: string language = 1;
    */
-  prompt = "";
+  language = "";
+
+  /**
+   * @generated from field: string description = 2;
+   */
+  description = "";
 
   constructor(data?: PartialMessage<GenerateAIStubRequest>) {
     super();
@@ -609,7 +614,8 @@ export class GenerateAIStubRequest extends Message<GenerateAIStubRequest> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "project.GenerateAIStubRequest";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "prompt", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 1, name: "language", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "description", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GenerateAIStubRequest {
@@ -626,43 +632,6 @@ export class GenerateAIStubRequest extends Message<GenerateAIStubRequest> {
 
   static equals(a: GenerateAIStubRequest | PlainMessage<GenerateAIStubRequest> | undefined, b: GenerateAIStubRequest | PlainMessage<GenerateAIStubRequest> | undefined): boolean {
     return proto3.util.equals(GenerateAIStubRequest, a, b);
-  }
-}
-
-/**
- * @generated from message project.GenerateAIStubResponse
- */
-export class GenerateAIStubResponse extends Message<GenerateAIStubResponse> {
-  /**
-   * @generated from field: string result = 1;
-   */
-  result = "";
-
-  constructor(data?: PartialMessage<GenerateAIStubResponse>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "project.GenerateAIStubResponse";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "result", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GenerateAIStubResponse {
-    return new GenerateAIStubResponse().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GenerateAIStubResponse {
-    return new GenerateAIStubResponse().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GenerateAIStubResponse {
-    return new GenerateAIStubResponse().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: GenerateAIStubResponse | PlainMessage<GenerateAIStubResponse> | undefined, b: GenerateAIStubResponse | PlainMessage<GenerateAIStubResponse> | undefined): boolean {
-    return proto3.util.equals(GenerateAIStubResponse, a, b);
   }
 }
 

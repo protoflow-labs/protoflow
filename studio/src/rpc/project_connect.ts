@@ -3,8 +3,9 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { AddMethodRequest, AddMethodResponse, CreateProjectRequest, CreateProjectResponse, DeleteProjectRequest, DeleteProjectResponse, ExportProjectRequest, ExportProjectResponse, GenerateAIStubRequest, GenerateAIStubResponse, GetGRPCServerInfoRequest, GetGRPCServerInfoResponse, GetNodeInfoRequest, GetNodeInfoResponse, GetProjectRequest, GetProjectResponse, GetProjectsRequest, GetProjectsResponse, GetProjectTypesRequest, GetProvidersRequest, GetProvidersResponse, GetRunningWorkflowResponse, GetRunningWorkflowsRequest, GetWorkflowRunsRequest, GetWorkflowRunsResponse, LoadProjectRequest, LoadProjectResponse, NewNodeRequest, NewNodeResponse, NodeExecution, ProjectTypes, RunGRPCMethodRequest, RunWorkflowRequest, SaveProjectRequest, SaveProjectResponse, StopWorkflowRequest, StopWorkflowResponse } from "./project_pb.js";
+import { AddMethodRequest, AddMethodResponse, CreateProjectRequest, CreateProjectResponse, DeleteProjectRequest, DeleteProjectResponse, ExportProjectRequest, ExportProjectResponse, GenerateAIStubRequest, GetGRPCServerInfoRequest, GetGRPCServerInfoResponse, GetNodeInfoRequest, GetNodeInfoResponse, GetProjectRequest, GetProjectResponse, GetProjectsRequest, GetProjectsResponse, GetProjectTypesRequest, GetProvidersRequest, GetProvidersResponse, GetRunningWorkflowResponse, GetRunningWorkflowsRequest, GetWorkflowRunsRequest, GetWorkflowRunsResponse, LoadProjectRequest, LoadProjectResponse, NewNodeRequest, NewNodeResponse, NodeExecution, ProjectTypes, RunGRPCMethodRequest, RunWorkflowRequest, SaveProjectRequest, SaveProjectResponse, StopWorkflowRequest, StopWorkflowResponse } from "./project_pb.js";
 import { MethodKind } from "@bufbuild/protobuf";
+import { GenerateCode } from "./ai_pb.js";
 
 /**
  * @generated from service project.ProjectService
@@ -63,7 +64,7 @@ export const ProjectService = {
     generateAIStub: {
       name: "GenerateAIStub",
       I: GenerateAIStubRequest,
-      O: GenerateAIStubResponse,
+      O: GenerateCode,
       kind: MethodKind.Unary,
     },
     /**
