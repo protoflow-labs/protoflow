@@ -46,7 +46,7 @@ func AllMethodsForServer(svr *grpc.Server) ([]*desc.MethodDescriptor, error) {
 // reflection.)
 // This automatically skips the reflection service, since it is assumed this is not
 // a desired inclusion.
-func allMethodsViaReflection(ctx context.Context, cc grpc.ClientConnInterface) ([]*desc.MethodDescriptor, error) {
+func allMethodsViaReflection(ctx context.Context, cc grpc.ClientConnInterface) ([]*desc.ServiceDescriptor, error) {
 	stub := rpb.NewServerReflectionClient(cc)
 	cli := grpcreflect.NewClientV1Alpha(ctx, stub)
 	svcNames, err := cli.ListServices()
@@ -64,7 +64,7 @@ func allMethodsViaReflection(ctx context.Context, cc grpc.ClientConnInterface) (
 		}
 		descs = append(descs, sd)
 	}
-	return AllMethodsForServices(descs), nil
+	return descs, nil
 }
 
 // AllMethodsViaInProcess returns a slice that contains the method descriptors

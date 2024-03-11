@@ -33,25 +33,9 @@ const (
 // reflection-formatted method names, remove the leading slash and convert the remaining slash to a
 // period.
 const (
-	// ProjectServiceNewNodeProcedure is the fully-qualified name of the ProjectService's NewNode RPC.
-	ProjectServiceNewNodeProcedure = "/project.ProjectService/NewNode"
-	// ProjectServiceGetProjectTypesProcedure is the fully-qualified name of the ProjectService's
-	// GetProjectTypes RPC.
-	ProjectServiceGetProjectTypesProcedure = "/project.ProjectService/GetProjectTypes"
-	// ProjectServiceSendChatProcedure is the fully-qualified name of the ProjectService's SendChat RPC.
-	ProjectServiceSendChatProcedure = "/project.ProjectService/SendChat"
-	// ProjectServiceExportProjectProcedure is the fully-qualified name of the ProjectService's
-	// ExportProject RPC.
-	ProjectServiceExportProjectProcedure = "/project.ProjectService/ExportProject"
-	// ProjectServiceLoadProjectProcedure is the fully-qualified name of the ProjectService's
-	// LoadProject RPC.
-	ProjectServiceLoadProjectProcedure = "/project.ProjectService/LoadProject"
-	// ProjectServiceGetProjectProcedure is the fully-qualified name of the ProjectService's GetProject
+	// ProjectServiceAddMethodProcedure is the fully-qualified name of the ProjectService's AddMethod
 	// RPC.
-	ProjectServiceGetProjectProcedure = "/project.ProjectService/GetProject"
-	// ProjectServiceGetProjectsProcedure is the fully-qualified name of the ProjectService's
-	// GetProjects RPC.
-	ProjectServiceGetProjectsProcedure = "/project.ProjectService/GetProjects"
+	ProjectServiceAddMethodProcedure = "/project.ProjectService/AddMethod"
 	// ProjectServiceCreateProjectProcedure is the fully-qualified name of the ProjectService's
 	// CreateProject RPC.
 	ProjectServiceCreateProjectProcedure = "/project.ProjectService/CreateProject"
@@ -61,46 +45,73 @@ const (
 	// ProjectServiceEnumerateProvidersProcedure is the fully-qualified name of the ProjectService's
 	// EnumerateProviders RPC.
 	ProjectServiceEnumerateProvidersProcedure = "/project.ProjectService/EnumerateProviders"
+	// ProjectServiceExportProjectProcedure is the fully-qualified name of the ProjectService's
+	// ExportProject RPC.
+	ProjectServiceExportProjectProcedure = "/project.ProjectService/ExportProject"
+	// ProjectServiceGenerateAIStubProcedure is the fully-qualified name of the ProjectService's
+	// GenerateAIStub RPC.
+	ProjectServiceGenerateAIStubProcedure = "/project.ProjectService/GenerateAIStub"
+	// ProjectServiceGetGRPCServerInfoProcedure is the fully-qualified name of the ProjectService's
+	// GetGRPCServerInfo RPC.
+	ProjectServiceGetGRPCServerInfoProcedure = "/project.ProjectService/GetGRPCServerInfo"
 	// ProjectServiceGetNodeInfoProcedure is the fully-qualified name of the ProjectService's
 	// GetNodeInfo RPC.
 	ProjectServiceGetNodeInfoProcedure = "/project.ProjectService/GetNodeInfo"
-	// ProjectServiceSaveProjectProcedure is the fully-qualified name of the ProjectService's
-	// SaveProject RPC.
-	ProjectServiceSaveProjectProcedure = "/project.ProjectService/SaveProject"
-	// ProjectServiceRunWorkflowProcedure is the fully-qualified name of the ProjectService's
-	// RunWorkflow RPC.
-	ProjectServiceRunWorkflowProcedure = "/project.ProjectService/RunWorkflow"
-	// ProjectServiceStopWorkflowProcedure is the fully-qualified name of the ProjectService's
-	// StopWorkflow RPC.
-	ProjectServiceStopWorkflowProcedure = "/project.ProjectService/StopWorkflow"
-	// ProjectServiceGetWorkflowRunsProcedure is the fully-qualified name of the ProjectService's
-	// GetWorkflowRuns RPC.
-	ProjectServiceGetWorkflowRunsProcedure = "/project.ProjectService/GetWorkflowRuns"
+	// ProjectServiceGetProjectProcedure is the fully-qualified name of the ProjectService's GetProject
+	// RPC.
+	ProjectServiceGetProjectProcedure = "/project.ProjectService/GetProject"
+	// ProjectServiceGetProjectTypesProcedure is the fully-qualified name of the ProjectService's
+	// GetProjectTypes RPC.
+	ProjectServiceGetProjectTypesProcedure = "/project.ProjectService/GetProjectTypes"
+	// ProjectServiceGetProjectsProcedure is the fully-qualified name of the ProjectService's
+	// GetProjects RPC.
+	ProjectServiceGetProjectsProcedure = "/project.ProjectService/GetProjects"
 	// ProjectServiceGetRunningWorkflowsProcedure is the fully-qualified name of the ProjectService's
 	// GetRunningWorkflows RPC.
 	ProjectServiceGetRunningWorkflowsProcedure = "/project.ProjectService/GetRunningWorkflows"
+	// ProjectServiceGetWorkflowRunsProcedure is the fully-qualified name of the ProjectService's
+	// GetWorkflowRuns RPC.
+	ProjectServiceGetWorkflowRunsProcedure = "/project.ProjectService/GetWorkflowRuns"
+	// ProjectServiceLoadProjectProcedure is the fully-qualified name of the ProjectService's
+	// LoadProject RPC.
+	ProjectServiceLoadProjectProcedure = "/project.ProjectService/LoadProject"
+	// ProjectServiceNewNodeProcedure is the fully-qualified name of the ProjectService's NewNode RPC.
+	ProjectServiceNewNodeProcedure = "/project.ProjectService/NewNode"
+	// ProjectServiceRunGRPCMethodProcedure is the fully-qualified name of the ProjectService's
+	// RunGRPCMethod RPC.
+	ProjectServiceRunGRPCMethodProcedure = "/project.ProjectService/RunGRPCMethod"
+	// ProjectServiceRunWorkflowProcedure is the fully-qualified name of the ProjectService's
+	// RunWorkflow RPC.
+	ProjectServiceRunWorkflowProcedure = "/project.ProjectService/RunWorkflow"
+	// ProjectServiceSaveProjectProcedure is the fully-qualified name of the ProjectService's
+	// SaveProject RPC.
+	ProjectServiceSaveProjectProcedure = "/project.ProjectService/SaveProject"
+	// ProjectServiceStopWorkflowProcedure is the fully-qualified name of the ProjectService's
+	// StopWorkflow RPC.
+	ProjectServiceStopWorkflowProcedure = "/project.ProjectService/StopWorkflow"
 )
 
 // ProjectServiceClient is a client for the project.ProjectService service.
 type ProjectServiceClient interface {
-	NewNode(context.Context, *connect_go.Request[gen.NewNodeRequest]) (*connect_go.Response[gen.NewNodeResponse], error)
-	GetProjectTypes(context.Context, *connect_go.Request[gen.GetProjectTypesRequest]) (*connect_go.Response[gen.ProjectTypes], error)
-	// TODO breadchris unfortunately this is needed because of the buf fetch transport not supporting streaming
-	// the suggestion is to build a custom transport that uses websockets https://github.com/bufbuild/connect-es/issues/366
-	SendChat(context.Context, *connect_go.Request[gen.SendChatRequest]) (*connect_go.ServerStreamForClient[gen.SendChatResponse], error)
-	ExportProject(context.Context, *connect_go.Request[gen.ExportProjectRequest]) (*connect_go.Response[gen.ExportProjectResponse], error)
-	LoadProject(context.Context, *connect_go.Request[gen.LoadProjectRequest]) (*connect_go.Response[gen.LoadProjectResponse], error)
-	GetProject(context.Context, *connect_go.Request[gen.GetProjectRequest]) (*connect_go.Response[gen.GetProjectResponse], error)
-	GetProjects(context.Context, *connect_go.Request[gen.GetProjectsRequest]) (*connect_go.Response[gen.GetProjectsResponse], error)
+	AddMethod(context.Context, *connect_go.Request[gen.AddMethodRequest]) (*connect_go.Response[gen.AddMethodResponse], error)
 	CreateProject(context.Context, *connect_go.Request[gen.CreateProjectRequest]) (*connect_go.Response[gen.CreateProjectResponse], error)
 	DeleteProject(context.Context, *connect_go.Request[gen.DeleteProjectRequest]) (*connect_go.Response[gen.DeleteProjectResponse], error)
 	EnumerateProviders(context.Context, *connect_go.Request[gen.GetProvidersRequest]) (*connect_go.Response[gen.GetProvidersResponse], error)
+	ExportProject(context.Context, *connect_go.Request[gen.ExportProjectRequest]) (*connect_go.Response[gen.ExportProjectResponse], error)
+	GenerateAIStub(context.Context, *connect_go.Request[gen.GenerateAIStubRequest]) (*connect_go.Response[gen.GenerateCode], error)
+	GetGRPCServerInfo(context.Context, *connect_go.Request[gen.GetGRPCServerInfoRequest]) (*connect_go.Response[gen.GetGRPCServerInfoResponse], error)
 	GetNodeInfo(context.Context, *connect_go.Request[gen.GetNodeInfoRequest]) (*connect_go.Response[gen.GetNodeInfoResponse], error)
-	SaveProject(context.Context, *connect_go.Request[gen.SaveProjectRequest]) (*connect_go.Response[gen.SaveProjectResponse], error)
-	RunWorkflow(context.Context, *connect_go.Request[gen.RunWorkflowRequest]) (*connect_go.ServerStreamForClient[gen.NodeExecution], error)
-	StopWorkflow(context.Context, *connect_go.Request[gen.StopWorkflowRequest]) (*connect_go.Response[gen.StopWorkflowResponse], error)
-	GetWorkflowRuns(context.Context, *connect_go.Request[gen.GetWorkflowRunsRequest]) (*connect_go.Response[gen.GetWorkflowRunsResponse], error)
+	GetProject(context.Context, *connect_go.Request[gen.GetProjectRequest]) (*connect_go.Response[gen.GetProjectResponse], error)
+	GetProjectTypes(context.Context, *connect_go.Request[gen.GetProjectTypesRequest]) (*connect_go.Response[gen.ProjectTypes], error)
+	GetProjects(context.Context, *connect_go.Request[gen.GetProjectsRequest]) (*connect_go.Response[gen.GetProjectsResponse], error)
 	GetRunningWorkflows(context.Context, *connect_go.Request[gen.GetRunningWorkflowsRequest]) (*connect_go.Response[gen.GetRunningWorkflowResponse], error)
+	GetWorkflowRuns(context.Context, *connect_go.Request[gen.GetWorkflowRunsRequest]) (*connect_go.Response[gen.GetWorkflowRunsResponse], error)
+	LoadProject(context.Context, *connect_go.Request[gen.LoadProjectRequest]) (*connect_go.Response[gen.LoadProjectResponse], error)
+	NewNode(context.Context, *connect_go.Request[gen.NewNodeRequest]) (*connect_go.Response[gen.NewNodeResponse], error)
+	RunGRPCMethod(context.Context, *connect_go.Request[gen.RunGRPCMethodRequest]) (*connect_go.ServerStreamForClient[gen.NodeExecution], error)
+	RunWorkflow(context.Context, *connect_go.Request[gen.RunWorkflowRequest]) (*connect_go.ServerStreamForClient[gen.NodeExecution], error)
+	SaveProject(context.Context, *connect_go.Request[gen.SaveProjectRequest]) (*connect_go.Response[gen.SaveProjectResponse], error)
+	StopWorkflow(context.Context, *connect_go.Request[gen.StopWorkflowRequest]) (*connect_go.Response[gen.StopWorkflowResponse], error)
 }
 
 // NewProjectServiceClient constructs a client for the project.ProjectService service. By default,
@@ -113,39 +124,9 @@ type ProjectServiceClient interface {
 func NewProjectServiceClient(httpClient connect_go.HTTPClient, baseURL string, opts ...connect_go.ClientOption) ProjectServiceClient {
 	baseURL = strings.TrimRight(baseURL, "/")
 	return &projectServiceClient{
-		newNode: connect_go.NewClient[gen.NewNodeRequest, gen.NewNodeResponse](
+		addMethod: connect_go.NewClient[gen.AddMethodRequest, gen.AddMethodResponse](
 			httpClient,
-			baseURL+ProjectServiceNewNodeProcedure,
-			opts...,
-		),
-		getProjectTypes: connect_go.NewClient[gen.GetProjectTypesRequest, gen.ProjectTypes](
-			httpClient,
-			baseURL+ProjectServiceGetProjectTypesProcedure,
-			opts...,
-		),
-		sendChat: connect_go.NewClient[gen.SendChatRequest, gen.SendChatResponse](
-			httpClient,
-			baseURL+ProjectServiceSendChatProcedure,
-			opts...,
-		),
-		exportProject: connect_go.NewClient[gen.ExportProjectRequest, gen.ExportProjectResponse](
-			httpClient,
-			baseURL+ProjectServiceExportProjectProcedure,
-			opts...,
-		),
-		loadProject: connect_go.NewClient[gen.LoadProjectRequest, gen.LoadProjectResponse](
-			httpClient,
-			baseURL+ProjectServiceLoadProjectProcedure,
-			opts...,
-		),
-		getProject: connect_go.NewClient[gen.GetProjectRequest, gen.GetProjectResponse](
-			httpClient,
-			baseURL+ProjectServiceGetProjectProcedure,
-			opts...,
-		),
-		getProjects: connect_go.NewClient[gen.GetProjectsRequest, gen.GetProjectsResponse](
-			httpClient,
-			baseURL+ProjectServiceGetProjectsProcedure,
+			baseURL+ProjectServiceAddMethodProcedure,
 			opts...,
 		),
 		createProject: connect_go.NewClient[gen.CreateProjectRequest, gen.CreateProjectResponse](
@@ -163,29 +144,39 @@ func NewProjectServiceClient(httpClient connect_go.HTTPClient, baseURL string, o
 			baseURL+ProjectServiceEnumerateProvidersProcedure,
 			opts...,
 		),
+		exportProject: connect_go.NewClient[gen.ExportProjectRequest, gen.ExportProjectResponse](
+			httpClient,
+			baseURL+ProjectServiceExportProjectProcedure,
+			opts...,
+		),
+		generateAIStub: connect_go.NewClient[gen.GenerateAIStubRequest, gen.GenerateCode](
+			httpClient,
+			baseURL+ProjectServiceGenerateAIStubProcedure,
+			opts...,
+		),
+		getGRPCServerInfo: connect_go.NewClient[gen.GetGRPCServerInfoRequest, gen.GetGRPCServerInfoResponse](
+			httpClient,
+			baseURL+ProjectServiceGetGRPCServerInfoProcedure,
+			opts...,
+		),
 		getNodeInfo: connect_go.NewClient[gen.GetNodeInfoRequest, gen.GetNodeInfoResponse](
 			httpClient,
 			baseURL+ProjectServiceGetNodeInfoProcedure,
 			opts...,
 		),
-		saveProject: connect_go.NewClient[gen.SaveProjectRequest, gen.SaveProjectResponse](
+		getProject: connect_go.NewClient[gen.GetProjectRequest, gen.GetProjectResponse](
 			httpClient,
-			baseURL+ProjectServiceSaveProjectProcedure,
+			baseURL+ProjectServiceGetProjectProcedure,
 			opts...,
 		),
-		runWorkflow: connect_go.NewClient[gen.RunWorkflowRequest, gen.NodeExecution](
+		getProjectTypes: connect_go.NewClient[gen.GetProjectTypesRequest, gen.ProjectTypes](
 			httpClient,
-			baseURL+ProjectServiceRunWorkflowProcedure,
+			baseURL+ProjectServiceGetProjectTypesProcedure,
 			opts...,
 		),
-		stopWorkflow: connect_go.NewClient[gen.StopWorkflowRequest, gen.StopWorkflowResponse](
+		getProjects: connect_go.NewClient[gen.GetProjectsRequest, gen.GetProjectsResponse](
 			httpClient,
-			baseURL+ProjectServiceStopWorkflowProcedure,
-			opts...,
-		),
-		getWorkflowRuns: connect_go.NewClient[gen.GetWorkflowRunsRequest, gen.GetWorkflowRunsResponse](
-			httpClient,
-			baseURL+ProjectServiceGetWorkflowRunsProcedure,
+			baseURL+ProjectServiceGetProjectsProcedure,
 			opts...,
 		),
 		getRunningWorkflows: connect_go.NewClient[gen.GetRunningWorkflowsRequest, gen.GetRunningWorkflowResponse](
@@ -193,62 +184,70 @@ func NewProjectServiceClient(httpClient connect_go.HTTPClient, baseURL string, o
 			baseURL+ProjectServiceGetRunningWorkflowsProcedure,
 			opts...,
 		),
+		getWorkflowRuns: connect_go.NewClient[gen.GetWorkflowRunsRequest, gen.GetWorkflowRunsResponse](
+			httpClient,
+			baseURL+ProjectServiceGetWorkflowRunsProcedure,
+			opts...,
+		),
+		loadProject: connect_go.NewClient[gen.LoadProjectRequest, gen.LoadProjectResponse](
+			httpClient,
+			baseURL+ProjectServiceLoadProjectProcedure,
+			opts...,
+		),
+		newNode: connect_go.NewClient[gen.NewNodeRequest, gen.NewNodeResponse](
+			httpClient,
+			baseURL+ProjectServiceNewNodeProcedure,
+			opts...,
+		),
+		runGRPCMethod: connect_go.NewClient[gen.RunGRPCMethodRequest, gen.NodeExecution](
+			httpClient,
+			baseURL+ProjectServiceRunGRPCMethodProcedure,
+			opts...,
+		),
+		runWorkflow: connect_go.NewClient[gen.RunWorkflowRequest, gen.NodeExecution](
+			httpClient,
+			baseURL+ProjectServiceRunWorkflowProcedure,
+			opts...,
+		),
+		saveProject: connect_go.NewClient[gen.SaveProjectRequest, gen.SaveProjectResponse](
+			httpClient,
+			baseURL+ProjectServiceSaveProjectProcedure,
+			opts...,
+		),
+		stopWorkflow: connect_go.NewClient[gen.StopWorkflowRequest, gen.StopWorkflowResponse](
+			httpClient,
+			baseURL+ProjectServiceStopWorkflowProcedure,
+			opts...,
+		),
 	}
 }
 
 // projectServiceClient implements ProjectServiceClient.
 type projectServiceClient struct {
-	newNode             *connect_go.Client[gen.NewNodeRequest, gen.NewNodeResponse]
-	getProjectTypes     *connect_go.Client[gen.GetProjectTypesRequest, gen.ProjectTypes]
-	sendChat            *connect_go.Client[gen.SendChatRequest, gen.SendChatResponse]
-	exportProject       *connect_go.Client[gen.ExportProjectRequest, gen.ExportProjectResponse]
-	loadProject         *connect_go.Client[gen.LoadProjectRequest, gen.LoadProjectResponse]
-	getProject          *connect_go.Client[gen.GetProjectRequest, gen.GetProjectResponse]
-	getProjects         *connect_go.Client[gen.GetProjectsRequest, gen.GetProjectsResponse]
+	addMethod           *connect_go.Client[gen.AddMethodRequest, gen.AddMethodResponse]
 	createProject       *connect_go.Client[gen.CreateProjectRequest, gen.CreateProjectResponse]
 	deleteProject       *connect_go.Client[gen.DeleteProjectRequest, gen.DeleteProjectResponse]
 	enumerateProviders  *connect_go.Client[gen.GetProvidersRequest, gen.GetProvidersResponse]
+	exportProject       *connect_go.Client[gen.ExportProjectRequest, gen.ExportProjectResponse]
+	generateAIStub      *connect_go.Client[gen.GenerateAIStubRequest, gen.GenerateCode]
+	getGRPCServerInfo   *connect_go.Client[gen.GetGRPCServerInfoRequest, gen.GetGRPCServerInfoResponse]
 	getNodeInfo         *connect_go.Client[gen.GetNodeInfoRequest, gen.GetNodeInfoResponse]
-	saveProject         *connect_go.Client[gen.SaveProjectRequest, gen.SaveProjectResponse]
-	runWorkflow         *connect_go.Client[gen.RunWorkflowRequest, gen.NodeExecution]
-	stopWorkflow        *connect_go.Client[gen.StopWorkflowRequest, gen.StopWorkflowResponse]
-	getWorkflowRuns     *connect_go.Client[gen.GetWorkflowRunsRequest, gen.GetWorkflowRunsResponse]
+	getProject          *connect_go.Client[gen.GetProjectRequest, gen.GetProjectResponse]
+	getProjectTypes     *connect_go.Client[gen.GetProjectTypesRequest, gen.ProjectTypes]
+	getProjects         *connect_go.Client[gen.GetProjectsRequest, gen.GetProjectsResponse]
 	getRunningWorkflows *connect_go.Client[gen.GetRunningWorkflowsRequest, gen.GetRunningWorkflowResponse]
+	getWorkflowRuns     *connect_go.Client[gen.GetWorkflowRunsRequest, gen.GetWorkflowRunsResponse]
+	loadProject         *connect_go.Client[gen.LoadProjectRequest, gen.LoadProjectResponse]
+	newNode             *connect_go.Client[gen.NewNodeRequest, gen.NewNodeResponse]
+	runGRPCMethod       *connect_go.Client[gen.RunGRPCMethodRequest, gen.NodeExecution]
+	runWorkflow         *connect_go.Client[gen.RunWorkflowRequest, gen.NodeExecution]
+	saveProject         *connect_go.Client[gen.SaveProjectRequest, gen.SaveProjectResponse]
+	stopWorkflow        *connect_go.Client[gen.StopWorkflowRequest, gen.StopWorkflowResponse]
 }
 
-// NewNode calls project.ProjectService.NewNode.
-func (c *projectServiceClient) NewNode(ctx context.Context, req *connect_go.Request[gen.NewNodeRequest]) (*connect_go.Response[gen.NewNodeResponse], error) {
-	return c.newNode.CallUnary(ctx, req)
-}
-
-// GetProjectTypes calls project.ProjectService.GetProjectTypes.
-func (c *projectServiceClient) GetProjectTypes(ctx context.Context, req *connect_go.Request[gen.GetProjectTypesRequest]) (*connect_go.Response[gen.ProjectTypes], error) {
-	return c.getProjectTypes.CallUnary(ctx, req)
-}
-
-// SendChat calls project.ProjectService.SendChat.
-func (c *projectServiceClient) SendChat(ctx context.Context, req *connect_go.Request[gen.SendChatRequest]) (*connect_go.ServerStreamForClient[gen.SendChatResponse], error) {
-	return c.sendChat.CallServerStream(ctx, req)
-}
-
-// ExportProject calls project.ProjectService.ExportProject.
-func (c *projectServiceClient) ExportProject(ctx context.Context, req *connect_go.Request[gen.ExportProjectRequest]) (*connect_go.Response[gen.ExportProjectResponse], error) {
-	return c.exportProject.CallUnary(ctx, req)
-}
-
-// LoadProject calls project.ProjectService.LoadProject.
-func (c *projectServiceClient) LoadProject(ctx context.Context, req *connect_go.Request[gen.LoadProjectRequest]) (*connect_go.Response[gen.LoadProjectResponse], error) {
-	return c.loadProject.CallUnary(ctx, req)
-}
-
-// GetProject calls project.ProjectService.GetProject.
-func (c *projectServiceClient) GetProject(ctx context.Context, req *connect_go.Request[gen.GetProjectRequest]) (*connect_go.Response[gen.GetProjectResponse], error) {
-	return c.getProject.CallUnary(ctx, req)
-}
-
-// GetProjects calls project.ProjectService.GetProjects.
-func (c *projectServiceClient) GetProjects(ctx context.Context, req *connect_go.Request[gen.GetProjectsRequest]) (*connect_go.Response[gen.GetProjectsResponse], error) {
-	return c.getProjects.CallUnary(ctx, req)
+// AddMethod calls project.ProjectService.AddMethod.
+func (c *projectServiceClient) AddMethod(ctx context.Context, req *connect_go.Request[gen.AddMethodRequest]) (*connect_go.Response[gen.AddMethodResponse], error) {
+	return c.addMethod.CallUnary(ctx, req)
 }
 
 // CreateProject calls project.ProjectService.CreateProject.
@@ -266,29 +265,39 @@ func (c *projectServiceClient) EnumerateProviders(ctx context.Context, req *conn
 	return c.enumerateProviders.CallUnary(ctx, req)
 }
 
+// ExportProject calls project.ProjectService.ExportProject.
+func (c *projectServiceClient) ExportProject(ctx context.Context, req *connect_go.Request[gen.ExportProjectRequest]) (*connect_go.Response[gen.ExportProjectResponse], error) {
+	return c.exportProject.CallUnary(ctx, req)
+}
+
+// GenerateAIStub calls project.ProjectService.GenerateAIStub.
+func (c *projectServiceClient) GenerateAIStub(ctx context.Context, req *connect_go.Request[gen.GenerateAIStubRequest]) (*connect_go.Response[gen.GenerateCode], error) {
+	return c.generateAIStub.CallUnary(ctx, req)
+}
+
+// GetGRPCServerInfo calls project.ProjectService.GetGRPCServerInfo.
+func (c *projectServiceClient) GetGRPCServerInfo(ctx context.Context, req *connect_go.Request[gen.GetGRPCServerInfoRequest]) (*connect_go.Response[gen.GetGRPCServerInfoResponse], error) {
+	return c.getGRPCServerInfo.CallUnary(ctx, req)
+}
+
 // GetNodeInfo calls project.ProjectService.GetNodeInfo.
 func (c *projectServiceClient) GetNodeInfo(ctx context.Context, req *connect_go.Request[gen.GetNodeInfoRequest]) (*connect_go.Response[gen.GetNodeInfoResponse], error) {
 	return c.getNodeInfo.CallUnary(ctx, req)
 }
 
-// SaveProject calls project.ProjectService.SaveProject.
-func (c *projectServiceClient) SaveProject(ctx context.Context, req *connect_go.Request[gen.SaveProjectRequest]) (*connect_go.Response[gen.SaveProjectResponse], error) {
-	return c.saveProject.CallUnary(ctx, req)
+// GetProject calls project.ProjectService.GetProject.
+func (c *projectServiceClient) GetProject(ctx context.Context, req *connect_go.Request[gen.GetProjectRequest]) (*connect_go.Response[gen.GetProjectResponse], error) {
+	return c.getProject.CallUnary(ctx, req)
 }
 
-// RunWorkflow calls project.ProjectService.RunWorkflow.
-func (c *projectServiceClient) RunWorkflow(ctx context.Context, req *connect_go.Request[gen.RunWorkflowRequest]) (*connect_go.ServerStreamForClient[gen.NodeExecution], error) {
-	return c.runWorkflow.CallServerStream(ctx, req)
+// GetProjectTypes calls project.ProjectService.GetProjectTypes.
+func (c *projectServiceClient) GetProjectTypes(ctx context.Context, req *connect_go.Request[gen.GetProjectTypesRequest]) (*connect_go.Response[gen.ProjectTypes], error) {
+	return c.getProjectTypes.CallUnary(ctx, req)
 }
 
-// StopWorkflow calls project.ProjectService.StopWorkflow.
-func (c *projectServiceClient) StopWorkflow(ctx context.Context, req *connect_go.Request[gen.StopWorkflowRequest]) (*connect_go.Response[gen.StopWorkflowResponse], error) {
-	return c.stopWorkflow.CallUnary(ctx, req)
-}
-
-// GetWorkflowRuns calls project.ProjectService.GetWorkflowRuns.
-func (c *projectServiceClient) GetWorkflowRuns(ctx context.Context, req *connect_go.Request[gen.GetWorkflowRunsRequest]) (*connect_go.Response[gen.GetWorkflowRunsResponse], error) {
-	return c.getWorkflowRuns.CallUnary(ctx, req)
+// GetProjects calls project.ProjectService.GetProjects.
+func (c *projectServiceClient) GetProjects(ctx context.Context, req *connect_go.Request[gen.GetProjectsRequest]) (*connect_go.Response[gen.GetProjectsResponse], error) {
+	return c.getProjects.CallUnary(ctx, req)
 }
 
 // GetRunningWorkflows calls project.ProjectService.GetRunningWorkflows.
@@ -296,26 +305,62 @@ func (c *projectServiceClient) GetRunningWorkflows(ctx context.Context, req *con
 	return c.getRunningWorkflows.CallUnary(ctx, req)
 }
 
+// GetWorkflowRuns calls project.ProjectService.GetWorkflowRuns.
+func (c *projectServiceClient) GetWorkflowRuns(ctx context.Context, req *connect_go.Request[gen.GetWorkflowRunsRequest]) (*connect_go.Response[gen.GetWorkflowRunsResponse], error) {
+	return c.getWorkflowRuns.CallUnary(ctx, req)
+}
+
+// LoadProject calls project.ProjectService.LoadProject.
+func (c *projectServiceClient) LoadProject(ctx context.Context, req *connect_go.Request[gen.LoadProjectRequest]) (*connect_go.Response[gen.LoadProjectResponse], error) {
+	return c.loadProject.CallUnary(ctx, req)
+}
+
+// NewNode calls project.ProjectService.NewNode.
+func (c *projectServiceClient) NewNode(ctx context.Context, req *connect_go.Request[gen.NewNodeRequest]) (*connect_go.Response[gen.NewNodeResponse], error) {
+	return c.newNode.CallUnary(ctx, req)
+}
+
+// RunGRPCMethod calls project.ProjectService.RunGRPCMethod.
+func (c *projectServiceClient) RunGRPCMethod(ctx context.Context, req *connect_go.Request[gen.RunGRPCMethodRequest]) (*connect_go.ServerStreamForClient[gen.NodeExecution], error) {
+	return c.runGRPCMethod.CallServerStream(ctx, req)
+}
+
+// RunWorkflow calls project.ProjectService.RunWorkflow.
+func (c *projectServiceClient) RunWorkflow(ctx context.Context, req *connect_go.Request[gen.RunWorkflowRequest]) (*connect_go.ServerStreamForClient[gen.NodeExecution], error) {
+	return c.runWorkflow.CallServerStream(ctx, req)
+}
+
+// SaveProject calls project.ProjectService.SaveProject.
+func (c *projectServiceClient) SaveProject(ctx context.Context, req *connect_go.Request[gen.SaveProjectRequest]) (*connect_go.Response[gen.SaveProjectResponse], error) {
+	return c.saveProject.CallUnary(ctx, req)
+}
+
+// StopWorkflow calls project.ProjectService.StopWorkflow.
+func (c *projectServiceClient) StopWorkflow(ctx context.Context, req *connect_go.Request[gen.StopWorkflowRequest]) (*connect_go.Response[gen.StopWorkflowResponse], error) {
+	return c.stopWorkflow.CallUnary(ctx, req)
+}
+
 // ProjectServiceHandler is an implementation of the project.ProjectService service.
 type ProjectServiceHandler interface {
-	NewNode(context.Context, *connect_go.Request[gen.NewNodeRequest]) (*connect_go.Response[gen.NewNodeResponse], error)
-	GetProjectTypes(context.Context, *connect_go.Request[gen.GetProjectTypesRequest]) (*connect_go.Response[gen.ProjectTypes], error)
-	// TODO breadchris unfortunately this is needed because of the buf fetch transport not supporting streaming
-	// the suggestion is to build a custom transport that uses websockets https://github.com/bufbuild/connect-es/issues/366
-	SendChat(context.Context, *connect_go.Request[gen.SendChatRequest], *connect_go.ServerStream[gen.SendChatResponse]) error
-	ExportProject(context.Context, *connect_go.Request[gen.ExportProjectRequest]) (*connect_go.Response[gen.ExportProjectResponse], error)
-	LoadProject(context.Context, *connect_go.Request[gen.LoadProjectRequest]) (*connect_go.Response[gen.LoadProjectResponse], error)
-	GetProject(context.Context, *connect_go.Request[gen.GetProjectRequest]) (*connect_go.Response[gen.GetProjectResponse], error)
-	GetProjects(context.Context, *connect_go.Request[gen.GetProjectsRequest]) (*connect_go.Response[gen.GetProjectsResponse], error)
+	AddMethod(context.Context, *connect_go.Request[gen.AddMethodRequest]) (*connect_go.Response[gen.AddMethodResponse], error)
 	CreateProject(context.Context, *connect_go.Request[gen.CreateProjectRequest]) (*connect_go.Response[gen.CreateProjectResponse], error)
 	DeleteProject(context.Context, *connect_go.Request[gen.DeleteProjectRequest]) (*connect_go.Response[gen.DeleteProjectResponse], error)
 	EnumerateProviders(context.Context, *connect_go.Request[gen.GetProvidersRequest]) (*connect_go.Response[gen.GetProvidersResponse], error)
+	ExportProject(context.Context, *connect_go.Request[gen.ExportProjectRequest]) (*connect_go.Response[gen.ExportProjectResponse], error)
+	GenerateAIStub(context.Context, *connect_go.Request[gen.GenerateAIStubRequest]) (*connect_go.Response[gen.GenerateCode], error)
+	GetGRPCServerInfo(context.Context, *connect_go.Request[gen.GetGRPCServerInfoRequest]) (*connect_go.Response[gen.GetGRPCServerInfoResponse], error)
 	GetNodeInfo(context.Context, *connect_go.Request[gen.GetNodeInfoRequest]) (*connect_go.Response[gen.GetNodeInfoResponse], error)
-	SaveProject(context.Context, *connect_go.Request[gen.SaveProjectRequest]) (*connect_go.Response[gen.SaveProjectResponse], error)
-	RunWorkflow(context.Context, *connect_go.Request[gen.RunWorkflowRequest], *connect_go.ServerStream[gen.NodeExecution]) error
-	StopWorkflow(context.Context, *connect_go.Request[gen.StopWorkflowRequest]) (*connect_go.Response[gen.StopWorkflowResponse], error)
-	GetWorkflowRuns(context.Context, *connect_go.Request[gen.GetWorkflowRunsRequest]) (*connect_go.Response[gen.GetWorkflowRunsResponse], error)
+	GetProject(context.Context, *connect_go.Request[gen.GetProjectRequest]) (*connect_go.Response[gen.GetProjectResponse], error)
+	GetProjectTypes(context.Context, *connect_go.Request[gen.GetProjectTypesRequest]) (*connect_go.Response[gen.ProjectTypes], error)
+	GetProjects(context.Context, *connect_go.Request[gen.GetProjectsRequest]) (*connect_go.Response[gen.GetProjectsResponse], error)
 	GetRunningWorkflows(context.Context, *connect_go.Request[gen.GetRunningWorkflowsRequest]) (*connect_go.Response[gen.GetRunningWorkflowResponse], error)
+	GetWorkflowRuns(context.Context, *connect_go.Request[gen.GetWorkflowRunsRequest]) (*connect_go.Response[gen.GetWorkflowRunsResponse], error)
+	LoadProject(context.Context, *connect_go.Request[gen.LoadProjectRequest]) (*connect_go.Response[gen.LoadProjectResponse], error)
+	NewNode(context.Context, *connect_go.Request[gen.NewNodeRequest]) (*connect_go.Response[gen.NewNodeResponse], error)
+	RunGRPCMethod(context.Context, *connect_go.Request[gen.RunGRPCMethodRequest], *connect_go.ServerStream[gen.NodeExecution]) error
+	RunWorkflow(context.Context, *connect_go.Request[gen.RunWorkflowRequest], *connect_go.ServerStream[gen.NodeExecution]) error
+	SaveProject(context.Context, *connect_go.Request[gen.SaveProjectRequest]) (*connect_go.Response[gen.SaveProjectResponse], error)
+	StopWorkflow(context.Context, *connect_go.Request[gen.StopWorkflowRequest]) (*connect_go.Response[gen.StopWorkflowResponse], error)
 }
 
 // NewProjectServiceHandler builds an HTTP handler from the service implementation. It returns the
@@ -324,39 +369,9 @@ type ProjectServiceHandler interface {
 // By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
 // and JSON codecs. They also support gzip compression.
 func NewProjectServiceHandler(svc ProjectServiceHandler, opts ...connect_go.HandlerOption) (string, http.Handler) {
-	projectServiceNewNodeHandler := connect_go.NewUnaryHandler(
-		ProjectServiceNewNodeProcedure,
-		svc.NewNode,
-		opts...,
-	)
-	projectServiceGetProjectTypesHandler := connect_go.NewUnaryHandler(
-		ProjectServiceGetProjectTypesProcedure,
-		svc.GetProjectTypes,
-		opts...,
-	)
-	projectServiceSendChatHandler := connect_go.NewServerStreamHandler(
-		ProjectServiceSendChatProcedure,
-		svc.SendChat,
-		opts...,
-	)
-	projectServiceExportProjectHandler := connect_go.NewUnaryHandler(
-		ProjectServiceExportProjectProcedure,
-		svc.ExportProject,
-		opts...,
-	)
-	projectServiceLoadProjectHandler := connect_go.NewUnaryHandler(
-		ProjectServiceLoadProjectProcedure,
-		svc.LoadProject,
-		opts...,
-	)
-	projectServiceGetProjectHandler := connect_go.NewUnaryHandler(
-		ProjectServiceGetProjectProcedure,
-		svc.GetProject,
-		opts...,
-	)
-	projectServiceGetProjectsHandler := connect_go.NewUnaryHandler(
-		ProjectServiceGetProjectsProcedure,
-		svc.GetProjects,
+	projectServiceAddMethodHandler := connect_go.NewUnaryHandler(
+		ProjectServiceAddMethodProcedure,
+		svc.AddMethod,
 		opts...,
 	)
 	projectServiceCreateProjectHandler := connect_go.NewUnaryHandler(
@@ -374,29 +389,39 @@ func NewProjectServiceHandler(svc ProjectServiceHandler, opts ...connect_go.Hand
 		svc.EnumerateProviders,
 		opts...,
 	)
+	projectServiceExportProjectHandler := connect_go.NewUnaryHandler(
+		ProjectServiceExportProjectProcedure,
+		svc.ExportProject,
+		opts...,
+	)
+	projectServiceGenerateAIStubHandler := connect_go.NewUnaryHandler(
+		ProjectServiceGenerateAIStubProcedure,
+		svc.GenerateAIStub,
+		opts...,
+	)
+	projectServiceGetGRPCServerInfoHandler := connect_go.NewUnaryHandler(
+		ProjectServiceGetGRPCServerInfoProcedure,
+		svc.GetGRPCServerInfo,
+		opts...,
+	)
 	projectServiceGetNodeInfoHandler := connect_go.NewUnaryHandler(
 		ProjectServiceGetNodeInfoProcedure,
 		svc.GetNodeInfo,
 		opts...,
 	)
-	projectServiceSaveProjectHandler := connect_go.NewUnaryHandler(
-		ProjectServiceSaveProjectProcedure,
-		svc.SaveProject,
+	projectServiceGetProjectHandler := connect_go.NewUnaryHandler(
+		ProjectServiceGetProjectProcedure,
+		svc.GetProject,
 		opts...,
 	)
-	projectServiceRunWorkflowHandler := connect_go.NewServerStreamHandler(
-		ProjectServiceRunWorkflowProcedure,
-		svc.RunWorkflow,
+	projectServiceGetProjectTypesHandler := connect_go.NewUnaryHandler(
+		ProjectServiceGetProjectTypesProcedure,
+		svc.GetProjectTypes,
 		opts...,
 	)
-	projectServiceStopWorkflowHandler := connect_go.NewUnaryHandler(
-		ProjectServiceStopWorkflowProcedure,
-		svc.StopWorkflow,
-		opts...,
-	)
-	projectServiceGetWorkflowRunsHandler := connect_go.NewUnaryHandler(
-		ProjectServiceGetWorkflowRunsProcedure,
-		svc.GetWorkflowRuns,
+	projectServiceGetProjectsHandler := connect_go.NewUnaryHandler(
+		ProjectServiceGetProjectsProcedure,
+		svc.GetProjects,
 		opts...,
 	)
 	projectServiceGetRunningWorkflowsHandler := connect_go.NewUnaryHandler(
@@ -404,40 +429,81 @@ func NewProjectServiceHandler(svc ProjectServiceHandler, opts ...connect_go.Hand
 		svc.GetRunningWorkflows,
 		opts...,
 	)
+	projectServiceGetWorkflowRunsHandler := connect_go.NewUnaryHandler(
+		ProjectServiceGetWorkflowRunsProcedure,
+		svc.GetWorkflowRuns,
+		opts...,
+	)
+	projectServiceLoadProjectHandler := connect_go.NewUnaryHandler(
+		ProjectServiceLoadProjectProcedure,
+		svc.LoadProject,
+		opts...,
+	)
+	projectServiceNewNodeHandler := connect_go.NewUnaryHandler(
+		ProjectServiceNewNodeProcedure,
+		svc.NewNode,
+		opts...,
+	)
+	projectServiceRunGRPCMethodHandler := connect_go.NewServerStreamHandler(
+		ProjectServiceRunGRPCMethodProcedure,
+		svc.RunGRPCMethod,
+		opts...,
+	)
+	projectServiceRunWorkflowHandler := connect_go.NewServerStreamHandler(
+		ProjectServiceRunWorkflowProcedure,
+		svc.RunWorkflow,
+		opts...,
+	)
+	projectServiceSaveProjectHandler := connect_go.NewUnaryHandler(
+		ProjectServiceSaveProjectProcedure,
+		svc.SaveProject,
+		opts...,
+	)
+	projectServiceStopWorkflowHandler := connect_go.NewUnaryHandler(
+		ProjectServiceStopWorkflowProcedure,
+		svc.StopWorkflow,
+		opts...,
+	)
 	return "/project.ProjectService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
-		case ProjectServiceNewNodeProcedure:
-			projectServiceNewNodeHandler.ServeHTTP(w, r)
-		case ProjectServiceGetProjectTypesProcedure:
-			projectServiceGetProjectTypesHandler.ServeHTTP(w, r)
-		case ProjectServiceSendChatProcedure:
-			projectServiceSendChatHandler.ServeHTTP(w, r)
-		case ProjectServiceExportProjectProcedure:
-			projectServiceExportProjectHandler.ServeHTTP(w, r)
-		case ProjectServiceLoadProjectProcedure:
-			projectServiceLoadProjectHandler.ServeHTTP(w, r)
-		case ProjectServiceGetProjectProcedure:
-			projectServiceGetProjectHandler.ServeHTTP(w, r)
-		case ProjectServiceGetProjectsProcedure:
-			projectServiceGetProjectsHandler.ServeHTTP(w, r)
+		case ProjectServiceAddMethodProcedure:
+			projectServiceAddMethodHandler.ServeHTTP(w, r)
 		case ProjectServiceCreateProjectProcedure:
 			projectServiceCreateProjectHandler.ServeHTTP(w, r)
 		case ProjectServiceDeleteProjectProcedure:
 			projectServiceDeleteProjectHandler.ServeHTTP(w, r)
 		case ProjectServiceEnumerateProvidersProcedure:
 			projectServiceEnumerateProvidersHandler.ServeHTTP(w, r)
+		case ProjectServiceExportProjectProcedure:
+			projectServiceExportProjectHandler.ServeHTTP(w, r)
+		case ProjectServiceGenerateAIStubProcedure:
+			projectServiceGenerateAIStubHandler.ServeHTTP(w, r)
+		case ProjectServiceGetGRPCServerInfoProcedure:
+			projectServiceGetGRPCServerInfoHandler.ServeHTTP(w, r)
 		case ProjectServiceGetNodeInfoProcedure:
 			projectServiceGetNodeInfoHandler.ServeHTTP(w, r)
-		case ProjectServiceSaveProjectProcedure:
-			projectServiceSaveProjectHandler.ServeHTTP(w, r)
-		case ProjectServiceRunWorkflowProcedure:
-			projectServiceRunWorkflowHandler.ServeHTTP(w, r)
-		case ProjectServiceStopWorkflowProcedure:
-			projectServiceStopWorkflowHandler.ServeHTTP(w, r)
-		case ProjectServiceGetWorkflowRunsProcedure:
-			projectServiceGetWorkflowRunsHandler.ServeHTTP(w, r)
+		case ProjectServiceGetProjectProcedure:
+			projectServiceGetProjectHandler.ServeHTTP(w, r)
+		case ProjectServiceGetProjectTypesProcedure:
+			projectServiceGetProjectTypesHandler.ServeHTTP(w, r)
+		case ProjectServiceGetProjectsProcedure:
+			projectServiceGetProjectsHandler.ServeHTTP(w, r)
 		case ProjectServiceGetRunningWorkflowsProcedure:
 			projectServiceGetRunningWorkflowsHandler.ServeHTTP(w, r)
+		case ProjectServiceGetWorkflowRunsProcedure:
+			projectServiceGetWorkflowRunsHandler.ServeHTTP(w, r)
+		case ProjectServiceLoadProjectProcedure:
+			projectServiceLoadProjectHandler.ServeHTTP(w, r)
+		case ProjectServiceNewNodeProcedure:
+			projectServiceNewNodeHandler.ServeHTTP(w, r)
+		case ProjectServiceRunGRPCMethodProcedure:
+			projectServiceRunGRPCMethodHandler.ServeHTTP(w, r)
+		case ProjectServiceRunWorkflowProcedure:
+			projectServiceRunWorkflowHandler.ServeHTTP(w, r)
+		case ProjectServiceSaveProjectProcedure:
+			projectServiceSaveProjectHandler.ServeHTTP(w, r)
+		case ProjectServiceStopWorkflowProcedure:
+			projectServiceStopWorkflowHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -447,32 +513,8 @@ func NewProjectServiceHandler(svc ProjectServiceHandler, opts ...connect_go.Hand
 // UnimplementedProjectServiceHandler returns CodeUnimplemented from all methods.
 type UnimplementedProjectServiceHandler struct{}
 
-func (UnimplementedProjectServiceHandler) NewNode(context.Context, *connect_go.Request[gen.NewNodeRequest]) (*connect_go.Response[gen.NewNodeResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("project.ProjectService.NewNode is not implemented"))
-}
-
-func (UnimplementedProjectServiceHandler) GetProjectTypes(context.Context, *connect_go.Request[gen.GetProjectTypesRequest]) (*connect_go.Response[gen.ProjectTypes], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("project.ProjectService.GetProjectTypes is not implemented"))
-}
-
-func (UnimplementedProjectServiceHandler) SendChat(context.Context, *connect_go.Request[gen.SendChatRequest], *connect_go.ServerStream[gen.SendChatResponse]) error {
-	return connect_go.NewError(connect_go.CodeUnimplemented, errors.New("project.ProjectService.SendChat is not implemented"))
-}
-
-func (UnimplementedProjectServiceHandler) ExportProject(context.Context, *connect_go.Request[gen.ExportProjectRequest]) (*connect_go.Response[gen.ExportProjectResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("project.ProjectService.ExportProject is not implemented"))
-}
-
-func (UnimplementedProjectServiceHandler) LoadProject(context.Context, *connect_go.Request[gen.LoadProjectRequest]) (*connect_go.Response[gen.LoadProjectResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("project.ProjectService.LoadProject is not implemented"))
-}
-
-func (UnimplementedProjectServiceHandler) GetProject(context.Context, *connect_go.Request[gen.GetProjectRequest]) (*connect_go.Response[gen.GetProjectResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("project.ProjectService.GetProject is not implemented"))
-}
-
-func (UnimplementedProjectServiceHandler) GetProjects(context.Context, *connect_go.Request[gen.GetProjectsRequest]) (*connect_go.Response[gen.GetProjectsResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("project.ProjectService.GetProjects is not implemented"))
+func (UnimplementedProjectServiceHandler) AddMethod(context.Context, *connect_go.Request[gen.AddMethodRequest]) (*connect_go.Response[gen.AddMethodResponse], error) {
+	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("project.ProjectService.AddMethod is not implemented"))
 }
 
 func (UnimplementedProjectServiceHandler) CreateProject(context.Context, *connect_go.Request[gen.CreateProjectRequest]) (*connect_go.Response[gen.CreateProjectResponse], error) {
@@ -487,26 +529,62 @@ func (UnimplementedProjectServiceHandler) EnumerateProviders(context.Context, *c
 	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("project.ProjectService.EnumerateProviders is not implemented"))
 }
 
+func (UnimplementedProjectServiceHandler) ExportProject(context.Context, *connect_go.Request[gen.ExportProjectRequest]) (*connect_go.Response[gen.ExportProjectResponse], error) {
+	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("project.ProjectService.ExportProject is not implemented"))
+}
+
+func (UnimplementedProjectServiceHandler) GenerateAIStub(context.Context, *connect_go.Request[gen.GenerateAIStubRequest]) (*connect_go.Response[gen.GenerateCode], error) {
+	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("project.ProjectService.GenerateAIStub is not implemented"))
+}
+
+func (UnimplementedProjectServiceHandler) GetGRPCServerInfo(context.Context, *connect_go.Request[gen.GetGRPCServerInfoRequest]) (*connect_go.Response[gen.GetGRPCServerInfoResponse], error) {
+	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("project.ProjectService.GetGRPCServerInfo is not implemented"))
+}
+
 func (UnimplementedProjectServiceHandler) GetNodeInfo(context.Context, *connect_go.Request[gen.GetNodeInfoRequest]) (*connect_go.Response[gen.GetNodeInfoResponse], error) {
 	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("project.ProjectService.GetNodeInfo is not implemented"))
 }
 
-func (UnimplementedProjectServiceHandler) SaveProject(context.Context, *connect_go.Request[gen.SaveProjectRequest]) (*connect_go.Response[gen.SaveProjectResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("project.ProjectService.SaveProject is not implemented"))
+func (UnimplementedProjectServiceHandler) GetProject(context.Context, *connect_go.Request[gen.GetProjectRequest]) (*connect_go.Response[gen.GetProjectResponse], error) {
+	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("project.ProjectService.GetProject is not implemented"))
 }
 
-func (UnimplementedProjectServiceHandler) RunWorkflow(context.Context, *connect_go.Request[gen.RunWorkflowRequest], *connect_go.ServerStream[gen.NodeExecution]) error {
-	return connect_go.NewError(connect_go.CodeUnimplemented, errors.New("project.ProjectService.RunWorkflow is not implemented"))
+func (UnimplementedProjectServiceHandler) GetProjectTypes(context.Context, *connect_go.Request[gen.GetProjectTypesRequest]) (*connect_go.Response[gen.ProjectTypes], error) {
+	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("project.ProjectService.GetProjectTypes is not implemented"))
 }
 
-func (UnimplementedProjectServiceHandler) StopWorkflow(context.Context, *connect_go.Request[gen.StopWorkflowRequest]) (*connect_go.Response[gen.StopWorkflowResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("project.ProjectService.StopWorkflow is not implemented"))
+func (UnimplementedProjectServiceHandler) GetProjects(context.Context, *connect_go.Request[gen.GetProjectsRequest]) (*connect_go.Response[gen.GetProjectsResponse], error) {
+	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("project.ProjectService.GetProjects is not implemented"))
+}
+
+func (UnimplementedProjectServiceHandler) GetRunningWorkflows(context.Context, *connect_go.Request[gen.GetRunningWorkflowsRequest]) (*connect_go.Response[gen.GetRunningWorkflowResponse], error) {
+	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("project.ProjectService.GetRunningWorkflows is not implemented"))
 }
 
 func (UnimplementedProjectServiceHandler) GetWorkflowRuns(context.Context, *connect_go.Request[gen.GetWorkflowRunsRequest]) (*connect_go.Response[gen.GetWorkflowRunsResponse], error) {
 	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("project.ProjectService.GetWorkflowRuns is not implemented"))
 }
 
-func (UnimplementedProjectServiceHandler) GetRunningWorkflows(context.Context, *connect_go.Request[gen.GetRunningWorkflowsRequest]) (*connect_go.Response[gen.GetRunningWorkflowResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("project.ProjectService.GetRunningWorkflows is not implemented"))
+func (UnimplementedProjectServiceHandler) LoadProject(context.Context, *connect_go.Request[gen.LoadProjectRequest]) (*connect_go.Response[gen.LoadProjectResponse], error) {
+	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("project.ProjectService.LoadProject is not implemented"))
+}
+
+func (UnimplementedProjectServiceHandler) NewNode(context.Context, *connect_go.Request[gen.NewNodeRequest]) (*connect_go.Response[gen.NewNodeResponse], error) {
+	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("project.ProjectService.NewNode is not implemented"))
+}
+
+func (UnimplementedProjectServiceHandler) RunGRPCMethod(context.Context, *connect_go.Request[gen.RunGRPCMethodRequest], *connect_go.ServerStream[gen.NodeExecution]) error {
+	return connect_go.NewError(connect_go.CodeUnimplemented, errors.New("project.ProjectService.RunGRPCMethod is not implemented"))
+}
+
+func (UnimplementedProjectServiceHandler) RunWorkflow(context.Context, *connect_go.Request[gen.RunWorkflowRequest], *connect_go.ServerStream[gen.NodeExecution]) error {
+	return connect_go.NewError(connect_go.CodeUnimplemented, errors.New("project.ProjectService.RunWorkflow is not implemented"))
+}
+
+func (UnimplementedProjectServiceHandler) SaveProject(context.Context, *connect_go.Request[gen.SaveProjectRequest]) (*connect_go.Response[gen.SaveProjectResponse], error) {
+	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("project.ProjectService.SaveProject is not implemented"))
+}
+
+func (UnimplementedProjectServiceHandler) StopWorkflow(context.Context, *connect_go.Request[gen.StopWorkflowRequest]) (*connect_go.Response[gen.StopWorkflowResponse], error) {
+	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("project.ProjectService.StopWorkflow is not implemented"))
 }

@@ -34,7 +34,8 @@ func NewServerProto(runtime code.Runtime) *code.Code {
 		Type: &code.Code_Server{
 			Server: &code.Server{
 				Runtime: runtime,
-				Grpc:    grpc.NewServerProto("localhost:8080").GetServer(),
+				// TODO breadchris should there be a default URL?
+				Grpc: grpc.NewServerProto("localhost:8000").GetServer(),
 			},
 		},
 	}

@@ -9,14 +9,11 @@ import (
 	"github.com/protoflow-labs/protoflow/gen/reason"
 	"github.com/protoflow-labs/protoflow/pkg/graph"
 	"github.com/protoflow-labs/protoflow/pkg/graph/node/base"
-	"github.com/protoflow-labs/protoflow/pkg/graph/node/data"
 	"github.com/protoflow-labs/protoflow/pkg/grpc"
-	openaiclient "github.com/protoflow-labs/protoflow/pkg/openai"
 	"github.com/protoflow-labs/protoflow/pkg/util/rx"
 	"github.com/reactivex/rxgo/v2"
 	"github.com/rs/zerolog/log"
 	"github.com/sashabaranov/go-openai"
-	"go.uber.org/config"
 )
 
 type PromptNode struct {
@@ -73,7 +70,7 @@ func (n *PromptNode) Wire(ctx context.Context, input graph.IO) (graph.IO, error)
 	if err != nil {
 		return graph.IO{}, err
 	}
-	r, ok := p.(*Engine)
+	_, ok := p.(*Engine)
 	if !ok {
 		return graph.IO{}, errors.New("error getting reason engine resource")
 	}
@@ -116,16 +113,16 @@ func (n *PromptNode) Wire(ctx context.Context, input graph.IO) (graph.IO, error)
 			Content: normalizedItem,
 		})
 
-		s, err := r.QAClient.Ask(c, int(n.MinTokenCount))
-		if err != nil {
-			outputStream <- rx.NewError(errors.Wrapf(err, "error executing prompt: %s", n.NormalizedName()))
-		}
+		//s, err := r.QAClient.Ask(c, int(n.MinTokenCount))
+		//if err != nil {
+		//	outputStream <- rx.NewError(errors.Wrapf(err, "error executing prompt: %s", n.NormalizedName()))
+		//}
 
 		// TODO breadchris react to a function call on s.FunctionCall
 
 		// TODO breadchris this should be a static type. This is a brittle type that maps to workflow.go:133
 		outputStream <- rx.NewItem(map[string]any{
-			"result": s,
+			"result": "TODO",
 		})
 	}, func(err error) {
 		outputStream <- rx.NewError(err)
@@ -140,7 +137,7 @@ func (n *PromptNode) Wire(ctx context.Context, input graph.IO) (graph.IO, error)
 type Engine struct {
 	*base.Node
 	*reason.Engine
-	QAClient openaiclient.QAClient
+	//QAClient openaiclient.QAClient
 }
 
 func NewEngineNode(b *base.Node, node *reason.Engine) *Engine {
@@ -152,39 +149,40 @@ func NewEngineNode(b *base.Node, node *reason.Engine) *Engine {
 
 func (n *Engine) Wire(ctx context.Context, input graph.IO) (graph.IO, error) {
 	// TODO breadchris replace with some type of dependency injection capability
-	var (
-		configProvider config.Provider
-		err            error
-	)
-	staticConfig := map[string]interface{}{
-		"openai": openaiclient.NewDefaultConfig(),
-	}
-	p, err := n.Provider()
-	if err != nil {
-		return graph.IO{}, err
-	}
-	t, ok := p.(*data.ConfigNode)
-	if !ok {
-		return graph.IO{}, errors.New("error getting config node resource")
-	}
-
-	// TODO breadchris how do we handle resources that need to be initialized before others?
-	configProvider, err = t.NewConfigProvider(config.Static(staticConfig))
-	if err != nil {
-		return graph.IO{}, errors.Wrapf(err, "failed to build config provider")
-	}
-
-	if configProvider == nil {
-		return graph.IO{}, errors.New("config provider not found")
-	}
-	c, err := openaiclient.Wire(configProvider)
-	if err != nil {
-		return graph.IO{}, errors.Wrapf(err, "failed to initialize openai client")
-	}
-	n.QAClient = c
-	return graph.IO{
-		Observable: input.Observable,
-	}, nil
+	//var (
+	//	configProvider config.Provider
+	//	err            error
+	//)
+	//staticConfig := map[string]interface{}{
+	//	"openai": openaiclient.NewDefaultConfig(),
+	//}
+	//p, err := n.Provider()
+	//if err != nil {
+	//	return graph.IO{}, err
+	//}
+	//t, ok := p.(*data.ConfigNode)
+	//if !ok {
+	//	return graph.IO{}, errors.New("error getting config node resource")
+	//}
+	//
+	//// TODO breadchris how do we handle resources that need to be initialized before others?
+	//configProvider, err = t.NewConfigProvider(config.Static(staticConfig))
+	//if err != nil {
+	//	return graph.IO{}, errors.Wrapf(err, "failed to build config provider")
+	//}
+	//
+	//if configProvider == nil {
+	//	return graph.IO{}, errors.New("config provider not found")
+	//}
+	//c, err := openaiclient.Wire(configProvider)
+	//if err != nil {
+	//	return graph.IO{}, errors.Wrapf(err, "failed to initialize openai client")
+	//}
+	//n.QAClient = c
+	//return graph.IO{
+	//	Observable: input.Observable,
+	//}, nil
+	return graph.IO{}, nil
 }
 
 func (n *Engine) Provide() ([]*gen.Node, error) {

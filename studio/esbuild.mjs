@@ -1,62 +1,83 @@
 import esbuild from "esbuild";
-import {postcssModules, sassPlugin} from "esbuild-sass-plugin";
-import { swcPlugin } from "esbuild-plugin-swc";
-import { NodeModulesPolyfillPlugin } from "@esbuild-plugins/node-modules-polyfill";
-import tailwindcss from 'tailwindcss';
-import autoprefixer from 'autoprefixer';
-import postcss from "postcss";
+import {spawn, spawnSync} from "child_process";
 
 const prodBuild = process.env.BUILD === 'true'
+const target = process.env.TARGET || 'site'
+const buildDir = prodBuild ? 'dist' : 'build'
 
-const watch = !prodBuild ? {
-    onRebuild: () => {
-        console.log("rebuilt!");
-    },
-} : undefined;
+const buildVSCode = target === 'vscode' || prodBuild
+const buildSite = target === 'site' || prodBuild
 
-const minify = prodBuild;
+const runTailwindBuild = (watch, outfile) => {
+    console.log("Building Tailwind CSS...");
+    try {
+        const command = 'npx';
+        const args = [
+            'tailwindcss',
+            'build',
+            '-i', 'src/styles/tailwind.css',
+            '-o', outfile
+        ];
 
-const nodeEnv = prodBuild ? "'production'" : "'development'";
-const options = {
-    entryPoints: [
-        "./src/index.tsx",
-        "./src/styles/globals.css",
-    ],
-    outdir: "public/build/",
+        if (watch) {
+            args.push('--watch')
+            spawn(command, args, {
+                stdio: 'inherit'
+            })
+        } else {
+            spawnSync(command, args, {
+                stdio: 'inherit'
+            });
+        }
+        console.log("Tailwind CSS build successful!");
+    } catch (error) {
+        console.error("Error building Tailwind CSS:", error.message);
+    }
+};
+
+async function doBuild(options, serve) {
+    // TODO breadchris support tailwind for extension
+    if (buildSite) {
+        runTailwindBuild(!prodBuild, `${options.outdir}/tailwind.css`);
+    }
+    if (prodBuild) {
+        await esbuild.build(options);
+    } else {
+        try {
+            const context = await esbuild
+                .context(options);
+
+            await context.rebuild()
+            if (serve) {
+                console.log('serving', `${buildDir}/site`)
+                context.serve({
+                    port: 8001,
+                    servedir: `${buildDir}/site`,
+                    fallback: `${buildDir}/site/index.html`,
+                    onRequest: args => {
+                        console.log(args.method, args.path)
+                    }
+                })
+            }
+            await context.watch()
+        } catch (e) {
+            console.error('failed to build: ' + e)
+        }
+    }
+}
+
+const baseOptions = {
     bundle: true,
     loader: {
         ".ts": "tsx",
         ".tsx": "tsx",
         ".woff2": "file",
         ".woff": "file",
+        ".html": "copy",
+        ".json": "copy",
+        ".ico": "copy",
     },
-    plugins: [
-        // TODO breadchris use swc over tsc
-        // swcPlugin(),
-        NodeModulesPolyfillPlugin(),
-        sassPlugin({
-            filter: /\.css$/,
-            type: "style",
-            // todo: get postcss to live reload properly
-            async transform(source, resolveDir, filePath) {
-                const transformed = await postcss([
-                    tailwindcss(
-                        {
-                            content: [
-                                './src/**/*.{js,jsx,ts,tsx}',
-                            ],
-                            theme: {
-                                extend: {},
-                            },
-                            plugins: [],
-                        }
-                    ),
-                    autoprefixer,
-                ]).process(source, {from: filePath});
-                return transformed.css;
-            },
-        }),
-    ],
+    plugins: [],
     minify: false,
     sourcemap: "linked",
     define: {
@@ -65,19 +86,25 @@ const options = {
     logLevel: 'info'
 };
 
-if (prodBuild) {
-    await esbuild.build(options);
-} else {
-    try {
-        const context = await esbuild
-            .context(options);
-
-        await context.rebuild()
-        context.serve({
-            servedir: 'public',
-        })
-        await context.watch()
-    } catch (e) {
-        console.error('failed to build: ' + e)
-    }
+if (buildSite) {
+    await doBuild({
+        ...baseOptions,
+        entryPoints: [
+            "./src/index.tsx",
+            "./src/styles/globals.css",
+            "./src/favicon.ico",
+            "./src/index.html",
+        ],
+        outdir: `${buildDir}/site/`,
+    }, true);
 }
+
+// if (buildVSCode) {
+//     await doBuild({
+//         ...baseOptions,
+//         entryPoints: [
+//             "./src/extension/extension.ts",
+//         ],
+//         outdir: `${buildDir}/extension/`,
+//     }, false);
+// }

@@ -15,8 +15,6 @@ func (g GoManager) GenerateGRPCService(r *code.Server) error {
 	panic("implement me")
 }
 
-var _ LanguageManager = &GoManager{}
-
 func NewGoManager(c bucket.Bucket) (*GoManager, error) {
 	codeRoot, err := c.WithDir("golang")
 	if err != nil {

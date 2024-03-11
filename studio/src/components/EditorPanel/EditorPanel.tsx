@@ -120,6 +120,8 @@ const ActiveNodeEditor: React.FC<NodeEditorProps> = ({node}) => {
 export function EditorPanel() {
   const { selectedNodes, selectedEdges } = useEditorContext();
 
+  console.log(selectedNodes, selectedEdges)
+
   const getEditor = () => {
     if (selectedNodes.length > 0) {
       return <ActiveNodeEditor node={selectedNodes[0]} />;

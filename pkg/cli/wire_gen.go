@@ -7,14 +7,14 @@
 package cli
 
 import (
-	"github.com/protoflow-labs/protoflow/pkg/api"
 	"github.com/protoflow-labs/protoflow/pkg/bucket"
 	"github.com/protoflow-labs/protoflow/pkg/config"
 	"github.com/protoflow-labs/protoflow/pkg/db"
 	"github.com/protoflow-labs/protoflow/pkg/generate"
+	"github.com/protoflow-labs/protoflow/pkg/llm"
 	"github.com/protoflow-labs/protoflow/pkg/log"
-	"github.com/protoflow-labs/protoflow/pkg/openai"
 	"github.com/protoflow-labs/protoflow/pkg/project"
+	"github.com/protoflow-labs/protoflow/pkg/server"
 	"github.com/protoflow-labs/protoflow/pkg/store"
 	"github.com/protoflow-labs/protoflow/pkg/workflow"
 	"github.com/urfave/cli/v2"
@@ -31,7 +31,7 @@ func Wire(cacheConfig bucket.Config) (*cli.App, error) {
 	if err != nil {
 		return nil, err
 	}
-	apiConfig, err := api.NewConfig(provider)
+	serverConfig, err := server.NewConfig(provider)
 	if err != nil {
 		return nil, err
 	}
@@ -47,22 +47,21 @@ func Wire(cacheConfig bucket.Config) (*cli.App, error) {
 	if err != nil {
 		return nil, err
 	}
-	openaiConfig, err := openai.NewConfig(provider)
-	if err != nil {
-		return nil, err
-	}
-	openAIQAClient, err := openai.NewOpenAIQAClient(openaiConfig)
-	if err != nil {
-		return nil, err
-	}
-	chatServer := openai.NewChat(openAIQAClient)
 	genProject, err := project.NewDefaultProject(localBucket)
 	if err != nil {
 		return nil, err
 	}
 	workflowManager := workflow.NewWorkflowManager()
 	managerBuilder := workflow.NewManagerBuilder(workflowManager)
-	service, err := project.NewService(projectStore, localBucket, chatServer, genProject, managerBuilder, workflowManager)
+	llmConfig, err := llm.NewConfig(provider)
+	if err != nil {
+		return nil, err
+	}
+	agent, err := llm.NewAgent(llmConfig)
+	if err != nil {
+		return nil, err
+	}
+	service, err := project.NewService(projectStore, localBucket, genProject, managerBuilder, workflowManager, agent)
 	if err != nil {
 		return nil, err
 	}
@@ -74,7 +73,7 @@ func Wire(cacheConfig bucket.Config) (*cli.App, error) {
 	if err != nil {
 		return nil, err
 	}
-	httpServer, err := api.NewHTTPServer(apiConfig, service, generateService)
+	httpServer, err := server.NewHTTPServer(serverConfig, service, generateService)
 	if err != nil {
 		return nil, err
 	}

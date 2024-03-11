@@ -13,7 +13,7 @@ import {BaseNodeCard} from "@/components/BaseNodeCard";
 import {BiClipboard} from "react-icons/bi";
 import {Node as ProtoNode, NodeDetails} from "@/rpc/graph_pb";
 
-const NodeButton: React.FC<{ provider: NodeDetails, node: ProtoNode }> = ({ node, provider }) => {
+export const NodeButton: React.FC<{ provider: NodeDetails, node: ProtoNode }> = ({ node, provider }) => {
     const { setDraggedNode } = useEditorContext();
     return (
         <div

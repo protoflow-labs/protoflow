@@ -46,8 +46,8 @@ func (g *DockerComposeGenerate) Generate(project *project.Project) error {
 		Command: []string{"protoflow", "run"},
 		Ports: []types.ServicePortConfig{
 			{
-				Target:    8080,
-				Published: 8080,
+				Target:    8000,
+				Published: 8000,
 			},
 		},
 		Volumes: []types.ServiceVolumeConfig{
@@ -83,8 +83,8 @@ func (g *DockerComposeGenerate) Generate(project *project.Project) error {
 		Command: []string{"node", "index.js"},
 		Ports: []types.ServicePortConfig{
 			{
-				Target:    8080,
-				Published: 8080,
+				Target:    8000,
+				Published: 8000,
 			},
 		},
 	})

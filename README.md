@@ -30,7 +30,7 @@ protoflow studio
 go run main.go studio --dev
 ```
 
-Backend will proxy to the frontend, so you can just open http://localhost:8080 to see the frontend.
+Backend will proxy to the frontend, so you can just open http://localhost:8000 to see the frontend.
 
 ### Studio
 ```shell
@@ -38,7 +38,7 @@ npm install
 npm run dev
 ```
 
-Starts the studio frontend at http://localhost:8000.
+Starts the studio frontend at http://localhost:8001.
 
 ### Haphazard notes
 - "a framework to easily build small/modular grpc services" -> yes, i want to make it so you bring your code:  

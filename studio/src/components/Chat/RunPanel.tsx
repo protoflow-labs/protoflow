@@ -14,9 +14,9 @@ import {JsonViewer} from "@/components/jsonViewer";
 import {toast} from "react-hot-toast";
 import ReactMarkdown from "react-markdown";
 import {useCurrentNode, useEditorContext} from "@/providers/EditorProvider";
-import {GRPCInputFormProps, ProtobufInputForm} from "@/components/ProtobufForm/ProtobufInputForm";
 import {useForm} from "react-hook-form";
 import {Node as ProtoNode} from "@/rpc/graph_pb";
+import {GRPCInputFormProps, ProtoForm} from "@/components/ProtoForm/ProtoForm";
 
 export function getNodeDataKey(node: ProtoNode) {
     return `${node.id}-sampleData`;
@@ -53,7 +53,6 @@ const Form: React.FC<FormProps> = ({ data, onRun }) => {
         return null;
     }
 
-    //@ts-ignore
     const inputFormProps: GRPCInputFormProps = {
         grpcInfo: nodeInfo.typeInfo,
         // some random key to separate data from the form
@@ -71,7 +70,7 @@ const Form: React.FC<FormProps> = ({ data, onRun }) => {
             <DialogTitle>Dialog title</DialogTitle>
             <form onSubmit={handleSubmit(onRun)}>
                 <DialogContent>
-                    <ProtobufInputForm {...inputFormProps} />
+                    <ProtoForm {...inputFormProps} />
                 </DialogContent>
                 <DialogActions>
                     <DialogTrigger disableButtonEnhancement>

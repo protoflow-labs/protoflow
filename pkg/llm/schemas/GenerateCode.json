@@ -1,0 +1,17 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$ref": "#/definitions/GenerateCode",
+    "definitions": {
+        "GenerateCode": {
+            "properties": {
+                "code": {
+                    "type": "string",
+                    "description": "Code that has been generated."
+                }
+            },
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Generate Code"
+        }
+    }
+}
